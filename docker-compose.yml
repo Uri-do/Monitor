@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  monitoring-grid:
+    build: .
+    container_name: monitoring-grid
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MonitoringGrid=data source=192.168.166.11,1433;initial catalog=PopAI;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true
+      - ConnectionStrings__MainDatabase=data source=192.168.166.11,1433;initial catalog=ProgressPlayDBTest;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true
+      - Monitoring__EnableSms=true
+      - Monitoring__EnableEmail=true
+      - Monitoring__AdminEmail=admin@example.com
+      - Email__SmtpServer=smtp.example.com
+      - Email__SmtpPort=587
+      - Email__Username=monitoring@example.com
+      - Email__Password=your-email-password
+      - Email__FromAddress=monitoring@example.com
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Add a monitoring dashboard
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: monitoring-dashboard
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+
+volumes:
+  grafana-data:

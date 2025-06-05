@@ -1,0 +1,17 @@
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Infrastructure.deps.json
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Infrastructure.runtimeconfig.json
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Infrastructure.dll
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Infrastructure.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Core.dll
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\bin\Debug\net8.0\MonitoringGrid.Core.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.csproj.AssemblyReference.cache
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.AssemblyInfoInputs.cache
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.AssemblyInfo.cs
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.csproj.CopyComplete
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.dll
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\refint\MonitoringGrid.Infrastructure.dll
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.genruntimeconfig.cache
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\ref\MonitoringGrid.Infrastructure.dll
