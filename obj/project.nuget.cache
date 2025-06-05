@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "2aQ8EymrcvEfLrgyIXOhu+Q7Ff7cajn7ICDHkK/+4TyVupGUNJBa6j5Yc9cHu+d/csFLvQaPyxUQrUivL49pTA==",
+  "dgSpecHash": "I9SpRV134zsIWNusIZz0sJdNtQDgaiPmNIRw6SJcQo9AA7iIizZq+n6PqwS3DIivHfHhjFy0QI04DGEqptrdgA==",
   "success": true,
   "projectFilePath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Work\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
-    "C:\\Users\\Work\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\azure.core\\1.36.0\\azure.core.1.36.0.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\azure.identity\\1.10.4\\azure.identity.1.10.4.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\azure.security.keyvault.secrets\\4.5.0\\azure.security.keyvault.secrets.4.5.0.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.3.3\\microsoft.codeanalysis.analyzers.3.3.3.nupkg.sha512",

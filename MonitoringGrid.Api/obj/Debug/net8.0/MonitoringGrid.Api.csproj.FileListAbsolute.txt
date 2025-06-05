@@ -156,3 +156,6 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\refint\MonitoringGrid.Ap
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.pdb
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.genruntimeconfig.cache
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\ref\MonitoringGrid.Api.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Azure.Security.KeyVault.Secrets.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll

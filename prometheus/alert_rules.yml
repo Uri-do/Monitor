@@ -1,0 +1,222 @@
+groups:
+  - name: monitoring-grid-alerts
+    rules:
+      # Application Health Alerts
+      - alert: MonitoringGridDown
+        expr: up{job="monitoring-grid-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: monitoring-grid
+        annotations:
+          summary: "MonitoringGrid API is down"
+          description: "MonitoringGrid API has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring-grid
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring-grid
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds."
+
+      # Database Alerts
+      - alert: DatabaseConnectionFailure
+        expr: sqlserver_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database connection failure"
+          description: "Cannot connect to SQL Server database."
+
+      - alert: HighDatabaseConnections
+        expr: sqlserver_connections > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connections"
+          description: "Database has {{ $value }} active connections."
+
+      - alert: DatabaseDiskSpaceLow
+        expr: sqlserver_disk_free_percent < 10
+        for: 5m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database disk space low"
+          description: "Database disk space is {{ $value }}% free."
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache server is not responding."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Disk space low"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # Kubernetes Alerts
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping."
+
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="false"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not ready."
+
+      - alert: DeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas != kube_deployment_status_available_replicas
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Deployment replicas mismatch"
+          description: "Deployment {{ $labels.deployment }} has {{ $value }} available replicas, expected {{ $labels.spec_replicas }}."
+
+      # Application-Specific Alerts
+      - alert: KPIExecutionFailure
+        expr: increase(monitoring_grid_kpi_execution_failures_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: monitoring-grid
+        annotations:
+          summary: "High KPI execution failures"
+          description: "{{ $value }} KPI executions have failed in the last 5 minutes."
+
+      - alert: AlertDeliveryFailure
+        expr: increase(monitoring_grid_alert_delivery_failures_total[5m]) > 3
+        for: 2m
+        labels:
+          severity: critical
+          service: monitoring-grid
+        annotations:
+          summary: "Alert delivery failures"
+          description: "{{ $value }} alert deliveries have failed in the last 5 minutes."
+
+      - alert: HighQueueDepth
+        expr: monitoring_grid_queue_depth > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring-grid
+        annotations:
+          summary: "High queue depth"
+          description: "Queue depth is {{ $value }} items."
+
+      # Security Alerts
+      - alert: HighFailedLoginAttempts
+        expr: increase(monitoring_grid_failed_login_attempts_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High failed login attempts"
+          description: "{{ $value }} failed login attempts in the last 5 minutes."
+
+      - alert: SuspiciousActivity
+        expr: increase(monitoring_grid_security_events_total{type="suspicious"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "{{ $value }} suspicious security events detected."
+
+  - name: business-metrics
+    rules:
+      # Business KPI Alerts
+      - alert: CriticalKPIThresholdExceeded
+        expr: monitoring_grid_kpi_deviation_percent > 50
+        for: 1m
+        labels:
+          severity: critical
+          service: business
+        annotations:
+          summary: "Critical KPI threshold exceeded"
+          description: "KPI {{ $labels.kpi_name }} has exceeded threshold by {{ $value }}%."
+
+      - alert: KPIDataStale
+        expr: time() - monitoring_grid_kpi_last_execution_timestamp > 3600
+        for: 5m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "KPI data is stale"
+          description: "KPI {{ $labels.kpi_name }} has not been updated for over 1 hour."

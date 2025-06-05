@@ -10,3 +10,4 @@ C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\refint\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.pdb
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\ref\MonitoringGrid.Core.dll
+C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.csproj.AssemblyReference.cache
