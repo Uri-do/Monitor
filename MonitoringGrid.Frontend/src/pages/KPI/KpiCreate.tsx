@@ -181,9 +181,16 @@ const KpiCreate: React.FC = () => {
     };
 
     if (isEdit) {
-      updateMutation.mutate({ ...formData, kpiId });
+      updateMutation.mutate({
+        ...formData,
+        kpiId,
+        isActive: formData.isActive ?? true
+      });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate({
+        ...formData,
+        isActive: formData.isActive ?? true
+      });
     }
   };
 

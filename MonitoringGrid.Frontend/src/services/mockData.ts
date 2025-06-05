@@ -158,7 +158,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
   totalKpis: 3,
   activeKpis: 3,
   inactiveKpis: 0,
-  kpisInError: 1,
+  kpisInErrorCount: 1,
   kpisDue: 1,
   alertsToday: 2,
   alertsThisWeek: 8,
@@ -178,7 +178,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastDeviation: -18.2
     }
   ],
-  kpisInErrorList: [],
+  kpisInError: [],
   dueKpis: [
     {
       kpiId: 2,

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
-using MonitoringGrid.Core.DTOs;
+using MonitoringGrid.Api.DTOs;
 
 namespace MonitoringGrid.Api.Hubs;
 

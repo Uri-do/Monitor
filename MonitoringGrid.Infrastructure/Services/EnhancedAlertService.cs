@@ -151,7 +151,7 @@ public class EnhancedAlertService : IAlertService
         var now = DateTime.UtcNow;
         
         // Check for active suppression rules
-        var suppressionRules = await _context.Set<AlertSuppressionRule>()
+        var suppressionRules = await _context.Set<MonitoringGrid.Core.Entities.AlertSuppressionRule>()
             .Where(r => r.IsActive && 
                        r.StartTime <= now && 
                        r.EndTime >= now &&
@@ -183,7 +183,7 @@ public class EnhancedAlertService : IAlertService
 
     private AlertSeverity DetermineAlertSeverity(KPI kpi, KpiExecutionResult executionResult)
     {
-        var deviation = Math.Abs(executionResult.DeviationPercentage);
+        var deviation = Math.Abs(executionResult.DeviationPercent);
         
         return deviation switch
         {
@@ -218,10 +218,13 @@ public class EnhancedAlertService : IAlertService
             TriggerTime = DateTime.UtcNow,
             CurrentValue = executionResult.CurrentValue,
             HistoricalValue = executionResult.HistoricalValue,
-            DeviationPercentage = executionResult.DeviationPercentage,
+            DeviationPercent = executionResult.DeviationPercent,
+            Message = subject,
+            Details = body,
             Subject = subject,
             Description = body,
             SentVia = 0, // Will be updated as notifications are sent
+            SentTo = string.Empty, // Will be updated as notifications are sent
             IsResolved = false
         };
 
@@ -285,27 +288,111 @@ public class EnhancedAlertService : IAlertService
         }
     }
 
-    private async Task ScheduleEscalationsAsync(int alertId, KPI kpi, AlertSeverity severity, CancellationToken cancellationToken)
+    private async Task ScheduleEscalationsAsync(long alertId, KPI kpi, AlertSeverity severity, CancellationToken cancellationToken)
     {
         // Implementation for scheduling escalations
         // This would create escalation records in the database
         _logger.LogDebug("Scheduling escalations for alert {AlertId}", alertId);
     }
 
-    private async Task ScheduleAutoResolutionAsync(int alertId, CancellationToken cancellationToken)
+    private async Task ScheduleAutoResolutionAsync(long alertId, CancellationToken cancellationToken)
     {
         // Implementation for scheduling auto-resolution
         _logger.LogDebug("Scheduling auto-resolution for alert {AlertId}", alertId);
     }
 
-    private string BuildMessageFromTemplate(string template, KPI kpi, KpiExecutionResult result)
+    public string BuildMessageFromTemplate(string template, KPI kpi, KpiExecutionResult result)
     {
         return template
             .Replace("{{indicator}}", kpi.Indicator)
             .Replace("{{owner}}", kpi.Owner)
             .Replace("{{current}}", result.CurrentValue.ToString("N2"))
             .Replace("{{historical}}", result.HistoricalValue.ToString("N2"))
-            .Replace("{{deviation}}", result.DeviationPercentage.ToString("N2"))
+            .Replace("{{deviation}}", result.DeviationPercent.ToString("N2"))
             .Replace("{{timestamp}}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"));
+    }
+
+    public async Task LogAlertAsync(KPI kpi, AlertResult alertResult, KpiExecutionResult executionResult, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var alertLog = new AlertLog
+            {
+                KpiId = kpi.KpiId,
+                TriggerTime = DateTime.UtcNow,
+                CurrentValue = executionResult.CurrentValue,
+                HistoricalValue = executionResult.HistoricalValue,
+                DeviationPercent = executionResult.DeviationPercent,
+                Message = alertResult.Message,
+                Details = string.Join("; ", alertResult.Errors),
+                Subject = alertResult.Message,
+                Description = string.Join("; ", alertResult.Errors),
+                SentVia = (byte)((alertResult.EmailsSent > 0 ? 1 : 0) | (alertResult.SmsSent > 0 ? 2 : 0)),
+                SentTo = string.Empty, // Will be populated with actual recipients
+                IsResolved = false
+            };
+
+            _context.AlertLogs.Add(alertLog);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Alert logged for KPI {Indicator}", kpi.Indicator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log alert for KPI {Indicator}", kpi.Indicator);
+        }
+    }
+
+    public async Task<bool> ResolveAlertAsync(long alertId, string resolvedBy, string? resolutionNotes = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var alert = await _context.AlertLogs.FindAsync(new object[] { alertId }, cancellationToken);
+            if (alert != null)
+            {
+                alert.IsResolved = true;
+                alert.ResolvedTime = DateTime.UtcNow;
+                alert.ResolvedBy = resolvedBy;
+                alert.ResolutionNotes = resolutionNotes;
+
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Alert {AlertId} resolved by {ResolvedBy}", alertId, resolvedBy);
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resolve alert {AlertId}", alertId);
+            return false;
+        }
+    }
+
+    public async Task<int> BulkResolveAlertsAsync(IEnumerable<long> alertIds, string resolvedBy, string? resolutionNotes = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var longAlertIds = alertIds.ToList();
+            var alerts = await _context.AlertLogs
+                .Where(a => longAlertIds.Contains(a.AlertId))
+                .ToListAsync(cancellationToken);
+
+            foreach (var alert in alerts)
+            {
+                alert.IsResolved = true;
+                alert.ResolvedTime = DateTime.UtcNow;
+                alert.ResolvedBy = resolvedBy;
+                alert.ResolutionNotes = resolutionNotes;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Bulk resolved {Count} alerts by {ResolvedBy}", alerts.Count(), resolvedBy);
+            return alerts.Count();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to bulk resolve alerts");
+            return 0;
+        }
     }
 }

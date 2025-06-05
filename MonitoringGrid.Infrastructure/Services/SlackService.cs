@@ -88,7 +88,7 @@ public class SlackService : ISlackService
                             new SlackField { Title = "KPI", Value = alert.Indicator, Short = true },
                             new SlackField { Title = "Owner", Value = alert.Owner, Short = true },
                             new SlackField { Title = "Severity", Value = alert.Severity, Short = true },
-                            new SlackField { Title = "Priority", Value = GetPriorityText(alert.Priority), Short = true },
+                            new SlackField { Title = "Priority", Value = alert.Priority.ToString(), Short = true },
                             new SlackField { Title = "Current Value", Value = alert.CurrentValue.ToString("N2"), Short = true },
                             new SlackField { Title = "Historical Value", Value = alert.HistoricalValue.ToString("N2"), Short = true },
                             new SlackField { Title = "Deviation", Value = $"{alert.Deviation:N2}%", Short = true },

@@ -122,9 +122,16 @@ const ContactCreate: React.FC = () => {
     };
 
     if (isEdit) {
-      updateMutation.mutate({ ...formData, contactId });
+      updateMutation.mutate({
+        ...formData,
+        contactId,
+        isActive: formData.isActive ?? true
+      });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate({
+        ...formData,
+        isActive: formData.isActive ?? true
+      });
     }
   };
 

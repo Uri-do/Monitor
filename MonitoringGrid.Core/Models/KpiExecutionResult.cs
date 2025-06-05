@@ -9,6 +9,14 @@ public class KpiExecutionResult
     public decimal CurrentValue { get; set; }
     public decimal HistoricalValue { get; set; }
     public decimal DeviationPercent { get; set; }
+
+    // Alias for compatibility with services that expect DeviationPercentage
+    public decimal DeviationPercentage
+    {
+        get => DeviationPercent;
+        set => DeviationPercent = value;
+    }
+
     public bool ShouldAlert { get; set; }
     public string? ErrorMessage { get; set; }
     public DateTime ExecutionTime { get; set; } = DateTime.UtcNow;

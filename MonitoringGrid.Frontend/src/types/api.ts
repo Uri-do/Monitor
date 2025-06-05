@@ -109,7 +109,7 @@ export interface KpiDashboardDto {
   totalKpis: number;
   activeKpis: number;
   inactiveKpis: number;
-  kpisInError: number;
+  kpisInErrorCount: number;
   kpisDue: number;
   alertsToday: number;
   alertsThisWeek: number;
