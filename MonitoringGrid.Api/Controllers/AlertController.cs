@@ -16,18 +16,21 @@ namespace MonitoringGrid.Api.Controllers;
 [Produces("application/json")]
 public class AlertController : ControllerBase
 {
-    private readonly MonitoringContext _context;
+    private readonly IAlertRepository _alertRepository;
+    private readonly IRepository<KPI> _kpiRepository;
     private readonly IMapper _mapper;
     private readonly IAlertService _alertService;
     private readonly ILogger<AlertController> _logger;
 
     public AlertController(
-        MonitoringContext context,
+        IAlertRepository alertRepository,
+        IRepository<KPI> kpiRepository,
         IMapper mapper,
         IAlertService alertService,
         ILogger<AlertController> logger)
     {
-        _context = context;
+        _alertRepository = alertRepository;
+        _kpiRepository = kpiRepository;
         _mapper = mapper;
         _alertService = alertService;
         _logger = logger;
@@ -39,64 +42,22 @@ public class AlertController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PaginatedAlertsDto>> GetAlerts([FromQuery] AlertFilterDto filter)
     {
-        var query = _context.AlertLogs
-            .Include(a => a.KPI)
-            .AsQueryable();
+        // Convert API DTO to Core model
+        var coreFilter = _mapper.Map<Core.Models.AlertFilter>(filter);
 
-        // Apply filters
-        if (filter.StartDate.HasValue)
-            query = query.Where(a => a.TriggerTime >= filter.StartDate.Value);
+        // Get data from repository
+        var coreResult = await _alertRepository.GetAlertsWithFilteringAsync(coreFilter);
 
-        if (filter.EndDate.HasValue)
-            query = query.Where(a => a.TriggerTime <= filter.EndDate.Value);
-
-        if (filter.KpiIds?.Any() == true)
-            query = query.Where(a => filter.KpiIds.Contains(a.KpiId));
-
-        if (filter.Owners?.Any() == true)
-            query = query.Where(a => filter.Owners.Contains(a.KPI.Owner));
-
-        if (filter.IsResolved.HasValue)
-            query = query.Where(a => a.IsResolved == filter.IsResolved.Value);
-
-        if (filter.SentVia?.Any() == true)
-            query = query.Where(a => filter.SentVia.Contains(a.SentVia));
-
-        if (filter.MinDeviation.HasValue)
-            query = query.Where(a => a.DeviationPercent >= filter.MinDeviation.Value);
-
-        if (filter.MaxDeviation.HasValue)
-            query = query.Where(a => a.DeviationPercent <= filter.MaxDeviation.Value);
-
-        if (!string.IsNullOrEmpty(filter.SearchText))
-            query = query.Where(a => a.Message.Contains(filter.SearchText) || 
-                                   a.KPI.Indicator.Contains(filter.SearchText));
-
-        // Get total count before pagination
-        var totalCount = await query.CountAsync();
-
-        // Apply sorting
-        query = filter.SortDirection.ToLower() == "asc" 
-            ? ApplySortingAscending(query, filter.SortBy)
-            : ApplySortingDescending(query, filter.SortBy);
-
-        // Apply pagination
-        var alerts = await query
-            .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToListAsync();
-
-        var alertDtos = _mapper.Map<List<AlertLogDto>>(alerts);
-
+        // Convert Core model back to API DTO
         var result = new PaginatedAlertsDto
         {
-            Alerts = alertDtos,
-            TotalCount = totalCount,
-            Page = filter.Page,
-            PageSize = filter.PageSize,
-            TotalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize),
-            HasNextPage = filter.Page * filter.PageSize < totalCount,
-            HasPreviousPage = filter.Page > 1
+            Alerts = _mapper.Map<List<AlertLogDto>>(coreResult.Alerts),
+            TotalCount = coreResult.TotalCount,
+            Page = coreResult.Page,
+            PageSize = coreResult.PageSize,
+            TotalPages = coreResult.TotalPages,
+            HasNextPage = coreResult.HasNextPage,
+            HasPreviousPage = coreResult.HasPreviousPage
         };
 
         return Ok(result);
@@ -108,9 +69,7 @@ public class AlertController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<AlertLogDto>> GetAlert(long id)
     {
-        var alert = await _context.AlertLogs
-            .Include(a => a.KPI)
-            .FirstOrDefaultAsync(a => a.AlertId == id);
+        var alert = await _alertRepository.GetByIdWithIncludesAsync(id, a => a.KPI);
 
         if (alert == null)
             return NotFound($"Alert with ID {id} not found");
@@ -130,7 +89,7 @@ public class AlertController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var alert = await _context.AlertLogs.FindAsync(id);
+        var alert = await _alertRepository.GetByIdAsync(id);
         if (alert == null)
             return NotFound($"Alert with ID {id} not found");
 
@@ -143,12 +102,13 @@ public class AlertController : ControllerBase
 
         if (!string.IsNullOrEmpty(request.ResolutionNotes))
         {
-            alert.Details = string.IsNullOrEmpty(alert.Details) 
+            alert.Details = string.IsNullOrEmpty(alert.Details)
                 ? $"Resolution: {request.ResolutionNotes}"
                 : $"{alert.Details}\n\nResolution: {request.ResolutionNotes}";
         }
 
-        await _context.SaveChangesAsync();
+        await _alertRepository.UpdateAsync(alert);
+        await _alertRepository.SaveChangesAsync();
 
         _logger.LogInformation("Alert {AlertId} resolved by {ResolvedBy}", id, request.ResolvedBy);
 
@@ -167,33 +127,17 @@ public class AlertController : ControllerBase
         if (!request.AlertIds.Any())
             return BadRequest("No alert IDs provided");
 
-        var alerts = await _context.AlertLogs
-            .Where(a => request.AlertIds.Contains(a.AlertId) && !a.IsResolved)
-            .ToListAsync();
+        var resolvedCount = await _alertRepository.BulkResolveAlertsAsync(
+            request.AlertIds,
+            request.ResolvedBy,
+            request.ResolutionNotes);
 
-        if (!alerts.Any())
+        if (resolvedCount == 0)
             return NotFound("No unresolved alerts found with the provided IDs");
 
-        var resolvedTime = DateTime.UtcNow;
-        foreach (var alert in alerts)
-        {
-            alert.IsResolved = true;
-            alert.ResolvedTime = resolvedTime;
-            alert.ResolvedBy = request.ResolvedBy;
+        _logger.LogInformation("Bulk resolved {Count} alerts by {ResolvedBy}", resolvedCount, request.ResolvedBy);
 
-            if (!string.IsNullOrEmpty(request.ResolutionNotes))
-            {
-                alert.Details = string.IsNullOrEmpty(alert.Details) 
-                    ? $"Resolution: {request.ResolutionNotes}"
-                    : $"{alert.Details}\n\nResolution: {request.ResolutionNotes}";
-            }
-        }
-
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Bulk resolved {Count} alerts by {ResolvedBy}", alerts.Count, request.ResolvedBy);
-
-        return Ok(new { Message = $"Resolved {alerts.Count} alerts successfully" });
+        return Ok(new { Message = $"Resolved {resolvedCount} alerts successfully" });
     }
 
     /// <summary>
@@ -202,65 +146,8 @@ public class AlertController : ControllerBase
     [HttpGet("statistics")]
     public async Task<ActionResult<AlertStatisticsDto>> GetStatistics([FromQuery] int days = 30)
     {
-        var startDate = DateTime.UtcNow.AddDays(-days);
-        var now = DateTime.UtcNow;
-        var today = now.Date;
-
-        var alerts = await _context.AlertLogs
-            .Include(a => a.KPI)
-            .Where(a => a.TriggerTime >= startDate)
-            .ToListAsync();
-
-        var dailyTrend = alerts
-            .GroupBy(a => a.TriggerTime.Date)
-            .Select(g => new AlertTrendDto
-            {
-                Date = g.Key,
-                AlertCount = g.Count(),
-                CriticalCount = g.Count(a => a.DeviationPercent >= 50),
-                HighCount = g.Count(a => a.DeviationPercent >= 25 && a.DeviationPercent < 50),
-                MediumCount = g.Count(a => a.DeviationPercent >= 10 && a.DeviationPercent < 25),
-                LowCount = g.Count(a => a.DeviationPercent < 10)
-            })
-            .OrderBy(t => t.Date)
-            .ToList();
-
-        var topAlertingKpis = alerts
-            .GroupBy(a => new { a.KpiId, a.KPI.Indicator, a.KPI.Owner })
-            .Select(g => new KpiAlertSummaryDto
-            {
-                KpiId = g.Key.KpiId,
-                Indicator = g.Key.Indicator,
-                Owner = g.Key.Owner,
-                AlertCount = g.Count(),
-                UnresolvedCount = g.Count(a => !a.IsResolved),
-                LastAlert = g.Max(a => a.TriggerTime),
-                AverageDeviation = g.Average(a => a.DeviationPercent ?? 0)
-            })
-            .OrderByDescending(k => k.AlertCount)
-            .Take(10)
-            .ToList();
-
-        var resolvedAlerts = alerts.Where(a => a.IsResolved && a.ResolvedTime.HasValue).ToList();
-        var averageResolutionTime = resolvedAlerts.Any() 
-            ? resolvedAlerts.Average(a => (a.ResolvedTime!.Value - a.TriggerTime).TotalHours)
-            : 0;
-
-        var statistics = new AlertStatisticsDto
-        {
-            TotalAlerts = alerts.Count,
-            UnresolvedAlerts = alerts.Count(a => !a.IsResolved),
-            ResolvedAlerts = alerts.Count(a => a.IsResolved),
-            AlertsToday = alerts.Count(a => a.TriggerTime >= today),
-            AlertsThisWeek = alerts.Count(a => a.TriggerTime >= today.AddDays(-7)),
-            AlertsThisMonth = alerts.Count(a => a.TriggerTime >= today.AddDays(-30)),
-            CriticalAlerts = alerts.Count(a => a.DeviationPercent >= 50),
-            HighPriorityAlerts = alerts.Count(a => a.DeviationPercent >= 25),
-            AverageResolutionTimeHours = (decimal)averageResolutionTime,
-            DailyTrend = dailyTrend,
-            TopAlertingKpis = topAlertingKpis
-        };
-
+        var coreStatistics = await _alertRepository.GetStatisticsAsync(days);
+        var statistics = _mapper.Map<AlertStatisticsDto>(coreStatistics);
         return Ok(statistics);
     }
 
@@ -270,78 +157,25 @@ public class AlertController : ControllerBase
     [HttpGet("dashboard")]
     public async Task<ActionResult<AlertDashboardDto>> GetDashboard()
     {
-        var now = DateTime.UtcNow;
-        var today = now.Date;
-        var lastHour = now.AddHours(-1);
+        var coreDashboard = await _alertRepository.GetDashboardAsync();
 
-        var recentAlerts = await _context.AlertLogs
-            .Include(a => a.KPI)
-            .Where(a => a.TriggerTime >= now.AddHours(-24))
-            .OrderByDescending(a => a.TriggerTime)
-            .Take(10)
-            .ToListAsync();
-
-        var alertsToday = await _context.AlertLogs.CountAsync(a => a.TriggerTime >= today);
-        var unresolvedAlerts = await _context.AlertLogs.CountAsync(a => !a.IsResolved);
-        var criticalAlerts = await _context.AlertLogs.CountAsync(a => !a.IsResolved && a.DeviationPercent >= 50);
-        var alertsLastHour = await _context.AlertLogs.CountAsync(a => a.TriggerTime >= lastHour);
-
-        // Calculate trend (compare with yesterday)
-        var yesterday = today.AddDays(-1);
-        var alertsYesterday = await _context.AlertLogs.CountAsync(a => a.TriggerTime >= yesterday && a.TriggerTime < today);
-        var alertTrendPercentage = alertsYesterday > 0 
-            ? ((decimal)(alertsToday - alertsYesterday) / alertsYesterday) * 100
-            : alertsToday > 0 ? 100 : 0;
-
-        // Hourly trend for last 24 hours
-        var hourlyTrend = new List<AlertTrendDto>();
-        for (int i = 23; i >= 0; i--)
-        {
-            var hourStart = now.AddHours(-i).Date.AddHours(now.AddHours(-i).Hour);
-            var hourEnd = hourStart.AddHours(1);
-            
-            var hourlyAlerts = await _context.AlertLogs
-                .Where(a => a.TriggerTime >= hourStart && a.TriggerTime < hourEnd)
-                .ToListAsync();
-
-            hourlyTrend.Add(new AlertTrendDto
-            {
-                Date = hourStart,
-                AlertCount = hourlyAlerts.Count,
-                CriticalCount = hourlyAlerts.Count(a => a.DeviationPercent >= 50),
-                HighCount = hourlyAlerts.Count(a => a.DeviationPercent >= 25 && a.DeviationPercent < 50),
-                MediumCount = hourlyAlerts.Count(a => a.DeviationPercent >= 10 && a.DeviationPercent < 25),
-                LowCount = hourlyAlerts.Count(a => a.DeviationPercent < 10)
-            });
-        }
-
-        var topAlertingKpis = await _context.AlertLogs
-            .Include(a => a.KPI)
-            .Where(a => a.TriggerTime >= today.AddDays(-7))
-            .GroupBy(a => new { a.KpiId, a.KPI.Indicator, a.KPI.Owner })
-            .Select(g => new KpiAlertSummaryDto
-            {
-                KpiId = g.Key.KpiId,
-                Indicator = g.Key.Indicator,
-                Owner = g.Key.Owner,
-                AlertCount = g.Count(),
-                UnresolvedCount = g.Count(a => !a.IsResolved),
-                LastAlert = g.Max(a => a.TriggerTime)
-            })
-            .OrderByDescending(k => k.AlertCount)
-            .Take(5)
-            .ToListAsync();
+        // Get recent alerts separately since they're not included in the core dashboard
+        var recentAlerts = await _alertRepository.GetWithIncludesAsync(
+            a => a.TriggerTime >= DateTime.UtcNow.AddHours(-24),
+            a => a.TriggerTime,
+            false,
+            a => a.KPI);
 
         var dashboard = new AlertDashboardDto
         {
-            TotalAlertsToday = alertsToday,
-            UnresolvedAlerts = unresolvedAlerts,
-            CriticalAlerts = criticalAlerts,
-            AlertsLastHour = alertsLastHour,
-            AlertTrendPercentage = alertTrendPercentage,
-            RecentAlerts = _mapper.Map<List<AlertLogDto>>(recentAlerts),
-            TopAlertingKpis = topAlertingKpis,
-            HourlyTrend = hourlyTrend
+            TotalAlertsToday = coreDashboard.TotalAlertsToday,
+            UnresolvedAlerts = coreDashboard.UnresolvedAlerts,
+            CriticalAlerts = coreDashboard.CriticalAlerts,
+            AlertsLastHour = coreDashboard.AlertsLastHour,
+            AlertTrendPercentage = coreDashboard.AlertTrendPercentage,
+            RecentAlerts = _mapper.Map<List<AlertLogDto>>(recentAlerts.Take(10)),
+            TopAlertingKpis = new List<KpiAlertSummaryDto>(), // Will be populated from statistics
+            HourlyTrend = _mapper.Map<List<AlertTrendDto>>(coreDashboard.HourlyTrend)
         };
 
         return Ok(dashboard);
@@ -356,7 +190,7 @@ public class AlertController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var kpi = await _context.KPIs.FindAsync(request.KpiId);
+        var kpi = await _kpiRepository.GetByIdAsync(request.KpiId);
         if (kpi == null)
             return NotFound($"KPI with ID {request.KpiId} not found");
 
@@ -372,37 +206,12 @@ public class AlertController : ControllerBase
             IsResolved = false
         };
 
-        _context.AlertLogs.Add(alertLog);
-        await _context.SaveChangesAsync();
+        var createdAlert = await _alertRepository.AddAsync(alertLog);
+        await _alertRepository.SaveChangesAsync();
 
         _logger.LogInformation("Manual alert sent for KPI {KpiId}: {Message}", request.KpiId, request.Message);
 
-        return Ok(new { Message = "Manual alert sent successfully", AlertId = alertLog.AlertId });
+        return Ok(new { Message = "Manual alert sent successfully", AlertId = createdAlert.AlertId });
     }
 
-    private static IQueryable<AlertLog> ApplySortingAscending(IQueryable<AlertLog> query, string sortBy)
-    {
-        return sortBy.ToLower() switch
-        {
-            "triggertime" => query.OrderBy(a => a.TriggerTime),
-            "kpi" => query.OrderBy(a => a.KPI.Indicator),
-            "owner" => query.OrderBy(a => a.KPI.Owner),
-            "deviation" => query.OrderBy(a => a.DeviationPercent),
-            "resolved" => query.OrderBy(a => a.IsResolved),
-            _ => query.OrderBy(a => a.TriggerTime)
-        };
-    }
-
-    private static IQueryable<AlertLog> ApplySortingDescending(IQueryable<AlertLog> query, string sortBy)
-    {
-        return sortBy.ToLower() switch
-        {
-            "triggertime" => query.OrderByDescending(a => a.TriggerTime),
-            "kpi" => query.OrderByDescending(a => a.KPI.Indicator),
-            "owner" => query.OrderByDescending(a => a.KPI.Owner),
-            "deviation" => query.OrderByDescending(a => a.DeviationPercent),
-            "resolved" => query.OrderByDescending(a => a.IsResolved),
-            _ => query.OrderByDescending(a => a.TriggerTime)
-        };
-    }
 }

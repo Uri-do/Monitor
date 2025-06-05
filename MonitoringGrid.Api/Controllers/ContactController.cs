@@ -16,16 +16,22 @@ namespace MonitoringGrid.Api.Controllers;
 [Produces("application/json")]
 public class ContactController : ControllerBase
 {
-    private readonly MonitoringContext _context;
+    private readonly IRepository<Contact> _contactRepository;
+    private readonly IRepository<KpiContact> _kpiContactRepository;
+    private readonly IRepository<KPI> _kpiRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<ContactController> _logger;
 
     public ContactController(
-        MonitoringContext context,
+        IRepository<Contact> contactRepository,
+        IRepository<KpiContact> kpiContactRepository,
+        IRepository<KPI> kpiRepository,
         IMapper mapper,
         ILogger<ContactController> logger)
     {
-        _context = context;
+        _contactRepository = contactRepository;
+        _kpiContactRepository = kpiContactRepository;
+        _kpiRepository = kpiRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -38,19 +44,30 @@ public class ContactController : ControllerBase
         [FromQuery] bool? isActive = null,
         [FromQuery] string? search = null)
     {
-        var query = _context.Contacts
-            .Include(c => c.KpiContacts)
-            .ThenInclude(kc => kc.KPI)
-            .AsQueryable();
+        // Build predicate for filtering
+        System.Linq.Expressions.Expression<Func<Contact, bool>>? predicate = null;
 
-        if (isActive.HasValue)
-            query = query.Where(c => c.IsActive == isActive.Value);
+        if (isActive.HasValue && !string.IsNullOrEmpty(search))
+        {
+            predicate = c => c.IsActive == isActive.Value &&
+                           (c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search)));
+        }
+        else if (isActive.HasValue)
+        {
+            predicate = c => c.IsActive == isActive.Value;
+        }
+        else if (!string.IsNullOrEmpty(search))
+        {
+            predicate = c => c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search));
+        }
 
-        if (!string.IsNullOrEmpty(search))
-            query = query.Where(c => c.Name.Contains(search) || 
-                                   (c.Email != null && c.Email.Contains(search)));
+        var contacts = await _contactRepository.GetWithIncludesAsync(
+            predicate ?? (c => true),
+            c => c.Name,
+            true,
+            c => c.KpiContacts,
+            c => c.KpiContacts.Select(kc => kc.KPI));
 
-        var contacts = await query.OrderBy(c => c.Name).ToListAsync();
         return Ok(_mapper.Map<List<ContactDto>>(contacts));
     }
 
@@ -60,10 +77,9 @@ public class ContactController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ContactDto>> GetContact(int id)
     {
-        var contact = await _context.Contacts
-            .Include(c => c.KpiContacts)
-            .ThenInclude(kc => kc.KPI)
-            .FirstOrDefaultAsync(c => c.ContactId == id);
+        var contact = await _contactRepository.GetByIdWithIncludesAsync(id,
+            c => c.KpiContacts,
+            c => c.KpiContacts.Select(kc => kc.KPI));
 
         if (contact == null)
             return NotFound($"Contact with ID {id} not found");
@@ -81,7 +97,7 @@ public class ContactController : ControllerBase
             return BadRequest(ModelState);
 
         // Check if contact name is unique
-        if (await _context.Contacts.AnyAsync(c => c.Name == request.Name))
+        if (await _contactRepository.AnyAsync(c => c.Name == request.Name))
             return BadRequest($"Contact with name '{request.Name}' already exists");
 
         // Validate that at least email or phone is provided
@@ -92,12 +108,12 @@ public class ContactController : ControllerBase
         contact.CreatedDate = DateTime.UtcNow;
         contact.ModifiedDate = DateTime.UtcNow;
 
-        _context.Contacts.Add(contact);
-        await _context.SaveChangesAsync();
+        var createdContact = await _contactRepository.AddAsync(contact);
+        await _contactRepository.SaveChangesAsync();
 
-        _logger.LogInformation("Created contact {Name} with ID {ContactId}", contact.Name, contact.ContactId);
+        _logger.LogInformation("Created contact {Name} with ID {ContactId}", createdContact.Name, createdContact.ContactId);
 
-        return CreatedAtAction(nameof(GetContact), new { id = contact.ContactId }, _mapper.Map<ContactDto>(contact));
+        return CreatedAtAction(nameof(GetContact), new { id = createdContact.ContactId }, _mapper.Map<ContactDto>(createdContact));
     }
 
     /// <summary>
@@ -112,12 +128,12 @@ public class ContactController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var existingContact = await _context.Contacts.FindAsync(id);
+        var existingContact = await _contactRepository.GetByIdAsync(id);
         if (existingContact == null)
             return NotFound($"Contact with ID {id} not found");
 
         // Check if contact name is unique (excluding current contact)
-        if (await _context.Contacts.AnyAsync(c => c.Name == request.Name && c.ContactId != id))
+        if (await _contactRepository.AnyAsync(c => c.Name == request.Name && c.ContactId != id))
             return BadRequest($"Contact with name '{request.Name}' already exists");
 
         // Validate that at least email or phone is provided
@@ -127,13 +143,13 @@ public class ContactController : ControllerBase
         _mapper.Map(request, existingContact);
         existingContact.ModifiedDate = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _contactRepository.UpdateAsync(existingContact);
+        await _contactRepository.SaveChangesAsync();
 
         // Reload with KPI associations
-        var updatedContact = await _context.Contacts
-            .Include(c => c.KpiContacts)
-            .ThenInclude(kc => kc.KPI)
-            .FirstAsync(c => c.ContactId == id);
+        var updatedContact = await _contactRepository.GetByIdWithIncludesAsync(id,
+            c => c.KpiContacts,
+            c => c.KpiContacts.Select(kc => kc.KPI));
 
         _logger.LogInformation("Updated contact {Name} with ID {ContactId}", existingContact.Name, id);
 
@@ -146,17 +162,17 @@ public class ContactController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteContact(int id)
     {
-        var contact = await _context.Contacts.FindAsync(id);
+        var contact = await _contactRepository.GetByIdAsync(id);
         if (contact == null)
             return NotFound($"Contact with ID {id} not found");
 
         // Check if contact is assigned to any KPIs
-        var assignedKpis = await _context.KpiContacts.CountAsync(kc => kc.ContactId == id);
+        var assignedKpis = await _kpiContactRepository.CountAsync(kc => kc.ContactId == id);
         if (assignedKpis > 0)
             return BadRequest($"Cannot delete contact. It is assigned to {assignedKpis} KPI(s). Remove assignments first.");
 
-        _context.Contacts.Remove(contact);
-        await _context.SaveChangesAsync();
+        await _contactRepository.DeleteAsync(contact);
+        await _contactRepository.SaveChangesAsync();
 
         _logger.LogInformation("Deleted contact {Name} with ID {ContactId}", contact.Name, id);
 
@@ -172,25 +188,22 @@ public class ContactController : ControllerBase
         if (id != request.ContactId)
             return BadRequest("ID mismatch");
 
-        var contact = await _context.Contacts.FindAsync(id);
+        var contact = await _contactRepository.GetByIdAsync(id);
         if (contact == null)
             return NotFound($"Contact with ID {id} not found");
 
         // Verify all KPI IDs exist
-        var existingKpis = await _context.KPIs
-            .Where(k => request.KpiIds.Contains(k.KpiId))
+        var existingKpis = (await _kpiRepository.GetAsync(k => request.KpiIds.Contains(k.KpiId)))
             .Select(k => k.KpiId)
-            .ToListAsync();
+            .ToList();
 
         var invalidKpis = request.KpiIds.Except(existingKpis).ToList();
         if (invalidKpis.Any())
             return BadRequest($"Invalid KPI IDs: {string.Join(", ", invalidKpis)}");
 
         // Remove existing assignments
-        var existingAssignments = await _context.KpiContacts
-            .Where(kc => kc.ContactId == id)
-            .ToListAsync();
-        _context.KpiContacts.RemoveRange(existingAssignments);
+        var existingAssignments = await _kpiContactRepository.GetAsync(kc => kc.ContactId == id);
+        await _kpiContactRepository.DeleteRangeAsync(existingAssignments);
 
         // Add new assignments
         var newAssignments = request.KpiIds.Select(kpiId => new KpiContact
@@ -199,10 +212,10 @@ public class ContactController : ControllerBase
             KpiId = kpiId
         });
 
-        _context.KpiContacts.AddRange(newAssignments);
-        await _context.SaveChangesAsync();
+        await _kpiContactRepository.AddRangeAsync(newAssignments);
+        await _kpiContactRepository.SaveChangesAsync();
 
-        _logger.LogInformation("Updated KPI assignments for contact {ContactId}. Assigned to {Count} KPIs", 
+        _logger.LogInformation("Updated KPI assignments for contact {ContactId}. Assigned to {Count} KPIs",
             id, request.KpiIds.Count);
 
         return Ok(new { Message = $"Contact assigned to {request.KpiIds.Count} KPIs" });
@@ -214,7 +227,7 @@ public class ContactController : ControllerBase
     [HttpGet("{id}/validate")]
     public async Task<ActionResult<ContactValidationDto>> ValidateContact(int id)
     {
-        var contact = await _context.Contacts.FindAsync(id);
+        var contact = await _contactRepository.GetByIdAsync(id);
         if (contact == null)
             return NotFound($"Contact with ID {id} not found");
 
@@ -246,9 +259,7 @@ public class ContactController : ControllerBase
         if (!request.ContactIds.Any())
             return BadRequest("No contact IDs provided");
 
-        var contacts = await _context.Contacts
-            .Where(c => request.ContactIds.Contains(c.ContactId))
-            .ToListAsync();
+        var contacts = (await _contactRepository.GetAsync(c => request.ContactIds.Contains(c.ContactId))).ToList();
 
         if (!contacts.Any())
             return NotFound("No contacts found with the provided IDs");
@@ -257,30 +268,31 @@ public class ContactController : ControllerBase
         {
             case "activate":
                 contacts.ForEach(c => c.IsActive = true);
+                await _contactRepository.UpdateRangeAsync(contacts);
                 break;
             case "deactivate":
                 contacts.ForEach(c => c.IsActive = false);
+                await _contactRepository.UpdateRangeAsync(contacts);
                 break;
             case "delete":
                 // Check if any contacts are assigned to KPIs
-                var assignedContacts = await _context.KpiContacts
-                    .Where(kc => request.ContactIds.Contains(kc.ContactId))
+                var assignedContacts = (await _kpiContactRepository.GetAsync(kc => request.ContactIds.Contains(kc.ContactId)))
                     .Select(kc => kc.ContactId)
                     .Distinct()
-                    .ToListAsync();
+                    .ToList();
 
                 if (assignedContacts.Any())
                     return BadRequest($"Cannot delete contacts. {assignedContacts.Count} contact(s) are assigned to KPIs.");
 
-                _context.Contacts.RemoveRange(contacts);
+                await _contactRepository.DeleteRangeAsync(contacts);
                 break;
             default:
                 return BadRequest($"Unknown operation: {request.Operation}");
         }
 
-        await _context.SaveChangesAsync();
+        await _contactRepository.SaveChangesAsync();
 
-        _logger.LogInformation("Bulk operation {Operation} performed on {Count} contacts", 
+        _logger.LogInformation("Bulk operation {Operation} performed on {Count} contacts",
             request.Operation, contacts.Count);
 
         return Ok(new { Message = $"Operation '{request.Operation}' completed on {contacts.Count} contacts" });

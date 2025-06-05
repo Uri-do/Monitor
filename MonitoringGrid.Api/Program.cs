@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MonitoringGrid.Api.Mapping;
+using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Services;
@@ -73,12 +74,22 @@ builder.Services.AddScoped<KpiDomainService>();
 
 // Add repository services
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 
 // Add application services
 builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
+
+// Add SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -137,6 +148,9 @@ app.UseCors("AllowReactApp");
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<MonitoringHub>("/monitoring-hub");
 
 // Add health check endpoint
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

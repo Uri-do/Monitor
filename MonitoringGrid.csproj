@@ -34,13 +34,24 @@
   <ItemGroup>
     <Compile Remove="Scripts\**" />
     <Compile Remove="MonitoringGrid.Api\**" />
+    <Compile Remove="MonitoringGrid.Core\**" />
+    <Compile Remove="MonitoringGrid.Infrastructure\**" />
     <Compile Remove="MonitoringGrid.Frontend\**" />
     <EmbeddedResource Remove="Scripts\**" />
     <EmbeddedResource Remove="MonitoringGrid.Api\**" />
+    <EmbeddedResource Remove="MonitoringGrid.Core\**" />
+    <EmbeddedResource Remove="MonitoringGrid.Infrastructure\**" />
     <EmbeddedResource Remove="MonitoringGrid.Frontend\**" />
     <None Remove="Scripts\**" />
     <None Remove="MonitoringGrid.Api\**" />
+    <None Remove="MonitoringGrid.Core\**" />
+    <None Remove="MonitoringGrid.Infrastructure\**" />
     <None Remove="MonitoringGrid.Frontend\**" />
+    <Content Remove="Scripts\**" />
+    <Content Remove="MonitoringGrid.Api\**" />
+    <Content Remove="MonitoringGrid.Core\**" />
+    <Content Remove="MonitoringGrid.Infrastructure\**" />
+    <Content Remove="MonitoringGrid.Frontend\**" />
   </ItemGroup>
 
 </Project>

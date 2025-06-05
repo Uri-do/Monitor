@@ -193,3 +193,81 @@ public class AlertExportRequest
     public string Format { get; set; } = "csv"; // csv, excel, json
     public bool IncludeDetails { get; set; } = true;
 }
+
+/// <summary>
+/// DTO for real-time alert notifications
+/// </summary>
+public class AlertNotificationDto
+{
+    public int AlertId { get; set; }
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string Owner { get; set; } = string.Empty;
+    public int Priority { get; set; }
+    public decimal CurrentValue { get; set; }
+    public decimal HistoricalValue { get; set; }
+    public decimal Deviation { get; set; }
+    public string Subject { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime TriggerTime { get; set; }
+    public string Severity { get; set; } = string.Empty;
+    public List<string> NotifiedContacts { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for real-time KPI status updates
+/// </summary>
+public class KpiStatusUpdateDto
+{
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime LastRun { get; set; }
+    public DateTime? NextRun { get; set; }
+    public decimal? LastValue { get; set; }
+    public decimal? LastDeviation { get; set; }
+    public bool IsSignificantChange { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+/// <summary>
+/// DTO for real-time dashboard updates
+/// </summary>
+public class DashboardUpdateDto
+{
+    public int TotalKpis { get; set; }
+    public int ActiveKpis { get; set; }
+    public int KpisInError { get; set; }
+    public int KpisDue { get; set; }
+    public int AlertsToday { get; set; }
+    public int AlertsThisWeek { get; set; }
+    public DateTime LastUpdate { get; set; }
+    public List<RecentAlertDto> RecentAlerts { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for recent alerts in dashboard
+/// </summary>
+public class RecentAlertDto
+{
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string Owner { get; set; } = string.Empty;
+    public DateTime TriggerTime { get; set; }
+    public decimal Deviation { get; set; }
+    public string Severity { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO for system status updates
+/// </summary>
+public class SystemStatusDto
+{
+    public string ServiceName { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime LastHeartbeat { get; set; }
+    public int ProcessedKpis { get; set; }
+    public int AlertsSent { get; set; }
+    public string? ErrorMessage { get; set; }
+    public Dictionary<string, object> AdditionalInfo { get; set; } = new();
+}

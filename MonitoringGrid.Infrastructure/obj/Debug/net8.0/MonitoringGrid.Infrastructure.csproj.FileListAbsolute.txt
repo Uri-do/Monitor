@@ -9,6 +9,7 @@ C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGri
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.AssemblyInfoInputs.cache
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.AssemblyInfo.cs
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.sourcelink.json
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.csproj.CopyComplete
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\MonitoringGrid.Infrastructure.dll
 C:\Dev\code\Monitor\MonitoringGrid.Infrastructure\obj\Debug\net8.0\refint\MonitoringGrid.Infrastructure.dll

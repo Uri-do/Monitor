@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using MonitoringGrid.Configuration;
-using MonitoringGrid.Data;
-using MonitoringGrid.Services;
+using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
+using MonitoringGrid.Infrastructure.Data;
 
 namespace MonitoringGrid;
 
@@ -12,13 +13,13 @@ namespace MonitoringGrid;
 public class MonitoringWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly MonitoringConfig _config;
+    private readonly MonitoringConfiguration _config;
     private readonly ILogger<MonitoringWorker> _logger;
     private readonly SemaphoreSlim _semaphore;
 
     public MonitoringWorker(
         IServiceProvider serviceProvider,
-        IOptions<MonitoringConfig> config,
+        IOptions<MonitoringConfiguration> config,
         ILogger<MonitoringWorker> logger)
     {
         _serviceProvider = serviceProvider;
@@ -96,7 +97,7 @@ public class MonitoringWorker : BackgroundService
     /// <summary>
     /// Gets KPIs that are due for execution based on frequency and last run time
     /// </summary>
-    private async Task<List<Models.KPI>> GetDueKpisAsync(MonitoringContext context, CancellationToken cancellationToken)
+    private async Task<List<KPI>> GetDueKpisAsync(MonitoringContext context, CancellationToken cancellationToken)
     {
         var currentTime = DateTime.UtcNow;
         
@@ -112,7 +113,7 @@ public class MonitoringWorker : BackgroundService
     /// <summary>
     /// Processes a single KPI with proper error handling and concurrency control
     /// </summary>
-    private async Task ProcessSingleKpiAsync(Models.KPI kpi, CancellationToken cancellationToken)
+    private async Task ProcessSingleKpiAsync(KPI kpi, CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
         
@@ -132,7 +133,7 @@ public class MonitoringWorker : BackgroundService
             kpi.LastRun = DateTime.UtcNow;
             context.Entry(kpi).State = EntityState.Modified;
 
-            if (!executionResult.IsSuccessful())
+            if (!executionResult.IsSuccessful)
             {
                 _logger.LogWarning("KPI {Indicator} execution failed: {Error}", kpi.Indicator, executionResult.ErrorMessage);
                 await context.SaveChangesAsync(cancellationToken);
@@ -199,7 +200,7 @@ public class MonitoringWorker : BackgroundService
 
             if (status == null)
             {
-                status = new Models.SystemStatus
+                status = new SystemStatus
                 {
                     ServiceName = "MonitoringWorker",
                     Status = "Running",

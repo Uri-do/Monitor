@@ -26,8 +26,8 @@ builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("Email"));
 
 // Validate configuration
-var monitoringConfig = builder.Configuration.GetSection(MonitoringConfig.SectionName).Get<MonitoringConfig>();
-var emailConfig = builder.Configuration.GetSection(EmailConfig.SectionName).Get<EmailConfig>();
+var monitoringConfig = builder.Configuration.GetSection("MonitoringConfiguration").Get<MonitoringConfiguration>();
+var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
 
 if (monitoringConfig != null && !monitoringConfig.IsValid(out var monitoringErrors))
 {
@@ -73,12 +73,7 @@ builder.Services.AddScoped<KpiDomainService>();
 
 // Add repository services
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-// Add domain services
-builder.Services.AddScoped<KpiDomainService>();
-
-// Add repository services
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 
 // Add application services
 builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
@@ -121,6 +116,10 @@ try
     {
         await context.Database.EnsureCreatedAsync();
         Log.Information("Database schema verified");
+
+        // Seed initial data
+        await MonitoringGrid.Infrastructure.Data.SeedData.SeedAsync(context);
+        Log.Information("Database seeded with initial data");
     }
 }
 catch (Exception ex)

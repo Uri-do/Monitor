@@ -141,6 +141,7 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.Assem
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.csproj.CoreCompileInputs.cache
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.MvcApplicationPartsAssemblyInfo.cs
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.MvcApplicationPartsAssemblyInfo.cache
+C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.sourcelink.json
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\staticwebassets.build.json
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\staticwebassets.development.json
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\staticwebassets\msbuild.MonitoringGrid.Api.Microsoft.AspNetCore.StaticWebAssets.props

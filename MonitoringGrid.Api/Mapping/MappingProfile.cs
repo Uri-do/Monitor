@@ -84,6 +84,18 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore());
         CreateMap<UpdateConfigRequest, Config>()
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore());
+
+        // Core Models to API DTOs mappings
+        CreateMap<AlertFilterDto, AlertFilter>();
+        CreateMap<AlertFilter, AlertFilterDto>();
+
+        CreateMap<AlertStatistics, AlertStatisticsDto>();
+        CreateMap<AlertTrend, AlertTrendDto>();
+        CreateMap<KpiAlertSummary, KpiAlertSummaryDto>();
+
+        CreateMap<AlertDashboard, AlertDashboardDto>()
+            .ForMember(dest => dest.RecentAlerts, opt => opt.Ignore())
+            .ForMember(dest => dest.TopAlertingKpis, opt => opt.Ignore());
     }
 
     /// <summary>
