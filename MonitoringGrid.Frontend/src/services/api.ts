@@ -138,9 +138,9 @@ export const kpiApi = {
     return response.data;
   },
 
-  // Test KPI
+  // Test KPI (alias for executeKpi for backward compatibility)
   testKpi: async (request: TestKpiRequest): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/kpi/${request.kpiId}/test`, request);
+    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/kpi/${request.kpiId}/execute`, request);
     return response.data;
   },
 
@@ -379,6 +379,39 @@ export const systemApi = {
       timeout: 30000,
     });
     const response = await infoApi.get('/api/info');
+    return response.data;
+  },
+};
+
+// Execution History API endpoints
+export const executionHistoryApi = {
+  // Get execution history with pagination and filters
+  getExecutionHistory: async (params: {
+    kpiId?: number;
+    executedBy?: string;
+    executionMethod?: string;
+    isSuccessful?: boolean;
+    startDate?: string;
+    endDate?: string;
+    pageSize?: number;
+    pageNumber?: number;
+  }): Promise<PaginatedExecutionHistoryDto> => {
+    const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get('/executionhistory', { params });
+    return response.data;
+  },
+
+  // Get execution statistics
+  getExecutionStats: async (params: {
+    kpiId?: number;
+    days?: number;
+  }): Promise<ExecutionStatsDto[]> => {
+    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/executionhistory/stats', { params });
+    return response.data;
+  },
+
+  // Get detailed execution information
+  getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
+    const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(`/executionhistory/${historicalId}`);
     return response.data;
   },
 };

@@ -26,6 +26,8 @@ import UserManagement from '@/pages/Users/UserManagement';
 import RoleManagement from '@/pages/Admin/RoleManagement';
 import AdminDashboard from '@/pages/Admin/AdminDashboard';
 import SystemSettings from '@/pages/Admin/SystemSettings';
+import Administration from '@/pages/Administration/Administration';
+import ExecutionHistoryList from '@/pages/ExecutionHistory/ExecutionHistoryList';
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -220,11 +222,53 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              {/* Execution History */}
+              <Route path="/execution-history" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ExecutionHistoryList />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
               {/* User Profile */}
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Layout>
                     <UserProfile />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Administration Routes */}
+              <Route path="/administration" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Administration />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/administration/security" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Administration />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/administration/api-keys" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Administration />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/administration/audit" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Administration />
                   </Layout>
                 </ProtectedRoute>
               } />

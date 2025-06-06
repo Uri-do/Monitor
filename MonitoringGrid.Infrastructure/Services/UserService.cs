@@ -35,6 +35,8 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
     }
 
@@ -43,6 +45,8 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
 
@@ -51,6 +55,8 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
@@ -59,6 +65,8 @@ public class UserService : IUserService
         var query = _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
             .AsQueryable();
 
         if (isActive.HasValue)

@@ -45,7 +45,7 @@ const AlertList: React.FC = () => {
       searchText: filters.search || undefined,
       startDate: filters.startDate || undefined,
       endDate: filters.endDate || undefined,
-      page: 0,
+      page: 1,
       pageSize: 100,
       sortBy: 'triggerTime',
       sortDirection: 'desc',

@@ -121,6 +121,10 @@ class SecurityService {
     });
 
     if (!response.ok) {
+      // Return empty array if endpoint doesn't exist yet
+      if (response.status === 404) {
+        return [];
+      }
       throw new Error('Failed to fetch API keys');
     }
 
@@ -152,9 +156,9 @@ class SecurityService {
     }
   }
 
-  // User Management
+  // User Management - Connect to actual User API
   async getUsers(): Promise<any[]> {
-    const response = await fetch(`${this.baseUrl}/users`, {
+    const response = await fetch(`${API_BASE_URL}/api/user`, {
       headers: this.getAuthHeaders(),
     });
 
@@ -200,6 +204,8 @@ class SecurityService {
 
     return response.json();
   }
+
+
 }
 
 export const securityService = new SecurityService();

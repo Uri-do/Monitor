@@ -33,7 +33,6 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
-import { SecuritySettingsNew as SecuritySettings } from './SecuritySettingsNew';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -125,8 +124,8 @@ const Settings: React.FC = () => {
   return (
     <Box>
       <PageHeader
-        title="System Settings"
-        subtitle="Configure system parameters, notifications, and integrations"
+        title="User Settings"
+        subtitle="Configure your personal preferences and notification settings"
       />
 
       <Paper sx={{ width: '100%' }}>
@@ -136,21 +135,19 @@ const Settings: React.FC = () => {
           aria-label="settings tabs"
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
-          <Tab icon={<EmailIcon />} label="Email" />
-          <Tab icon={<SmsIcon />} label="SMS" />
-          <Tab icon={<SystemIcon />} label="System" />
-          <Tab icon={<SecurityIcon />} label="Security" />
+          <Tab icon={<NotificationIcon />} label="Notifications" />
+          <Tab icon={<SystemIcon />} label="Preferences" />
           <Tab icon={<StorageIcon />} label="Health" />
         </Tabs>
 
-        {/* Email Settings Tab */}
+        {/* Notifications Tab */}
         <TabPanel value={activeTab} index={0}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    SMTP Configuration
+                    Email Notification Preferences
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
@@ -265,14 +262,14 @@ const Settings: React.FC = () => {
           </Grid>
         </TabPanel>
 
-        {/* SMS Settings Tab */}
+        {/* Preferences Tab */}
         <TabPanel value={activeTab} index={1}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    SMS Provider Configuration
+                    Personal Preferences
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12}>
@@ -377,7 +374,7 @@ const Settings: React.FC = () => {
           </Grid>
         </TabPanel>
 
-        {/* System Settings Tab */}
+        {/* Health Tab */}
         <TabPanel value={activeTab} index={2}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
@@ -489,39 +486,6 @@ const Settings: React.FC = () => {
                   Save System Settings
                 </Button>
               </Box>
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        {/* Security Tab */}
-        <TabPanel value={activeTab} index={3}>
-          <SecuritySettings />
-        </TabPanel>
-
-        {/* Health Tab */}
-        <TabPanel value={activeTab} index={4}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    System Health Status
-                  </Typography>
-                  <List>
-                    {Object.entries(systemHealth).map(([service, status]) => (
-                      <ListItem key={service}>
-                        <ListItemText
-                          primary={service.charAt(0).toUpperCase() + service.slice(1).replace(/([A-Z])/g, ' $1')}
-                          secondary={`Last checked: ${new Date(status.lastCheck).toLocaleString()}`}
-                        />
-                        <ListItemSecondaryAction>
-                          <StatusChip status={status.status.toLowerCase()} />
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    ))}
-                  </List>
-                </CardContent>
-              </Card>
             </Grid>
           </Grid>
         </TabPanel>

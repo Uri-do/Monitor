@@ -92,6 +92,9 @@ public class KpiExecutionResultDto
     public bool ShouldAlert { get; set; }
     public string? ErrorMessage { get; set; }
     public DateTime ExecutionTime { get; set; }
+    public int? ExecutionTimeMs { get; set; }
+    public string? ExecutionDetails { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
     public bool IsSuccessful => string.IsNullOrEmpty(ErrorMessage);
 }
 
@@ -178,4 +181,84 @@ public class KpiDashboardDto
     public List<KpiStatusDto> RecentAlerts { get; set; } = new();
     public List<KpiStatusDto> KpisInError { get; set; } = new();
     public List<KpiStatusDto> DueKpis { get; set; } = new();
+}
+
+/// <summary>
+/// KPI execution history record
+/// </summary>
+public class ExecutionHistoryDto
+{
+    public long HistoricalId { get; set; }
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string KpiOwner { get; set; } = string.Empty;
+    public string SpName { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
+    public string? ExecutedBy { get; set; }
+    public string? ExecutionMethod { get; set; }
+    public decimal CurrentValue { get; set; }
+    public decimal? HistoricalValue { get; set; }
+    public decimal? DeviationPercent { get; set; }
+    public int Period { get; set; }
+    public string MetricKey { get; set; } = string.Empty;
+    public bool IsSuccessful { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int? ExecutionTimeMs { get; set; }
+    public string? DatabaseName { get; set; }
+    public string? ServerName { get; set; }
+    public bool ShouldAlert { get; set; }
+    public bool AlertSent { get; set; }
+    public string? SessionId { get; set; }
+    public string? IpAddress { get; set; }
+    public string? SqlCommand { get; set; }
+    public string? RawResponse { get; set; }
+    public string? ExecutionContext { get; set; }
+    public string PerformanceCategory { get; set; } = string.Empty;
+    public string DeviationCategory { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Detailed execution history with additional fields
+/// </summary>
+public class ExecutionHistoryDetailDto : ExecutionHistoryDto
+{
+    public string? UserAgent { get; set; }
+    public string? SqlParameters { get; set; }
+    public string? ConnectionString { get; set; }
+}
+
+/// <summary>
+/// Paginated execution history response
+/// </summary>
+public class PaginatedExecutionHistoryDto
+{
+    public List<ExecutionHistoryDto> Executions { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public bool HasNextPage { get; set; }
+    public bool HasPreviousPage { get; set; }
+}
+
+/// <summary>
+/// KPI execution statistics
+/// </summary>
+public class ExecutionStatsDto
+{
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string Owner { get; set; } = string.Empty;
+    public int TotalExecutions { get; set; }
+    public int SuccessfulExecutions { get; set; }
+    public int FailedExecutions { get; set; }
+    public double SuccessRate { get; set; }
+    public double? AvgExecutionTimeMs { get; set; }
+    public int? MinExecutionTimeMs { get; set; }
+    public int? MaxExecutionTimeMs { get; set; }
+    public int AlertsTriggered { get; set; }
+    public int AlertsSent { get; set; }
+    public DateTime? LastExecution { get; set; }
+    public int UniqueExecutors { get; set; }
+    public int ExecutionMethods { get; set; }
 }

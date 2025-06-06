@@ -106,15 +106,21 @@ public class SecurityController : ControllerBase
 
             // Log the configuration change
             var userId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityEvent
+            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
             {
+                EventId = Guid.NewGuid().ToString(),
                 UserId = userId,
                 EventType = "SecurityConfigurationChanged",
-                Description = "Security configuration updated",
+                Action = "UPDATE",
+                Resource = "SecurityConfiguration",
                 IpAddress = GetClientIpAddress(),
                 UserAgent = Request.Headers.UserAgent.ToString(),
                 IsSuccess = true,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["Description"] = "Security configuration updated"
+                }
             });
 
             _logger.LogInformation("Security configuration updated by user {UserId}", userId);
@@ -135,11 +141,14 @@ public class SecurityController : ControllerBase
     /// </summary>
     [HttpGet("events")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<SecurityEventDto>>> GetSecurityEvents([FromQuery] int limit = 100)
+    public async Task<ActionResult<List<SecurityEventDto>>> GetSecurityEvents(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string? userId = null)
     {
         try
         {
-            var events = await _securityAuditService.GetSecurityEventsAsync(limit);
+            var events = await _securityAuditService.GetSecurityEventsAsync(startDate, endDate, userId);
             var eventDtos = _mapper.Map<List<SecurityEventDto>>(events);
             return Ok(eventDtos);
         }
@@ -155,11 +164,14 @@ public class SecurityController : ControllerBase
     /// </summary>
     [HttpGet("events/user/{userId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<SecurityEventDto>>> GetUserSecurityEvents(string userId, [FromQuery] int limit = 50)
+    public async Task<ActionResult<List<SecurityEventDto>>> GetUserSecurityEvents(
+        string userId,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var events = await _securityAuditService.GetUserSecurityEventsAsync(userId, limit);
+            var events = await _securityAuditService.GetSecurityEventsAsync(startDate, endDate, userId);
             var eventDtos = _mapper.Map<List<SecurityEventDto>>(events);
             return Ok(eventDtos);
         }
@@ -206,15 +218,22 @@ public class SecurityController : ControllerBase
 
             // Log the role change
             var currentUserId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityEvent
+            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
             {
+                EventId = Guid.NewGuid().ToString(),
                 UserId = currentUserId,
                 EventType = "UserRolesChanged",
-                Description = $"User roles updated for user {userId}",
+                Action = "UPDATE",
+                Resource = $"User/{userId}/Roles",
                 IpAddress = GetClientIpAddress(),
                 UserAgent = Request.Headers.UserAgent.ToString(),
                 IsSuccess = true,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["Description"] = $"User roles updated for user {userId}",
+                    ["TargetUserId"] = userId
+                }
             });
 
             _logger.LogInformation("User roles updated for user {UserId} by {CurrentUserId}", userId, currentUserId);
@@ -257,8 +276,7 @@ public class SecurityController : ControllerBase
     {
         try
         {
-            // For now, return empty list as permissions are managed through roles
-            var permissions = new List<MonitoringGrid.Core.Entities.Permission>();
+            var permissions = await _roleService.GetPermissionsAsync();
             var permissionDtos = _mapper.Map<List<PermissionDto>>(permissions);
             return Ok(permissionDtos);
         }
@@ -295,15 +313,23 @@ public class SecurityController : ControllerBase
 
             // Log the API key creation
             var userId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityEvent
+            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
             {
+                EventId = Guid.NewGuid().ToString(),
                 UserId = userId,
                 EventType = "ApiKeyCreated",
-                Description = $"API key '{request.Name}' created",
+                Action = "CREATE",
+                Resource = "ApiKey",
                 IpAddress = GetClientIpAddress(),
                 UserAgent = Request.Headers.UserAgent.ToString(),
                 IsSuccess = true,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["Description"] = $"API key '{request.Name}' created",
+                    ["KeyName"] = request.Name,
+                    ["KeyId"] = keyId
+                }
             });
 
             _logger.LogInformation("API key created: {KeyName} by user {UserId}", request.Name, userId);
@@ -351,15 +377,22 @@ public class SecurityController : ControllerBase
             
             // Log the API key revocation
             var userId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityEvent
+            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
             {
+                EventId = Guid.NewGuid().ToString(),
                 UserId = userId,
                 EventType = "ApiKeyRevoked",
-                Description = $"API key {keyId} revoked",
+                Action = "DELETE",
+                Resource = $"ApiKey/{keyId}",
                 IpAddress = GetClientIpAddress(),
                 UserAgent = Request.Headers.UserAgent.ToString(),
                 IsSuccess = true,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["Description"] = $"API key {keyId} revoked",
+                    ["KeyId"] = keyId
+                }
             });
 
             _logger.LogInformation("API key revoked: {KeyId} by user {UserId}", keyId, userId);

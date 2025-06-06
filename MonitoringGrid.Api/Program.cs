@@ -307,15 +307,22 @@ try
     await context.Database.CanConnectAsync();
     Log.Information("✅ MonitoringGrid database connection successful");
 
-    // Test MainDatabase connection
+    // Test MainDatabase connection (optional)
     var mainConnectionString = configuration.GetConnectionString("MainDatabase");
     if (!string.IsNullOrEmpty(mainConnectionString))
     {
-        Log.Information("Testing MainDatabase connection...");
-        using var mainConnection = new Microsoft.Data.SqlClient.SqlConnection(mainConnectionString);
-        await mainConnection.OpenAsync();
-        Log.Information("✅ MainDatabase connection successful");
-        await mainConnection.CloseAsync();
+        try
+        {
+            Log.Information("Testing MainDatabase connection...");
+            using var mainConnection = new Microsoft.Data.SqlClient.SqlConnection(mainConnectionString);
+            await mainConnection.OpenAsync();
+            Log.Information("✅ MainDatabase connection successful");
+            await mainConnection.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("⚠️ MainDatabase connection failed (continuing anyway): {Message}", ex.Message);
+        }
     }
     else
     {

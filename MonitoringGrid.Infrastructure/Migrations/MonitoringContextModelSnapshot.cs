@@ -39,6 +39,9 @@ namespace MonitoringGrid.Infrastructure.Migrations
                     b.Property<decimal?>("DeviationPercent")
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("HistoricalValue")
                         .HasColumnType("decimal(18,2)");
 
@@ -62,6 +65,10 @@ namespace MonitoringGrid.Infrastructure.Migrations
                     b.Property<DateTime?>("ResolvedTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ResolutionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("SentTo")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -69,6 +76,10 @@ namespace MonitoringGrid.Infrastructure.Migrations
 
                     b.Property<byte>("SentVia")
                         .HasColumnType("tinyint");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("TriggerTime")
                         .ValueGeneratedOnAdd()

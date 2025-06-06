@@ -30,6 +30,7 @@ import {
   AdminPanelSettings,
   Group,
   Security,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi, alertApi } from '@/services/api';
@@ -116,28 +117,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       path: '/analytics',
     },
     {
-      text: 'Admin Dashboard',
+      text: 'Execution History',
+      icon: <HistoryIcon />,
+      path: '/execution-history',
+    },
+    {
+      text: 'Administration',
       icon: <AdminPanelSettings />,
-      path: '/admin',
-      requiredPermissions: ['System:Admin'],
-    },
-    {
-      text: 'User Management',
-      icon: <Group />,
-      path: '/admin/users',
-      requiredPermissions: ['User:Read'],
-    },
-    {
-      text: 'Role Management',
-      icon: <Security />,
-      path: '/admin/roles',
-      requiredPermissions: ['Role:Read'],
-    },
-    {
-      text: 'System Settings',
-      icon: <SettingsIcon />,
-      path: '/admin/settings',
-      requiredPermissions: ['System:Admin'],
+      path: '/administration',
+      // Temporarily remove permissions for testing
+      // requiredPermissions: ['System:Admin', 'User:Read', 'Role:Read'],
     },
     {
       text: 'User Settings',

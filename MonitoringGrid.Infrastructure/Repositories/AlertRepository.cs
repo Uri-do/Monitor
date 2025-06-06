@@ -17,6 +17,10 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
 
     public async Task<PaginatedAlerts<AlertLog>> GetAlertsWithFilteringAsync(AlertFilter filter)
     {
+        // Validate pagination parameters
+        filter.Page = Math.Max(1, filter.Page);
+        filter.PageSize = Math.Max(1, Math.Min(100, filter.PageSize)); // Limit to max 100 items per page
+
         var query = _dbSet
             .Include(a => a.KPI)
             .AsQueryable();

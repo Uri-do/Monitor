@@ -52,6 +52,22 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.Property(a => a.ResolvedBy)
             .HasMaxLength(100);
 
+        builder.Property(a => a.ResolvedTime);
+
+        builder.Property(a => a.Subject)
+            .HasMaxLength(500);
+
+        builder.Property(a => a.Description)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(a => a.ResolutionNotes)
+            .HasMaxLength(1000);
+
+        // Ignore computed/alias properties
+        builder.Ignore(a => a.DeviationPercentage);
+        builder.Ignore(a => a.ResolvedAt);
+        builder.Ignore(a => a.AlertLogId);
+
         // Indexes
         builder.HasIndex(a => a.KpiId)
             .HasDatabaseName("IX_AlertLogs_KpiId");

@@ -244,7 +244,7 @@ public class RoleManagementService : IRoleManagementService
         try
         {
             var query = _context.Roles.Where(r => r.Name == name && r.IsActive);
-            
+
             if (!string.IsNullOrEmpty(excludeRoleId))
             {
                 query = query.Where(r => r.RoleId != excludeRoleId);
@@ -255,6 +255,23 @@ public class RoleManagementService : IRoleManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to check if role exists {RoleName}: {Message}", name, ex.Message);
+            throw;
+        }
+    }
+
+    public async Task<List<Permission>> GetPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.Permissions
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.Resource)
+                .ThenBy(p => p.Action)
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get permissions: {Message}", ex.Message);
             throw;
         }
     }

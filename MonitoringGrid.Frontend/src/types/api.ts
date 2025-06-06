@@ -159,6 +159,9 @@ export interface KpiExecutionResultDto {
   shouldAlert: boolean;
   errorMessage?: string;
   executionTime: string;
+  executionTimeMs?: number;
+  executionDetails?: string;
+  metadata?: Record<string, any>;
   isSuccessful: boolean;
 }
 
@@ -268,4 +271,68 @@ export interface HealthCheck {
   status: string;
   description?: string;
   duration: number;
+}
+
+export interface ExecutionHistoryDto {
+  historicalId: number;
+  kpiId: number;
+  indicator: string;
+  kpiOwner: string;
+  spName: string;
+  timestamp: string;
+  executedBy?: string;
+  executionMethod?: string;
+  currentValue: number;
+  historicalValue?: number;
+  deviationPercent?: number;
+  period: number;
+  metricKey: string;
+  isSuccessful: boolean;
+  errorMessage?: string;
+  executionTimeMs?: number;
+  databaseName?: string;
+  serverName?: string;
+  shouldAlert: boolean;
+  alertSent: boolean;
+  sessionId?: string;
+  ipAddress?: string;
+  sqlCommand?: string;
+  rawResponse?: string;
+  executionContext?: string;
+  performanceCategory: string;
+  deviationCategory: string;
+}
+
+export interface ExecutionHistoryDetailDto extends ExecutionHistoryDto {
+  userAgent?: string;
+  sqlParameters?: string;
+  connectionString?: string;
+}
+
+export interface PaginatedExecutionHistoryDto {
+  executions: ExecutionHistoryDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface ExecutionStatsDto {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  totalExecutions: number;
+  successfulExecutions: number;
+  failedExecutions: number;
+  successRate: number;
+  avgExecutionTimeMs?: number;
+  minExecutionTimeMs?: number;
+  maxExecutionTimeMs?: number;
+  alertsTriggered: number;
+  alertsSent: number;
+  lastExecution?: string;
+  uniqueExecutors: number;
+  executionMethods: number;
 }

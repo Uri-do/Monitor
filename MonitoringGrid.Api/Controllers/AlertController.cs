@@ -42,6 +42,11 @@ public class AlertController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PaginatedAlertsDto>> GetAlerts([FromQuery] AlertFilterDto filter)
     {
+        // Validate pagination parameters
+        if (filter.Page < 1) filter.Page = 1;
+        if (filter.PageSize < 1) filter.PageSize = 20;
+        if (filter.PageSize > 100) filter.PageSize = 100; // Limit to max 100 items per page
+
         // Convert API DTO to Core model
         var coreFilter = _mapper.Map<Core.Models.AlertFilter>(filter);
 

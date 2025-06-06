@@ -161,7 +161,7 @@ const KpiCreate: React.FC = () => {
 
   // Test KPI mutation
   const testMutation = useMutation({
-    mutationFn: () => kpiApi.testKpi({ kpiId }),
+    mutationFn: () => kpiApi.executeKpi({ kpiId }),
     onSuccess: (result) => {
       if (result.isSuccessful) {
         toast.success('KPI test completed successfully');

@@ -20,6 +20,9 @@ public class KpiExecutionResult
     public bool ShouldAlert { get; set; }
     public string? ErrorMessage { get; set; }
     public DateTime ExecutionTime { get; set; } = DateTime.UtcNow;
+    public int? ExecutionTimeMs { get; set; }
+    public string? ExecutionDetails { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
 
     // Domain methods
     public bool IsSuccessful => string.IsNullOrEmpty(ErrorMessage);

@@ -131,29 +131,4 @@ public class UpdateUserRolesDto
     public List<string> Roles { get; set; } = new();
 }
 
-/// <summary>
-/// Role DTO
-/// </summary>
-public class RoleDto
-{
-    public string RoleId { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public bool IsSystemRole { get; set; }
-    public bool IsActive { get; set; } = true;
-    public List<PermissionDto> Permissions { get; set; } = new();
-}
 
-/// <summary>
-/// Permission DTO
-/// </summary>
-public class PermissionDto
-{
-    public string PermissionId { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Resource { get; set; } = string.Empty;
-    public string Action { get; set; } = string.Empty;
-    public bool IsSystemPermission { get; set; }
-    public bool IsActive { get; set; } = true;
-}

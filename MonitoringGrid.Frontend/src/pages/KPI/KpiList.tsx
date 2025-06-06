@@ -10,7 +10,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { kpiApi } from '@/services/api';
-import { KpiDto } from '@/types/api';
+import { KpiDto, TestKpiRequest } from '@/types/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
@@ -21,6 +21,7 @@ import {
   StatusChip,
   LoadingSpinner,
 } from '@/components/Common';
+import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 
 const KpiList: React.FC = () => {
   const navigate = useNavigate();
@@ -32,6 +33,10 @@ const KpiList: React.FC = () => {
     search: '',
   });
   const [selectedRows, setSelectedRows] = useState<KpiDto[]>([]);
+  const [progressDialog, setProgressDialog] = useState<{
+    open: boolean;
+    kpi?: KpiDto;
+  }>({ open: false });
 
   // Fetch KPIs
   const { data: kpis = [], isLoading, refetch } = useQuery({
@@ -57,12 +62,51 @@ const KpiList: React.FC = () => {
 
   // Execute KPI mutation
   const executeMutation = useMutation({
-    mutationFn: (id: number) => kpiApi.executeKpi(id),
+    mutationFn: (request: TestKpiRequest) => kpiApi.executeKpi(request),
     onSuccess: (result) => {
-      toast.success(`KPI executed: ${result.isSuccessful ? 'Success' : 'Failed'}`);
+      // Show detailed execution results
+      const executionTime = result.executionTimeMs ? `${result.executionTimeMs}ms` : 'N/A';
+      const statusMessage = result.isSuccessful
+        ? `✅ Success (${executionTime})`
+        : `❌ Failed (${executionTime})`;
+
+      if (result.isSuccessful) {
+        toast.success(`KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`);
+      } else {
+        toast.error(`KPI execution failed: ${result.errorMessage || 'Unknown error'}\nExecution time: ${executionTime}`);
+      }
+
+      // Log detailed execution information to console
+      console.group(`🎯 KPI Execution Results: ${result.indicator}`);
+      console.log('📊 Basic Results:', {
+        indicator: result.indicator,
+        currentValue: result.currentValue,
+        historicalValue: result.historicalValue,
+        deviationPercent: result.deviationPercent,
+        shouldAlert: result.shouldAlert,
+        isSuccessful: result.isSuccessful,
+        executionTime: result.executionTime,
+        executionTimeMs: result.executionTimeMs
+      });
+
+      if (result.executionDetails) {
+        console.log('📋 Execution Details:');
+        console.log(result.executionDetails);
+      }
+
+      if (result.metadata) {
+        console.log('🔍 Metadata:', result.metadata);
+      }
+
+      if (result.errorMessage) {
+        console.error('❌ Error:', result.errorMessage);
+      }
+      console.groupEnd();
+
       queryClient.invalidateQueries({ queryKey: ['kpis'] });
     },
     onError: (error: any) => {
+      console.error('🚨 KPI Execution Error:', error);
       toast.error(error.response?.data?.message || 'Failed to execute KPI');
     },
   });
@@ -74,7 +118,43 @@ const KpiList: React.FC = () => {
   };
 
   const handleExecute = (kpi: KpiDto) => {
-    executeMutation.mutate(kpi.kpiId);
+    setProgressDialog({ open: true, kpi });
+  };
+
+  const handleProgressExecute = async () => {
+    if (!progressDialog.kpi) return;
+
+    const result = await kpiApi.executeKpi({ kpiId: progressDialog.kpi.kpiId });
+
+    // Log detailed execution information to console
+    console.group(`🎯 KPI Execution Results: ${result.indicator}`);
+    console.log('📊 Basic Results:', {
+      indicator: result.indicator,
+      currentValue: result.currentValue,
+      historicalValue: result.historicalValue,
+      deviationPercent: result.deviationPercent,
+      shouldAlert: result.shouldAlert,
+      isSuccessful: result.isSuccessful,
+      executionTime: result.executionTime,
+      executionTimeMs: result.executionTimeMs
+    });
+
+    if (result.executionDetails) {
+      console.log('📋 Execution Details:');
+      console.log(result.executionDetails);
+    }
+
+    if (result.metadata) {
+      console.log('🔍 Metadata:', result.metadata);
+    }
+
+    if (result.errorMessage) {
+      console.error('❌ Error:', result.errorMessage);
+    }
+    console.groupEnd();
+
+    queryClient.invalidateQueries({ queryKey: ['kpis'] });
+    return result;
   };
 
   const getKpiStatus = (kpi: KpiDto) => {
@@ -250,6 +330,13 @@ const KpiList: React.FC = () => {
         rowKey="kpiId"
       />
 
+      {/* Execution Progress Dialog */}
+      <ExecutionProgressDialog
+        open={progressDialog.open}
+        onClose={() => setProgressDialog({ open: false })}
+        kpiName={progressDialog.kpi?.indicator || ''}
+        onExecute={handleProgressExecute}
+      />
     </Box>
   );
 };

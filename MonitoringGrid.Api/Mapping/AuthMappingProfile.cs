@@ -65,8 +65,11 @@ public class AuthMappingProfile : Profile
             .ReverseMap();
 
         // Security event mappings
-        CreateMap<SecurityEvent, SecurityEventDto>()
-            .ForMember(dest => dest.EventId, opt => opt.MapFrom(src => src.Id))
+        CreateMap<SecurityAuditEvent, SecurityEventDto>()
+            .ForMember(dest => dest.EventId, opt => opt.MapFrom(src => src.EventId))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src =>
+                src.AdditionalData.ContainsKey("Description") ? src.AdditionalData["Description"].ToString() : ""))
+            .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => src.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")))
             .ReverseMap();
 
         // API key mappings
