@@ -149,14 +149,14 @@ public class UnauthorizedOperationException : DomainException
 /// </summary>
 public class NotificationException : DomainException
 {
-    public NotificationException(string channel, string recipient, string error) 
+    public NotificationException(string channel, string recipient, string error)
         : base($"Failed to send notification via {channel} to {recipient}: {error}")
     {
         Channel = channel;
         Recipient = recipient;
     }
 
-    public NotificationException(string channel, string recipient, string error, Exception innerException) 
+    public NotificationException(string channel, string recipient, string error, Exception innerException)
         : base($"Failed to send notification via {channel} to {recipient}: {error}", innerException)
     {
         Channel = channel;
@@ -165,4 +165,111 @@ public class NotificationException : DomainException
 
     public string Channel { get; }
     public string Recipient { get; }
+}
+
+/// <summary>
+/// Exception thrown when a requested resource is not found
+/// </summary>
+public class NotFoundException : DomainException
+{
+    public string? Details { get; }
+
+    public NotFoundException(string message) : base(message) { }
+
+    public NotFoundException(string message, string details) : base(message)
+    {
+        Details = details;
+    }
+
+    public NotFoundException(string resourceType, object key)
+        : base($"{resourceType} with key '{key}' was not found")
+    {
+        Details = $"Resource type: {resourceType}, Key: {key}";
+    }
+}
+
+/// <summary>
+/// Exception thrown when validation fails
+/// </summary>
+public class ValidationException : DomainException
+{
+    public Dictionary<string, List<string>>? Errors { get; }
+
+    public ValidationException(string message) : base(message) { }
+
+    public ValidationException(string message, Dictionary<string, List<string>> errors) : base(message)
+    {
+        Errors = errors;
+    }
+
+    public ValidationException(string field, string error) : base($"Validation failed for {field}")
+    {
+        Errors = new Dictionary<string, List<string>>
+        {
+            { field, new List<string> { error } }
+        };
+    }
+}
+
+/// <summary>
+/// Exception thrown when user is not authorized
+/// </summary>
+public class UnauthorizedException : DomainException
+{
+    public UnauthorizedException(string message = "Unauthorized access") : base(message) { }
+}
+
+/// <summary>
+/// Exception thrown when user is forbidden from accessing a resource
+/// </summary>
+public class ForbiddenException : DomainException
+{
+    public ForbiddenException(string message = "Access forbidden") : base(message) { }
+}
+
+/// <summary>
+/// Exception thrown when there's a conflict with current state
+/// </summary>
+public class ConflictException : DomainException
+{
+    public string? Details { get; }
+
+    public ConflictException(string message) : base(message) { }
+
+    public ConflictException(string message, string details) : base(message)
+    {
+        Details = details;
+    }
+}
+
+/// <summary>
+/// Exception thrown when a business rule is violated
+/// </summary>
+public class BusinessRuleException : DomainException
+{
+    public string RuleName { get; }
+
+    public BusinessRuleException(string ruleName, string message) : base(message)
+    {
+        RuleName = ruleName;
+    }
+}
+
+/// <summary>
+/// Exception thrown when external service calls fail
+/// </summary>
+public class ExternalServiceException : DomainException
+{
+    public string ServiceName { get; }
+
+    public ExternalServiceException(string serviceName, string message) : base(message)
+    {
+        ServiceName = serviceName;
+    }
+
+    public ExternalServiceException(string serviceName, string message, Exception innerException)
+        : base(message, innerException)
+    {
+        ServiceName = serviceName;
+    }
 }

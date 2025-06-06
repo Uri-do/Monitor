@@ -2,6 +2,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.Filters;
+using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Factories;
 using MonitoringGrid.Core.Interfaces;
@@ -16,8 +18,10 @@ namespace MonitoringGrid.Api.Controllers;
 /// API controller for managing KPIs
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
+[PerformanceMonitor(slowThresholdMs: 2000)]
 public class KpiController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -25,6 +29,7 @@ public class KpiController : ControllerBase
     private readonly IKpiExecutionService _kpiExecutionService;
     private readonly KpiDomainService _kpiDomainService;
     private readonly KpiFactory _kpiFactory;
+    private readonly MetricsService _metricsService;
     private readonly ILogger<KpiController> _logger;
 
     public KpiController(
@@ -33,6 +38,7 @@ public class KpiController : ControllerBase
         IKpiExecutionService kpiExecutionService,
         KpiDomainService kpiDomainService,
         KpiFactory kpiFactory,
+        MetricsService metricsService,
         ILogger<KpiController> logger)
     {
         _unitOfWork = unitOfWork;
@@ -40,6 +46,7 @@ public class KpiController : ControllerBase
         _kpiExecutionService = kpiExecutionService;
         _kpiDomainService = kpiDomainService;
         _kpiFactory = kpiFactory;
+        _metricsService = metricsService;
         _logger = logger;
     }
 
@@ -47,6 +54,8 @@ public class KpiController : ControllerBase
     /// Get all KPIs with optional filtering using specifications
     /// </summary>
     [HttpGet]
+    [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "isActive", "owner", "priority" })]
+    [DatabasePerformanceMonitor]
     public async Task<ActionResult<List<KpiDto>>> GetKpis(
         [FromQuery] bool? isActive = null,
         [FromQuery] string? owner = null,
@@ -89,6 +98,8 @@ public class KpiController : ControllerBase
     /// Get KPI by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ResponseCache(Duration = 600, VaryByQueryKeys = new[] { "id" })]
+    [DatabasePerformanceMonitor]
     public async Task<ActionResult<KpiDto>> GetKpi(int id)
     {
         try
@@ -258,36 +269,69 @@ public class KpiController : ControllerBase
     /// Execute a KPI manually for testing
     /// </summary>
     [HttpPost("{id}/execute")]
+    [KpiPerformanceMonitor]
     public async Task<ActionResult<KpiExecutionResultDto>> ExecuteKpi(int id, [FromBody] TestKpiRequest? request = null)
     {
+        using var activity = KpiActivitySource.StartKpiExecution(id, "Manual Execution");
+        var startTime = DateTime.UtcNow;
+
         try
         {
             var kpiRepository = _unitOfWork.Repository<KPI>();
             var kpi = await kpiRepository.GetByIdAsync(id);
 
             if (kpi == null)
+            {
+                activity?.SetTag("error.type", "NotFound");
                 return NotFound($"KPI with ID {id} not found");
+            }
+
+            // Add KPI details to activity
+            activity?.SetTag("kpi.indicator", kpi.Indicator)
+                    ?.SetTag("kpi.owner", kpi.Owner)
+                    ?.SetTag("kpi.frequency", kpi.Frequency);
+
+            _logger.LogKpiExecutionStart(id, kpi.Indicator, kpi.Owner);
 
             // Use custom frequency if provided, otherwise use KPI's configured frequency
             if (request?.CustomFrequency.HasValue == true)
             {
                 kpi.Frequency = request.CustomFrequency.Value;
+                activity?.SetTag("kpi.custom_frequency", request.CustomFrequency.Value);
             }
 
             var result = await _kpiExecutionService.ExecuteKpiAsync(kpi);
+            var duration = DateTime.UtcNow - startTime;
+
+            // Record metrics
+            _metricsService.RecordKpiExecution(kpi.Indicator, kpi.Owner, duration.TotalSeconds, result.IsSuccessful);
 
             var dto = _mapper.Map<KpiExecutionResultDto>(result);
             dto.KpiId = id;
             dto.Indicator = kpi.Indicator;
 
-            _logger.LogInformation("Manually executed KPI {Indicator} with result: {Result}",
-                kpi.Indicator, result.GetSummary());
+            // Log structured completion
+            _logger.LogKpiExecutionCompleted(id, kpi.Indicator, duration, result.IsSuccessful, result.GetSummary());
+
+            // Record success in activity
+            KpiActivitySource.RecordSuccess(activity, result.GetSummary());
+            KpiActivitySource.RecordPerformanceMetrics(activity, (long)duration.TotalMilliseconds);
 
             return Ok(dto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing KPI {KpiId}", id);
+            var duration = DateTime.UtcNow - startTime;
+
+            // Record error metrics
+            _metricsService.RecordKpiExecution("Unknown", "Unknown", duration.TotalSeconds, false);
+
+            // Log structured error
+            _logger.LogKpiExecutionError(id, "Unknown", ex, duration);
+
+            // Record error in activity
+            KpiActivitySource.RecordError(activity, ex);
+
             return StatusCode(500, "An error occurred while executing the KPI");
         }
     }
@@ -296,8 +340,13 @@ public class KpiController : ControllerBase
     /// Get KPI status dashboard
     /// </summary>
     [HttpGet("dashboard")]
+    [ResponseCache(Duration = 60, VaryByQueryKeys = new string[] { })]
+    [DatabasePerformanceMonitor]
     public async Task<ActionResult<KpiDashboardDto>> GetDashboard()
     {
+        using var activity = ApiActivitySource.StartDashboardAggregation("KpiDashboard");
+        var startTime = DateTime.UtcNow;
+
         try
         {
             var now = DateTime.UtcNow;
@@ -308,6 +357,9 @@ public class KpiController : ControllerBase
 
             var kpis = (await kpiRepository.GetAllAsync()).ToList();
             var allAlerts = (await alertRepository.GetAllAsync()).ToList();
+
+            activity?.SetTag("dashboard.kpi_count", kpis.Count)
+                    ?.SetTag("dashboard.alert_count", allAlerts.Count);
             var alertsToday = allAlerts.Count(a => a.TriggerTime >= today);
             var alertsThisWeek = allAlerts.Count(a => a.TriggerTime >= today.AddDays(-7));
 
@@ -345,13 +397,52 @@ public class KpiController : ControllerBase
                 DueKpis = dueKpis
             };
 
+            var duration = DateTime.UtcNow - startTime;
+
+            // Update metrics
+            _metricsService.UpdateKpiStatus(dashboard.ActiveKpis, dueKpis.Count);
+
+            // Calculate and update system health score
+            var healthScore = CalculateSystemHealthScore(dashboard);
+            _metricsService.UpdateSystemHealth(healthScore);
+
+            // Record performance
+            KpiActivitySource.RecordSuccess(activity, $"Dashboard generated with {kpis.Count} KPIs");
+            KpiActivitySource.RecordPerformanceMetrics(activity, (long)duration.TotalMilliseconds, kpis.Count);
+
+            _logger.LogInformation("Dashboard data retrieved successfully in {Duration}ms " +
+                "- {TotalKpis} KPIs, {ActiveKpis} active, {AlertsToday} alerts today",
+                duration.TotalMilliseconds, dashboard.TotalKpis, dashboard.ActiveKpis, dashboard.AlertsToday);
+
             return Ok(dashboard);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving dashboard data");
+            var duration = DateTime.UtcNow - startTime;
+            KpiActivitySource.RecordError(activity, ex);
+            _logger.LogError(ex, "Error retrieving dashboard data after {Duration}ms", duration.TotalMilliseconds);
             return StatusCode(500, "An error occurred while retrieving dashboard data");
         }
+    }
+
+    /// <summary>
+    /// Calculate system health score based on dashboard metrics
+    /// </summary>
+    private static double CalculateSystemHealthScore(KpiDashboardDto dashboard)
+    {
+        if (dashboard.TotalKpis == 0) return 100.0;
+
+        var activeRatio = (double)dashboard.ActiveKpis / dashboard.TotalKpis;
+        var errorRatio = dashboard.ActiveKpis > 0 ? (double)dashboard.KpisInErrorCount / dashboard.ActiveKpis : 0;
+        var dueRatio = dashboard.ActiveKpis > 0 ? (double)dashboard.KpisDue / dashboard.ActiveKpis : 0;
+
+        // Health score calculation (0-100)
+        var healthScore = 100.0;
+        healthScore -= (1.0 - activeRatio) * 30; // Penalty for inactive KPIs
+        healthScore -= errorRatio * 40; // Penalty for KPIs in error
+        healthScore -= dueRatio * 30; // Penalty for overdue KPIs
+
+        return Math.Max(0, Math.Min(100, healthScore));
     }
 
     /// <summary>
@@ -414,6 +505,7 @@ public class KpiController : ControllerBase
     /// Bulk operations on KPIs
     /// </summary>
     [HttpPost("bulk")]
+    [DatabasePerformanceMonitor(slowQueryThresholdMs: 1000)]
     public async Task<IActionResult> BulkOperation([FromBody] BulkKpiOperationRequest request)
     {
         try

@@ -3,8 +3,23 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Options;
 using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
+using MonitoringGrid.Api.Middleware;
+using MonitoringGrid.Api.Filters;
+using MonitoringGrid.Api.HealthChecks;
+using MonitoringGrid.Api.Observability;
+using MonitoringGrid.Api.Authentication;
+using MonitoringGrid.Api.BackgroundServices;
+using MonitoringGrid.Core.EventSourcing;
+using MonitoringGrid.Core.Events;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Prometheus;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Services;
@@ -37,6 +52,24 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+
+// Add API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new QueryStringApiVersionReader("version"),
+        new HeaderApiVersionReader("X-Version"),
+        new MediaTypeApiVersionReader("ver")
+    );
+})
+.AddVersionedApiExplorer(setup =>
+{
+    setup.GroupNameFormat = "'v'VVV";
+    setup.SubstituteApiVersionInUrl = true;
+});
 
 // Add configuration sections
 builder.Services.Configure<MonitoringConfiguration>(
@@ -240,7 +273,10 @@ if (securityConfig?.Jwt != null)
                 return Task.CompletedTask;
             }
         };
-    });
+    })
+    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationOptions.DefaultScheme,
+        options => { });
 }
 
 // Add Authorization policies
@@ -263,7 +299,98 @@ builder.Services.AddAuthorization(options =>
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<MonitoringContext>("database")
-    .AddCheck("api", () => HealthCheckResult.Healthy("API is running"));
+    .AddCheck("api", () => HealthCheckResult.Healthy("API is running"))
+    .AddCheck<KpiHealthCheck>("kpi-system")
+    .AddCheck<DatabasePerformanceHealthCheck>("database-performance")
+    .AddCheck<ExternalServicesHealthCheck>("external-services");
+
+// Register health check services
+builder.Services.AddScoped<KpiHealthCheck>();
+builder.Services.AddScoped<DatabasePerformanceHealthCheck>();
+builder.Services.AddScoped<ExternalServicesHealthCheck>();
+
+// Add HTTP client factory for health checks
+builder.Services.AddHttpClient();
+
+// Add response caching
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 1024 * 1024; // 1MB
+    options.UseCaseSensitivePaths = false;
+});
+
+// Add memory cache for custom caching scenarios
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 100 * 1024 * 1024; // 100MB
+});
+
+// Add rate limiting configuration
+builder.Services.Configure<RateLimitOptions>(options =>
+{
+    // Configure different limits for different endpoint categories
+    options.GeneralLimit = new RateLimit { RequestsPerWindow = 100, WindowSizeMinutes = 1 };
+    options.AuthenticationLimit = new RateLimit { RequestsPerWindow = 10, WindowSizeMinutes = 1 };
+    options.KpiExecutionLimit = new RateLimit { RequestsPerWindow = 20, WindowSizeMinutes = 1 };
+    options.KpiManagementLimit = new RateLimit { RequestsPerWindow = 50, WindowSizeMinutes = 1 };
+    options.AlertManagementLimit = new RateLimit { RequestsPerWindow = 30, WindowSizeMinutes = 1 };
+    options.AnalyticsLimit = new RateLimit { RequestsPerWindow = 25, WindowSizeMinutes = 1 };
+});
+
+builder.Services.AddSingleton(provider =>
+    provider.GetRequiredService<IOptions<RateLimitOptions>>().Value);
+
+// Add observability services
+builder.Services.AddSingleton<MetricsService>();
+
+// Add event sourcing services
+builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
+builder.Services.AddScoped<IEventSourcingService, EventSourcingService>();
+builder.Services.AddScoped<MonitoringGrid.Core.Events.IDomainEventPublisher, MonitoringGrid.Infrastructure.Events.DomainEventPublisher>();
+
+// Add API key authentication services
+builder.Services.AddSingleton<MonitoringGrid.Api.Authentication.IApiKeyService, InMemoryApiKeyService>();
+
+// Add enhanced background services
+builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+
+// Add OpenTelemetry
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                .AddService("MonitoringGrid.Api", "1.0.0")
+                .AddAttributes(new Dictionary<string, object>
+                {
+                    ["deployment.environment"] = builder.Environment.EnvironmentName,
+                    ["service.instance.id"] = Environment.MachineName
+                }))
+            .AddAspNetCoreInstrumentation(options =>
+            {
+                options.RecordException = true;
+                options.EnrichWithHttpRequest = (activity, request) =>
+                {
+                    activity.SetTag("http.request.body.size", request.ContentLength);
+                    activity.SetTag("http.request.client_ip", request.HttpContext.Connection.RemoteIpAddress?.ToString());
+                };
+                options.EnrichWithHttpResponse = (activity, response) =>
+                {
+                    activity.SetTag("http.response.body.size", response.ContentLength);
+                };
+            })
+            .AddHttpClientInstrumentation(options =>
+            {
+                options.RecordException = true;
+            })
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = true;
+                options.RecordException = true;
+            })
+            .AddSource(KpiActivitySource.Source.Name)
+            .AddSource(ApiActivitySource.Source.Name);
+    });
 
 var app = builder.Build();
 
@@ -286,6 +413,15 @@ if (!app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
+// Add response caching middleware
+app.UseResponseCaching();
+
+// Add rate limiting middleware
+app.UseMiddleware<RateLimitingMiddleware>();
+
+// Add global exception handling middleware
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -293,6 +429,9 @@ app.MapControllers();
 
 // Map SignalR hubs
 app.MapHub<MonitoringHub>("/monitoring-hub");
+
+// Map Prometheus metrics endpoint
+app.MapMetrics();
 
 // Add health check endpoint
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

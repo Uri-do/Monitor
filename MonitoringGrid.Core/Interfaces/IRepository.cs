@@ -179,4 +179,59 @@ public interface IRepository<T> where T : class
     /// Checks if any entity matches a specification
     /// </summary>
     Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
+
+    // Bulk Operations
+    /// <summary>
+    /// Bulk insert multiple entities for better performance
+    /// </summary>
+    Task<int> BulkInsertAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Bulk update multiple entities for better performance
+    /// </summary>
+    Task<int> BulkUpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Bulk delete multiple entities for better performance
+    /// </summary>
+    Task<int> BulkDeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Bulk delete entities matching a predicate
+    /// </summary>
+    Task<int> BulkDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
+
+    // Query Optimization Methods
+    /// <summary>
+    /// Gets projected results to reduce data transfer
+    /// </summary>
+    Task<IEnumerable<TResult>> GetProjectedAsync<TResult>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all projected results
+    /// </summary>
+    Task<IEnumerable<TResult>> GetProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets paged projected results
+    /// </summary>
+    Task<(IEnumerable<TResult> Items, int TotalCount)> GetPagedProjectedAsync<TResult>(
+        int pageNumber,
+        int pageSize,
+        Expression<Func<T, TResult>> selector,
+        Expression<Func<T, bool>>? predicate = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets first projected result
+    /// </summary>
+    Task<TResult?> GetFirstProjectedAsync<TResult>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default);
 }

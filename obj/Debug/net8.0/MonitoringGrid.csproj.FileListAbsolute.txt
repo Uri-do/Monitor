@@ -176,3 +176,8 @@ C:\Dev\code\Monitor\obj\Debug\net8.0\refint\MonitoringGrid.dll
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.pdb
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.genruntimeconfig.cache
 C:\Dev\code\Monitor\obj\Debug\net8.0\ref\MonitoringGrid.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Quartz.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Quartz.Extensions.DependencyInjection.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Quartz.Extensions.Hosting.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Quartz.Serialization.Json.dll

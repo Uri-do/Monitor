@@ -302,6 +302,99 @@ public class Repository<T> : IRepository<T> where T : class
         return await _context.Database.BeginTransactionAsync(cancellationToken);
     }
 
+    // Bulk Operations for Performance
+    public virtual async Task<int> BulkInsertAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        var entityList = entities.ToList();
+        if (!entityList.Any()) return 0;
+
+        await _dbSet.AddRangeAsync(entityList, cancellationToken);
+        return entityList.Count;
+    }
+
+    public virtual async Task<int> BulkUpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        var entityList = entities.ToList();
+        if (!entityList.Any()) return 0;
+
+        _dbSet.UpdateRange(entityList);
+        return entityList.Count;
+    }
+
+    public virtual async Task<int> BulkDeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        var entityList = entities.ToList();
+        if (!entityList.Any()) return 0;
+
+        _dbSet.RemoveRange(entityList);
+        return entityList.Count;
+    }
+
+    public virtual async Task<int> BulkDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        var entities = await _dbSet.Where(predicate).ToListAsync(cancellationToken);
+        if (!entities.Any()) return 0;
+
+        _dbSet.RemoveRange(entities);
+        return entities.Count;
+    }
+
+    // Query Optimization Methods
+    public virtual async Task<IEnumerable<TResult>> GetProjectedAsync<TResult>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(predicate)
+            .Select(selector)
+            .ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<IEnumerable<TResult>> GetProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Select(selector)
+            .ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<(IEnumerable<TResult> Items, int TotalCount)> GetPagedProjectedAsync<TResult>(
+        int pageNumber,
+        int pageSize,
+        Expression<Func<T, TResult>> selector,
+        Expression<Func<T, bool>>? predicate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (predicate != null)
+        {
+            query = query.Where(predicate);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(selector)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public virtual async Task<TResult?> GetFirstProjectedAsync<TResult>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TResult>> selector,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(predicate)
+            .Select(selector)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     // Specification Pattern Support Methods
     public virtual async Task<IEnumerable<T>> GetAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
