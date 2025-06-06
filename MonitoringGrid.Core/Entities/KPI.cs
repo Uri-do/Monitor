@@ -68,6 +68,29 @@ public class KPI : AggregateRoot
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Type of KPI monitoring (success_rate, transaction_volume, threshold, trend_analysis)
+    /// </summary>
+    [Required]
+    [MaxLength(50)]
+    public string KpiType { get; set; } = "success_rate";
+
+    /// <summary>
+    /// JSON configuration for scheduling (cron, interval, one-time)
+    /// </summary>
+    public string? ScheduleConfiguration { get; set; }
+
+    /// <summary>
+    /// Threshold value for threshold-based KPIs
+    /// </summary>
+    public decimal? ThresholdValue { get; set; }
+
+    /// <summary>
+    /// Comparison operator for threshold evaluation (gt, gte, lt, lte, eq)
+    /// </summary>
+    [MaxLength(10)]
+    public string? ComparisonOperator { get; set; }
+
     // Navigation properties
     public virtual ICollection<KpiContact> KpiContacts { get; set; } = new List<KpiContact>();
     public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();

@@ -30,11 +30,13 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { kpiApi, contactApi } from '@/services/api';
-import { CreateKpiRequest, UpdateKpiRequest, ContactDto } from '@/types/api';
+import { CreateKpiRequest, UpdateKpiRequest, ContactDto, KpiType, ScheduleConfiguration, ScheduleType } from '@/types/api';
 import toast from 'react-hot-toast';
 import {
   PageHeader,
   LoadingSpinner,
+  SchedulerComponent,
+  KpiTypeSelector,
 } from '@/components/Common';
 
 // Validation schema
@@ -52,6 +54,9 @@ const kpiSchema = yup.object({
   minimumThreshold: yup.number().nullable().min(0, 'Minimum threshold must be positive'),
   isActive: yup.boolean(),
   contactIds: yup.array().of(yup.number()),
+  kpiType: yup.string().oneOf(Object.values(KpiType)),
+  thresholdValue: yup.number().nullable().min(0, 'Threshold value must be positive'),
+  comparisonOperator: yup.string().oneOf(['gt', 'lt', 'eq', 'gte', 'lte']),
 });
 
 type KpiFormData = yup.InferType<typeof kpiSchema>;
@@ -71,6 +76,15 @@ const KpiCreate: React.FC = () => {
   const kpiId = parseInt(id || '0');
 
   const [selectedContacts, setSelectedContacts] = useState<ContactDto[]>([]);
+  const [kpiType, setKpiType] = useState<KpiType>(KpiType.SuccessRate);
+  const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfiguration>({
+    scheduleType: ScheduleType.Interval,
+    intervalMinutes: 60,
+    isEnabled: false,
+    timezone: 'UTC',
+  });
+  const [thresholdValue, setThresholdValue] = useState<number | undefined>();
+  const [comparisonOperator, setComparisonOperator] = useState<'gt' | 'lt' | 'eq' | 'gte' | 'lte'>('gt');
 
   // Fetch KPI for editing
   const { data: kpi, isLoading: kpiLoading } = useQuery({
@@ -108,6 +122,9 @@ const KpiCreate: React.FC = () => {
       minimumThreshold: null,
       isActive: true,
       contactIds: [],
+      kpiType: KpiType.SuccessRate,
+      thresholdValue: null,
+      comparisonOperator: 'gt',
     },
   });
 
@@ -130,8 +147,20 @@ const KpiCreate: React.FC = () => {
         minimumThreshold: kpi.minimumThreshold,
         isActive: kpi.isActive,
         contactIds: kpi.contacts.map(c => c.contactId),
+        kpiType: kpi.kpiType || KpiType.SuccessRate,
+        thresholdValue: kpi.thresholdValue,
+        comparisonOperator: kpi.comparisonOperator || 'gt',
       });
       setSelectedContacts(kpi.contacts);
+      setKpiType(kpi.kpiType || KpiType.SuccessRate);
+      setScheduleConfig(kpi.scheduleConfiguration || {
+        scheduleType: ScheduleType.Interval,
+        intervalMinutes: kpi.frequency,
+        isEnabled: false,
+        timezone: 'UTC',
+      });
+      setThresholdValue(kpi.thresholdValue);
+      setComparisonOperator(kpi.comparisonOperator || 'gt');
     }
   }, [kpi, isEdit, reset]);
 
@@ -180,6 +209,10 @@ const KpiCreate: React.FC = () => {
     const formData = {
       ...data,
       contactIds: selectedContacts.map(c => c.contactId),
+      kpiType,
+      scheduleConfiguration: scheduleConfig,
+      thresholdValue,
+      comparisonOperator,
     };
 
     if (isEdit) {
@@ -321,6 +354,27 @@ const KpiCreate: React.FC = () => {
                 </Grid>
               </CardContent>
             </Card>
+          </Grid>
+
+          {/* KPI Type Configuration */}
+          <Grid item xs={12}>
+            <KpiTypeSelector
+              selectedType={kpiType}
+              onTypeChange={setKpiType}
+              thresholdValue={thresholdValue}
+              onThresholdChange={setThresholdValue}
+              comparisonOperator={comparisonOperator}
+              onOperatorChange={setComparisonOperator}
+            />
+          </Grid>
+
+          {/* Schedule Configuration */}
+          <Grid item xs={12}>
+            <SchedulerComponent
+              value={scheduleConfig}
+              onChange={setScheduleConfig}
+              showAdvanced={true}
+            />
           </Grid>
 
           {/* Monitoring Configuration */}

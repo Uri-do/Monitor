@@ -1,5 +1,44 @@
 // API Types for Monitoring Grid Frontend
 
+// Scheduler Types
+export interface ScheduleConfiguration {
+  scheduleType: ScheduleType;
+  cronExpression?: string;
+  intervalMinutes?: number;
+  startDate?: string;
+  endDate?: string;
+  timezone?: string;
+  isEnabled: boolean;
+}
+
+export enum ScheduleType {
+  Interval = 'interval',
+  Cron = 'cron',
+  OneTime = 'onetime'
+}
+
+export interface CronPreset {
+  name: string;
+  expression: string;
+  description: string;
+}
+
+// KPI Types
+export enum KpiType {
+  SuccessRate = 'success_rate',
+  TransactionVolume = 'transaction_volume',
+  Threshold = 'threshold',
+  TrendAnalysis = 'trend_analysis'
+}
+
+export interface KpiTypeDefinition {
+  type: KpiType;
+  name: string;
+  description: string;
+  requiredFields: string[];
+  defaultStoredProcedure?: string;
+}
+
 export interface KpiDto {
   kpiId: number;
   indicator: string;
@@ -19,6 +58,11 @@ export interface KpiDto {
   createdDate: string;
   modifiedDate: string;
   contacts: ContactDto[];
+  // New fields for enhanced KPI system
+  kpiType?: KpiType;
+  scheduleConfiguration?: ScheduleConfiguration;
+  thresholdValue?: number;
+  comparisonOperator?: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
 }
 
 export interface CreateKpiRequest {
@@ -35,6 +79,11 @@ export interface CreateKpiRequest {
   cooldownMinutes: number;
   minimumThreshold?: number;
   contactIds: number[];
+  // New fields for enhanced KPI system
+  kpiType?: KpiType;
+  scheduleConfiguration?: ScheduleConfiguration;
+  thresholdValue?: number;
+  comparisonOperator?: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
 }
 
 export interface UpdateKpiRequest extends CreateKpiRequest {

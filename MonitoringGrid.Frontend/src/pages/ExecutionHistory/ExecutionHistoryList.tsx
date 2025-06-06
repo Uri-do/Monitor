@@ -28,6 +28,7 @@ import {
   Person as PersonIcon,
   Storage as DatabaseIcon,
   Timer as TimerIcon,
+  TrendingUp as KpiIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -87,6 +88,15 @@ const ExecutionHistoryList: React.FC = () => {
     } catch (error) {
       toast.error('Failed to load execution details');
     }
+  };
+
+  // Handle view KPI
+  const handleViewKpi = (execution: ExecutionHistoryDto) => {
+    if (!execution.kpiId || execution.kpiId <= 0) {
+      toast.error('Invalid KPI ID');
+      return;
+    }
+    navigate(`/kpis/${execution.kpiId}`);
   };
 
   // Get status color
@@ -309,10 +319,16 @@ const ExecutionHistoryList: React.FC = () => {
         onSelectionChange={setSelectedRows}
         actions={[
           {
+            label: 'View KPI',
+            icon: <KpiIcon />,
+            onClick: handleViewKpi,
+            color: 'primary',
+          },
+          {
             label: 'View Details',
             icon: <ViewIcon />,
             onClick: handleViewDetail,
-            color: 'primary',
+            color: 'secondary',
           },
         ]}
         pagination={{

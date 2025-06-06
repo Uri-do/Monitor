@@ -21,6 +21,8 @@ public class MonitoringContext : DbContext
     public DbSet<HistoricalData> HistoricalData { get; set; }
     public DbSet<Config> Config { get; set; }
     public DbSet<SystemStatus> SystemStatus { get; set; }
+    public DbSet<KpiType> KpiTypes { get; set; }
+    public DbSet<ScheduledJob> ScheduledJobs { get; set; }
 
     // Authentication DbSets
     public DbSet<User> Users { get; set; }
@@ -43,6 +45,8 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new HistoricalDataConfiguration());
         modelBuilder.ApplyConfiguration(new ConfigConfiguration());
         modelBuilder.ApplyConfiguration(new SystemStatusConfiguration());
+        modelBuilder.ApplyConfiguration(new KpiTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ScheduledJobConfiguration());
 
         // Apply authentication configurations
         modelBuilder.ApplyConfiguration(new UserConfiguration());

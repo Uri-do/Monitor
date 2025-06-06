@@ -36,6 +36,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Indicator, opt => opt.Ignore())
             .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => DateTime.UtcNow));
 
+        // Enhanced execution result mappings
+        CreateMap<ExecutionTimingInfo, ExecutionTimingInfoDto>();
+        CreateMap<DatabaseExecutionInfo, DatabaseExecutionInfoDto>();
+        CreateMap<ExecutionStepInfo, ExecutionStepInfoDto>();
+
         CreateMap<KPI, KpiStatusDto>()
             .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src => 
                 src.LastRun.HasValue ? src.LastRun.Value.AddMinutes(src.Frequency) : (DateTime?)null))

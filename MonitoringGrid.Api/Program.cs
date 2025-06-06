@@ -91,11 +91,32 @@ builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add application services
-builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
+builder.Services.AddScoped<IKpiExecutionService, EnhancedKpiExecutionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
+
+// Add Quartz.NET scheduling services
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjection();
+    q.UseSimpleTypeLoader();
+    q.UseInMemoryStore();
+    q.UseDefaultThreadPool(tp =>
+    {
+        tp.MaxConcurrency = 10;
+    });
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+// Add KPI scheduling service
+builder.Services.AddScoped<IKpiSchedulingService, KpiSchedulingService>();
+
+// Add Quartz job and listener
+builder.Services.AddScoped<KpiExecutionJob>();
+builder.Services.AddScoped<KpiJobListener>();
 
 // Add authentication services
 builder.Services.AddScoped<IUserService, UserService>();

@@ -67,8 +67,27 @@ public class KpiConfiguration : IEntityTypeConfiguration<KPI>
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
 
-        // Add check constraint for Priority
+        // New properties for enhanced KPI system
+        builder.Property(k => k.KpiType)
+            .IsRequired()
+            .HasMaxLength(50)
+            .HasDefaultValue("success_rate");
+
+        builder.Property(k => k.ScheduleConfiguration)
+            .HasColumnType("NVARCHAR(MAX)");
+
+        builder.Property(k => k.ThresholdValue)
+            .HasColumnType("decimal(18,2)");
+
+        builder.Property(k => k.ComparisonOperator)
+            .HasMaxLength(10);
+
+        // Add check constraints
         builder.ToTable(t => t.HasCheckConstraint("CK_KPIs_Priority", "Priority IN (1, 2)"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_KPIs_KpiType",
+            "KpiType IN ('success_rate', 'transaction_volume', 'threshold', 'trend_analysis')"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_KPIs_ComparisonOperator",
+            "ComparisonOperator IS NULL OR ComparisonOperator IN ('gt', 'gte', 'lt', 'lte', 'eq')"));
 
         // Indexes
         builder.HasIndex(k => k.Indicator)
@@ -83,6 +102,10 @@ public class KpiConfiguration : IEntityTypeConfiguration<KPI>
 
         builder.HasIndex(k => k.LastRun)
             .HasDatabaseName("IX_KPIs_LastRun");
+
+        builder.HasIndex(k => k.KpiType)
+            .HasDatabaseName("IX_KPIs_KpiType")
+            .IncludeProperties(k => k.IsActive);
 
         // Relationships
         builder.HasMany(k => k.KpiContacts)

@@ -465,4 +465,147 @@ public class KpiController : ControllerBase
             return StatusCode(500, "An error occurred while performing the bulk operation");
         }
     }
+
+    /// <summary>
+    /// Update KPI schedule configuration
+    /// </summary>
+    [HttpPost("{id}/schedule")]
+    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] ScheduleConfigurationRequest request)
+    {
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
+
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            // Validate schedule configuration
+            var validation = await _kpiSchedulingService.ValidateScheduleConfigurationAsync(
+                JsonSerializer.Serialize(request));
+
+            if (!validation.IsValid)
+                return BadRequest(new { Errors = validation.Errors, Warnings = validation.Warnings });
+
+            // Update KPI schedule configuration
+            kpi.ScheduleConfiguration = JsonSerializer.Serialize(request);
+            kpi.ModifiedDate = DateTime.UtcNow;
+
+            await kpiRepository.UpdateAsync(kpi);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Update the scheduler
+            await _kpiSchedulingService.UpdateKpiScheduleAsync(kpi);
+
+            _logger.LogInformation("Updated schedule for KPI {Indicator} (ID: {KpiId})", kpi.Indicator, id);
+
+            return Ok(new {
+                Message = "Schedule updated successfully",
+                NextExecution = validation.NextExecutionTime,
+                Description = validation.ScheduleDescription
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating schedule for KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while updating the KPI schedule");
+        }
+    }
+
+    /// <summary>
+    /// Get scheduled KPIs information
+    /// </summary>
+    [HttpGet("scheduled")]
+    public async Task<ActionResult<List<ScheduledKpiInfoDto>>> GetScheduledKpis()
+    {
+        try
+        {
+            var scheduledKpis = await _kpiSchedulingService.GetScheduledKpisAsync();
+            var dtos = _mapper.Map<List<ScheduledKpiInfoDto>>(scheduledKpis);
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving scheduled KPIs");
+            return StatusCode(500, "An error occurred while retrieving scheduled KPIs");
+        }
+    }
+
+    /// <summary>
+    /// Pause KPI scheduling
+    /// </summary>
+    [HttpPost("{id}/pause")]
+    public async Task<IActionResult> PauseKpi(int id)
+    {
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
+
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            await _kpiSchedulingService.PauseKpiAsync(id);
+
+            _logger.LogInformation("Paused KPI {Indicator} (ID: {KpiId})", kpi.Indicator, id);
+            return Ok(new { Message = "KPI scheduling paused successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error pausing KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while pausing the KPI");
+        }
+    }
+
+    /// <summary>
+    /// Resume KPI scheduling
+    /// </summary>
+    [HttpPost("{id}/resume")]
+    public async Task<IActionResult> ResumeKpi(int id)
+    {
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
+
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            await _kpiSchedulingService.ResumeKpiAsync(id);
+
+            _logger.LogInformation("Resumed KPI {Indicator} (ID: {KpiId})", kpi.Indicator, id);
+            return Ok(new { Message = "KPI scheduling resumed successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resuming KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while resuming the KPI");
+        }
+    }
+
+    /// <summary>
+    /// Trigger immediate KPI execution
+    /// </summary>
+    [HttpPost("{id}/trigger")]
+    public async Task<IActionResult> TriggerKpi(int id)
+    {
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
+
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            await _kpiSchedulingService.TriggerKpiExecutionAsync(id);
+
+            _logger.LogInformation("Triggered immediate execution of KPI {Indicator} (ID: {KpiId})", kpi.Indicator, id);
+            return Ok(new { Message = "KPI execution triggered successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error triggering KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while triggering the KPI");
+        }
+    }
 }

@@ -28,6 +28,7 @@ import AdminDashboard from '@/pages/Admin/AdminDashboard';
 import SystemSettings from '@/pages/Admin/SystemSettings';
 import Administration from '@/pages/Administration/Administration';
 import ExecutionHistoryList from '@/pages/ExecutionHistory/ExecutionHistoryList';
+import ExecutionHistoryDetail from '@/pages/ExecutionHistory/ExecutionHistoryDetail';
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -376,6 +377,13 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <ExecutionHistoryList />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/execution-history/:id" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ExecutionHistoryDetail />
                   </Layout>
                 </ProtectedRoute>
               } />

@@ -15,3 +15,6 @@ export type { BreadcrumbItem, PageAction } from './PageHeader';
 
 export { default as FilterPanel } from './FilterPanel';
 export type { FilterField, ActiveFilter } from './FilterPanel';
+
+export { default as SchedulerComponent } from './SchedulerComponent';
+export { default as KpiTypeSelector } from './KpiTypeSelector';

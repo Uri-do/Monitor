@@ -55,6 +55,13 @@ const KpiDetail: React.FC = () => {
 
   const kpiId = parseInt(id || '0');
 
+  // If KPI ID is invalid, redirect to KPI list
+  React.useEffect(() => {
+    if (!id || isNaN(kpiId) || kpiId <= 0) {
+      navigate('/kpis', { replace: true });
+    }
+  }, [id, kpiId, navigate]);
+
   // Fetch KPI details
   const { data: kpi, isLoading: kpiLoading } = useQuery({
     queryKey: ['kpi', kpiId],

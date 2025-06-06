@@ -155,3 +155,10 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\scopedcss\bundle\Monitor
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\refint\MonitoringGrid.Api.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\appsettings.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.deps.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.runtimeconfig.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.csproj.CopyComplete
+C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.genruntimeconfig.cache
+C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\ref\MonitoringGrid.Api.dll

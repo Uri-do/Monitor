@@ -315,3 +315,104 @@ public class ExecutionStepInfoDto
     public string? ErrorMessage { get; set; }
     public Dictionary<string, object>? StepMetadata { get; set; }
 }
+
+// New DTOs for enhanced KPI system
+
+/// <summary>
+/// DTO for KPI type information
+/// </summary>
+public class KpiTypeDto
+{
+    public string KpiTypeId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public List<string> RequiredFields { get; set; } = new();
+    public string? DefaultStoredProcedure { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>
+/// DTO for schedule configuration request
+/// </summary>
+public class ScheduleConfigurationRequest
+{
+    public string ScheduleType { get; set; } = string.Empty; // interval, cron, onetime
+    public string? CronExpression { get; set; }
+    public int? IntervalMinutes { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string? Timezone { get; set; }
+    public bool IsEnabled { get; set; }
+}
+
+/// <summary>
+/// DTO for scheduled KPI information
+/// </summary>
+public class ScheduledKpiInfoDto
+{
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public string JobId { get; set; } = string.Empty;
+    public string JobName { get; set; } = string.Empty;
+    public string TriggerName { get; set; } = string.Empty;
+    public DateTime? NextFireTime { get; set; }
+    public DateTime? PreviousFireTime { get; set; }
+    public string ScheduleType { get; set; } = string.Empty;
+    public string ScheduleDescription { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public bool IsPaused { get; set; }
+}
+
+/// <summary>
+/// DTO for KPI configuration validation request
+/// </summary>
+public class KpiConfigurationValidationRequest
+{
+    public decimal? Deviation { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? ComparisonOperator { get; set; }
+    public decimal? MinimumThreshold { get; set; }
+    public int? LastMinutes { get; set; }
+}
+
+/// <summary>
+/// DTO for KPI validation result
+/// </summary>
+public class KpiValidationResultDto
+{
+    public string KpiTypeId { get; set; } = string.Empty;
+    public bool IsValid { get; set; }
+    public List<string> Errors { get; set; } = new();
+    public List<string> Warnings { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for KPI type recommendations
+/// </summary>
+public class KpiRecommendationsDto
+{
+    public string KpiTypeId { get; set; } = string.Empty;
+    public string KpiTypeName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? DefaultStoredProcedure { get; set; }
+    public Dictionary<string, object> RecommendedSettings { get; set; } = new();
+    public string[] UseCases { get; set; } = Array.Empty<string>();
+    public string[] BestPractices { get; set; } = Array.Empty<string>();
+}
+
+/// <summary>
+/// DTO for KPI type statistics
+/// </summary>
+public class KpiTypeStatisticsDto
+{
+    public string KpiTypeId { get; set; } = string.Empty;
+    public string KpiTypeName { get; set; } = string.Empty;
+    public int TotalKpis { get; set; }
+    public int ActiveKpis { get; set; }
+    public int TotalExecutions { get; set; }
+    public int TotalAlerts { get; set; }
+    public double AverageExecutionsPerKpi { get; set; }
+    public double AlertRate { get; set; }
+    public DateTime? LastExecution { get; set; }
+    public DateTime? LastAlert { get; set; }
+}
