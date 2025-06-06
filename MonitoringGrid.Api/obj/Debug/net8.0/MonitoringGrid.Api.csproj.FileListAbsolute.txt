@@ -162,3 +162,7 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.pdb
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.csproj.CopyComplete
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.genruntimeconfig.cache
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\ref\MonitoringGrid.Api.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Quartz.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Quartz.Extensions.DependencyInjection.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Quartz.Extensions.Hosting.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Quartz.Serialization.Json.dll

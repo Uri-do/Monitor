@@ -60,13 +60,14 @@ public class KpiExecutionJob : IJob
             await dbContext.SaveChangesAsync();
 
             // Update scheduled job information
-            await UpdateScheduledJobInfo(dbContext, jobId, context.NextFireTime, context.FireTimeUtc);
+            var nextFireTime = context.Trigger.GetNextFireTimeUtc();
+            await UpdateScheduledJobInfo(dbContext, jobId, nextFireTime, context.FireTimeUtc);
 
             // Handle alerts if needed
             if (executionResult.ShouldAlert)
             {
                 _logger.LogInformation("KPI {Indicator} triggered alert condition", kpi.Indicator);
-                await alertService.ProcessAlertAsync(kpi, executionResult);
+                await alertService.SendAlertsAsync(kpi, executionResult);
             }
 
             _logger.LogInformation("Successfully completed scheduled execution of KPI {Indicator} (ID: {KpiId})", 
@@ -79,13 +80,14 @@ public class KpiExecutionJob : IJob
             // Update job with error information
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
-            await UpdateScheduledJobInfo(dbContext, jobId, context.NextFireTime, context.FireTimeUtc, ex.Message);
+            var nextFireTime = context.Trigger.GetNextFireTimeUtc();
+            await UpdateScheduledJobInfo(dbContext, jobId, nextFireTime, context.FireTimeUtc, ex.Message);
             
             throw; // Re-throw to let Quartz handle retry logic
         }
     }
 
-    private async Task UpdateScheduledJobInfo(MonitoringContext dbContext, string jobId, 
+    private async Task UpdateScheduledJobInfo(MonitoringContext dbContext, string jobId,
         DateTimeOffset? nextFireTime, DateTimeOffset fireTime, string? errorMessage = null)
     {
         try

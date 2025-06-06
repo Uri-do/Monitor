@@ -80,15 +80,12 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         // For threshold-based KPIs, use threshold evaluation
         if (kpi.KpiType == "threshold")
         {
-            return EvaluateThreshold(result.CurrentValue ?? 0, kpi.ThresholdValue ?? 0, kpi.ComparisonOperator ?? "gt");
+            return EvaluateThreshold(result.CurrentValue, kpi.ThresholdValue ?? 0, kpi.ComparisonOperator ?? "gt");
         }
 
         // For other types, use deviation-based alerting
-        if (!result.CurrentValue.HasValue || !result.HistoricalValue.HasValue)
-            return false;
+        var deviation = CalculateDeviation(result.CurrentValue, result.HistoricalValue);
 
-        var deviation = CalculateDeviation(result.CurrentValue.Value, result.HistoricalValue.Value);
-        
         // Check minimum threshold if specified
         if (kpi.MinimumThreshold.HasValue && result.CurrentValue < kpi.MinimumThreshold)
             return false;
@@ -107,6 +104,32 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
             "eq" => Math.Abs(value - threshold) < 0.01m, // Small tolerance for decimal comparison
             _ => false
         };
+    }
+
+    public async Task<bool> ValidateKpiStoredProcedureAsync(string spName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var connectionString = _configuration.GetConnectionString("MonitoringGrid");
+            using var connection = new SqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            // Check if stored procedure exists
+            using var command = new SqlCommand(@"
+                SELECT COUNT(*)
+                FROM sys.procedures
+                WHERE name = @SpName", connection);
+
+            command.Parameters.AddWithValue("@SpName", spName.Split('.').Last()); // Get procedure name without schema
+
+            var count = (int)await command.ExecuteScalarAsync(cancellationToken);
+            return count > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating stored procedure {SpName}", spName);
+            return false;
+        }
     }
 
     private async Task<KpiExecutionResult> ExecuteKpiByTypeAsync(KPI kpi, CancellationToken cancellationToken)
@@ -154,12 +177,12 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         var result = new KpiExecutionResult
         {
             Key = command.Parameters["@Key"].Value?.ToString() ?? kpi.Indicator,
-            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0),
-            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0),
+            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0m),
+            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0m),
             ExecutionTime = DateTime.UtcNow
         };
 
-        result.DeviationPercent = CalculateDeviation(result.CurrentValue ?? 0, result.HistoricalValue ?? 0);
+        result.DeviationPercent = CalculateDeviation(result.CurrentValue, result.HistoricalValue);
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
 
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
@@ -190,12 +213,12 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         var result = new KpiExecutionResult
         {
             Key = command.Parameters["@Key"].Value?.ToString() ?? kpi.Indicator,
-            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0),
-            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0),
+            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0m),
+            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0m),
             ExecutionTime = DateTime.UtcNow
         };
 
-        result.DeviationPercent = CalculateDeviation(result.CurrentValue ?? 0, result.HistoricalValue ?? 0);
+        result.DeviationPercent = CalculateDeviation(result.CurrentValue, result.HistoricalValue);
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
 
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
@@ -228,15 +251,15 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         var result = new KpiExecutionResult
         {
             Key = command.Parameters["@Key"].Value?.ToString() ?? kpi.Indicator,
-            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0),
-            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0),
+            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0m),
+            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0m),
             ExecutionTime = DateTime.UtcNow
         };
 
         // For threshold KPIs, evaluate the threshold condition
         result.ShouldAlert = EvaluateThreshold(
-            result.CurrentValue ?? 0, 
-            kpi.ThresholdValue ?? 0, 
+            result.CurrentValue,
+            kpi.ThresholdValue ?? 0m,
             kpi.ComparisonOperator ?? "gt");
 
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
@@ -267,12 +290,12 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         var result = new KpiExecutionResult
         {
             Key = command.Parameters["@Key"].Value?.ToString() ?? kpi.Indicator,
-            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0),
-            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0),
+            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0m),
+            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0m),
             ExecutionTime = DateTime.UtcNow
         };
 
-        result.DeviationPercent = CalculateDeviation(result.CurrentValue ?? 0, result.HistoricalValue ?? 0);
+        result.DeviationPercent = CalculateDeviation(result.CurrentValue, result.HistoricalValue);
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
 
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
@@ -303,12 +326,12 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
         var result = new KpiExecutionResult
         {
             Key = command.Parameters["@Key"].Value?.ToString() ?? kpi.Indicator,
-            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0),
-            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0),
+            CurrentValue = Convert.ToDecimal(command.Parameters["@CurrentValue"].Value ?? 0m),
+            HistoricalValue = Convert.ToDecimal(command.Parameters["@HistoricalValue"].Value ?? 0m),
             ExecutionTime = DateTime.UtcNow
         };
 
-        result.DeviationPercent = CalculateDeviation(result.CurrentValue ?? 0, result.HistoricalValue ?? 0);
+        result.DeviationPercent = CalculateDeviation(result.CurrentValue, result.HistoricalValue);
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
 
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
@@ -324,7 +347,7 @@ public class EnhancedKpiExecutionService : IKpiExecutionService
             {
                 KpiId = kpi.KpiId,
                 Timestamp = result.ExecutionTime,
-                Value = result.CurrentValue ?? 0,
+                Value = result.CurrentValue,
                 Period = kpi.LastMinutes,
                 MetricKey = result.Key
             };

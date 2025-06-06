@@ -466,8 +466,9 @@ public class KpiController : ControllerBase
         }
     }
 
+    /*
     /// <summary>
-    /// Update KPI schedule configuration
+    /// Update KPI schedule configuration (TODO: Implement after scheduling service is ready)
     /// </summary>
     [HttpPost("{id}/schedule")]
     public async Task<IActionResult> UpdateSchedule(int id, [FromBody] ScheduleConfigurationRequest request)
@@ -608,4 +609,5 @@ public class KpiController : ControllerBase
             return StatusCode(500, "An error occurred while triggering the KPI");
         }
     }
+    */
 }

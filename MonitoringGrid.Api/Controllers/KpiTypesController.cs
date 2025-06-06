@@ -1,3 +1,6 @@
+/*
+// TODO: Implement KpiTypesController after completing entity setup
+
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -344,3 +347,4 @@ public class KpiTypesController : ControllerBase
         }
     }
 }
+*/

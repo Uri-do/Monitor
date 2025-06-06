@@ -26,7 +26,6 @@ import { KpiType, KpiTypeDefinition } from '@/types/api';
 import {
   KPI_TYPE_DEFINITIONS,
   COMPARISON_OPERATORS,
-  getKpiTypeIcon,
   getKpiTypeColor
 } from '@/utils/kpiTypeUtils';
 
@@ -40,9 +39,8 @@ interface KpiTypeSelectorProps {
   disabled?: boolean;
 }
 
-// Use definitions from utilities
-
-const getKpiTypeIcon = (type: KpiType) => {
+// Icon component function for KPI types
+const getKpiTypeIconComponent = (type: KpiType) => {
   switch (type) {
     case KpiType.SuccessRate:
       return <SpeedIcon color="primary" />;
@@ -74,7 +72,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
     <Card>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
-          {getKpiTypeIcon(selectedType)}
+          {getKpiTypeIconComponent(selectedType)}
           <Typography variant="h6">KPI Type Configuration</Typography>
           <Tooltip title="Choose the type of monitoring this KPI will perform">
             <IconButton size="small">
@@ -96,7 +94,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
                 {KPI_TYPE_DEFINITIONS.map((definition) => (
                   <MenuItem key={definition.type} value={definition.type}>
                     <Box display="flex" alignItems="center" gap={1}>
-                      {getKpiTypeIcon(definition.type)}
+                      {getKpiTypeIconComponent(definition.type)}
                       <Box>
                         <Typography variant="body2" fontWeight="medium">
                           {definition.name}
