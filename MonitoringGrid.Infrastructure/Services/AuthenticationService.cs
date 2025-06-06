@@ -174,8 +174,7 @@ public class AuthenticationService : IAuthenticationService
         {
             _logger.LogDebug("Attempting to refresh token");
 
-            var storedToken = await _context.Set<RefreshToken>()
-                .Include(rt => rt.User)
+            var storedToken = await _context.RefreshTokens
                 .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.IsActive && rt.ExpiresAt > DateTime.UtcNow, cancellationToken);
 
             if (storedToken == null)
@@ -184,8 +183,16 @@ public class AuthenticationService : IAuthenticationService
                 throw new SecurityException("Invalid or expired refresh token");
             }
 
+            // Get user for token generation
+            var user = await GetUserByIdAsync(storedToken.UserId, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for refresh token");
+                throw new SecurityException("Invalid refresh token");
+            }
+
             // Generate new tokens
-            var newAccessToken = _jwtTokenService.GenerateAccessToken(storedToken.User);
+            var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
             var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
 
             // Invalidate old refresh token
@@ -232,7 +239,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<AuthUser?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<User?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -357,7 +364,7 @@ public class AuthenticationService : IAuthenticationService
             await RevokeTokenAsync(token, cancellationToken);
 
             // Invalidate all refresh tokens for the user
-            var refreshTokens = await _context.Set<RefreshToken>()
+            var refreshTokens = await _context.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.IsActive)
                 .ToListAsync(cancellationToken);
 
@@ -379,27 +386,27 @@ public class AuthenticationService : IAuthenticationService
     }
 
     // Private helper methods
-    private async Task<AuthUser?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken)
+    private async Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken)
     {
-        return await _context.Set<AuthUser>()
+        return await _context.Users
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
 
-    private async Task<AuthUser?> GetUserByIdAsync(string userId, CancellationToken cancellationToken)
+    private async Task<User?> GetUserByIdAsync(string userId, CancellationToken cancellationToken)
     {
-        return await _context.Set<AuthUser>()
+        return await _context.Users
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
     }
 
-    private async Task<AuthUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
+    private async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
     {
-        return await _context.Set<AuthUser>()
+        return await _context.Users
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     private async Task<bool> VerifyPasswordAsync(string userId, string password, CancellationToken cancellationToken)
     {
-        var userPassword = await _context.Set<UserPassword>()
+        var userPassword = await _context.UserPasswords
             .FirstOrDefaultAsync(up => up.UserId == userId && up.IsActive, cancellationToken);
 
         if (userPassword == null)
@@ -410,15 +417,16 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<bool> IsAccountLockedAsync(string username, CancellationToken cancellationToken)
     {
-        var lockout = await _context.Set<AccountLockout>()
-            .FirstOrDefaultAsync(al => al.Username == username && al.LockedUntil > DateTime.UtcNow, cancellationToken);
+        // Temporarily disabled - use User.LockoutEnd instead
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
 
-        return lockout != null;
+        return user?.LockoutEnd > DateTime.UtcNow;
     }
 
     private async Task<bool> IsPasswordExpiredAsync(string userId, CancellationToken cancellationToken)
     {
-        var userPassword = await _context.Set<UserPassword>()
+        var userPassword = await _context.UserPasswords
             .FirstOrDefaultAsync(up => up.UserId == userId && up.IsActive, cancellationToken);
 
         if (userPassword == null)
@@ -430,10 +438,11 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<bool> IsTwoFactorEnabledAsync(string userId, CancellationToken cancellationToken)
     {
-        var twoFactorSettings = await _context.Set<UserTwoFactorSettings>()
-            .FirstOrDefaultAsync(tfs => tfs.UserId == userId, cancellationToken);
+        // Use User.TwoFactorEnabled instead
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
 
-        return twoFactorSettings?.IsEnabled == true;
+        return user?.TwoFactorEnabled == true;
     }
 
     private bool ValidatePasswordPolicy(string password)
@@ -460,7 +469,7 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<bool> IsPasswordInHistoryAsync(string userId, string password, CancellationToken cancellationToken)
     {
-        var passwordHistory = await _context.Set<PasswordHistory>()
+        var passwordHistory = await _context.UserPasswords
             .Where(ph => ph.UserId == userId)
             .OrderByDescending(ph => ph.CreatedAt)
             .Take(_securityConfig.PasswordPolicy.PasswordHistoryCount)
@@ -471,7 +480,7 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task StoreRefreshTokenAsync(string userId, string refreshToken, CancellationToken cancellationToken)
     {
-        var token = new RefreshToken
+        var token = new MonitoringGrid.Core.Entities.RefreshToken
         {
             UserId = userId,
             Token = refreshToken,
@@ -480,13 +489,13 @@ public class AuthenticationService : IAuthenticationService
             IsActive = true
         };
 
-        _context.Set<RefreshToken>().Add(token);
+        _context.RefreshTokens.Add(token);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task UpdateLastLoginAsync(string userId, string ipAddress, CancellationToken cancellationToken)
     {
-        var user = await _context.Set<AuthUser>()
+        var user = await _context.Users
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
 
         if (user != null)
@@ -500,50 +509,49 @@ public class AuthenticationService : IAuthenticationService
     {
         await _auditService.LogLoginAttemptAsync(username, ipAddress, false, reason, cancellationToken);
 
-        // Check if we need to lock the account
-        var recentFailures = await _context.Set<SecurityAuditEvent>()
-            .Where(sae => sae.Username == username && 
-                         sae.EventType == "LOGIN_FAILED" && 
-                         sae.Timestamp >= DateTime.UtcNow.AddMinutes(-30))
-            .CountAsync(cancellationToken);
+        // Update failed login attempts on user record
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
 
-        if (recentFailures >= _securityConfig.PasswordPolicy.MaxFailedAttempts)
+        if (user != null)
         {
-            await LockAccountAsync(username, cancellationToken);
+            user.FailedLoginAttempts++;
+
+            if (user.FailedLoginAttempts >= _securityConfig.PasswordPolicy.MaxFailedAttempts)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(_securityConfig.PasswordPolicy.LockoutDurationMinutes);
+                _logger.LogWarning("Account locked for user {Username} due to multiple failed login attempts", username);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
     private async Task LockAccountAsync(string username, CancellationToken cancellationToken)
     {
-        var lockout = new AccountLockout
-        {
-            Username = username,
-            LockedAt = DateTime.UtcNow,
-            LockedUntil = DateTime.UtcNow.AddMinutes(_securityConfig.PasswordPolicy.LockoutDurationMinutes),
-            Reason = "Multiple failed login attempts"
-        };
-
-        _context.Set<AccountLockout>().Add(lockout);
-        await _context.SaveChangesAsync(cancellationToken);
-
+        // This method is now handled in RecordFailedLoginAttemptAsync
+        // Keeping for compatibility but functionality moved to User entity
         _logger.LogWarning("Account locked for user {Username} due to multiple failed login attempts", username);
     }
 
     private async Task ClearFailedLoginAttemptsAsync(string username, CancellationToken cancellationToken)
     {
-        // Remove any active lockouts
-        var lockouts = await _context.Set<AccountLockout>()
-            .Where(al => al.Username == username && al.LockedUntil > DateTime.UtcNow)
-            .ToListAsync(cancellationToken);
+        // Clear failed login attempts and lockout from user record
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
 
-        _context.Set<AccountLockout>().RemoveRange(lockouts);
-        await _context.SaveChangesAsync(cancellationToken);
+        if (user != null)
+        {
+            user.FailedLoginAttempts = 0;
+            user.LockoutEnd = null;
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private async Task UpdatePasswordAsync(string userId, string hashedPassword, CancellationToken cancellationToken)
     {
         // Deactivate old password
-        var oldPasswords = await _context.Set<UserPassword>()
+        var oldPasswords = await _context.UserPasswords
             .Where(up => up.UserId == userId && up.IsActive)
             .ToListAsync(cancellationToken);
 
@@ -553,7 +561,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Add new password
-        var newPassword = new UserPassword
+        var newPassword = new MonitoringGrid.Core.Entities.UserPassword
         {
             UserId = userId,
             PasswordHash = hashedPassword,
@@ -561,20 +569,21 @@ public class AuthenticationService : IAuthenticationService
             IsActive = true
         };
 
-        _context.Set<UserPassword>().Add(newPassword);
+        _context.UserPasswords.Add(newPassword);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task AddPasswordToHistoryAsync(string userId, string hashedPassword, CancellationToken cancellationToken)
     {
-        var historyEntry = new PasswordHistory
+        var historyEntry = new MonitoringGrid.Core.Entities.UserPassword
         {
             UserId = userId,
             PasswordHash = hashedPassword,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = false // History entries are not active
         };
 
-        _context.Set<PasswordHistory>().Add(historyEntry);
+        _context.UserPasswords.Add(historyEntry);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -588,17 +597,9 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task StorePasswordResetTokenAsync(string userId, string token, DateTime expiresAt, CancellationToken cancellationToken)
     {
-        var resetToken = new PasswordResetToken
-        {
-            UserId = userId,
-            Token = token,
-            ExpiresAt = expiresAt,
-            CreatedAt = DateTime.UtcNow,
-            IsUsed = false
-        };
-
-        _context.Set<PasswordResetToken>().Add(resetToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        // Temporarily disabled - would need PasswordResetToken entity in DbContext
+        // For now, password reset tokens are not persisted
+        _logger.LogInformation("Password reset token generated for user {UserId} (not persisted)", userId);
     }
 }
 

@@ -15,28 +15,34 @@ import {
   Select,
   MenuItem,
   Chip,
-  IconButton,
+
   Tooltip,
   Alert,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
-  Add,
+
   Edit,
   Delete,
   Security,
   PersonAdd,
   Block,
-  CheckCircle
+  CheckCircle,
+  MoreVert
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { PageHeader } from '../../components/Common';
-import { userService } from '../../services/userService';
-import { User, Role, CreateUserRequest, UpdateUserRequest } from '../../types/auth';
+import { userService, CreateUserRequest, UpdateUserRequest, BulkUserOperation } from '../../services/userService';
+import { roleService } from '../../services/roleService';
+import { User, Role } from '../../types/auth';
+import toast from 'react-hot-toast';
 
 const userSchema = yup.object({
   username: yup.string().required('Username is required').min(3, 'Username must be at least 3 characters'),
@@ -46,7 +52,7 @@ const userSchema = yup.object({
   lastName: yup.string(),
   department: yup.string(),
   title: yup.string(),
-  roles: yup.array().of(yup.string()).min(1, 'At least one role is required'),
+  roles: yup.array().of(yup.string().required()).min(1, 'At least one role is required'),
   isActive: yup.boolean()
 });
 
@@ -70,6 +76,8 @@ export const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [bulkMenuAnchor, setBulkMenuAnchor] = useState<null | HTMLElement>(null);
 
   const {
     control,
@@ -93,12 +101,14 @@ export const UserManagement: React.FC = () => {
       setLoading(true);
       const [usersData, rolesData] = await Promise.all([
         userService.getUsers(),
-        userService.getRoles()
+        roleService.getRoles()
       ]);
       setUsers(usersData);
       setRoles(rolesData);
     } catch (err) {
-      setError('Failed to load user data');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Error loading data:', err);
     } finally {
       setLoading(false);
@@ -131,7 +141,7 @@ export const UserManagement: React.FC = () => {
       lastName: user.lastName || '',
       department: user.department || '',
       title: user.title || '',
-      roles: user.roles,
+      roles: user.roles.map(role => role.roleId),
       isActive: user.isActive
     });
     setDialogOpen(true);
@@ -142,10 +152,13 @@ export const UserManagement: React.FC = () => {
 
     try {
       await userService.deleteUser(userId);
+      toast.success('User deleted successfully');
       setSuccess('User deleted successfully');
       loadData();
     } catch (err) {
-      setError('Failed to delete user');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete user';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Error deleting user:', err);
     }
   };
@@ -154,14 +167,18 @@ export const UserManagement: React.FC = () => {
     try {
       if (isActive) {
         await userService.activateUser(userId);
+        toast.success('User activated successfully');
         setSuccess('User activated successfully');
       } else {
         await userService.deactivateUser(userId);
+        toast.success('User deactivated successfully');
         setSuccess('User deactivated successfully');
       }
       loadData();
     } catch (err) {
-      setError(`Failed to ${isActive ? 'activate' : 'deactivate'} user`);
+      const errorMessage = err instanceof Error ? err.message : `Failed to ${isActive ? 'activate' : 'deactivate'} user`;
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Error toggling user status:', err);
     }
   };
@@ -175,10 +192,11 @@ export const UserManagement: React.FC = () => {
           lastName: data.lastName,
           department: data.department,
           title: data.title,
-          roles: data.roles,
+          roleIds: data.roles,
           isActive: data.isActive
         };
         await userService.updateUser(editingUser.userId, updateRequest);
+        toast.success('User updated successfully');
         setSuccess('User updated successfully');
       } else {
         const createRequest: CreateUserRequest = {
@@ -189,17 +207,50 @@ export const UserManagement: React.FC = () => {
           lastName: data.lastName,
           department: data.department,
           title: data.title,
-          roles: data.roles
+          password: 'TempPassword123!', // Temporary password - should be changed on first login
+          roleIds: data.roles,
+          isActive: data.isActive,
+          emailConfirmed: false
         };
         await userService.createUser(createRequest);
+        toast.success('User created successfully');
         setSuccess('User created successfully');
       }
       setDialogOpen(false);
       loadData();
     } catch (err) {
-      setError(`Failed to ${editingUser ? 'update' : 'create'} user`);
+      const errorMessage = err instanceof Error ? err.message : `Failed to ${editingUser ? 'update' : 'create'} user`;
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Error saving user:', err);
     }
+  };
+
+  const handleBulkOperation = async (operation: string) => {
+    if (selectedUsers.length === 0) {
+      toast.error('Please select users first');
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to ${operation} ${selectedUsers.length} user(s)?`;
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      const bulkOperation: BulkUserOperation = {
+        userIds: selectedUsers,
+        operation: operation as any
+      };
+
+      await userService.bulkOperation(bulkOperation);
+      toast.success(`${operation} operation completed successfully`);
+      setSelectedUsers([]);
+      loadData();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : `Failed to ${operation} users`;
+      toast.error(errorMessage);
+      console.error('Error in bulk operation:', err);
+    }
+    setBulkMenuAnchor(null);
   };
 
   const columns: GridColDef[] = [
@@ -239,12 +290,12 @@ export const UserManagement: React.FC = () => {
       width: 200,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-          {params.value.map((role: string) => (
+          {params.value.map((role: Role) => (
             <Chip
-              key={role}
-              label={role}
+              key={role.roleId}
+              label={role.name}
               size="small"
-              color={role === 'Admin' ? 'error' : 'primary'}
+              color={role.name === 'Admin' ? 'error' : 'primary'}
               variant="outlined"
             />
           ))}
@@ -305,15 +356,14 @@ export const UserManagement: React.FC = () => {
         title="User Management"
         subtitle="Manage system users and their permissions"
         icon={<Security />}
-        actions={
-          <Button
-            variant="contained"
-            startIcon={<PersonAdd />}
-            onClick={handleCreateUser}
-          >
-            Add User
-          </Button>
-        }
+        actions={[
+          {
+            label: 'Add User',
+            icon: <PersonAdd />,
+            onClick: handleCreateUser,
+            variant: 'contained' as const
+          }
+        ]}
       />
 
       {error && (
@@ -328,6 +378,25 @@ export const UserManagement: React.FC = () => {
         </Alert>
       )}
 
+      {selectedUsers.length > 0 && (
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6">
+                {selectedUsers.length} user(s) selected
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<MoreVert />}
+                onClick={(e) => setBulkMenuAnchor(e.currentTarget)}
+              >
+                Bulk Actions
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent>
           <DataGrid
@@ -339,7 +408,11 @@ export const UserManagement: React.FC = () => {
             initialState={{
               pagination: { paginationModel: { pageSize: 25 } }
             }}
-            disableRowSelectionOnClick
+            checkboxSelection
+            rowSelectionModel={selectedUsers}
+            onRowSelectionModelChange={(newSelection) => {
+              setSelectedUsers(newSelection as string[]);
+            }}
             sx={{ height: 600 }}
           />
         </CardContent>
@@ -510,6 +583,32 @@ export const UserManagement: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Bulk Operations Menu */}
+      <Menu
+        anchorEl={bulkMenuAnchor}
+        open={Boolean(bulkMenuAnchor)}
+        onClose={() => setBulkMenuAnchor(null)}
+      >
+        <MenuItem onClick={() => handleBulkOperation('activate')}>
+          <ListItemIcon>
+            <CheckCircle fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Activate Users</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleBulkOperation('deactivate')}>
+          <ListItemIcon>
+            <Block fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Deactivate Users</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleBulkOperation('delete')}>
+          <ListItemIcon>
+            <Delete fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete Users</ListItemText>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };

@@ -1,0 +1,11 @@
+{
+  "username": "admin",
+  "email": "admin@test.com",
+  "displayName": "Administrator",
+  "firstName": "Admin",
+  "lastName": "User",
+  "department": "IT",
+  "title": "Administrator",
+  "password": "Password123@",
+  "confirmPassword": "Password123@"
+}

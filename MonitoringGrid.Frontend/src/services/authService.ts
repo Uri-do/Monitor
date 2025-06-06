@@ -1,6 +1,6 @@
-import { LoginRequest, LoginResponse, User } from '../types/auth';
+import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, User } from '../types/auth';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:7001';
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 class AuthService {
   private baseUrl = `${API_BASE_URL}/api/auth`;
@@ -14,12 +14,39 @@ class AuthService {
       body: JSON.stringify(request),
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Login failed');
+      throw new Error(result.errorMessage || result.message || 'Login failed');
     }
 
-    return response.json();
+    if (!result.isSuccess) {
+      throw new Error(result.errorMessage || 'Login failed');
+    }
+
+    return result;
+  }
+
+  async register(request: RegisterRequest): Promise<RegisterResponse> {
+    const response = await fetch(`${this.baseUrl}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Registration failed');
+    }
+
+    if (!result.isSuccess) {
+      throw new Error(result.message || result.errors?.join(', ') || 'Registration failed');
+    }
+
+    return result;
   }
 
   async logout(): Promise<void> {
@@ -36,7 +63,7 @@ class AuthService {
         console.warn('Logout request failed:', error);
       }
     }
-    
+
     this.clearToken();
   }
 
@@ -70,7 +97,7 @@ class AuthService {
       throw new Error('No authentication token');
     }
 
-    const response = await fetch(`${this.baseUrl}/me`, {
+    const response = await fetch(`${this.baseUrl}/profile`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

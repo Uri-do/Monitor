@@ -79,6 +79,29 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.ToListAsync();
     }
 
+    public virtual async Task<IEnumerable<T>> GetWithThenIncludesAsync<TKey>(
+        Expression<Func<T, bool>>? predicate,
+        Expression<Func<T, TKey>> orderBy,
+        bool ascending = true,
+        Func<IQueryable<T>, IQueryable<T>>? includeFunc = null)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (includeFunc != null)
+        {
+            query = includeFunc(query);
+        }
+
+        if (predicate != null)
+        {
+            query = query.Where(predicate);
+        }
+
+        query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
+
+        return await query.ToListAsync();
+    }
+
     public virtual async Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
@@ -101,6 +124,29 @@ public class Repository<T> : IRepository<T> where T : class
         var parameter = Expression.Parameter(typeof(T), "x");
         var property = Expression.Property(parameter, keyProperty.Name);
         var constant = Expression.Constant(id);
+        var equal = Expression.Equal(property, constant);
+        var lambda = Expression.Lambda<Func<T, bool>>(equal, parameter);
+
+        return await query.FirstOrDefaultAsync(lambda);
+    }
+
+    public virtual async Task<T?> GetByIdWithThenIncludesAsync(object id, Func<IQueryable<T>, IQueryable<T>>? includeFunc = null)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (includeFunc != null)
+        {
+            query = includeFunc(query);
+        }
+
+        // For FindAsync with includes, we need to use Where instead
+        var keyProperty = _context.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.FirstOrDefault();
+        if (keyProperty == null)
+            throw new InvalidOperationException($"No primary key found for entity type {typeof(T).Name}");
+
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property = Expression.Property(parameter, keyProperty.Name);
+        var constant = Expression.Constant(Convert.ChangeType(id, keyProperty.ClrType));
         var equal = Expression.Equal(property, constant);
         var lambda = Expression.Lambda<Func<T, bool>>(equal, parameter);
 

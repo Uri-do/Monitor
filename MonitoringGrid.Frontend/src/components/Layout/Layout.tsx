@@ -27,9 +27,14 @@ import {
   Analytics as AnalyticsIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
+  AdminPanelSettings,
+  Group,
+  Security,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi, alertApi } from '@/services/api';
+import UserMenu from '@/components/Auth/UserMenu';
+import { useAuth } from '@/hooks/useAuth';
 
 const drawerWidth = 240;
 
@@ -42,6 +47,7 @@ interface NavItem {
   icon: React.ReactElement;
   path: string;
   badge?: number;
+  requiredPermissions?: string[];
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -50,6 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Get system health
   const { data: healthData } = useQuery({
@@ -76,7 +83,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  const navItems: NavItem[] = [
+  const hasPermission = (permissions: string[]) => {
+    if (!user) return false;
+    return permissions.some(permission => user.permissions.includes(permission));
+  };
+
+  const allNavItems: NavItem[] = [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
@@ -104,11 +116,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       path: '/analytics',
     },
     {
-      text: 'Settings',
+      text: 'Admin Dashboard',
+      icon: <AdminPanelSettings />,
+      path: '/admin',
+      requiredPermissions: ['System:Admin'],
+    },
+    {
+      text: 'User Management',
+      icon: <Group />,
+      path: '/admin/users',
+      requiredPermissions: ['User:Read'],
+    },
+    {
+      text: 'Role Management',
+      icon: <Security />,
+      path: '/admin/roles',
+      requiredPermissions: ['Role:Read'],
+    },
+    {
+      text: 'System Settings',
+      icon: <SettingsIcon />,
+      path: '/admin/settings',
+      requiredPermissions: ['System:Admin'],
+    },
+    {
+      text: 'User Settings',
       icon: <SettingsIcon />,
       path: '/settings',
     },
   ];
+
+  const navItems = allNavItems.filter(item =>
+    !item.requiredPermissions || hasPermission(item.requiredPermissions)
+  );
 
   const drawer = (
     <div>
@@ -222,6 +262,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               <RefreshIcon />
             </IconButton>
+
+            {/* User Menu */}
+            <UserMenu />
           </Box>
         </Toolbar>
       </AppBar>

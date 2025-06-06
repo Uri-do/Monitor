@@ -61,12 +61,11 @@ public class ContactController : ControllerBase
             predicate = c => c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search));
         }
 
-        var contacts = await _contactRepository.GetWithIncludesAsync(
+        var contacts = await _contactRepository.GetWithThenIncludesAsync(
             predicate ?? (c => true),
             c => c.Name,
             true,
-            c => c.KpiContacts,
-            c => c.KpiContacts.Select(kc => kc.KPI));
+            query => query.Include(c => c.KpiContacts).ThenInclude(kc => kc.KPI));
 
         return Ok(_mapper.Map<List<ContactDto>>(contacts));
     }
@@ -77,9 +76,8 @@ public class ContactController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ContactDto>> GetContact(int id)
     {
-        var contact = await _contactRepository.GetByIdWithIncludesAsync(id,
-            c => c.KpiContacts,
-            c => c.KpiContacts.Select(kc => kc.KPI));
+        var contact = await _contactRepository.GetByIdWithThenIncludesAsync(id,
+            query => query.Include(c => c.KpiContacts).ThenInclude(kc => kc.KPI));
 
         if (contact == null)
             return NotFound($"Contact with ID {id} not found");
@@ -147,9 +145,8 @@ public class ContactController : ControllerBase
         await _contactRepository.SaveChangesAsync();
 
         // Reload with KPI associations
-        var updatedContact = await _contactRepository.GetByIdWithIncludesAsync(id,
-            c => c.KpiContacts,
-            c => c.KpiContacts.Select(kc => kc.KPI));
+        var updatedContact = await _contactRepository.GetByIdWithThenIncludesAsync(id,
+            query => query.Include(c => c.KpiContacts).ThenInclude(kc => kc.KPI));
 
         _logger.LogInformation("Updated contact {Name} with ID {ContactId}", existingContact.Name, id);
 

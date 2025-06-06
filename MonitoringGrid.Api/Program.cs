@@ -1,23 +1,30 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Data.SqlClient;
 using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Services;
+using MonitoringGrid.Core.Security;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
 using Serilog;
+using Serilog.Events;
 using System.Text.Json.Serialization;
+using System.Text;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
+// Configure Serilog - simplified for testing
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
+    .WriteTo.Console()
+    .WriteTo.File("logs/monitoring-api-.log")
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -35,6 +42,8 @@ builder.Services.Configure<MonitoringConfiguration>(
     builder.Configuration.GetSection("Monitoring"));
 builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("Email"));
+builder.Services.Configure<SecurityConfiguration>(
+    builder.Configuration.GetSection("Security"));
 
 // Add Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("MonitoringGrid");
@@ -63,7 +72,7 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
 });
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile), typeof(AuthMappingProfile));
 
 // Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -82,6 +91,17 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
+
+// Add authentication services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+
+// Add security services
+builder.Services.AddScoped<ISecurityAuditService, SecurityAuditService>();
+builder.Services.AddScoped<IThreatDetectionService, ThreatDetectionService>();
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 
 // Add SignalR
 builder.Services.AddSignalR(options =>
@@ -107,13 +127,38 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() 
-    { 
-        Title = "Monitoring Grid API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Monitoring Grid API",
         Version = "v1",
         Description = "API for managing KPI monitoring and alerting system"
     });
-    
+
+    // Add JWT authentication to Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
     // Include XML comments if available
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -121,6 +166,69 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath);
     }
+});
+
+// Add JWT Authentication
+var securityConfig = builder.Configuration.GetSection("Security").Get<SecurityConfiguration>();
+if (securityConfig?.Jwt != null)
+{
+    var key = Encoding.UTF8.GetBytes(securityConfig.Jwt.SecretKey);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = securityConfig.Jwt.Issuer,
+            ValidateAudience = true,
+            ValidAudience = securityConfig.Jwt.Audience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            RequireExpirationTime = true
+        };
+
+        // Add SignalR support
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/monitoring-hub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+}
+
+// Add Authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireUserReadPermission", policy =>
+        policy.RequireClaim("permission", "User:Read"));
+    options.AddPolicy("RequireUserWritePermission", policy =>
+        policy.RequireClaim("permission", "User:Write"));
+    options.AddPolicy("RequireUserDeletePermission", policy =>
+        policy.RequireClaim("permission", "User:Delete"));
+    options.AddPolicy("RequireRoleReadPermission", policy =>
+        policy.RequireClaim("permission", "Role:Read"));
+    options.AddPolicy("RequireRoleWritePermission", policy =>
+        policy.RequireClaim("permission", "Role:Write"));
+    options.AddPolicy("RequireSystemAdminPermission", policy =>
+        policy.RequireClaim("permission", "System:Admin"));
 });
 
 // Add health checks
@@ -145,6 +253,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowReactApp");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -183,15 +292,36 @@ app.MapGet("/api/info", () => new
     Timestamp = DateTime.UtcNow
 });
 
-// Ensure database is created and accessible
+// Ensure database connections are accessible
 try
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
-    
-    Log.Information("Checking database connection...");
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    Log.Information("Checking database connections...");
+
+    // Test MonitoringGrid database connection
+    Log.Information("Testing MonitoringGrid database connection...");
     await context.Database.CanConnectAsync();
-    Log.Information("Database connection successful");
+    Log.Information("✅ MonitoringGrid database connection successful");
+
+    // Test MainDatabase connection
+    var mainConnectionString = configuration.GetConnectionString("MainDatabase");
+    if (!string.IsNullOrEmpty(mainConnectionString))
+    {
+        Log.Information("Testing MainDatabase connection...");
+        using var mainConnection = new Microsoft.Data.SqlClient.SqlConnection(mainConnectionString);
+        await mainConnection.OpenAsync();
+        Log.Information("✅ MainDatabase connection successful");
+        await mainConnection.CloseAsync();
+    }
+    else
+    {
+        Log.Warning("⚠️ MainDatabase connection string not configured");
+    }
+
+    Log.Information("All database connections verified successfully");
 }
 catch (Exception ex)
 {

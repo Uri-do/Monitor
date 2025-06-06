@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { User, AuthState, LoginRequest } from '../types/auth';
+import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
+import { AuthState, LoginRequest, RegisterRequest } from '../types/auth';
 import { authService } from '../services/authService';
 
 interface AuthContextType extends AuthState {
   login: (request: LoginRequest) => Promise<void>;
+  register: (request: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
 }
@@ -57,19 +58,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (request: LoginRequest) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
       const response = await authService.login(request);
-      authService.setToken(response.token);
-      authService.setRefreshToken(response.refreshToken);
-      
-      setState({
-        user: response.user,
-        token: response.token,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
+
+      if (response.token && response.user) {
+        authService.setToken(response.token.accessToken);
+        authService.setRefreshToken(response.token.refreshToken);
+
+        setState({
+          user: response.user,
+          token: response.token.accessToken,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        throw new Error(response.errorMessage || 'Login failed');
+      }
     } catch (error) {
       setState({
         user: null,
@@ -78,6 +84,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading: false,
         error: error instanceof Error ? error.message : 'Login failed',
       });
+      throw error;
+    }
+  };
+
+  const register = async (request: RegisterRequest) => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const response = await authService.register(request);
+
+      if (response.isSuccess && response.data) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+        }));
+      } else {
+        throw new Error(response.message || response.errors?.join(', ') || 'Registration failed');
+      }
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Registration failed',
+      }));
       throw error;
     }
   };
@@ -105,8 +136,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.refreshToken();
       setState(prev => ({
         ...prev,
-        user: response.user,
-        token: response.token,
+        user: response.user || null,
+        token: response.token?.accessToken || null,
         error: null,
       }));
     } catch (error) {
@@ -119,6 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     ...state,
     login,
+    register,
     logout,
     refreshToken,
   };

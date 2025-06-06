@@ -2,11 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
 
 // Components
 import Layout from '@/components/Layout/Layout';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import Dashboard from '@/pages/Dashboard/Dashboard';
 import KpiList from '@/pages/KPI/KpiList';
 import KpiDetail from '@/pages/KPI/KpiDetail';
@@ -18,6 +19,16 @@ import AlertList from '@/pages/Alert/AlertList';
 import AlertDetail from '@/pages/Alert/AlertDetail';
 import Analytics from '@/pages/Analytics/Analytics';
 import Settings from '@/pages/Settings/Settings';
+import Login from '@/pages/Auth/Login';
+import Register from '@/pages/Auth/Register';
+import UserProfile from '@/pages/User/UserProfile';
+import UserManagement from '@/pages/Users/UserManagement';
+import RoleManagement from '@/pages/Admin/RoleManagement';
+import AdminDashboard from '@/pages/Admin/AdminDashboard';
+import SystemSettings from '@/pages/Admin/SystemSettings';
+
+// Auth Provider
+import { AuthProvider } from '@/hooks/useAuth';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -102,42 +113,169 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        <AuthProvider>
           <Router>
-            <Layout>
-              <Routes>
-                {/* Dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                
-                {/* KPI Management */}
-                <Route path="/kpis" element={<KpiList />} />
-                <Route path="/kpis/create" element={<KpiCreate />} />
-                <Route path="/kpis/:id" element={<KpiDetail />} />
-                <Route path="/kpis/:id/edit" element={<KpiCreate />} />
-                
-                {/* Contact Management */}
-                <Route path="/contacts" element={<ContactList />} />
-                <Route path="/contacts/create" element={<ContactCreate />} />
-                <Route path="/contacts/:id" element={<ContactDetail />} />
-                <Route path="/contacts/:id/edit" element={<ContactCreate />} />
-                
-                {/* Alert Management */}
-                <Route path="/alerts" element={<AlertList />} />
-                <Route path="/alerts/:id" element={<AlertDetail />} />
-                
-                {/* Analytics */}
-                <Route path="/analytics" element={<Analytics />} />
-                
-                {/* Settings */}
-                <Route path="/settings" element={<Settings />} />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Layout>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+
+              {/* Protected Routes */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* KPI Management */}
+              <Route path="/kpis" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <KpiList />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/kpis/create" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <KpiCreate />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/kpis/:id" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <KpiDetail />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/kpis/:id/edit" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <KpiCreate />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Contact Management */}
+              <Route path="/contacts" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ContactList />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/contacts/create" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ContactCreate />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/contacts/:id" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ContactDetail />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/contacts/:id/edit" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ContactCreate />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Alert Management */}
+              <Route path="/alerts" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AlertList />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/alerts/:id" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AlertDetail />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Analytics */}
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Analytics />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* User Profile */}
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <UserProfile />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute requiredPermissions={['System:Admin']}>
+                  <Layout>
+                    <AdminDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredPermissions={['User:Read']}>
+                  <Layout>
+                    <UserManagement />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/roles" element={
+                <ProtectedRoute requiredPermissions={['Role:Read']}>
+                  <Layout>
+                    <RoleManagement />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requiredPermissions={['System:Admin']}>
+                  <Layout>
+                    <SystemSettings />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Settings */}
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </Router>
-        </Box>
+        </AuthProvider>
         
         {/* Toast notifications */}
         <Toaster

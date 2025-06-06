@@ -31,7 +31,7 @@ import {
 } from './mockData';
 
 // Enable mock mode for development (set to false when backend is ready)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Create axios instance with base configuration
 const api = axios.create({

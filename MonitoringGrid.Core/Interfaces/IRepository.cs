@@ -39,6 +39,15 @@ public interface IRepository<T> where T : class
         params Expression<Func<T, object>>[] includes);
 
     /// <summary>
+    /// Gets entities with filtering, ordering, and complex navigation properties using ThenInclude
+    /// </summary>
+    Task<IEnumerable<T>> GetWithThenIncludesAsync<TKey>(
+        Expression<Func<T, bool>>? predicate,
+        Expression<Func<T, TKey>> orderBy,
+        bool ascending = true,
+        Func<IQueryable<T>, IQueryable<T>>? includeFunc = null);
+
+    /// <summary>
     /// Gets a single entity by ID
     /// </summary>
     Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken = default);
@@ -47,6 +56,11 @@ public interface IRepository<T> where T : class
     /// Gets a single entity by ID with navigation properties
     /// </summary>
     Task<T?> GetByIdWithIncludesAsync(object id, params Expression<Func<T, object>>[] includes);
+
+    /// <summary>
+    /// Gets a single entity by ID with complex navigation properties using ThenInclude
+    /// </summary>
+    Task<T?> GetByIdWithThenIncludesAsync(object id, Func<IQueryable<T>, IQueryable<T>>? includeFunc = null);
 
     /// <summary>
     /// Gets the first entity matching the predicate

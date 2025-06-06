@@ -45,7 +45,7 @@ public class JwtTokenService : IJwtTokenService
         };
     }
 
-    public string GenerateAccessToken(AuthUser user, List<Claim>? additionalClaims = null)
+    public string GenerateAccessToken(User user, List<Claim>? additionalClaims = null)
     {
         try
         {
@@ -63,29 +63,35 @@ public class JwtTokenService : IJwtTokenService
                 new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
-            // Add roles
-            foreach (var role in user.Roles)
+            // Add roles from UserRoles navigation property
+            if (user.UserRoles?.Any() == true)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-                claims.Add(new Claim("role", role));
-            }
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role != null)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                        claims.Add(new Claim("role", userRole.Role.Name));
 
-            // Add permissions
-            foreach (var permission in user.Permissions)
-            {
-                claims.Add(new Claim("permission", permission));
+                        // Add permissions from role
+                        if (userRole.Role.RolePermissions?.Any() == true)
+                        {
+                            foreach (var rolePermission in userRole.Role.RolePermissions)
+                            {
+                                if (rolePermission.Permission != null)
+                                {
+                                    claims.Add(new Claim("permission", rolePermission.Permission.Name));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Add additional claims
             if (additionalClaims != null)
             {
                 claims.AddRange(additionalClaims);
-            }
-
-            // Add custom claims from user
-            foreach (var customClaim in user.Claims)
-            {
-                claims.Add(new Claim(customClaim.Key, customClaim.Value.ToString() ?? string.Empty));
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));

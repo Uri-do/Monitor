@@ -294,6 +294,19 @@ public class SecurityThreat
     public string? IpAddress { get; set; }
     public DateTime DetectedAt { get; set; }
     public bool IsResolved { get; set; }
+    public DateTime? ResolvedAt { get; set; }
     public string? Resolution { get; set; }
     public Dictionary<string, object> ThreatData { get; set; } = new();
+}
+
+/// <summary>
+/// User two-factor authentication settings
+/// </summary>
+public class UserTwoFactorSettings
+{
+    public string UserId { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+    public string? Secret { get; set; }
+    public List<string> RecoveryCodes { get; set; } = new();
+    public DateTime? EnabledAt { get; set; }
 }

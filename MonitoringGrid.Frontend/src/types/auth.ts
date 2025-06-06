@@ -1,7 +1,7 @@
 // Authentication and user management types
 
 export interface User {
-  id: string;
+  userId: string;
   username: string;
   email: string;
   displayName: string;
@@ -9,18 +9,32 @@ export interface User {
   lastName?: string;
   title?: string;
   department?: string;
-  roles: string[];
   isActive: boolean;
-  lastLogin?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  emailConfirmed: boolean;
+  twoFactorEnabled: boolean;
+  lastLogin?: string;
+  createdDate: string;
+  modifiedDate: string;
+  roles: Role[];
+  permissions: string[];
 }
 
 export interface Role {
-  id: string;
+  roleId: string;
   name: string;
   description: string;
-  permissions: string[];
+  isSystemRole: boolean;
+  isActive: boolean;
+  permissions: Permission[];
+}
+
+export interface Permission {
+  permissionId: string;
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+  isSystemPermission: boolean;
   isActive: boolean;
 }
 
@@ -57,11 +71,41 @@ export interface LoginRequest {
   twoFactorCode?: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  displayName: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  title?: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface RegisterResponse {
+  isSuccess: boolean;
+  message?: string;
+  data?: User;
+  errors: string[];
+}
+
 export interface LoginResponse {
-  token: string;
+  isSuccess: boolean;
+  errorMessage?: string;
+  token?: JwtToken;
+  user?: User;
+  requiresTwoFactor: boolean;
+  requiresPasswordChange: boolean;
+}
+
+export interface JwtToken {
+  accessToken: string;
   refreshToken: string;
-  user: User;
-  expiresAt: Date;
+  expiresAt: string;
+  refreshExpiresAt: string;
+  tokenType: string;
+  scopes: string[];
 }
 
 export interface AuthState {

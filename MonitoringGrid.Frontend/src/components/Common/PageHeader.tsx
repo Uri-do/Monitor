@@ -38,6 +38,7 @@ export interface PageAction {
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  icon?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   showBackButton?: boolean;
   backButtonPath?: string;
@@ -58,6 +59,7 @@ interface PageHeaderProps {
 const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
+  icon,
   breadcrumbs,
   showBackButton = false,
   backButtonPath,
@@ -128,6 +130,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              {icon && (
+                <Box sx={{ color: 'primary.main' }}>
+                  {icon}
+                </Box>
+              )}
               <Typography variant="h4" component="h1">
                 {title}
               </Typography>

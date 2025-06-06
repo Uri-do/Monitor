@@ -11,7 +11,7 @@ public interface IAuthenticationService
     Task<LoginResponse> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default);
     Task<JwtToken> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
-    Task<AuthUser?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<User?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<bool> RevokeTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
     Task<bool> ResetPasswordAsync(string email, CancellationToken cancellationToken = default);
@@ -37,7 +37,7 @@ public interface IAuthorizationService
 /// </summary>
 public interface IJwtTokenService
 {
-    string GenerateAccessToken(AuthUser user, List<Claim>? additionalClaims = null);
+    string GenerateAccessToken(User user, List<Claim>? additionalClaims = null);
     string GenerateRefreshToken();
     ClaimsPrincipal? ValidateToken(string token);
     DateTime GetTokenExpiration(string token);
@@ -76,11 +76,11 @@ public interface IRoleManagementService
 /// </summary>
 public interface IUserManagementService
 {
-    Task<AuthUser> CreateUserAsync(string username, string email, string displayName, List<string> roles, CancellationToken cancellationToken = default);
-    Task<AuthUser?> GetUserAsync(string userId, CancellationToken cancellationToken = default);
-    Task<AuthUser?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default);
-    Task<AuthUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<List<AuthUser>> GetUsersAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default);
+    Task<User> CreateUserAsync(string username, string email, string displayName, List<string> roles, CancellationToken cancellationToken = default);
+    Task<User?> GetUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<List<User>> GetUsersAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default);
     Task<bool> UpdateUserAsync(string userId, string displayName, string? department, string? title, CancellationToken cancellationToken = default);
     Task<bool> DeactivateUserAsync(string userId, CancellationToken cancellationToken = default);
     Task<bool> ActivateUserAsync(string userId, CancellationToken cancellationToken = default);

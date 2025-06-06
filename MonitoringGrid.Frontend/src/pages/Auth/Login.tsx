@@ -25,19 +25,14 @@ import {
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const loginSchema = yup.object({
   username: yup.string().required('Username is required'),
   password: yup.string().required('Password is required'),
-  rememberMe: yup.boolean(),
-  twoFactorCode: yup.string().when('requiresTwoFactor', {
-    is: true,
-    then: (schema) => schema.required('Two-factor code is required'),
-    otherwise: (schema) => schema.notRequired()
-  })
+  rememberMe: yup.boolean().default(false),
+  twoFactorCode: yup.string().optional()
 });
 
 interface LoginFormData {
@@ -53,13 +48,17 @@ export const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    location.state?.message || null
+  );
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    setError: setFormError
+    formState: { errors }
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
     defaultValues: {
@@ -122,6 +121,12 @@ export const Login: React.FC = () => {
               Sign in to your account
             </Typography>
           </Box>
+
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
+              {successMessage}
+            </Alert>
+          )}
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -217,6 +222,22 @@ export const Login: React.FC = () => {
               >
                 Forgot your password?
               </Link>
+            </Box>
+
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{' '}
+                <Link
+                  component="button"
+                  type="button"
+                  variant="body2"
+                  onClick={() => navigate('/register')}
+                  disabled={isLoading}
+                  sx={{ textDecoration: 'none' }}
+                >
+                  Sign up here
+                </Link>
+              </Typography>
             </Box>
 
             <Divider sx={{ my: 2 }}>
