@@ -27,7 +27,16 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Tabs,
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   Security,
@@ -39,45 +48,40 @@ import {
   Add,
   Warning,
   CheckCircle,
-  VpnKey
+  VpnKey,
+  People,
+  Settings,
+  History,
+  ExpandMore,
+  Save
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { PageHeader } from '../../components/Common';
+import toast from 'react-hot-toast';
 import { securityService } from '../../services/securityService';
+import { SecurityConfig, SecurityEvent, User, Role, Permission } from '../../types/auth';
 
-interface SecurityConfig {
-  passwordPolicy: {
-    minimumLength: number;
-    requireUppercase: boolean;
-    requireLowercase: boolean;
-    requireDigit: boolean;
-    requireSpecialCharacter: boolean;
-    passwordHistoryCount: number;
-    maxFailedAttempts: number;
-    lockoutDurationMinutes: number;
-    passwordExpirationDays: number;
-  };
-  sessionSettings: {
-    sessionTimeoutMinutes: number;
-    idleTimeoutMinutes: number;
-    requireHttps: boolean;
-    secureCookies: boolean;
-  };
-  twoFactorSettings: {
-    isEnabled: boolean;
-    isRequired: boolean;
-    enabledProviders: string[];
-    codeExpirationMinutes: number;
-    maxAttempts: number;
-  };
-  rateLimitSettings: {
-    isEnabled: boolean;
-    requestsPerMinute: number;
-    requestsPerHour: number;
-    requestsPerDay: number;
-  };
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`security-tabpanel-${index}`}
+      aria-labelledby={`security-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
 }
 
 interface ApiKey {
@@ -119,15 +123,20 @@ const securitySchema = yup.object({
 });
 
 export const SecuritySettings: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
   const [config, setConfig] = useState<SecurityConfig | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [newApiKeyName, setNewApiKeyName] = useState('');
+  const [newApiKeyScopes, setNewApiKeyScopes] = useState<string[]>([]);
 
   const {
     control,
@@ -145,15 +154,59 @@ export const SecuritySettings: React.FC = () => {
   const loadSecuritySettings = async () => {
     try {
       setLoading(true);
-      const [configData, apiKeysData, eventsData] = await Promise.all([
-        securityService.getSecurityConfig(),
+      setError(null);
+
+      // Load security configuration with default values if API fails
+      let configData: SecurityConfig;
+      try {
+        configData = await securityService.getSecurityConfig();
+      } catch (err) {
+        console.warn('Failed to load security config, using defaults:', err);
+        configData = {
+          passwordPolicy: {
+            minimumLength: 8,
+            requireUppercase: true,
+            requireLowercase: true,
+            requireNumbers: true,
+            requireSpecialChars: true,
+            passwordExpirationDays: 90,
+            maxFailedAttempts: 5,
+            lockoutDurationMinutes: 30
+          },
+          sessionSettings: {
+            sessionTimeoutMinutes: 480,
+            idleTimeoutMinutes: 60,
+            allowConcurrentSessions: false
+          },
+          twoFactorSettings: {
+            enabled: false,
+            required: false,
+            methods: ['TOTP', 'SMS', 'Email']
+          },
+          rateLimitSettings: {
+            enabled: true,
+            maxRequestsPerMinute: 100,
+            maxRequestsPerHour: 1000
+          }
+        };
+      }
+
+      // Load other data with error handling
+      const [apiKeysData, eventsData, usersData, rolesData, permissionsData] = await Promise.allSettled([
         securityService.getApiKeys(),
-        securityService.getSecurityEvents()
+        securityService.getSecurityEvents(),
+        securityService.getUsers(),
+        securityService.getRoles(),
+        securityService.getPermissions()
       ]);
-      
+
       setConfig(configData);
-      setApiKeys(apiKeysData);
-      setSecurityEvents(eventsData);
+      setApiKeys(apiKeysData.status === 'fulfilled' ? apiKeysData.value : []);
+      setSecurityEvents(eventsData.status === 'fulfilled' ? eventsData.value : []);
+      setUsers(usersData.status === 'fulfilled' ? usersData.value : []);
+      setRoles(rolesData.status === 'fulfilled' ? rolesData.value : []);
+      setPermissions(permissionsData.status === 'fulfilled' ? permissionsData.value : []);
+
       reset(configData);
     } catch (err) {
       setError('Failed to load security settings');
@@ -163,14 +216,22 @@ export const SecuritySettings: React.FC = () => {
     }
   };
 
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
   const onSubmit = async (data: SecurityConfig) => {
     try {
       setSaving(true);
+      setError(null);
       await securityService.updateSecurityConfig(data);
       setSuccess('Security settings updated successfully');
       setConfig(data);
+      toast.success('Security settings updated successfully');
     } catch (err) {
-      setError('Failed to update security settings');
+      const errorMessage = 'Failed to update security settings';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Error updating security settings:', err);
     } finally {
       setSaving(false);
@@ -212,12 +273,7 @@ export const SecuritySettings: React.FC = () => {
   if (loading) {
     return (
       <Box>
-        <PageHeader
-          title="Security Settings"
-          subtitle="Configure security policies and access controls"
-          icon={<Security />}
-        />
-        <Typography>Loading...</Typography>
+        <Typography>Loading security settings...</Typography>
       </Box>
     );
   }

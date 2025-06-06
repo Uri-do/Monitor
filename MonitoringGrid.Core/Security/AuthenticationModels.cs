@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Core.Entities;
 using System.Security.Claims;
 
 namespace MonitoringGrid.Core.Security;
@@ -64,7 +65,7 @@ public class LoginResponse
     public bool IsSuccess { get; set; }
     public string? ErrorMessage { get; set; }
     public JwtToken? Token { get; set; }
-    public AuthUser? User { get; set; }
+    public User? User { get; set; }
     public bool RequiresTwoFactor { get; set; }
     public bool RequiresPasswordChange { get; set; }
 }

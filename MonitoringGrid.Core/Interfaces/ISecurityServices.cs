@@ -1,3 +1,4 @@
+using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Security;
 using System.Security.Claims;
 
@@ -63,12 +64,12 @@ public interface IApiKeyService
 /// </summary>
 public interface IRoleManagementService
 {
-    Task<Role> CreateRoleAsync(string name, string description, List<string> permissions, CancellationToken cancellationToken = default);
-    Task<Role?> GetRoleAsync(string roleId, CancellationToken cancellationToken = default);
-    Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
+    Task<MonitoringGrid.Core.Entities.Role> CreateRoleAsync(string name, string description, List<string> permissions, CancellationToken cancellationToken = default);
+    Task<MonitoringGrid.Core.Entities.Role?> GetRoleAsync(string roleId, CancellationToken cancellationToken = default);
+    Task<List<MonitoringGrid.Core.Entities.Role>> GetRolesAsync(CancellationToken cancellationToken = default);
     Task<bool> UpdateRoleAsync(string roleId, string name, string description, List<string> permissions, CancellationToken cancellationToken = default);
     Task<bool> DeleteRoleAsync(string roleId, CancellationToken cancellationToken = default);
-    Task<List<Permission>> GetPermissionsAsync(CancellationToken cancellationToken = default);
+    Task<List<MonitoringGrid.Core.Entities.Permission>> GetPermissionsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

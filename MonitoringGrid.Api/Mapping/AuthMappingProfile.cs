@@ -63,6 +63,15 @@ public class AuthMappingProfile : Profile
         // Refresh token mappings
         CreateMap<RefreshToken, RefreshTokenDto>()
             .ReverseMap();
+
+        // Security event mappings
+        CreateMap<SecurityEvent, SecurityEventDto>()
+            .ForMember(dest => dest.EventId, opt => opt.MapFrom(src => src.Id))
+            .ReverseMap();
+
+        // API key mappings
+        CreateMap<ApiKey, ApiKeyDto>()
+            .ReverseMap();
     }
 }
 

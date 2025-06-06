@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Security;
 using MonitoringGrid.Infrastructure.Data;

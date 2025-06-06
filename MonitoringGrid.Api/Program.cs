@@ -102,6 +102,7 @@ builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 builder.Services.AddScoped<ISecurityAuditService, SecurityAuditService>();
 builder.Services.AddScoped<IThreatDetectionService, ThreatDetectionService>();
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
+builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
 
 // Add SignalR
 builder.Services.AddSignalR(options =>

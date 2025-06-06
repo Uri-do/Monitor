@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Security;
 using MonitoringGrid.Infrastructure.Data;

@@ -33,6 +33,7 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
+import { SecuritySettingsNew as SecuritySettings } from './SecuritySettingsNew';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -494,14 +495,7 @@ const Settings: React.FC = () => {
 
         {/* Security Tab */}
         <TabPanel value={activeTab} index={3}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Alert severity="info">
-                Security features are under development. This will include user management,
-                authentication settings, and access controls.
-              </Alert>
-            </Grid>
-          </Grid>
+          <SecuritySettings />
         </TabPanel>
 
         {/* Health Tab */}

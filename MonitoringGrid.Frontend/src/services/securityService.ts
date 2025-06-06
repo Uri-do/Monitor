@@ -113,6 +113,93 @@ class SecurityService {
       throw new Error('Failed to unlock account');
     }
   }
+
+  // API Key Management
+  async getApiKeys(): Promise<any[]> {
+    const response = await fetch(`${this.baseUrl}/api-keys`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch API keys');
+    }
+
+    return response.json();
+  }
+
+  async createApiKey(name: string, scopes: string[]): Promise<{ keyId: string; key: string }> {
+    const response = await fetch(`${this.baseUrl}/api-keys`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ name, scopes }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create API key');
+    }
+
+    return response.json();
+  }
+
+  async revokeApiKey(keyId: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/api-keys/${keyId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to revoke API key');
+    }
+  }
+
+  // User Management
+  async getUsers(): Promise<any[]> {
+    const response = await fetch(`${this.baseUrl}/users`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+
+    return response.json();
+  }
+
+  async updateUserRoles(userId: string, roles: string[]): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/users/${userId}/roles`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ roles }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update user roles');
+    }
+  }
+
+  async getRoles(): Promise<any[]> {
+    const response = await fetch(`${this.baseUrl}/roles`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch roles');
+    }
+
+    return response.json();
+  }
+
+  async getPermissions(): Promise<any[]> {
+    const response = await fetch(`${this.baseUrl}/permissions`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch permissions');
+    }
+
+    return response.json();
+  }
 }
 
 export const securityService = new SecurityService();
