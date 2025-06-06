@@ -160,3 +160,5 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Azure.Security.KeyVault.
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.ClientModel.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.Text.Json.dll

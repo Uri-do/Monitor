@@ -196,9 +196,10 @@ export interface AlertFilterDto {
   minDeviation?: number;
   maxDeviation?: number;
   searchText?: string;
+  severity?: string;
   page: number;
   pageSize: number;
-  sortBy: string;
+  sortBy?: string;
   sortDirection: string;
 }
 
@@ -335,4 +336,195 @@ export interface ExecutionStatsDto {
   lastExecution?: string;
   uniqueExecutors: number;
   executionMethods: number;
+}
+
+// Enhanced Analytics API Types
+export interface SystemAnalyticsDto {
+  period: number;
+  startDate: string;
+  endDate: string;
+  totalKpis: number;
+  activeKpis: number;
+  inactiveKpis: number;
+  totalExecutions: number;
+  totalAlerts: number;
+  resolvedAlerts: number;
+  unresolvedAlerts: number;
+  criticalAlerts: number;
+  averageExecutionsPerDay: number;
+  averageAlertsPerDay: number;
+  topPerformingKpis: KpiSummaryAnalyticsDto[];
+  worstPerformingKpis: KpiSummaryAnalyticsDto[];
+  alertTrends: TrendDataDto[];
+  executionTrends: TrendDataDto[];
+  kpiHealthDistribution: HealthDistributionDto;
+}
+
+export interface KpiPerformanceAnalyticsDto {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  period: number;
+  startDate: string;
+  endDate: string;
+  totalExecutions: number;
+  successfulExecutions: number;
+  failedExecutions: number;
+  successRate: number;
+  totalAlerts: number;
+  criticalAlerts: number;
+  averageDeviation: number;
+  maxDeviation: number;
+  averageExecutionTime: number;
+  trendDirection: string;
+  performanceScore: number;
+  recommendations: string[];
+  detailedTrends: KpiTrendPointDto[];
+}
+
+export interface OwnerAnalyticsDto {
+  owner: string;
+  ownerDomain: string;
+  totalKpis: number;
+  activeKpis: number;
+  inactiveKpis: number;
+  totalAlerts: number;
+  criticalAlerts: number;
+  totalExecutions: number;
+  successfulExecutions: number;
+  successRate: number;
+  averageDeviation: number;
+  performanceScore: number;
+}
+
+export interface SystemHealthDto {
+  timestamp: string;
+  overallHealthScore: number;
+  totalKpis: number;
+  activeKpis: number;
+  healthyKpis: number;
+  warningKpis: number;
+  criticalKpis: number;
+  alertsLast24Hours: number;
+  alertsLastHour: number;
+  unresolvedAlerts: number;
+  criticalAlerts: number;
+  systemStatus: string;
+  issues: string[];
+  recommendations: string[];
+}
+
+export interface KpiSummaryAnalyticsDto {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  performanceScore: number;
+}
+
+export interface TrendDataDto {
+  date: string;
+  value: number;
+}
+
+export interface HealthDistributionDto {
+  healthy: number;
+  warning: number;
+  critical: number;
+  inactive: number;
+}
+
+export interface KpiTrendPointDto {
+  timestamp: string;
+  value: number;
+  deviationPercent: number;
+  executionTimeMs: number;
+  isSuccessful: boolean;
+  triggeredAlert: boolean;
+}
+
+// Real-time API Types
+export interface RealtimeStatusDto {
+  timestamp: string;
+  activeKpis: number;
+  dueKpis: number;
+  recentAlerts: number;
+  unresolvedAlerts: number;
+  systemLoad: number;
+  lastUpdate: string;
+}
+
+export interface LiveDashboardDto {
+  timestamp: string;
+  totalKpis: number;
+  activeKpis: number;
+  dueKpis: number;
+  executionsLastHour: number;
+  alertsLast24Hours: number;
+  unresolvedAlerts: number;
+  criticalAlerts: number;
+  systemHealth: string;
+  recentExecutions: RecentExecutionDto[];
+  recentAlerts: RecentAlertDto[];
+}
+
+export interface RecentExecutionDto {
+  kpiId: number;
+  indicator: string;
+  timestamp: string;
+  value: number;
+  deviationPercent: number;
+  isSuccessful: boolean;
+  executionTimeMs: number;
+}
+
+export interface RecentAlertDto {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  triggerTime: string;
+  deviation: number;
+  severity: string;
+}
+
+export interface WebhookPayloadDto {
+  type: string;
+  source: string;
+  timestamp: string;
+  data: Record<string, any>;
+}
+
+export interface ConnectionInfoDto {
+  hubUrl: string;
+  accessToken: string;
+  connectionId: string;
+  supportedEvents: string[];
+}
+
+// Enhanced Alert Types
+export interface EnhancedAlertDto extends AlertLogDto {
+  severityColor: string;
+  requiresImmediateAttention: boolean;
+  deviationCategory: string;
+}
+
+export interface AlertNotificationDto {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  priority: number;
+  currentValue: number;
+  historicalValue: number;
+  deviation: number;
+  subject: string;
+  description: string;
+  triggerTime: string;
+  severity: string;
+  notifiedContacts: string[];
+}
+
+export interface ManualAlertRequest {
+  kpiId: number;
+  message: string;
+  details?: string;
+  priority: number;
 }

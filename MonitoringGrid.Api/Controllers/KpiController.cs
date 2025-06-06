@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Factories;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Services;
+using MonitoringGrid.Core.Specifications;
+using MonitoringGrid.Core.ValueObjects;
 using MonitoringGrid.Infrastructure.Data;
 
 namespace MonitoringGrid.Api.Controllers;
@@ -17,34 +20,31 @@ namespace MonitoringGrid.Api.Controllers;
 [Produces("application/json")]
 public class KpiController : ControllerBase
 {
-    private readonly IRepository<KPI> _kpiRepository;
-    private readonly IRepository<AlertLog> _alertRepository;
-    private readonly IRepository<HistoricalData> _historicalRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IKpiExecutionService _kpiExecutionService;
     private readonly KpiDomainService _kpiDomainService;
+    private readonly KpiFactory _kpiFactory;
     private readonly ILogger<KpiController> _logger;
 
     public KpiController(
-        IRepository<KPI> kpiRepository,
-        IRepository<AlertLog> alertRepository,
-        IRepository<HistoricalData> historicalRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper,
         IKpiExecutionService kpiExecutionService,
         KpiDomainService kpiDomainService,
+        KpiFactory kpiFactory,
         ILogger<KpiController> logger)
     {
-        _kpiRepository = kpiRepository;
-        _alertRepository = alertRepository;
-        _historicalRepository = historicalRepository;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
         _kpiExecutionService = kpiExecutionService;
         _kpiDomainService = kpiDomainService;
+        _kpiFactory = kpiFactory;
         _logger = logger;
     }
 
     /// <summary>
-    /// Get all KPIs with optional filtering
+    /// Get all KPIs with optional filtering using specifications
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<List<KpiDto>>> GetKpis(
@@ -52,20 +52,37 @@ public class KpiController : ControllerBase
         [FromQuery] string? owner = null,
         [FromQuery] byte? priority = null)
     {
-        var allKpis = await _kpiRepository.GetAllAsync();
-        var filteredKpis = allKpis.AsQueryable();
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            IEnumerable<KPI> kpis;
 
-        if (isActive.HasValue)
-            filteredKpis = filteredKpis.Where(k => k.IsActive == isActive.Value);
+            if (!string.IsNullOrEmpty(owner))
+            {
+                // Use specification for owner filtering
+                var specification = new KpisByOwnerSpecification(owner);
+                kpis = await kpiRepository.GetAsync(specification);
+            }
+            else
+            {
+                kpis = await kpiRepository.GetAllAsync();
+            }
 
-        if (!string.IsNullOrEmpty(owner))
-            filteredKpis = filteredKpis.Where(k => k.Owner.Contains(owner));
+            // Apply additional filters
+            if (isActive.HasValue)
+                kpis = kpis.Where(k => k.IsActive == isActive.Value);
 
-        if (priority.HasValue)
-            filteredKpis = filteredKpis.Where(k => k.Priority == priority.Value);
+            if (priority.HasValue)
+                kpis = kpis.Where(k => k.Priority == priority.Value);
 
-        var kpis = filteredKpis.OrderBy(k => k.Indicator).ToList();
-        return Ok(_mapper.Map<List<KpiDto>>(kpis));
+            var orderedKpis = kpis.OrderBy(k => k.Indicator).ToList();
+            return Ok(_mapper.Map<List<KpiDto>>(orderedKpis));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving KPIs");
+            return StatusCode(500, "An error occurred while retrieving KPIs");
+        }
     }
 
     /// <summary>
@@ -74,90 +91,201 @@ public class KpiController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<KpiDto>> GetKpi(int id)
     {
-        var kpi = await _kpiRepository.GetByIdAsync(id);
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
 
-        if (kpi == null)
-            return NotFound($"KPI with ID {id} not found");
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
 
-        return Ok(_mapper.Map<KpiDto>(kpi));
+            return Ok(_mapper.Map<KpiDto>(kpi));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving KPI with ID: {KpiId}", id);
+            return StatusCode(500, "An error occurred while retrieving the KPI");
+        }
     }
 
     /// <summary>
-    /// Create a new KPI
+    /// Create a new KPI using factory pattern and value objects
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<KpiDto>> CreateKpi([FromBody] CreateKpiRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        // Check if indicator name is unique using domain service
-        if (!await _kpiDomainService.IsIndicatorUniqueAsync(request.Indicator))
-            return BadRequest($"KPI with indicator '{request.Indicator}' already exists");
+            // Validate email address using value object
+            try
+            {
+                var ownerEmail = new EmailAddress(request.Owner);
+                var deviationPercentage = new DeviationPercentage(request.Deviation);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
-        var kpi = _mapper.Map<KPI>(request);
-        kpi.CreatedDate = DateTime.UtcNow;
-        kpi.ModifiedDate = DateTime.UtcNow;
+            // Check if indicator name is unique using domain service
+            if (!await _kpiDomainService.IsIndicatorUniqueAsync(request.Indicator))
+                return BadRequest($"KPI with indicator '{request.Indicator}' already exists");
 
-        var createdKpi = await _kpiRepository.AddAsync(kpi);
-        await _kpiRepository.SaveChangesAsync();
+            // Use factory to create KPI
+            var kpi = _kpiFactory.CreateKpi(
+                request.Indicator,
+                request.Owner,
+                request.Priority,
+                request.Frequency,
+                request.Deviation,
+                request.SpName,
+                request.SubjectTemplate,
+                request.DescriptionTemplate);
 
-        // Note: Contact associations would be handled by a separate domain service
-        // For now, we'll return the created KPI without contact associations
+            // Use Unit of Work for transaction management
+            await _unitOfWork.BeginTransactionAsync();
 
-        _logger.LogInformation("Created KPI {Indicator} with ID {KpiId}", createdKpi.Indicator, createdKpi.KpiId);
+            try
+            {
+                var kpiRepository = _unitOfWork.Repository<KPI>();
+                await kpiRepository.AddAsync(kpi);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
-        return CreatedAtAction(nameof(GetKpi), new { id = createdKpi.KpiId }, _mapper.Map<KpiDto>(createdKpi));
+                _logger.LogInformation("Created KPI {Indicator} with ID {KpiId}", kpi.Indicator, kpi.KpiId);
+
+                var kpiDto = _mapper.Map<KpiDto>(kpi);
+                return CreatedAtAction(nameof(GetKpi), new { id = kpi.KpiId }, kpiDto);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("Invalid KPI creation request: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating KPI: {@Request}", request);
+            return StatusCode(500, "An error occurred while creating the KPI");
+        }
     }
 
     /// <summary>
-    /// Update an existing KPI
+    /// Update an existing KPI with domain validation
     /// </summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<KpiDto>> UpdateKpi(int id, [FromBody] UpdateKpiRequest request)
     {
-        if (id != request.KpiId)
-            return BadRequest("ID mismatch");
+        try
+        {
+            if (id != request.KpiId)
+                return BadRequest("ID mismatch");
 
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        var existingKpi = await _kpiRepository.GetByIdAsync(id);
+            // Validate using value objects
+            try
+            {
+                var ownerEmail = new EmailAddress(request.Owner);
+                var deviationPercentage = new DeviationPercentage(request.Deviation);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
-        if (existingKpi == null)
-            return NotFound($"KPI with ID {id} not found");
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var existingKpi = await kpiRepository.GetByIdAsync(id);
 
-        // Check if indicator name is unique (excluding current KPI)
-        if (!await _kpiDomainService.IsIndicatorUniqueAsync(request.Indicator, id))
-            return BadRequest($"KPI with indicator '{request.Indicator}' already exists");
+            if (existingKpi == null)
+                return NotFound($"KPI with ID {id} not found");
 
-        _mapper.Map(request, existingKpi);
-        existingKpi.ModifiedDate = DateTime.UtcNow;
+            // Check if indicator name is unique (excluding current KPI)
+            if (!await _kpiDomainService.IsIndicatorUniqueAsync(request.Indicator, id))
+                return BadRequest($"KPI with indicator '{request.Indicator}' already exists");
 
-        await _kpiRepository.UpdateAsync(existingKpi);
-        await _kpiRepository.SaveChangesAsync();
+            await _unitOfWork.BeginTransactionAsync();
 
-        _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
+            try
+            {
+                _mapper.Map(request, existingKpi);
+                existingKpi.ModifiedDate = DateTime.UtcNow;
 
-        return Ok(_mapper.Map<KpiDto>(existingKpi));
+                await kpiRepository.UpdateAsync(existingKpi);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
+
+                var kpiDto = _mapper.Map<KpiDto>(existingKpi);
+                return Ok(kpiDto);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("Invalid KPI update request: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating KPI {KpiId}: {@Request}", id, request);
+            return StatusCode(500, "An error occurred while updating the KPI");
+        }
     }
 
     /// <summary>
-    /// Delete a KPI
+    /// Delete a KPI with proper domain validation
     /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteKpi(int id)
     {
-        var kpi = await _kpiRepository.GetByIdAsync(id);
-        if (kpi == null)
-            return NotFound($"KPI with ID {id} not found");
+        try
+        {
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
 
-        await _kpiRepository.DeleteAsync(kpi);
-        await _kpiRepository.SaveChangesAsync();
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
 
-        _logger.LogInformation("Deleted KPI {Indicator} with ID {KpiId}", kpi.Indicator, id);
+            await _unitOfWork.BeginTransactionAsync();
 
-        return NoContent();
+            try
+            {
+                // Use domain method for deactivation instead of deletion
+                kpi.Deactivate("API Request", "Deleted via API");
+
+                await kpiRepository.UpdateAsync(kpi);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("Deactivated KPI {Indicator} with ID {KpiId}", kpi.Indicator, id);
+                return NoContent();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while deleting the KPI");
+        }
     }
 
     /// <summary>
@@ -166,26 +294,36 @@ public class KpiController : ControllerBase
     [HttpPost("{id}/execute")]
     public async Task<ActionResult<KpiExecutionResultDto>> ExecuteKpi(int id, [FromBody] TestKpiRequest? request = null)
     {
-        var kpi = await _kpiRepository.GetByIdAsync(id);
-        if (kpi == null)
-            return NotFound($"KPI with ID {id} not found");
-
-        // Use custom frequency if provided, otherwise use KPI's configured frequency
-        if (request?.CustomFrequency.HasValue == true)
+        try
         {
-            kpi.Frequency = request.CustomFrequency.Value;
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
+
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            // Use custom frequency if provided, otherwise use KPI's configured frequency
+            if (request?.CustomFrequency.HasValue == true)
+            {
+                kpi.Frequency = request.CustomFrequency.Value;
+            }
+
+            var result = await _kpiExecutionService.ExecuteKpiAsync(kpi);
+
+            var dto = _mapper.Map<KpiExecutionResultDto>(result);
+            dto.KpiId = id;
+            dto.Indicator = kpi.Indicator;
+
+            _logger.LogInformation("Manually executed KPI {Indicator} with result: {Result}",
+                kpi.Indicator, result.GetSummary());
+
+            return Ok(dto);
         }
-
-        var result = await _kpiExecutionService.ExecuteKpiAsync(kpi);
-
-        var dto = _mapper.Map<KpiExecutionResultDto>(result);
-        dto.KpiId = id;
-        dto.Indicator = kpi.Indicator;
-
-        _logger.LogInformation("Manually executed KPI {Indicator} with result: {Result}",
-            kpi.Indicator, result.GetSummary());
-
-        return Ok(dto);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing KPI {KpiId}", id);
+            return StatusCode(500, "An error occurred while executing the KPI");
+        }
     }
 
     /// <summary>
@@ -194,49 +332,60 @@ public class KpiController : ControllerBase
     [HttpGet("dashboard")]
     public async Task<ActionResult<KpiDashboardDto>> GetDashboard()
     {
-        var now = DateTime.UtcNow;
-        var today = now.Date;
-
-        var kpis = (await _kpiRepository.GetAllAsync()).ToList();
-        var allAlerts = (await _alertRepository.GetAllAsync()).ToList();
-        var alertsToday = allAlerts.Count(a => a.TriggerTime >= today);
-        var alertsThisWeek = allAlerts.Count(a => a.TriggerTime >= today.AddDays(-7));
-
-        var recentAlerts = allAlerts
-            .Where(a => a.TriggerTime >= now.AddHours(-24))
-            .OrderByDescending(a => a.TriggerTime)
-            .Take(10)
-            .Select(a => new KpiStatusDto
-            {
-                KpiId = a.KpiId,
-                Indicator = kpis.FirstOrDefault(k => k.KpiId == a.KpiId)?.Indicator ?? "Unknown",
-                Owner = kpis.FirstOrDefault(k => k.KpiId == a.KpiId)?.Owner ?? "Unknown",
-                LastAlert = a.TriggerTime,
-                LastDeviation = a.DeviationPercent
-            })
-            .ToList();
-
-        var dueKpis = kpis
-            .Where(k => k.IsActive && (k.LastRun == null || k.LastRun < now.AddMinutes(-k.Frequency)))
-            .Select(k => _mapper.Map<KpiStatusDto>(k))
-            .ToList();
-
-        var dashboard = new KpiDashboardDto
+        try
         {
-            TotalKpis = kpis.Count,
-            ActiveKpis = kpis.Count(k => k.IsActive),
-            InactiveKpis = kpis.Count(k => !k.IsActive),
-            KpisInErrorCount = recentAlerts.Count,
-            KpisDue = dueKpis.Count,
-            AlertsToday = alertsToday,
-            AlertsThisWeek = alertsThisWeek,
-            LastUpdate = now,
-            RecentAlerts = recentAlerts,
-            KpisInError = recentAlerts,
-            DueKpis = dueKpis
-        };
+            var now = DateTime.UtcNow;
+            var today = now.Date;
 
-        return Ok(dashboard);
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var alertRepository = _unitOfWork.Repository<AlertLog>();
+
+            var kpis = (await kpiRepository.GetAllAsync()).ToList();
+            var allAlerts = (await alertRepository.GetAllAsync()).ToList();
+            var alertsToday = allAlerts.Count(a => a.TriggerTime >= today);
+            var alertsThisWeek = allAlerts.Count(a => a.TriggerTime >= today.AddDays(-7));
+
+            var recentAlerts = allAlerts
+                .Where(a => a.TriggerTime >= now.AddHours(-24))
+                .OrderByDescending(a => a.TriggerTime)
+                .Take(10)
+                .Select(a => new KpiStatusDto
+                {
+                    KpiId = a.KpiId,
+                    Indicator = kpis.FirstOrDefault(k => k.KpiId == a.KpiId)?.Indicator ?? "Unknown",
+                    Owner = kpis.FirstOrDefault(k => k.KpiId == a.KpiId)?.Owner ?? "Unknown",
+                    LastAlert = a.TriggerTime,
+                    LastDeviation = a.DeviationPercent
+                })
+                .ToList();
+
+            var dueKpis = kpis
+                .Where(k => k.IsActive && (k.LastRun == null || k.LastRun < now.AddMinutes(-k.Frequency)))
+                .Select(k => _mapper.Map<KpiStatusDto>(k))
+                .ToList();
+
+            var dashboard = new KpiDashboardDto
+            {
+                TotalKpis = kpis.Count,
+                ActiveKpis = kpis.Count(k => k.IsActive),
+                InactiveKpis = kpis.Count(k => !k.IsActive),
+                KpisInErrorCount = recentAlerts.Count,
+                KpisDue = dueKpis.Count,
+                AlertsToday = alertsToday,
+                AlertsThisWeek = alertsThisWeek,
+                LastUpdate = now,
+                RecentAlerts = recentAlerts,
+                KpisInError = recentAlerts,
+                DueKpis = dueKpis
+            };
+
+            return Ok(dashboard);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving dashboard data");
+            return StatusCode(500, "An error occurred while retrieving dashboard data");
+        }
     }
 
     /// <summary>
@@ -245,41 +394,54 @@ public class KpiController : ControllerBase
     [HttpGet("{id}/metrics")]
     public async Task<ActionResult<KpiMetricsDto>> GetKpiMetrics(int id, [FromQuery] int days = 30)
     {
-        var kpi = await _kpiRepository.GetByIdAsync(id);
-        if (kpi == null)
-            return NotFound($"KPI with ID {id} not found");
-
-        // Use domain service to get statistics
-        var statistics = await _kpiDomainService.GetKpiStatisticsAsync(id, days);
-
-        var startDate = DateTime.UtcNow.AddDays(-days);
-        var allHistoricalData = (await _historicalRepository.GetAllAsync()).ToList();
-        var allAlerts = (await _alertRepository.GetAllAsync()).ToList();
-
-        var historicalData = allHistoricalData
-            .Where(h => h.KpiId == id && h.Timestamp >= startDate)
-            .OrderBy(h => h.Timestamp)
-            .ToList();
-
-        var alerts = allAlerts
-            .Where(a => a.KpiId == id && a.TriggerTime >= startDate)
-            .ToList();
-
-        var metrics = new KpiMetricsDto
+        try
         {
-            KpiId = id,
-            Indicator = kpi.Indicator,
-            TotalExecutions = historicalData.Count,
-            SuccessfulExecutions = historicalData.Count, // Assuming all logged data is successful
-            FailedExecutions = 0,
-            SuccessRate = historicalData.Count > 0 ? 100 : 0,
-            TotalAlerts = alerts.Count,
-            LastExecution = historicalData.LastOrDefault()?.Timestamp,
-            LastAlert = alerts.LastOrDefault()?.TriggerTime,
-            TrendData = _mapper.Map<List<KpiTrendDataDto>>(historicalData)
-        };
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var kpi = await kpiRepository.GetByIdAsync(id);
 
-        return Ok(metrics);
+            if (kpi == null)
+                return NotFound($"KPI with ID {id} not found");
+
+            // Use domain service to get statistics
+            var statistics = await _kpiDomainService.GetKpiStatisticsAsync(id, days);
+
+            var startDate = DateTime.UtcNow.AddDays(-days);
+            var historicalRepository = _unitOfWork.Repository<HistoricalData>();
+            var alertRepository = _unitOfWork.Repository<AlertLog>();
+
+            var allHistoricalData = (await historicalRepository.GetAllAsync()).ToList();
+            var allAlerts = (await alertRepository.GetAllAsync()).ToList();
+
+            var historicalData = allHistoricalData
+                .Where(h => h.KpiId == id && h.Timestamp >= startDate)
+                .OrderBy(h => h.Timestamp)
+                .ToList();
+
+            var alerts = allAlerts
+                .Where(a => a.KpiId == id && a.TriggerTime >= startDate)
+                .ToList();
+
+            var metrics = new KpiMetricsDto
+            {
+                KpiId = id,
+                Indicator = kpi.Indicator,
+                TotalExecutions = historicalData.Count,
+                SuccessfulExecutions = historicalData.Count, // Assuming all logged data is successful
+                FailedExecutions = 0,
+                SuccessRate = historicalData.Count > 0 ? 100 : 0,
+                TotalAlerts = alerts.Count,
+                LastExecution = historicalData.LastOrDefault()?.Timestamp,
+                LastAlert = alerts.LastOrDefault()?.TriggerTime,
+                TrendData = _mapper.Map<List<KpiTrendDataDto>>(historicalData)
+            };
+
+            return Ok(metrics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving KPI metrics for ID: {KpiId}", id);
+            return StatusCode(500, "An error occurred while retrieving KPI metrics");
+        }
     }
 
     /// <summary>
@@ -288,43 +450,65 @@ public class KpiController : ControllerBase
     [HttpPost("bulk")]
     public async Task<IActionResult> BulkOperation([FromBody] BulkKpiOperationRequest request)
     {
-        if (!request.KpiIds.Any())
-            return BadRequest("No KPI IDs provided");
-
-        var allKpis = await _kpiRepository.GetAllAsync();
-        var kpis = allKpis.Where(k => request.KpiIds.Contains(k.KpiId)).ToList();
-
-        if (!kpis.Any())
-            return NotFound("No KPIs found with the provided IDs");
-
-        switch (request.Operation.ToLower())
+        try
         {
-            case "activate":
-                kpis.ForEach(k => k.IsActive = true);
-                break;
-            case "deactivate":
-                kpis.ForEach(k => k.IsActive = false);
-                break;
-            case "delete":
-                await _kpiRepository.DeleteRangeAsync(kpis);
-                await _kpiRepository.SaveChangesAsync();
+            if (!request.KpiIds.Any())
+                return BadRequest("No KPI IDs provided");
+
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            var allKpis = await kpiRepository.GetAllAsync();
+            var kpis = allKpis.Where(k => request.KpiIds.Contains(k.KpiId)).ToList();
+
+            if (!kpis.Any())
+                return NotFound("No KPIs found with the provided IDs");
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                switch (request.Operation.ToLower())
+                {
+                    case "activate":
+                        kpis.ForEach(k => k.IsActive = true);
+                        break;
+                    case "deactivate":
+                        kpis.ForEach(k => k.IsActive = false);
+                        break;
+                    case "delete":
+                        await kpiRepository.DeleteRangeAsync(kpis);
+                        await _unitOfWork.SaveChangesAsync();
+                        await _unitOfWork.CommitTransactionAsync();
+
+                        _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
+                            request.Operation, kpis.Count);
+                        return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
+                    default:
+                        return BadRequest($"Unknown operation: {request.Operation}");
+                }
+
+                // For activate/deactivate operations
+                foreach (var kpi in kpis)
+                {
+                    await kpiRepository.UpdateAsync(kpi);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
                 _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
                     request.Operation, kpis.Count);
+
                 return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
-            default:
-                return BadRequest($"Unknown operation: {request.Operation}");
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
-
-        // For activate/deactivate operations
-        foreach (var kpi in kpis)
+        catch (Exception ex)
         {
-            await _kpiRepository.UpdateAsync(kpi);
+            _logger.LogError(ex, "Error performing bulk operation: {Operation}", request.Operation);
+            return StatusCode(500, "An error occurred while performing the bulk operation");
         }
-        await _kpiRepository.SaveChangesAsync();
-
-        _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
-            request.Operation, kpis.Count);
-
-        return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
     }
 }

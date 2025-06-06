@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Enums;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Infrastructure.Data;
@@ -144,8 +146,8 @@ public class WebhookService : IWebhookService
         try
         {
             // Check if this webhook should be triggered for this alert severity
-            if (webhook.TriggerSeverities.Any() && 
-                !webhook.TriggerSeverities.Contains(Enum.Parse<AlertSeverity>(alert.Severity, true)))
+            if (webhook.TriggerSeverities.Any() &&
+                !webhook.TriggerSeverities.Contains(alert.Severity, StringComparer.OrdinalIgnoreCase))
             {
                 _logger.LogDebug("Webhook {WebhookId} not triggered for severity {Severity}", webhook.WebhookId, alert.Severity);
                 return false;

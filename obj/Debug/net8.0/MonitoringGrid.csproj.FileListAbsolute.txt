@@ -173,3 +173,6 @@ C:\Dev\code\Monitor\obj\Debug\net8.0\refint\MonitoringGrid.dll
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.pdb
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.genruntimeconfig.cache
 C:\Dev\code\Monitor\obj\Debug\net8.0\ref\MonitoringGrid.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\test_registration.json
+C:\Dev\code\Monitor\bin\Debug\net8.0\Azure.Security.KeyVault.Secrets.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\System.ClientModel.dll

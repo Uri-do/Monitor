@@ -1,3 +1,5 @@
+using MonitoringGrid.Core.Enums;
+
 namespace MonitoringGrid.Core.Models;
 
 /// <summary>
@@ -16,21 +18,7 @@ public class EscalationRule
     public bool IsActive { get; set; } = true;
 }
 
-/// <summary>
-/// Alert escalation status
-/// </summary>
-public class AlertEscalation
-{
-    public int AlertEscalationId { get; set; }
-    public int AlertId { get; set; }
-    public int Level { get; set; }
-    public DateTime ScheduledTime { get; set; }
-    public DateTime? ExecutedTime { get; set; }
-    public bool IsExecuted { get; set; }
-    public bool IsCancelled { get; set; }
-    public string? ExecutionResult { get; set; }
-    public string? ErrorMessage { get; set; }
-}
+// AlertEscalation moved to Entities folder
 
 /// <summary>
 /// Advanced alert configuration
@@ -54,43 +42,9 @@ public class AdvancedAlertConfiguration
     public List<DateTime> Holidays { get; set; } = new();
 }
 
-/// <summary>
-/// Alert severity levels
-/// </summary>
-public enum AlertSeverity
-{
-    Low = 1,
-    Medium = 2,
-    High = 3,
-    Critical = 4,
-    Emergency = 5
-}
+// Enums moved to MonitoringGrid.Core.Enums.CoreEnums
 
-/// <summary>
-/// Alert notification channels
-/// </summary>
-public enum NotificationChannel
-{
-    Email = 1,
-    Sms = 2,
-    Push = 3,
-    Webhook = 4,
-    Slack = 5,
-    Teams = 6
-}
-
-/// <summary>
-/// Alert acknowledgment
-/// </summary>
-public class AlertAcknowledgment
-{
-    public int AlertAcknowledgmentId { get; set; }
-    public int AlertId { get; set; }
-    public string AcknowledgedBy { get; set; } = string.Empty;
-    public DateTime AcknowledgedAt { get; set; }
-    public string? Notes { get; set; }
-    public bool StopEscalation { get; set; } = true;
-}
+// AlertAcknowledgment moved to Entities folder
 
 /// <summary>
 /// Notification template
@@ -138,35 +92,6 @@ public class AlertTrendAnalysis
     public string TrendDescription { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Alert suppression rule
-/// </summary>
-public class AlertSuppressionRule
-{
-    public int SuppressionRuleId { get; set; }
-    public int? KpiId { get; set; } // null for global rules
-    public string? Owner { get; set; } // null for all owners
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public string Reason { get; set; } = string.Empty;
-    public string CreatedBy { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public bool IsActive { get; set; } = true;
-}
+// AlertSuppressionRule moved to Entities folder
 
-/// <summary>
-/// Webhook configuration for external integrations
-/// </summary>
-public class WebhookConfiguration
-{
-    public int WebhookId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Url { get; set; } = string.Empty;
-    public string HttpMethod { get; set; } = "POST";
-    public Dictionary<string, string> Headers { get; set; } = new();
-    public string PayloadTemplate { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
-    public int TimeoutSeconds { get; set; } = 30;
-    public int RetryCount { get; set; } = 3;
-    public List<AlertSeverity> TriggerSeverities { get; set; } = new();
-}
+// WebhookConfiguration moved to WebhookModels.cs

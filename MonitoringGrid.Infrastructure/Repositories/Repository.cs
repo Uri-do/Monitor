@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Specifications;
 using MonitoringGrid.Infrastructure.Data;
 using System.Linq.Expressions;
 
@@ -299,5 +300,70 @@ public class Repository<T> : IRepository<T> where T : class
     public virtual async Task<IDisposable> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    // Specification Pattern Support Methods
+    public virtual async Task<IEnumerable<T>> GetAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        if (specification.Skip.HasValue)
+            query = query.Skip(specification.Skip.Value);
+
+        if (specification.Take.HasValue)
+            query = query.Take(specification.Take.Value);
+
+        var items = await query.ToListAsync(cancellationToken);
+        return (items, totalCount);
+    }
+
+    public virtual async Task<T?> GetFirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public virtual async Task<int> CountAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).CountAsync(cancellationToken);
+    }
+
+    public virtual async Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).AnyAsync(cancellationToken);
+    }
+
+    private IQueryable<T> ApplySpecification(ISpecification<T> specification)
+    {
+        var query = _dbSet.AsQueryable();
+
+        // Apply criteria
+        if (specification.Criteria != null)
+        {
+            query = query.Where(specification.Criteria);
+        }
+
+        // Apply includes
+        query = specification.Includes.Aggregate(query, (current, include) => current.Include(include));
+
+        // Apply string-based includes
+        query = specification.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
+
+        // Apply ordering
+        if (specification.OrderBy != null)
+        {
+            query = query.OrderBy(specification.OrderBy);
+        }
+        else if (specification.OrderByDescending != null)
+        {
+            query = query.OrderByDescending(specification.OrderByDescending);
+        }
+
+        return query;
     }
 }

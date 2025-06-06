@@ -20,10 +20,32 @@ public class Config
 
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
+    [MaxLength(50)]
+    public string? Category { get; set; }
+
+    public bool IsEncrypted { get; set; } = false;
+
+    public bool IsReadOnly { get; set; } = false;
+
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
     // Domain methods
     public T GetValue<T>()
     {
-        return (T)Convert.ChangeType(ConfigValue, typeof(T));
+        try
+        {
+            if (typeof(T) == typeof(string))
+                return (T)(object)ConfigValue;
+
+            if (typeof(T).IsEnum)
+                return (T)Enum.Parse(typeof(T), ConfigValue, true);
+
+            return (T)Convert.ChangeType(ConfigValue, typeof(T));
+        }
+        catch
+        {
+            return default(T)!;
+        }
     }
 
     public bool GetBoolValue()
@@ -39,5 +61,32 @@ public class Config
     public decimal GetDecimalValue()
     {
         return decimal.TryParse(ConfigValue, out var result) ? result : 0;
+    }
+
+    public DateTime? GetDateTimeValue()
+    {
+        return DateTime.TryParse(ConfigValue, out var result) ? result : null;
+    }
+
+    public void SetValue<T>(T value)
+    {
+        if (IsReadOnly)
+            throw new InvalidOperationException($"Configuration key '{ConfigKey}' is read-only");
+
+        ConfigValue = value?.ToString() ?? string.Empty;
+        ModifiedDate = DateTime.UtcNow;
+    }
+
+    public bool IsValidValue(string testValue)
+    {
+        try
+        {
+            // Basic validation - can be enhanced based on key patterns
+            return !string.IsNullOrEmpty(testValue);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

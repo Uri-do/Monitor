@@ -39,6 +39,16 @@ public class AlertLogDto
 }
 
 /// <summary>
+/// Enhanced Alert DTO with value object insights
+/// </summary>
+public class EnhancedAlertDto : AlertLogDto
+{
+    public string SeverityColor { get; set; } = string.Empty;
+    public bool RequiresImmediateAttention { get; set; }
+    public string DeviationCategory { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Alert resolution request
 /// </summary>
 public class ResolveAlertRequest

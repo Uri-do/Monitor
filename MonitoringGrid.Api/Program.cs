@@ -9,6 +9,7 @@ using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Services;
 using MonitoringGrid.Core.Security;
+using MonitoringGrid.Core.Factories;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
@@ -81,9 +82,13 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 // Add domain services
 builder.Services.AddScoped<KpiDomainService>();
 
+// Add factories
+builder.Services.AddScoped<KpiFactory>();
+
 // Add repository services
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add application services
 builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();

@@ -1,3 +1,5 @@
+using MonitoringGrid.Core.Enums;
+
 namespace MonitoringGrid.Core.Models;
 
 /// <summary>
@@ -22,17 +24,7 @@ public class KpiTrendAnalysis
     public string Message { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Trend direction enumeration
-/// </summary>
-public enum TrendDirection
-{
-    Unknown = 0,
-    Increasing = 1,
-    Decreasing = 2,
-    Stable = 3,
-    Volatile = 4
-}
+// TrendDirection enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
 /// Trend change point
@@ -105,17 +97,7 @@ public class KpiCorrelationAnalysis
     public bool IsSignificant { get; set; }
 }
 
-/// <summary>
-/// Correlation strength enumeration
-/// </summary>
-public enum CorrelationStrength
-{
-    None = 0,
-    Weak = 1,
-    Moderate = 2,
-    Strong = 3,
-    VeryStrong = 4
-}
+// CorrelationStrength enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
 /// KPI anomaly detection result
@@ -143,17 +125,7 @@ public class AnomalyPoint
     public AnomalyType Type { get; set; }
 }
 
-/// <summary>
-/// Anomaly type enumeration
-/// </summary>
-public enum AnomalyType
-{
-    Outlier = 1,
-    Spike = 2,
-    Drop = 3,
-    Trend = 4,
-    Seasonal = 5
-}
+// AnomalyType enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
 /// KPI seasonality analysis
@@ -169,18 +141,7 @@ public class KpiSeasonalityAnalysis
     public double ConfidenceLevel { get; set; }
 }
 
-/// <summary>
-/// Seasonality type enumeration
-/// </summary>
-public enum SeasonalityType
-{
-    None = 0,
-    Daily = 1,
-    Weekly = 2,
-    Monthly = 3,
-    Quarterly = 4,
-    Yearly = 5
-}
+// SeasonalityType enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
 /// Seasonal component
@@ -239,16 +200,7 @@ public class TimeSeriesDecomposition
     public DecompositionMethod Method { get; set; }
 }
 
-/// <summary>
-/// Decomposition method enumeration
-/// </summary>
-public enum DecompositionMethod
-{
-    Additive = 1,
-    Multiplicative = 2,
-    STL = 3,
-    X13 = 4
-}
+// DecompositionMethod enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
 /// Forecast result

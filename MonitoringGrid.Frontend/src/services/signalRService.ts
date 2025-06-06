@@ -1,6 +1,7 @@
 import React from 'react';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { AlertNotification, KpiExecutionResult, SystemStatus } from '../types/monitoring';
+import { RealtimeStatusDto, LiveDashboardDto } from '../types/api';
 
 export interface SignalREvents {
   onAlertTriggered: (alert: AlertNotification) => void;
@@ -9,6 +10,13 @@ export interface SignalREvents {
   onUserConnected: (userId: string) => void;
   onUserDisconnected: (userId: string) => void;
   onConnectionStateChanged: (state: string) => void;
+  // Enhanced real-time events
+  onStatusUpdate: (status: RealtimeStatusDto) => void;
+  onDashboardUpdate: (dashboard: LiveDashboardDto) => void;
+  onSystemHealthUpdate: (health: any) => void;
+  onKpiExecutionWebhook: (data: any) => void;
+  onAlertWebhook: (data: any) => void;
+  onSystemStatusWebhook: (data: any) => void;
 }
 
 class SignalRService {
@@ -93,6 +101,38 @@ class SignalRService {
     this.connection.on('NotificationSent', (notification: any) => {
       console.log('Notification sent:', notification);
       // Handle notification
+    });
+
+    // Enhanced real-time events
+    this.connection.on('StatusUpdate', (status: RealtimeStatusDto) => {
+      console.log('Status update:', status);
+      this.eventHandlers.onStatusUpdate?.(status);
+    });
+
+    this.connection.on('DashboardUpdate', (dashboard: LiveDashboardDto) => {
+      console.log('Dashboard update:', dashboard);
+      this.eventHandlers.onDashboardUpdate?.(dashboard);
+    });
+
+    this.connection.on('SystemHealthUpdate', (health: any) => {
+      console.log('System health update:', health);
+      this.eventHandlers.onSystemHealthUpdate?.(health);
+    });
+
+    // Webhook events
+    this.connection.on('KpiExecutionWebhook', (data: any) => {
+      console.log('KPI execution webhook:', data);
+      this.eventHandlers.onKpiExecutionWebhook?.(data);
+    });
+
+    this.connection.on('AlertWebhook', (data: any) => {
+      console.log('Alert webhook:', data);
+      this.eventHandlers.onAlertWebhook?.(data);
+    });
+
+    this.connection.on('SystemStatusWebhook', (data: any) => {
+      console.log('System status webhook:', data);
+      this.eventHandlers.onSystemStatusWebhook?.(data);
     });
   }
 

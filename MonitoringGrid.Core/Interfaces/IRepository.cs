@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using MonitoringGrid.Core.Specifications;
 
 namespace MonitoringGrid.Core.Interfaces;
 
@@ -153,4 +154,29 @@ public interface IRepository<T> where T : class
     /// Begins a database transaction
     /// </summary>
     Task<IDisposable> BeginTransactionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets entities using a specification
+    /// </summary>
+    Task<IEnumerable<T>> GetAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets entities using a specification with pagination
+    /// </summary>
+    Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the first entity matching a specification
+    /// </summary>
+    Task<T?> GetFirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Counts entities matching a specification
+    /// </summary>
+    Task<int> CountAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if any entity matches a specification
+    /// </summary>
+    Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
 }

@@ -37,21 +37,38 @@
     <Compile Remove="MonitoringGrid.Core\**" />
     <Compile Remove="MonitoringGrid.Infrastructure\**" />
     <Compile Remove="MonitoringGrid.Frontend\**" />
+    <Compile Remove="MonitoringGrid.Tests\**" />
+    <Compile Remove="MonitoringGrid.Core.Tests\**" />
+    <Compile Remove="TestKpi\**" />
     <EmbeddedResource Remove="Scripts\**" />
     <EmbeddedResource Remove="MonitoringGrid.Api\**" />
     <EmbeddedResource Remove="MonitoringGrid.Core\**" />
     <EmbeddedResource Remove="MonitoringGrid.Infrastructure\**" />
     <EmbeddedResource Remove="MonitoringGrid.Frontend\**" />
+    <EmbeddedResource Remove="MonitoringGrid.Tests\**" />
+    <EmbeddedResource Remove="MonitoringGrid.Core.Tests\**" />
+    <EmbeddedResource Remove="TestKpi\**" />
     <None Remove="Scripts\**" />
     <None Remove="MonitoringGrid.Api\**" />
     <None Remove="MonitoringGrid.Core\**" />
     <None Remove="MonitoringGrid.Infrastructure\**" />
     <None Remove="MonitoringGrid.Frontend\**" />
+    <None Remove="MonitoringGrid.Tests\**" />
+    <None Remove="MonitoringGrid.Core.Tests\**" />
+    <None Remove="TestKpi\**" />
     <Content Remove="Scripts\**" />
     <Content Remove="MonitoringGrid.Api\**" />
     <Content Remove="MonitoringGrid.Core\**" />
     <Content Remove="MonitoringGrid.Infrastructure\**" />
     <Content Remove="MonitoringGrid.Frontend\**" />
+    <Content Remove="MonitoringGrid.Tests\**" />
+    <Content Remove="MonitoringGrid.Core.Tests\**" />
+    <Content Remove="TestKpi\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="TestKpiExecution.cs" />
+    <Compile Remove="SeedDatabase.cs" />
   </ItemGroup>
 
 </Project>

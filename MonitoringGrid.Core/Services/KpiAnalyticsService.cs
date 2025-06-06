@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Enums;
 
 namespace MonitoringGrid.Core.Services;
 
@@ -247,7 +248,7 @@ public class KpiAnalyticsService : IKpiAnalyticsService
         }
     }
 
-    public async Task<List<KpiSeasonalityAnalysis>> GetSeasonalityAnalysisAsync(int kpiId, CancellationToken cancellationToken = default)
+    public Task<List<KpiSeasonalityAnalysis>> GetSeasonalityAnalysisAsync(int kpiId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -257,7 +258,8 @@ public class KpiAnalyticsService : IKpiAnalyticsService
             var seasonalityAnalysis = new List<KpiSeasonalityAnalysis>();
 
             // For now, return empty list - seasonality analysis is complex
-            return seasonalityAnalysis;
+            // TODO: Implement actual seasonality analysis algorithm
+            return Task.FromResult(seasonalityAnalysis);
         }
         catch (Exception ex)
         {

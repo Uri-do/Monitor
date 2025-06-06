@@ -206,31 +206,23 @@ public class ReportingService : IReportingService
         }
     }
 
-    public async Task<List<Core.Models.ReportTemplate>> GetReportTemplatesAsync(CancellationToken cancellationToken = default)
+    public async Task<List<Core.Entities.ReportTemplate>> GetReportTemplatesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             return await _context.Set<Core.Entities.ReportTemplate>()
                 .Where(t => t.IsActive)
                 .OrderBy(t => t.Name)
-                .Select(t => new Core.Models.ReportTemplate
-                {
-                    TemplateId = t.TemplateId,
-                    Name = t.Name,
-                    Description = t.Description,
-                    ReportType = t.ReportType,
-                    IsActive = t.IsActive
-                })
                 .ToListAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get report templates");
-            return new List<Core.Models.ReportTemplate>();
+            return new List<Core.Entities.ReportTemplate>();
         }
     }
 
-    public async Task<Core.Models.ReportSchedule> ScheduleReportAsync(ReportScheduleRequest request, CancellationToken cancellationToken = default)
+    public async Task<Core.Entities.ReportSchedule> ScheduleReportAsync(ReportScheduleRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -250,17 +242,7 @@ public class ReportingService : IReportingService
 
             _logger.LogInformation("Report scheduled: {Name} with cron expression {CronExpression}", request.Name, request.CronExpression);
 
-            return new Core.Models.ReportSchedule
-            {
-                ScheduleId = entitySchedule.ScheduleId,
-                Name = entitySchedule.Name,
-                ReportType = entitySchedule.ReportType,
-                CronExpression = entitySchedule.CronExpression,
-                Recipients = JsonSerializer.Deserialize<List<string>>(entitySchedule.Recipients) ?? new List<string>(),
-                Parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(entitySchedule.Parameters ?? "{}") ?? new Dictionary<string, object>(),
-                IsActive = entitySchedule.IsActive,
-                NextRun = entitySchedule.NextRun
-            };
+            return entitySchedule;
         }
         catch (Exception ex)
         {

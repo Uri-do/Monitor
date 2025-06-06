@@ -1,11 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Core.Common;
+using MonitoringGrid.Core.Events;
+using MonitoringGrid.Core.Exceptions;
 
 namespace MonitoringGrid.Core.Entities;
 
 /// <summary>
-/// Represents a Key Performance Indicator configuration
+/// Represents a Key Performance Indicator configuration (Aggregate Root)
 /// </summary>
-public class KPI
+public class KPI : AggregateRoot
 {
     public int KpiId { get; set; }
 
@@ -103,5 +106,115 @@ public class KPI
     {
         LastRun = DateTime.UtcNow;
         ModifiedDate = DateTime.UtcNow;
+        MarkAsModified();
+    }
+
+    /// <summary>
+    /// Executes the KPI and raises appropriate domain events
+    /// </summary>
+    public void MarkAsExecuted(bool wasSuccessful, decimal? currentValue = null,
+        decimal? historicalValue = null, string? errorMessage = null)
+    {
+        UpdateLastRun();
+
+        // Raise domain event
+        var executedEvent = new KpiExecutedEvent(
+            KpiId, Indicator, Owner, wasSuccessful,
+            currentValue, historicalValue, errorMessage);
+
+        AddDomainEvent(executedEvent);
+
+        // If there's a threshold breach, raise additional event
+        if (wasSuccessful && currentValue.HasValue && historicalValue.HasValue)
+        {
+            var deviation = CalculateDeviation(currentValue.Value, historicalValue.Value);
+            if (deviation > Deviation)
+            {
+                var severity = DetermineSeverity(deviation);
+                var thresholdEvent = new KpiThresholdBreachedEvent(
+                    KpiId, Indicator, currentValue.Value, historicalValue.Value, deviation, severity);
+
+                AddDomainEvent(thresholdEvent);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deactivates the KPI
+    /// </summary>
+    public void Deactivate(string reason, string deactivatedBy)
+    {
+        if (!IsActive)
+            throw new BusinessRuleViolationException("KPI Deactivation", "KPI is already inactive");
+
+        IsActive = false;
+        ModifiedDate = DateTime.UtcNow;
+        MarkAsModified();
+
+        // Raise domain event
+        var deactivatedEvent = new KpiDeactivatedEvent(KpiId, Indicator, reason, deactivatedBy);
+        AddDomainEvent(deactivatedEvent);
+    }
+
+    /// <summary>
+    /// Updates KPI configuration
+    /// </summary>
+    public void UpdateConfiguration(string updatedBy)
+    {
+        ModifiedDate = DateTime.UtcNow;
+        MarkAsModified();
+
+        // Raise domain event
+        var updatedEvent = new KpiUpdatedEvent(this, updatedBy);
+        AddDomainEvent(updatedEvent);
+    }
+
+    /// <summary>
+    /// Validates the KPI configuration
+    /// </summary>
+    public void ValidateConfiguration()
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Indicator))
+            errors.Add("Indicator is required");
+
+        if (string.IsNullOrWhiteSpace(Owner))
+            errors.Add("Owner is required");
+
+        if (Priority < 1 || Priority > 2)
+            errors.Add("Priority must be 1 (SMS + Email) or 2 (Email Only)");
+
+        if (Frequency <= 0)
+            errors.Add("Frequency must be greater than 0");
+
+        if (Deviation < 0 || Deviation > 100)
+            errors.Add("Deviation must be between 0 and 100");
+
+        if (string.IsNullOrWhiteSpace(SpName))
+            errors.Add("Stored procedure name is required");
+
+        if (errors.Any())
+            throw new KpiValidationException(Indicator, errors);
+    }
+
+    private decimal CalculateDeviation(decimal current, decimal historical)
+    {
+        if (historical == 0)
+            return 0;
+
+        return Math.Abs((current - historical) / historical) * 100;
+    }
+
+    private string DetermineSeverity(decimal deviation)
+    {
+        return deviation switch
+        {
+            >= 75 => "Critical",
+            >= 50 => "High",
+            >= 25 => "Medium",
+            >= 10 => "Low",
+            _ => "Minimal"
+        };
     }
 }

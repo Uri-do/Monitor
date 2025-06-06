@@ -19,7 +19,20 @@ import {
   TestKpiRequest,
   BulkKpiOperationRequest,
   BulkContactOperationRequest,
-  HealthCheckResponse
+  HealthCheckResponse,
+  SystemAnalyticsDto,
+  KpiPerformanceAnalyticsDto,
+  OwnerAnalyticsDto,
+  SystemHealthDto,
+  RealtimeStatusDto,
+  LiveDashboardDto,
+  WebhookPayloadDto,
+  ConnectionInfoDto,
+  EnhancedAlertDto,
+  ManualAlertRequest,
+  PaginatedExecutionHistoryDto,
+  ExecutionStatsDto,
+  ExecutionHistoryDetailDto
 } from '@/types/api';
 import {
   mockKpis,
@@ -412,6 +425,111 @@ export const executionHistoryApi = {
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
     const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(`/executionhistory/${historicalId}`);
+    return response.data;
+  },
+};
+
+// Enhanced Analytics API endpoints
+export const analyticsApi = {
+  // Get system-wide analytics
+  getSystemAnalytics: async (days: number = 30): Promise<SystemAnalyticsDto> => {
+    const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/analytics/system', {
+      params: { days }
+    });
+    return response.data;
+  },
+
+  // Get KPI performance analytics
+  getKpiPerformanceAnalytics: async (id: number, days: number = 30): Promise<KpiPerformanceAnalyticsDto> => {
+    const response: AxiosResponse<KpiPerformanceAnalyticsDto> = await api.get(`/analytics/kpi/${id}/performance`, {
+      params: { days }
+    });
+    return response.data;
+  },
+
+  // Get owner-based analytics
+  getOwnerAnalytics: async (days: number = 30): Promise<OwnerAnalyticsDto[]> => {
+    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/analytics/owners', {
+      params: { days }
+    });
+    return response.data;
+  },
+
+  // Get real-time system health
+  getSystemHealth: async (): Promise<SystemHealthDto> => {
+    const response: AxiosResponse<SystemHealthDto> = await api.get('/analytics/health');
+    return response.data;
+  },
+};
+
+// Real-time Monitoring API endpoints
+export const realtimeApi = {
+  // Get real-time system status
+  getRealtimeStatus: async (): Promise<RealtimeStatusDto> => {
+    const response: AxiosResponse<RealtimeStatusDto> = await api.get('/realtime/status');
+    return response.data;
+  },
+
+  // Execute KPI in real-time
+  executeKpiRealtime: async (id: number): Promise<KpiExecutionResultDto> => {
+    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/realtime/execute/${id}`);
+    return response.data;
+  },
+
+  // Get live dashboard data
+  getLiveDashboard: async (): Promise<LiveDashboardDto> => {
+    const response: AxiosResponse<LiveDashboardDto> = await api.get('/realtime/dashboard');
+    return response.data;
+  },
+
+  // Send webhook
+  sendWebhook: async (payload: WebhookPayloadDto): Promise<{ message: string }> => {
+    const response: AxiosResponse<{ message: string }> = await api.post('/realtime/webhook', payload);
+    return response.data;
+  },
+
+  // Get SignalR connection info
+  getConnectionInfo: async (): Promise<ConnectionInfoDto> => {
+    const response: AxiosResponse<ConnectionInfoDto> = await api.get('/realtime/connection-info');
+    return response.data;
+  },
+};
+
+// Enhanced Alert API endpoints (extending existing alertApi)
+export const enhancedAlertApi = {
+  ...alertApi, // Include all existing alert API methods
+
+  // Get enhanced alerts with additional insights
+  getEnhancedAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
+    const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
+      params: filter
+    });
+    return response.data;
+  },
+
+  // Get critical alerts requiring immediate attention
+  getCriticalAlerts: async (): Promise<EnhancedAlertDto[]> => {
+    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/alert/critical');
+    return response.data;
+  },
+
+  // Get unresolved alerts
+  getUnresolvedAlerts: async (): Promise<EnhancedAlertDto[]> => {
+    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/alert/unresolved');
+    return response.data;
+  },
+
+  // Send manual alert
+  sendManualAlert: async (request: ManualAlertRequest): Promise<{ message: string; alertId: number }> => {
+    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post('/alert/manual', request);
+    return response.data;
+  },
+
+  // Get enhanced alert statistics with value object insights
+  getEnhancedStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
+    const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
+      params: { days }
+    });
     return response.data;
   },
 };
