@@ -15,8 +15,10 @@ using MonitoringGrid.Api.HealthChecks;
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Api.Authentication;
 using MonitoringGrid.Api.BackgroundServices;
+using MonitoringGrid.Api.Validators;
 using MonitoringGrid.Core.EventSourcing;
 using MonitoringGrid.Core.Events;
+using FluentValidation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;
@@ -354,6 +356,16 @@ builder.Services.AddSingleton<MonitoringGrid.Api.Authentication.IApiKeyService, 
 // Add enhanced background services
 builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
 
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CreateKpiRequestValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+
+// Configure security headers
+builder.Services.ConfigureSecurityHeaders(builder.Configuration);
+
+// Add bulk operations service
+builder.Services.AddScoped<MonitoringGrid.Api.Services.IBulkOperationsService, MonitoringGrid.Api.Services.BulkOperationsService>();
+
 // Add OpenTelemetry
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
@@ -395,6 +407,25 @@ builder.Services.AddOpenTelemetry()
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+
+// Add security headers early in the pipeline
+if (app.Environment.IsProduction())
+{
+    app.UseSecurityHeaders();
+}
+else
+{
+    app.UseSecurityHeaders(options =>
+    {
+        var devOptions = SecurityHeadersProfiles.Development;
+        options.ContentSecurityPolicy = devOptions.ContentSecurityPolicy;
+        options.XFrameOptions = devOptions.XFrameOptions;
+        options.EnableHSTS = devOptions.EnableHSTS;
+        options.LogSecurityViolations = devOptions.LogSecurityViolations;
+        options.LogSuspiciousRequests = devOptions.LogSuspiciousRequests;
+    });
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

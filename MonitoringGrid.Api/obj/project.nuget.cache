@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "cDdGhxEuOGqwOMs1G9bMpTxXOTQ7XAGM+LyfQX6Jf37pgIcYF4x5Od/uaR/JMUQe/vrfy+SflJiyZt7lGSEs0g==",
+  "dgSpecHash": "Nr/L/Acon0VaCt2FYjJh136mtNJTIVRHBqUfuLIOrNeoL9qSBllP2+aGcb3DmoJO8rXd92GTzqWHnvJfedWZVw==",
   "success": true,
   "projectFilePath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Api\\MonitoringGrid.Api.csproj",
   "expectedPackageFiles": [
@@ -9,9 +9,9 @@
     "C:\\Users\\Work\\.nuget\\packages\\azure.core\\1.40.0\\azure.core.1.40.0.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\azure.identity\\1.12.1\\azure.identity.1.12.1.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\azure.security.keyvault.secrets\\4.5.0\\azure.security.keyvault.secrets.4.5.0.nupkg.sha512",
-    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation\\11.8.1\\fluentvalidation.11.8.1.nupkg.sha512",
-    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.0\\fluentvalidation.aspnetcore.11.3.0.nupkg.sha512",
-    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.5.1\\fluentvalidation.dependencyinjectionextensions.11.5.1.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.1\\fluentvalidation.aspnetcore.11.3.1.nupkg.sha512",
+    "C:\\Users\\Work\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.11.0\\fluentvalidation.dependencyinjectionextensions.11.11.0.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\Work\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.11\\microsoft.aspnetcore.authentication.jwtbearer.8.0.11.nupkg.sha512",
