@@ -46,9 +46,11 @@ import {
 // Enable mock mode for development (set to false when backend is ready)
 const USE_MOCK_DATA = false;
 
+// Force API calls - no mock data
+
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: USE_MOCK_DATA ? '/api' : 'https://localhost:57652/api',
+  baseURL: USE_MOCK_DATA ? '/api' : 'http://localhost:57653/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -167,11 +169,15 @@ export const kpiApi = {
 
   // Get KPI dashboard
   getDashboard: async (): Promise<KpiDashboardDto> => {
+    console.log('getDashboard called, USE_MOCK_DATA:', USE_MOCK_DATA);
     if (USE_MOCK_DATA) {
+      console.log('Using mock data');
       await mockDelay();
       return mockKpiDashboard;
     }
+    console.log('Making API call to:', 'http://localhost:57653/api/kpi/dashboard');
     const response: AxiosResponse<KpiDashboardDto> = await api.get('/kpi/dashboard');
+    console.log('API response:', response.data);
     return response.data;
   },
 

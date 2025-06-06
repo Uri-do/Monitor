@@ -303,14 +303,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3, md: 4 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
           backgroundColor: theme.palette.background.default,
         }}
       >
         <Toolbar />
-        {children}
+        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );

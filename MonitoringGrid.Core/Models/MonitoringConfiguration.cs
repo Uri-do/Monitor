@@ -19,6 +19,11 @@ public class MonitoringConfiguration
     public int MaxAlertHistoryDays { get; set; } = 90;
     public int HistoricalWeeksBack { get; set; } = 4;
 
+    // KPI Execution Defaults
+    public int DefaultLastMinutes { get; set; } = 1440; // Default 24 hours
+    public int DefaultFrequency { get; set; } = 60; // Default 1 hour
+    public int DefaultCooldownMinutes { get; set; } = 30; // Default 30 minutes
+
     // Domain methods
     public bool IsValid(out List<string> errors)
     {

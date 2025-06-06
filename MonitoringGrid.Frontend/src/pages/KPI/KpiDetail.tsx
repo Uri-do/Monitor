@@ -10,11 +10,6 @@ import {
   Stack,
   Divider,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   CircularProgress,
   Paper,
   Table,
@@ -23,6 +18,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   PlayArrow as ExecuteIcon,
@@ -34,10 +31,12 @@ import {
   TrendingUp as TrendingUpIcon,
   Error as ErrorIcon,
   CheckCircle as SuccessIcon,
+  Visibility as ViewIcon,
+  MoreVert as MoreIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { kpiApi } from '@/services/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { kpiApi, executionHistoryApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
@@ -45,13 +44,14 @@ import {
   StatusChip,
   LoadingSpinner,
 } from '@/components/Common';
+import { PaginatedExecutionHistoryDto } from '@/types/api';
+import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 
 const KpiDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [executeDialogOpen, setExecuteDialogOpen] = useState(false);
-  const [customFrequency, setCustomFrequency] = useState('');
 
   const kpiId = parseInt(id || '0');
 
@@ -69,27 +69,30 @@ const KpiDetail: React.FC = () => {
     enabled: !!kpiId,
   });
 
-  // Execute KPI mutation
-  const executeMutation = useMutation({
-    mutationFn: (frequency?: number) => kpiApi.executeKpi({
+  // Fetch execution history
+  const { data: executionHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ['execution-history', kpiId],
+    queryFn: () => executionHistoryApi.getExecutionHistory({
       kpiId,
-      customFrequency: frequency,
+      pageSize: 10,
+      pageNumber: 1,
     }),
-    onSuccess: (result) => {
-      toast.success('KPI executed successfully');
-      setExecuteDialogOpen(false);
-      setCustomFrequency('');
-      queryClient.invalidateQueries({ queryKey: ['kpi', kpiId] });
-      queryClient.invalidateQueries({ queryKey: ['kpi-metrics', kpiId] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to execute KPI');
-    },
+    enabled: !!kpiId,
   });
 
-  const handleExecute = () => {
-    const frequency = customFrequency ? parseInt(customFrequency) : undefined;
-    executeMutation.mutate(frequency);
+
+
+  const handleExecute = async () => {
+    const result = await kpiApi.executeKpi({
+      kpiId,
+    });
+
+    // Refresh data after successful execution
+    queryClient.invalidateQueries({ queryKey: ['kpi', kpiId] });
+    queryClient.invalidateQueries({ queryKey: ['kpi-metrics', kpiId] });
+    queryClient.invalidateQueries({ queryKey: ['execution-history', kpiId] });
+
+    return result;
   };
 
   if (kpiLoading) {
@@ -135,7 +138,7 @@ const KpiDetail: React.FC = () => {
           label: 'Execute Now',
           icon: <ExecuteIcon />,
           onClick: () => setExecuteDialogOpen(true),
-          disabled: !kpi.isActive || executeMutation.isPending,
+          disabled: !kpi.isActive,
         }}
         actions={[
           {
@@ -181,6 +184,14 @@ const KpiDetail: React.FC = () => {
                   </Typography>
                   <Typography variant="body1">
                     Every {kpi.frequency} minutes
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary">
+                    Data Window
+                  </Typography>
+                  <Typography variant="body1">
+                    {kpi.lastMinutes} minutes ({Math.round(kpi.lastMinutes / 60)} hours)
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -393,6 +404,111 @@ const KpiDetail: React.FC = () => {
           </Grid>
         )}
 
+        {/* Execution History */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">
+                  <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Execution History
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate('/execution-history', { state: { kpiId } })}
+                >
+                  View All
+                </Button>
+              </Box>
+
+              {historyLoading ? (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              ) : executionHistory?.executions.length ? (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Timestamp</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Value</TableCell>
+                        <TableCell>Deviation</TableCell>
+                        <TableCell>Executed By</TableCell>
+                        <TableCell>Duration</TableCell>
+                        <TableCell align="center">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {executionHistory.executions.map((execution) => (
+                        <TableRow key={execution.historicalId} hover>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {format(new Date(execution.timestamp), 'MMM dd, HH:mm:ss')}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              icon={execution.isSuccessful ? <SuccessIcon /> : <ErrorIcon />}
+                              label={execution.isSuccessful ? 'Success' : 'Failed'}
+                              color={execution.isSuccessful ? 'success' : 'error'}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {execution.currentValue.toLocaleString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {execution.deviationPercent != null ? (
+                              <Typography
+                                variant="body2"
+                                color={Math.abs(execution.deviationPercent) > 10 ? 'error' : 'textSecondary'}
+                              >
+                                {execution.deviationPercent > 0 ? '+' : ''}{execution.deviationPercent.toFixed(1)}%
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">
+                                N/A
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {execution.executedBy || 'System'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Tooltip title="View Details">
+                              <IconButton
+                                size="small"
+                                onClick={() => navigate(`/execution-history/${execution.historicalId}`)}
+                              >
+                                <ViewIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Alert severity="info">
+                  No execution history found for this KPI.
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Audit Information */}
         <Grid item xs={12}>
           <Card>
@@ -424,39 +540,12 @@ const KpiDetail: React.FC = () => {
       </Grid>
 
       {/* Execute Dialog */}
-      <Dialog open={executeDialogOpen} onClose={() => setExecuteDialogOpen(false)}>
-        <DialogTitle>Execute KPI</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="textSecondary" gutterBottom>
-            Execute "{kpi.indicator}" manually. You can optionally specify a custom frequency.
-          </Typography>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Custom Frequency (minutes)"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={customFrequency}
-            onChange={(e) => setCustomFrequency(e.target.value)}
-            helperText="Leave empty to use default frequency"
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setExecuteDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleExecute}
-            variant="contained"
-            disabled={executeMutation.isPending}
-            startIcon={executeMutation.isPending ? <CircularProgress size={16} /> : <ExecuteIcon />}
-          >
-            Execute
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ExecutionProgressDialog
+        open={executeDialogOpen}
+        onClose={() => setExecuteDialogOpen(false)}
+        kpiName={kpi.indicator}
+        onExecute={handleExecute}
+      />
     </Box>
   );
 };

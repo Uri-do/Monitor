@@ -229,6 +229,13 @@ const KpiList: React.FC = () => {
       render: (value) => `${value} min`,
     },
     {
+      id: 'lastMinutes',
+      label: 'Data Window',
+      sortable: true,
+      minWidth: 120,
+      render: (value) => `${value} min (${Math.round(value / 60)}h)`,
+    },
+    {
       id: 'deviation',
       label: 'Deviation',
       sortable: true,

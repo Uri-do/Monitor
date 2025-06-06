@@ -1,6 +1,7 @@
 C:\Dev\code\Monitor\MonitoringGrid.Core\bin\Debug\net8.0\MonitoringGrid.Core.deps.json
 C:\Dev\code\Monitor\MonitoringGrid.Core\bin\Debug\net8.0\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\MonitoringGrid.Core\bin\Debug\net8.0\MonitoringGrid.Core.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.csproj.AssemblyReference.cache
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.GeneratedMSBuildEditorConfig.editorconfig
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.AssemblyInfoInputs.cache
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.AssemblyInfo.cs
@@ -10,4 +11,3 @@ C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\refint\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.pdb
 C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\ref\MonitoringGrid.Core.dll
-C:\Dev\code\Monitor\MonitoringGrid.Core\obj\Debug\net8.0\MonitoringGrid.Core.csproj.AssemblyReference.cache

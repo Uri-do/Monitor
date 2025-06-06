@@ -31,6 +31,11 @@ public class KPI : AggregateRoot
     public int Frequency { get; set; }
 
     /// <summary>
+    /// Time window in minutes for data analysis (how far back to look for data)
+    /// </summary>
+    public int LastMinutes { get; set; } = 1440; // Default to 24 hours
+
+    /// <summary>
     /// Acceptable deviation percentage
     /// </summary>
     public decimal Deviation { get; set; }

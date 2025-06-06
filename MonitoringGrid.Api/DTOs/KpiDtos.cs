@@ -13,6 +13,7 @@ public class KpiDto
     public byte Priority { get; set; }
     public string PriorityName => Priority == 1 ? "SMS + Email" : "Email Only";
     public int Frequency { get; set; }
+    public int LastMinutes { get; set; }
     public decimal Deviation { get; set; }
     public string SpName { get; set; } = string.Empty;
     public string SubjectTemplate { get; set; } = string.Empty;
@@ -44,6 +45,9 @@ public class CreateKpiRequest
 
     [Range(1, int.MaxValue)]
     public int Frequency { get; set; }
+
+    [Range(1, int.MaxValue)]
+    public int LastMinutes { get; set; } = 1440;
 
     [Range(0, 100)]
     public decimal Deviation { get; set; }
@@ -96,6 +100,11 @@ public class KpiExecutionResultDto
     public string? ExecutionDetails { get; set; }
     public Dictionary<string, object>? Metadata { get; set; }
     public bool IsSuccessful => string.IsNullOrEmpty(ErrorMessage);
+
+    // Enhanced execution information
+    public ExecutionTimingInfoDto? TimingInfo { get; set; }
+    public DatabaseExecutionInfoDto? DatabaseInfo { get; set; }
+    public List<ExecutionStepInfoDto>? ExecutionSteps { get; set; }
 }
 
 /// <summary>
@@ -261,4 +270,48 @@ public class ExecutionStatsDto
     public DateTime? LastExecution { get; set; }
     public int UniqueExecutors { get; set; }
     public int ExecutionMethods { get; set; }
+}
+
+/// <summary>
+/// Detailed timing information for KPI execution
+/// </summary>
+public class ExecutionTimingInfoDto
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public int TotalExecutionMs { get; set; }
+    public int DatabaseConnectionMs { get; set; }
+    public int StoredProcedureExecutionMs { get; set; }
+    public int ResultProcessingMs { get; set; }
+    public int HistoricalDataSaveMs { get; set; }
+}
+
+/// <summary>
+/// Database execution information
+/// </summary>
+public class DatabaseExecutionInfoDto
+{
+    public string ConnectionString { get; set; } = string.Empty;
+    public string DatabaseName { get; set; } = string.Empty;
+    public string ServerName { get; set; } = string.Empty;
+    public string SqlCommand { get; set; } = string.Empty;
+    public string SqlParameters { get; set; } = string.Empty;
+    public string RawResponse { get; set; } = string.Empty;
+    public int RowsReturned { get; set; }
+    public int ResultSetsReturned { get; set; }
+}
+
+/// <summary>
+/// Individual execution step information
+/// </summary>
+public class ExecutionStepInfoDto
+{
+    public string StepName { get; set; } = string.Empty;
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public int DurationMs { get; set; }
+    public string Status { get; set; } = string.Empty; // "Success", "Error", "Warning"
+    public string? Details { get; set; }
+    public string? ErrorMessage { get; set; }
+    public Dictionary<string, object>? StepMetadata { get; set; }
 }

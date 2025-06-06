@@ -71,11 +71,43 @@ public class KpiExecutionService : IKpiExecutionService
 
     private async Task<KpiExecutionResult> ExecuteStoredProcedureAsync(KPI kpi, CancellationToken cancellationToken)
     {
+        var executionSteps = new List<ExecutionStepInfo>();
+        var overallStartTime = DateTime.UtcNow;
+
+        // Step 1: Initialize Execution
+        var initStep = new ExecutionStepInfo
+        {
+            StepName = "Initialize Execution",
+            StartTime = overallStartTime,
+            Status = "Active"
+        };
+        executionSteps.Add(initStep);
+
         // Determine connection string based on stored procedure location
         var connectionString = GetConnectionStringForStoredProcedure(kpi.SpName);
+        var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+
+        initStep.EndTime = DateTime.UtcNow;
+        initStep.DurationMs = (int)(initStep.EndTime - initStep.StartTime).TotalMilliseconds;
+        initStep.Status = "Success";
+        initStep.Details = $"Connection string determined for {connectionStringBuilder.DataSource}";
+
+        // Step 2: Database Connection
+        var connectionStep = new ExecutionStepInfo
+        {
+            StepName = "Connecting to Database",
+            StartTime = DateTime.UtcNow,
+            Status = "Active"
+        };
+        executionSteps.Add(connectionStep);
 
         using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
+
+        connectionStep.EndTime = DateTime.UtcNow;
+        connectionStep.DurationMs = (int)(connectionStep.EndTime - connectionStep.StartTime).TotalMilliseconds;
+        connectionStep.Status = "Success";
+        connectionStep.Details = $"Connected to {connectionStringBuilder.DataSource}/{connectionStringBuilder.InitialCatalog}";
 
         using var command = new SqlCommand(kpi.SpName, connection)
         {
@@ -83,21 +115,21 @@ public class KpiExecutionService : IKpiExecutionService
             CommandTimeout = _config.DatabaseTimeoutSeconds
         };
 
-        // Add input parameters
-        command.Parameters.AddWithValue("@ForLastMinutes", kpi.Frequency);
+        // Add input parameters - use LastMinutes for data window, not Frequency
+        command.Parameters.AddWithValue("@ForLastMinutes", kpi.LastMinutes);
 
         // Check if this is a result set based stored procedure (like stats.stp_MonitorTransactions)
         if (IsResultSetBasedStoredProcedure(kpi.SpName))
         {
-            return await ExecuteResultSetBasedStoredProcedureAsync(command, kpi, cancellationToken);
+            return await ExecuteResultSetBasedStoredProcedureAsync(command, kpi, executionSteps, connectionStringBuilder, overallStartTime, cancellationToken);
         }
         else
         {
-            return await ExecuteOutputParameterBasedStoredProcedureAsync(command, kpi, cancellationToken);
+            return await ExecuteOutputParameterBasedStoredProcedureAsync(command, kpi, executionSteps, connectionStringBuilder, overallStartTime, cancellationToken);
         }
     }
 
-    private async Task<KpiExecutionResult> ExecuteOutputParameterBasedStoredProcedureAsync(SqlCommand command, KPI kpi, CancellationToken cancellationToken)
+    private async Task<KpiExecutionResult> ExecuteOutputParameterBasedStoredProcedureAsync(SqlCommand command, KPI kpi, List<ExecutionStepInfo> executionSteps, SqlConnectionStringBuilder connectionStringBuilder, DateTime overallStartTime, CancellationToken cancellationToken)
     {
         // Add output parameters
         var keyParam = command.Parameters.Add("@Key", SqlDbType.NVarChar, 255);
@@ -142,11 +174,25 @@ public class KpiExecutionService : IKpiExecutionService
         return result;
     }
 
-    private async Task<KpiExecutionResult> ExecuteResultSetBasedStoredProcedureAsync(SqlCommand command, KPI kpi, CancellationToken cancellationToken)
+    private async Task<KpiExecutionResult> ExecuteResultSetBasedStoredProcedureAsync(SqlCommand command, KPI kpi, List<ExecutionStepInfo> executionSteps, SqlConnectionStringBuilder connectionStringBuilder, DateTime overallStartTime, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Executing result set based stored procedure {SpName}", kpi.SpName);
 
+        // Step 3: Execute Stored Procedure
+        var executeStep = new ExecutionStepInfo
+        {
+            StepName = "Executing Stored Procedure",
+            StartTime = DateTime.UtcNow,
+            Status = "Active",
+            Details = $"Executing {kpi.SpName} with @ForLastMinutes = {kpi.LastMinutes}"
+        };
+        executionSteps.Add(executeStep);
+
         using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        executeStep.EndTime = DateTime.UtcNow;
+        executeStep.DurationMs = (int)(executeStep.EndTime - executeStep.StartTime).TotalMilliseconds;
+        executeStep.Status = "Success";
 
         decimal currentValue = 0;
         decimal historicalValue = 0;
@@ -224,23 +270,100 @@ public class KpiExecutionService : IKpiExecutionService
             key = genericStats.Key;
         }
 
+        // Step 4: Process Results
+        var processStep = new ExecutionStepInfo
+        {
+            StepName = "Processing Results",
+            StartTime = DateTime.UtcNow,
+            Status = "Active"
+        };
+        executionSteps.Add(processStep);
+
         var deviationPercent = CalculateDeviation(currentValue, historicalValue);
+
+        processStep.EndTime = DateTime.UtcNow;
+        processStep.DurationMs = (int)(processStep.EndTime - processStep.StartTime).TotalMilliseconds;
+        processStep.Status = "Success";
+        processStep.Details = $"Calculated deviation: {deviationPercent:F2}%";
+
+        // Step 5: Store Historical Data
+        var storeStep = new ExecutionStepInfo
+        {
+            StepName = "Storing Historical Data",
+            StartTime = DateTime.UtcNow,
+            Status = "Active"
+        };
+        executionSteps.Add(storeStep);
 
         // Update the result with final values
         result.Key = key;
         result.CurrentValue = currentValue;
         result.HistoricalValue = historicalValue;
         result.DeviationPercent = deviationPercent;
-
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
+
+        // Calculate total execution time
+        var overallEndTime = DateTime.UtcNow;
+        var totalExecutionMs = (int)(overallEndTime - overallStartTime).TotalMilliseconds;
+        result.ExecutionTimeMs = totalExecutionMs;
+
+        // Create enhanced execution information
+        result.TimingInfo = new ExecutionTimingInfo
+        {
+            StartTime = overallStartTime,
+            EndTime = overallEndTime,
+            TotalExecutionMs = totalExecutionMs,
+            DatabaseConnectionMs = executionSteps.FirstOrDefault(s => s.StepName == "Connecting to Database")?.DurationMs ?? 0,
+            StoredProcedureExecutionMs = executionSteps.FirstOrDefault(s => s.StepName == "Executing Stored Procedure")?.DurationMs ?? 0,
+            ResultProcessingMs = executionSteps.FirstOrDefault(s => s.StepName == "Processing Results")?.DurationMs ?? 0,
+            HistoricalDataSaveMs = 0 // Will be updated after save
+        };
+
+        result.DatabaseInfo = new DatabaseExecutionInfo
+        {
+            ConnectionString = MaskConnectionString(command.Connection.ConnectionString),
+            DatabaseName = connectionStringBuilder.InitialCatalog,
+            ServerName = connectionStringBuilder.DataSource,
+            SqlCommand = $"EXEC {kpi.SpName} @ForLastMinutes = {kpi.LastMinutes}",
+            SqlParameters = $"@ForLastMinutes = {kpi.LastMinutes}",
+            RawResponse = result.ExecutionDetails ?? "",
+            RowsReturned = result.Metadata?.ContainsKey("TotalTransactions") == true ?
+                Convert.ToInt32(result.Metadata["TotalTransactions"]) : 0,
+            ResultSetsReturned = 1
+        };
+
+        result.ExecutionSteps = executionSteps;
 
         // Store historical data
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
 
-        _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%",
-            kpi.Indicator, currentValue, historicalValue, deviationPercent);
+        storeStep.EndTime = DateTime.UtcNow;
+        storeStep.DurationMs = (int)(storeStep.EndTime - storeStep.StartTime).TotalMilliseconds;
+        storeStep.Status = "Success";
+        storeStep.Details = "Historical data saved successfully";
+
+        // Update timing info with historical data save time
+        if (result.TimingInfo != null)
+        {
+            result.TimingInfo.HistoricalDataSaveMs = storeStep.DurationMs;
+        }
+
+        _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%, Total Time={TotalMs}ms",
+            kpi.Indicator, currentValue, historicalValue, deviationPercent, totalExecutionMs);
 
         return result;
+    }
+
+    private static string MaskConnectionString(string connectionString)
+    {
+        if (string.IsNullOrEmpty(connectionString))
+            return connectionString;
+
+        // Mask sensitive information in connection string
+        var builder = new SqlConnectionStringBuilder(connectionString);
+
+        // Keep server and database info, mask credentials
+        return $"Server={builder.DataSource};Database={builder.InitialCatalog};User=***;Password=***;";
     }
 
     public decimal CalculateDeviation(decimal current, decimal historical)
@@ -511,23 +634,7 @@ public class KpiExecutionService : IKpiExecutionService
         }
     }
 
-    private static string MaskConnectionString(string connectionString)
-    {
-        try
-        {
-            var builder = new SqlConnectionStringBuilder(connectionString);
-            builder.Password = "***MASKED***";
-            if (!string.IsNullOrEmpty(builder.UserID))
-            {
-                builder.UserID = builder.UserID.Substring(0, Math.Min(3, builder.UserID.Length)) + "***";
-            }
-            return builder.ToString();
-        }
-        catch
-        {
-            return "***MASKED CONNECTION STRING***";
-        }
-    }
+
 
     public async Task<bool> ValidateKpiStoredProcedureAsync(string spName, CancellationToken cancellationToken = default)
     {

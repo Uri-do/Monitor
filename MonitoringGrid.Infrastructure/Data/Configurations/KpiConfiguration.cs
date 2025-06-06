@@ -29,6 +29,10 @@ public class KpiConfiguration : IEntityTypeConfiguration<KPI>
         builder.Property(k => k.Frequency)
             .IsRequired();
 
+        builder.Property(k => k.LastMinutes)
+            .IsRequired()
+            .HasDefaultValue(1440); // Default 24 hours
+
         builder.Property(k => k.Deviation)
             .IsRequired()
             .HasColumnType("decimal(5,2)");

@@ -1,11 +1,6 @@
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.csproj.AssemblyReference.cache
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.GeneratedMSBuildEditorConfig.editorconfig
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.AssemblyInfoInputs.cache
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.AssemblyInfo.cs
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.csproj.CoreCompileInputs.cache
-C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.sourcelink.json
 C:\Dev\code\Monitor\bin\Debug\net8.0\appsettings.Development.json
 C:\Dev\code\Monitor\bin\Debug\net8.0\appsettings.json
+C:\Dev\code\Monitor\bin\Debug\net8.0\test_registration.json
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.exe
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.deps.json
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.runtimeconfig.json
@@ -13,6 +8,7 @@ C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.pdb
 C:\Dev\code\Monitor\bin\Debug\net8.0\Azure.Core.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Azure.Identity.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\Azure.Security.KeyVault.Secrets.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Humanizer.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
@@ -79,6 +75,7 @@ C:\Dev\code\Monitor\bin\Debug\net8.0\Serilog.Settings.Configuration.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Serilog.Sinks.Console.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Serilog.Sinks.EventLog.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\Serilog.Sinks.File.dll
+C:\Dev\code\Monitor\bin\Debug\net8.0\System.ClientModel.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\System.CodeDom.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\System.Composition.AttributedModel.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\System.Composition.Convention.dll
@@ -167,12 +164,15 @@ C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.Core.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.Infrastructure.dll
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.Core.pdb
 C:\Dev\code\Monitor\bin\Debug\net8.0\MonitoringGrid.Infrastructure.pdb
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.csproj.AssemblyReference.cache
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.AssemblyInfoInputs.cache
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.AssemblyInfo.cs
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.csproj.CoreCompileInputs.cache
+C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.sourcelink.json
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.csproj.CopyComplete
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.dll
 C:\Dev\code\Monitor\obj\Debug\net8.0\refint\MonitoringGrid.dll
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.pdb
 C:\Dev\code\Monitor\obj\Debug\net8.0\MonitoringGrid.genruntimeconfig.cache
 C:\Dev\code\Monitor\obj\Debug\net8.0\ref\MonitoringGrid.dll
-C:\Dev\code\Monitor\bin\Debug\net8.0\test_registration.json
-C:\Dev\code\Monitor\bin\Debug\net8.0\Azure.Security.KeyVault.Secrets.dll
-C:\Dev\code\Monitor\bin\Debug\net8.0\System.ClientModel.dll

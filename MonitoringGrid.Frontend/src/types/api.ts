@@ -7,6 +7,7 @@ export interface KpiDto {
   priority: number;
   priorityName: string;
   frequency: number;
+  lastMinutes: number;
   deviation: number;
   spName: string;
   subjectTemplate: string;
@@ -25,6 +26,7 @@ export interface CreateKpiRequest {
   owner: string;
   priority: number;
   frequency: number;
+  lastMinutes: number;
   deviation: number;
   spName: string;
   subjectTemplate: string;
@@ -163,6 +165,11 @@ export interface KpiExecutionResultDto {
   executionDetails?: string;
   metadata?: Record<string, any>;
   isSuccessful: boolean;
+
+  // Enhanced execution information
+  timingInfo?: ExecutionTimingInfo;
+  databaseInfo?: DatabaseExecutionInfo;
+  executionSteps?: ExecutionStepInfo[];
 }
 
 export interface KpiMetricsDto {
@@ -527,4 +534,37 @@ export interface ManualAlertRequest {
   message: string;
   details?: string;
   priority: number;
+}
+
+// Enhanced Execution Information Types
+export interface ExecutionTimingInfo {
+  startTime: string;
+  endTime: string;
+  totalExecutionMs: number;
+  databaseConnectionMs: number;
+  storedProcedureExecutionMs: number;
+  resultProcessingMs: number;
+  historicalDataSaveMs: number;
+}
+
+export interface DatabaseExecutionInfo {
+  connectionString: string;
+  databaseName: string;
+  serverName: string;
+  sqlCommand: string;
+  sqlParameters: string;
+  rawResponse: string;
+  rowsReturned: number;
+  resultSetsReturned: number;
+}
+
+export interface ExecutionStepInfo {
+  stepName: string;
+  startTime: string;
+  endTime: string;
+  durationMs: number;
+  status: string; // "Success", "Error", "Warning", "Active"
+  details?: string;
+  errorMessage?: string;
+  stepMetadata?: Record<string, any>;
 }

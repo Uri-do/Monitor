@@ -24,6 +24,11 @@ public class KpiExecutionResult
     public string? ExecutionDetails { get; set; }
     public Dictionary<string, object>? Metadata { get; set; }
 
+    // Enhanced execution information
+    public ExecutionTimingInfo? TimingInfo { get; set; }
+    public DatabaseExecutionInfo? DatabaseInfo { get; set; }
+    public List<ExecutionStepInfo>? ExecutionSteps { get; set; }
+
     // Domain methods
     public bool IsSuccessful => string.IsNullOrEmpty(ErrorMessage);
 
@@ -45,4 +50,48 @@ public class KpiExecutionResult
             _ => "Low"
         };
     }
+}
+
+/// <summary>
+/// Detailed timing information for KPI execution
+/// </summary>
+public class ExecutionTimingInfo
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public int TotalExecutionMs { get; set; }
+    public int DatabaseConnectionMs { get; set; }
+    public int StoredProcedureExecutionMs { get; set; }
+    public int ResultProcessingMs { get; set; }
+    public int HistoricalDataSaveMs { get; set; }
+}
+
+/// <summary>
+/// Database execution information
+/// </summary>
+public class DatabaseExecutionInfo
+{
+    public string ConnectionString { get; set; } = string.Empty;
+    public string DatabaseName { get; set; } = string.Empty;
+    public string ServerName { get; set; } = string.Empty;
+    public string SqlCommand { get; set; } = string.Empty;
+    public string SqlParameters { get; set; } = string.Empty;
+    public string RawResponse { get; set; } = string.Empty;
+    public int RowsReturned { get; set; }
+    public int ResultSetsReturned { get; set; }
+}
+
+/// <summary>
+/// Individual execution step information
+/// </summary>
+public class ExecutionStepInfo
+{
+    public string StepName { get; set; } = string.Empty;
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public int DurationMs { get; set; }
+    public string Status { get; set; } = string.Empty; // "Success", "Error", "Warning"
+    public string? Details { get; set; }
+    public string? ErrorMessage { get; set; }
+    public Dictionary<string, object>? StepMetadata { get; set; }
 }

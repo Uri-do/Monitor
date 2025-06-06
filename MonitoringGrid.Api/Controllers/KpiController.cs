@@ -119,10 +119,9 @@ public class KpiController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Validate email address using value object
+            // Validate deviation percentage using value object
             try
             {
-                var ownerEmail = new EmailAddress(request.Owner);
                 var deviationPercentage = new DeviationPercentage(request.Deviation);
             }
             catch (ArgumentException ex)
@@ -145,26 +144,15 @@ public class KpiController : ControllerBase
                 request.SubjectTemplate,
                 request.DescriptionTemplate);
 
-            // Use Unit of Work for transaction management
-            await _unitOfWork.BeginTransactionAsync();
+            // For simple operations, just use SaveChangesAsync without manual transactions
+            var kpiRepository = _unitOfWork.Repository<KPI>();
+            await kpiRepository.AddAsync(kpi);
+            await _unitOfWork.SaveChangesAsync();
 
-            try
-            {
-                var kpiRepository = _unitOfWork.Repository<KPI>();
-                await kpiRepository.AddAsync(kpi);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
+            _logger.LogInformation("Created KPI {Indicator} with ID {KpiId}", kpi.Indicator, kpi.KpiId);
 
-                _logger.LogInformation("Created KPI {Indicator} with ID {KpiId}", kpi.Indicator, kpi.KpiId);
-
-                var kpiDto = _mapper.Map<KpiDto>(kpi);
-                return CreatedAtAction(nameof(GetKpi), new { id = kpi.KpiId }, kpiDto);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+            var kpiDto = _mapper.Map<KpiDto>(kpi);
+            return CreatedAtAction(nameof(GetKpi), new { id = kpi.KpiId }, kpiDto);
         }
         catch (ArgumentException ex)
         {
@@ -195,7 +183,6 @@ public class KpiController : ControllerBase
             // Validate using value objects
             try
             {
-                var ownerEmail = new EmailAddress(request.Owner);
                 var deviationPercentage = new DeviationPercentage(request.Deviation);
             }
             catch (ArgumentException ex)
@@ -213,27 +200,17 @@ public class KpiController : ControllerBase
             if (!await _kpiDomainService.IsIndicatorUniqueAsync(request.Indicator, id))
                 return BadRequest($"KPI with indicator '{request.Indicator}' already exists");
 
-            await _unitOfWork.BeginTransactionAsync();
+            // For simple operations, just use SaveChangesAsync without manual transactions
+            _mapper.Map(request, existingKpi);
+            existingKpi.ModifiedDate = DateTime.UtcNow;
 
-            try
-            {
-                _mapper.Map(request, existingKpi);
-                existingKpi.ModifiedDate = DateTime.UtcNow;
+            await kpiRepository.UpdateAsync(existingKpi);
+            await _unitOfWork.SaveChangesAsync();
 
-                await kpiRepository.UpdateAsync(existingKpi);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
+            _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
 
-                _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
-
-                var kpiDto = _mapper.Map<KpiDto>(existingKpi);
-                return Ok(kpiDto);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+            var kpiDto = _mapper.Map<KpiDto>(existingKpi);
+            return Ok(kpiDto);
         }
         catch (ArgumentException ex)
         {
@@ -261,25 +238,14 @@ public class KpiController : ControllerBase
             if (kpi == null)
                 return NotFound($"KPI with ID {id} not found");
 
-            await _unitOfWork.BeginTransactionAsync();
+            // Use domain method for deactivation instead of deletion
+            kpi.Deactivate("API Request", "Deleted via API");
 
-            try
-            {
-                // Use domain method for deactivation instead of deletion
-                kpi.Deactivate("API Request", "Deleted via API");
+            await kpiRepository.UpdateAsync(kpi);
+            await _unitOfWork.SaveChangesAsync();
 
-                await kpiRepository.UpdateAsync(kpi);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-
-                _logger.LogInformation("Deactivated KPI {Indicator} with ID {KpiId}", kpi.Indicator, id);
-                return NoContent();
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+            _logger.LogInformation("Deactivated KPI {Indicator} with ID {KpiId}", kpi.Indicator, id);
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -462,48 +428,36 @@ public class KpiController : ControllerBase
             if (!kpis.Any())
                 return NotFound("No KPIs found with the provided IDs");
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            switch (request.Operation.ToLower())
             {
-                switch (request.Operation.ToLower())
-                {
-                    case "activate":
-                        kpis.ForEach(k => k.IsActive = true);
-                        break;
-                    case "deactivate":
-                        kpis.ForEach(k => k.IsActive = false);
-                        break;
-                    case "delete":
-                        await kpiRepository.DeleteRangeAsync(kpis);
-                        await _unitOfWork.SaveChangesAsync();
-                        await _unitOfWork.CommitTransactionAsync();
+                case "activate":
+                    kpis.ForEach(k => k.IsActive = true);
+                    break;
+                case "deactivate":
+                    kpis.ForEach(k => k.IsActive = false);
+                    break;
+                case "delete":
+                    await kpiRepository.DeleteRangeAsync(kpis);
+                    await _unitOfWork.SaveChangesAsync();
 
-                        _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
-                            request.Operation, kpis.Count);
-                        return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
-                    default:
-                        return BadRequest($"Unknown operation: {request.Operation}");
-                }
-
-                // For activate/deactivate operations
-                foreach (var kpi in kpis)
-                {
-                    await kpiRepository.UpdateAsync(kpi);
-                }
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-
-                _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
-                    request.Operation, kpis.Count);
-
-                return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
+                    _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
+                        request.Operation, kpis.Count);
+                    return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
+                default:
+                    return BadRequest($"Unknown operation: {request.Operation}");
             }
-            catch
+
+            // For activate/deactivate operations
+            foreach (var kpi in kpis)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
+                await kpiRepository.UpdateAsync(kpi);
             }
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Bulk operation {Operation} performed on {Count} KPIs",
+                request.Operation, kpis.Count);
+
+            return Ok(new { Message = $"Operation '{request.Operation}' completed on {kpis.Count} KPIs" });
         }
         catch (Exception ex)
         {

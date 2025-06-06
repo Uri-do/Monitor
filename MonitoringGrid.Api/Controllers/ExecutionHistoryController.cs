@@ -59,7 +59,7 @@ public class ExecutionHistoryController : ControllerBase
             while (await reader.ReadAsync())
             {
                 totalCount = reader.GetInt32("TotalCount");
-                totalPages = reader.GetInt32("TotalPages");
+                totalPages = Convert.ToInt32(reader.GetDouble("TotalPages"));
 
                 var execution = new ExecutionHistoryDto
                 {

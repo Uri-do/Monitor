@@ -19,6 +19,15 @@ import {
   AccordionSummary,
   AccordionDetails,
   Divider,
+  Grid,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   PlayArrow as ExecuteIcon,
@@ -29,8 +38,12 @@ import {
   Code as CodeIcon,
   ExpandMore as ExpandMoreIcon,
   Timer as TimerIcon,
+  Speed as SpeedIcon,
+  Timeline as TimelineIcon,
+  QueryStats as QueryIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { KpiExecutionResultDto, ExecutionStepInfo, ExecutionTimingInfo, DatabaseExecutionInfo } from '@/types/api';
 
 interface ExecutionStep {
   id: string;
@@ -357,25 +370,380 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
           ))}
         </Stepper>
 
-        {/* Detailed Results */}
+        {/* Enhanced Execution Details */}
         {executionResult && (
           <Box sx={{ mt: 3 }}>
+            {/* Basic Execution Information - Always Show */}
+            <Accordion sx={{ mb: 2 }} defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">
+                  <SpeedIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Execution Summary
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Execution Results
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2">Status:</Typography>
+                            <Chip
+                              label={executionResult.isSuccessful ? 'Success' : 'Failed'}
+                              size="small"
+                              color={executionResult.isSuccessful ? 'success' : 'error'}
+                            />
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2">Current Value:</Typography>
+                            <Typography variant="body2" fontWeight="medium">{executionResult.currentValue}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2">Historical Value:</Typography>
+                            <Typography variant="body2">{executionResult.historicalValue || 'N/A'}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2">Deviation:</Typography>
+                            <Chip
+                              label={`${executionResult.deviationPercent?.toFixed(2) || 'N/A'}%`}
+                              size="small"
+                              color={executionResult.deviationPercent > 10 ? 'warning' : 'default'}
+                            />
+                          </Box>
+                          {executionResult.executionTimeMs && (
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Execution Time:</Typography>
+                              <Chip label={`${executionResult.executionTimeMs}ms`} size="small" color="info" />
+                            </Box>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Execution Context
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">KPI Key:</Typography>
+                            <Typography variant="body2" fontFamily="monospace">{executionResult.key}</Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Execution Time:</Typography>
+                            <Typography variant="body2">{format(new Date(executionResult.executionTime), 'yyyy-MM-dd HH:mm:ss')}</Typography>
+                          </Box>
+                          {executionResult.shouldAlert && (
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Alert Status:</Typography>
+                              <Chip label="Alert Triggered" size="small" color="warning" />
+                            </Box>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Timing Information */}
+            {executionResult.timingInfo && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <SpeedIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Performance Metrics
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Execution Timing
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Total Execution:</Typography>
+                              <Chip label={`${executionResult.timingInfo.totalExecutionMs}ms`} size="small" color="primary" />
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Database Connection:</Typography>
+                              <Chip label={`${executionResult.timingInfo.databaseConnectionMs}ms`} size="small" />
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Stored Procedure:</Typography>
+                              <Chip label={`${executionResult.timingInfo.storedProcedureExecutionMs}ms`} size="small" />
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Result Processing:</Typography>
+                              <Chip label={`${executionResult.timingInfo.resultProcessingMs}ms`} size="small" />
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2">Historical Data Save:</Typography>
+                              <Chip label={`${executionResult.timingInfo.historicalDataSaveMs}ms`} size="small" />
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Execution Timeline
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Started:</Typography>
+                              <Typography variant="body2">{format(new Date(executionResult.timingInfo.startTime), 'HH:mm:ss.SSS')}</Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Completed:</Typography>
+                              <Typography variant="body2">{format(new Date(executionResult.timingInfo.endTime), 'HH:mm:ss.SSS')}</Typography>
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Database Information */}
+            {executionResult.databaseInfo && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <DatabaseIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Database Execution Details
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Connection Information
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Server:</Typography>
+                              <Typography variant="body2" fontFamily="monospace">{executionResult.databaseInfo.serverName}</Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Database:</Typography>
+                              <Typography variant="body2" fontFamily="monospace">{executionResult.databaseInfo.databaseName}</Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Rows Returned:</Typography>
+                              <Chip label={executionResult.databaseInfo.rowsReturned} size="small" color="info" />
+                            </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Result Sets:</Typography>
+                              <Chip label={executionResult.databaseInfo.resultSetsReturned} size="small" color="info" />
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" gutterBottom>
+                            SQL Command
+                          </Typography>
+                          <Box component="pre" sx={{
+                            backgroundColor: 'grey.100',
+                            p: 1,
+                            borderRadius: 1,
+                            overflow: 'auto',
+                            fontSize: '0.75rem',
+                            fontFamily: 'monospace',
+                            maxHeight: 150,
+                            whiteSpace: 'pre-wrap'
+                          }}>
+                            {executionResult.databaseInfo.sqlCommand}
+                          </Box>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Parameters: {executionResult.databaseInfo.sqlParameters}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Execution Steps */}
+            {executionResult.executionSteps && executionResult.executionSteps.length > 0 && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <TimelineIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Detailed Execution Steps
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Step</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Duration</TableCell>
+                          <TableCell>Details</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {executionResult.executionSteps.map((step: ExecutionStepInfo, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {step.stepName}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={step.status}
+                                size="small"
+                                color={step.status === 'Success' ? 'success' : step.status === 'Error' ? 'error' : 'default'}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" fontFamily="monospace">
+                                {step.durationMs}ms
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {step.details || '-'}
+                              </Typography>
+                              {step.errorMessage && (
+                                <Typography variant="body2" color="error">
+                                  Error: {step.errorMessage}
+                                </Typography>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Execution Details - Show if available */}
+            {executionResult.executionDetails && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <QueryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Execution Details
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box component="pre" sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    fontSize: '0.75rem',
+                    fontFamily: 'monospace',
+                    maxHeight: 400,
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {executionResult.executionDetails}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Metadata Information - Show if available */}
+            {executionResult.metadata && Object.keys(executionResult.metadata).length > 0 && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <DatabaseIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Execution Metadata
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    {Object.entries(executionResult.metadata).map(([key, value]) => (
+                      <Grid item xs={12} sm={6} md={4} key={key}>
+                        <Card variant="outlined" sx={{ height: '100%' }}>
+                          <CardContent>
+                            <Typography variant="subtitle2" gutterBottom color="primary">
+                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                            </Typography>
+                            <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Raw Response Data */}
+            {executionResult.databaseInfo?.rawResponse && (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="h6">
+                    <QueryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Raw Database Response
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box component="pre" sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    fontSize: '0.75rem',
+                    fontFamily: 'monospace',
+                    maxHeight: 400,
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {executionResult.databaseInfo.rawResponse}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            )}
+
+            {/* Complete JSON Response */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="h6">
                   <CodeIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Detailed Results
+                  Complete Response Data
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Box component="pre" sx={{ 
-                  backgroundColor: 'grey.100', 
-                  p: 2, 
-                  borderRadius: 1, 
+                <Box component="pre" sx={{
+                  backgroundColor: 'grey.100',
+                  p: 2,
+                  borderRadius: 1,
                   overflow: 'auto',
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
                   fontFamily: 'monospace',
-                  maxHeight: 300
+                  maxHeight: 400
                 }}>
                   {JSON.stringify(executionResult, null, 2)}
                 </Box>

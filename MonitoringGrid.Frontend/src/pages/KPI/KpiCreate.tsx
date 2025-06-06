@@ -43,6 +43,7 @@ const kpiSchema = yup.object({
   owner: yup.string().required('Owner is required').max(100, 'Owner must be less than 100 characters'),
   priority: yup.number().required('Priority is required').min(1, 'Priority must be between 1-4').max(4, 'Priority must be between 1-4'),
   frequency: yup.number().required('Frequency is required').min(1, 'Frequency must be at least 1 minute'),
+  lastMinutes: yup.number().required('Data window is required').min(1, 'Data window must be at least 1 minute'),
   deviation: yup.number().required('Deviation threshold is required').min(0, 'Deviation must be positive'),
   spName: yup.string().required('Stored procedure name is required').max(255, 'SP name must be less than 255 characters'),
   subjectTemplate: yup.string().required('Subject template is required').max(500, 'Subject template must be less than 500 characters'),
@@ -98,6 +99,7 @@ const KpiCreate: React.FC = () => {
       owner: '',
       priority: 3,
       frequency: 60,
+      lastMinutes: 1440,
       deviation: 10,
       spName: '',
       subjectTemplate: '',
@@ -341,6 +343,23 @@ const KpiCreate: React.FC = () => {
                           fullWidth
                           error={!!errors.frequency}
                           helperText={errors.frequency?.message || 'How often to check this KPI'}
+                          inputProps={{ min: 1 }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Controller
+                      name="lastMinutes"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Data Window (minutes)"
+                          type="number"
+                          fullWidth
+                          error={!!errors.lastMinutes}
+                          helperText={errors.lastMinutes?.message || 'How far back to look for data (e.g., 1440 = 24 hours)'}
                           inputProps={{ min: 1 }}
                         />
                       )}
