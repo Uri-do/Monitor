@@ -25,6 +25,12 @@ public class KpiDto
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
     public List<ContactDto> Contacts { get; set; } = new();
+
+    // New fields for enhanced KPI system
+    public string? KpiType { get; set; }
+    public object? ScheduleConfiguration { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? ComparisonOperator { get; set; }
 }
 
 /// <summary>
@@ -72,6 +78,12 @@ public class CreateKpiRequest
     public decimal? MinimumThreshold { get; set; }
 
     public List<int> ContactIds { get; set; } = new();
+
+    // New fields for enhanced KPI system
+    public string? KpiType { get; set; }
+    public object? ScheduleConfiguration { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? ComparisonOperator { get; set; }
 }
 
 /// <summary>

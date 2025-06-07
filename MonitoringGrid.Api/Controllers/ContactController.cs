@@ -12,7 +12,8 @@ namespace MonitoringGrid.Api.Controllers;
 /// API controller for managing contacts
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/contact")]
 [Produces("application/json")]
 public class ContactController : ControllerBase
 {

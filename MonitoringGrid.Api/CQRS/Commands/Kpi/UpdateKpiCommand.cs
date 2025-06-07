@@ -51,4 +51,10 @@ public class UpdateKpiCommand : ICommand<KpiDto>
     public decimal? MinimumThreshold { get; set; }
 
     public List<int> ContactIds { get; set; } = new();
+
+    // New fields for enhanced KPI system
+    public string? KpiType { get; set; }
+    public object? ScheduleConfiguration { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? ComparisonOperator { get; set; }
 }

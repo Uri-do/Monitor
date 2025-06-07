@@ -173,9 +173,9 @@ const ExecutionHistoryList: React.FC = () => {
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
             {value.toFixed(2)}
           </Typography>
-          {row.deviationPercent !== null && (
-            <Typography 
-              variant="caption" 
+          {row.deviationPercent !== null && row.deviationPercent !== undefined && (
+            <Typography
+              variant="caption"
               color={Math.abs(row.deviationPercent) > 10 ? 'error.main' : 'text.secondary'}
             >
               {row.deviationPercent > 0 ? '+' : ''}{row.deviationPercent.toFixed(1)}%
@@ -407,7 +407,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 Performance Metrics
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box><strong>Current Value:</strong> {execution.currentValue.toFixed(2)}</Box>
+                <Box><strong>Current Value:</strong> {execution.currentValue?.toFixed(2) || 'N/A'}</Box>
                 <Box><strong>Historical Value:</strong> {execution.historicalValue?.toFixed(2) || 'N/A'}</Box>
                 <Box><strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%</Box>
                 <Box><strong>Execution Time:</strong> {execution.executionTimeMs || 'N/A'}ms</Box>

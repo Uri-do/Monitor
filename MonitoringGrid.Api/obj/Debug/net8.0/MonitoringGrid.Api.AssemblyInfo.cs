@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MonitoringGrid.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c9f4bfb15d1bad72d651488de8079f0fe63229f1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca5817dba31b152612837307bc526646a49d732e")]
 [assembly: System.Reflection.AssemblyProductAttribute("MonitoringGrid.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MonitoringGrid.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

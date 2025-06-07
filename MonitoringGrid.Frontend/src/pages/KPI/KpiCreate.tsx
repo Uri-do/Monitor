@@ -139,6 +139,7 @@ const KpiCreate: React.FC = () => {
         owner: kpi.owner,
         priority: kpi.priority,
         frequency: kpi.frequency,
+        lastMinutes: kpi.lastMinutes,
         deviation: kpi.deviation,
         spName: kpi.spName,
         subjectTemplate: kpi.subjectTemplate,

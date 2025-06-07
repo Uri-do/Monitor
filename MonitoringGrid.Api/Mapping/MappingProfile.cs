@@ -2,6 +2,7 @@ using AutoMapper;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
+using System.Text.Json;
 
 namespace MonitoringGrid.Api.Mapping;
 
@@ -14,7 +15,8 @@ public class MappingProfile : Profile
     {
         // KPI mappings
         CreateMap<KPI, KpiDto>()
-            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.Contact)));
+            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.Contact)))
+            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => DeserializeScheduleConfiguration(src.ScheduleConfiguration)));
 
         CreateMap<CreateKpiRequest, KPI>()
             .ForMember(dest => dest.KpiId, opt => opt.Ignore())
@@ -22,14 +24,16 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
             .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore());
+            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
+            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
 
         CreateMap<UpdateKpiRequest, KPI>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
             .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore());
+            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
+            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
 
         CreateMap<KpiExecutionResult, KpiExecutionResultDto>()
             .ForMember(dest => dest.KpiId, opt => opt.Ignore())
@@ -124,6 +128,42 @@ public class MappingProfile : Profile
             return "Due Soon";
 
         return "Running";
+    }
+
+    /// <summary>
+    /// Helper method to deserialize schedule configuration from JSON string
+    /// </summary>
+    private static object? DeserializeScheduleConfiguration(string? scheduleConfigurationJson)
+    {
+        if (string.IsNullOrEmpty(scheduleConfigurationJson))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<object>(scheduleConfigurationJson);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Helper method to serialize schedule configuration to JSON string
+    /// </summary>
+    private static string? SerializeScheduleConfiguration(object? scheduleConfiguration)
+    {
+        if (scheduleConfiguration == null)
+            return null;
+
+        try
+        {
+            return JsonSerializer.Serialize(scheduleConfiguration);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 

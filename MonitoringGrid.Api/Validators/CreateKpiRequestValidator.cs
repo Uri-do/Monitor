@@ -83,8 +83,8 @@ public class CreateKpiRequestValidator : AbstractValidator<CreateKpiRequest>
     {
         if (string.IsNullOrEmpty(spName)) return true; // Let NotEmpty handle this
 
-        // Check for valid stored procedure name format
-        return spName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '.');
+        // Check for valid stored procedure name format (allow square brackets for SQL Server schema/object names)
+        return spName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '.' || c == '[' || c == ']');
     }
 
     private static bool HaveValidContactIds(List<int>? contactIds)
@@ -171,6 +171,6 @@ public class UpdateKpiRequestValidator : AbstractValidator<UpdateKpiRequest>
     private static bool BeValidStoredProcedureName(string? spName)
     {
         if (string.IsNullOrEmpty(spName)) return true;
-        return spName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '.');
+        return spName.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '.' || c == '[' || c == ']');
     }
 }
