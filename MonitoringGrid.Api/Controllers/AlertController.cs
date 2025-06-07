@@ -14,7 +14,8 @@ namespace MonitoringGrid.Api.Controllers;
 /// API controller for managing alerts
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public class AlertController : ControllerBase
 {

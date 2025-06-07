@@ -179,3 +179,37 @@ BEGIN
     PRINT 'Table auth.UserPasswords already exists'
 END
 GO
+
+-- SecurityAuditEvents Table (for security audit logging)
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'SecurityAuditEvents') AND type in (N'U'))
+BEGIN
+    CREATE TABLE SecurityAuditEvents (
+        EventId NVARCHAR(50) PRIMARY KEY,
+        EventType NVARCHAR(100) NOT NULL,
+        UserId NVARCHAR(50) NULL,
+        Username NVARCHAR(100) NULL,
+        IpAddress NVARCHAR(45) NULL,
+        UserAgent NVARCHAR(500) NULL,
+        Resource NVARCHAR(200) NULL,
+        Action NVARCHAR(100) NULL,
+        IsSuccess BIT NOT NULL,
+        ErrorMessage NVARCHAR(1000) NULL,
+        AdditionalData NVARCHAR(MAX) NULL,
+        Timestamp DATETIME2 NOT NULL,
+        Severity NVARCHAR(50) NOT NULL
+    )
+    PRINT 'Table SecurityAuditEvents created'
+
+    -- Create indexes for performance
+    CREATE NONCLUSTERED INDEX IX_SecurityAuditEvents_EventType ON SecurityAuditEvents (EventType)
+    CREATE NONCLUSTERED INDEX IX_SecurityAuditEvents_UserId ON SecurityAuditEvents (UserId)
+    CREATE NONCLUSTERED INDEX IX_SecurityAuditEvents_Timestamp ON SecurityAuditEvents (Timestamp)
+    CREATE NONCLUSTERED INDEX IX_SecurityAuditEvents_EventType_Timestamp ON SecurityAuditEvents (EventType, Timestamp)
+    CREATE NONCLUSTERED INDEX IX_SecurityAuditEvents_UserId_Timestamp ON SecurityAuditEvents (UserId, Timestamp)
+    PRINT 'SecurityAuditEvents indexes created'
+END
+ELSE
+BEGIN
+    PRINT 'Table SecurityAuditEvents already exists'
+END
+GO

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
@@ -27,7 +27,7 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-import { executionHistoryApi } from '@/services/api';
+import { executionHistoryApi, kpiApi } from '@/services/api';
 import { ExecutionHistoryDetailDto } from '@/types/api';
 import {
   PageHeader,
@@ -38,14 +38,26 @@ import {
 const ExecutionHistoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
   const historicalId = parseInt(id || '0');
+
+  // Check if we came from a KPI details page
+  const fromKpiDetails = location.state?.fromKpiDetails;
+  const kpiId = location.state?.kpiId;
 
   // Fetch execution detail
   const { data: execution, isLoading, error } = useQuery({
     queryKey: ['execution-detail', historicalId],
     queryFn: () => executionHistoryApi.getExecutionDetail(historicalId),
     enabled: !!historicalId,
+  });
+
+  // Fetch KPI details if we came from KPI page and have execution data
+  const { data: kpiData } = useQuery({
+    queryKey: ['kpi', execution?.kpiId || kpiId],
+    queryFn: () => kpiApi.getKpi(execution?.kpiId || kpiId),
+    enabled: !!(execution?.kpiId || kpiId) && fromKpiDetails,
   });
 
   // Handle invalid ID
@@ -90,27 +102,49 @@ const ExecutionHistoryDetail: React.FC = () => {
     }
   };
 
+  // Generate breadcrumbs based on navigation context
+  const getBreadcrumbs = () => {
+    if (fromKpiDetails && kpiData) {
+      return [
+        { label: 'KPIs', href: '/kpis' },
+        { label: kpiData.indicator, href: `/kpis/${kpiData.kpiId}` },
+        { label: 'Execution Details' },
+      ];
+    }
+    return [
+      { label: 'Execution History', href: '/execution-history' },
+      { label: 'Details' },
+    ];
+  };
+
+  // Generate back action based on navigation context
+  const getBackAction = () => {
+    if (fromKpiDetails && execution?.kpiId) {
+      return {
+        label: 'Back to KPI',
+        icon: <BackIcon />,
+        onClick: () => navigate(`/kpis/${execution.kpiId}`),
+      };
+    }
+    return {
+      label: 'Back to History',
+      icon: <BackIcon />,
+      onClick: () => navigate('/execution-history'),
+    };
+  };
+
   return (
     <Box>
       <PageHeader
         title="Execution Details"
         subtitle={`${execution.indicator} • ${format(new Date(execution.timestamp), 'PPpp')}`}
-        breadcrumbs={[
-          { label: 'Execution History', href: '/execution-history' },
-          { label: 'Details' },
-        ]}
+        breadcrumbs={getBreadcrumbs()}
         primaryAction={{
           label: 'View KPI',
           icon: <KpiIcon />,
           onClick: () => navigate(`/kpis/${execution.kpiId}`),
         }}
-        actions={[
-          {
-            label: 'Back to History',
-            icon: <BackIcon />,
-            onClick: () => navigate('/execution-history'),
-          },
-        ]}
+        actions={[getBackAction()]}
       />
 
       <Grid container spacing={3}>

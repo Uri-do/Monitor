@@ -50,7 +50,7 @@ const USE_MOCK_DATA = false;
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api', // Use proxy for all requests
+  baseURL: '/api/v1.0', // Use versioned API endpoints
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -169,15 +169,11 @@ export const kpiApi = {
 
   // Get KPI dashboard
   getDashboard: async (): Promise<KpiDashboardDto> => {
-    console.log('getDashboard called, USE_MOCK_DATA:', USE_MOCK_DATA);
     if (USE_MOCK_DATA) {
-      console.log('Using mock data');
       await mockDelay();
       return mockKpiDashboard;
     }
-    console.log('Making API call to:', 'http://localhost:57653/api/kpi/dashboard');
     const response: AxiosResponse<KpiDashboardDto> = await api.get('/kpi/dashboard');
-    console.log('API response:', response.data);
     return response.data;
   },
 
@@ -378,7 +374,8 @@ export const systemApi = {
       await mockDelay();
       return mockHealthCheck;
     }
-    const response: AxiosResponse<HealthCheckResponse> = await api.get('/health');
+    // Health endpoint is not versioned, so use absolute path
+    const response: AxiosResponse<HealthCheckResponse> = await axios.get('/health');
     return response.data;
   },
 

@@ -496,7 +496,9 @@ const KpiDetail: React.FC = () => {
                             <Tooltip title="View Details">
                               <IconButton
                                 size="small"
-                                onClick={() => navigate(`/execution-history/${execution.historicalId}`)}
+                                onClick={() => navigate(`/execution-history/${execution.historicalId}`, {
+                                  state: { fromKpiDetails: true, kpiId: kpiId }
+                                })}
                               >
                                 <ViewIcon fontSize="small" />
                               </IconButton>

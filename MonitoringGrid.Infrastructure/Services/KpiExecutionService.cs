@@ -427,6 +427,7 @@ public class KpiExecutionService : IKpiExecutionService
         // Check if this is a monitoring stored procedure that makes cross-database queries
         var crossDatabaseProcedures = new[]
         {
+            "monitoring.usp_MonitorDeposits",
             "monitoring.usp_MonitorTransactions",
             "monitoring.usp_MonitorSettlementCompanies",
             "monitoring.usp_MonitorCountryDeposits",
