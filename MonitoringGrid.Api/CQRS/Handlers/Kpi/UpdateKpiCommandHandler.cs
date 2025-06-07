@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.CQRS.Commands;
 using MonitoringGrid.Api.CQRS.Commands.Kpi;
@@ -71,6 +72,9 @@ public class UpdateKpiCommandHandler : ICommandHandler<UpdateKpiCommand, KpiDto>
             _mapper.Map(request, existingKpi);
             existingKpi.ModifiedDate = DateTime.UtcNow;
 
+            // Update contact assignments
+            await UpdateContactAssignmentsAsync(existingKpi, request.ContactIds, cancellationToken);
+
             // Raise domain event for KPI update
             existingKpi.UpdateConfiguration("System"); // TODO: Get from current user context
 
@@ -80,8 +84,12 @@ public class UpdateKpiCommandHandler : ICommandHandler<UpdateKpiCommand, KpiDto>
 
             _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, request.KpiId);
 
+            // Reload KPI with contacts for response
+            var updatedKpi = await kpiRepository.GetByIdWithThenIncludesAsync(request.KpiId,
+                query => query.Include(k => k.KpiContacts).ThenInclude(kc => kc.Contact));
+
             // Map to DTO and return
-            var kpiDto = _mapper.Map<KpiDto>(existingKpi);
+            var kpiDto = _mapper.Map<KpiDto>(updatedKpi);
             return Result.Success(kpiDto);
         }
         catch (Exception ex)
@@ -89,5 +97,37 @@ public class UpdateKpiCommandHandler : ICommandHandler<UpdateKpiCommand, KpiDto>
             _logger.LogError(ex, "Error updating KPI with ID: {KpiId}", request.KpiId);
             return Error.Failure("KPI.UpdateFailed", "An error occurred while updating the KPI");
         }
+    }
+
+    /// <summary>
+    /// Updates the contact assignments for a KPI
+    /// </summary>
+    private async Task UpdateContactAssignmentsAsync(KPI kpi, List<int> contactIds, CancellationToken cancellationToken)
+    {
+        var kpiContactRepository = _unitOfWork.Repository<KpiContact>();
+
+        // Remove existing assignments
+        var existingAssignments = await kpiContactRepository.GetAsync(
+            kc => kc.KpiId == kpi.KpiId, cancellationToken);
+
+        if (existingAssignments.Any())
+        {
+            await kpiContactRepository.DeleteRangeAsync(existingAssignments, cancellationToken);
+        }
+
+        // Add new assignments
+        if (contactIds.Any())
+        {
+            var newAssignments = contactIds.Select(contactId => new KpiContact
+            {
+                KpiId = kpi.KpiId,
+                ContactId = contactId
+            });
+
+            await kpiContactRepository.AddRangeAsync(newAssignments, cancellationToken);
+        }
+
+        _logger.LogInformation("Updated contact assignments for KPI {KpiId}. Assigned to {Count} contacts",
+            kpi.KpiId, contactIds.Count);
     }
 }

@@ -339,6 +339,16 @@ MonitoringGrid.Frontend/yarn-error.log*
 **/obj/
 **/.vs/
 
+# Specific .NET build artifacts
+*.dll
+*.exe
+*.pdb
+*.cache
+*.tmp_proj
+
+# Frontend node_modules (should already be covered above but being explicit)
+**/node_modules/
+
 # JetBrains Rider
 .idea/
 *.sln.iml

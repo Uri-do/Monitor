@@ -1,4 +1,5 @@
 using AutoMapper;
+using MonitoringGrid.Api.CQRS.Commands.Kpi;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
@@ -28,6 +29,14 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
 
         CreateMap<UpdateKpiRequest, KPI>()
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
+            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
+            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
+            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
+
+        CreateMap<UpdateKpiCommand, KPI>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())

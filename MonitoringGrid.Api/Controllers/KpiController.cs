@@ -105,7 +105,8 @@ public class KpiController : ControllerBase
         try
         {
             var kpiRepository = _unitOfWork.Repository<KPI>();
-            var kpi = await kpiRepository.GetByIdAsync(id);
+            var kpi = await kpiRepository.GetByIdWithThenIncludesAsync(id,
+                query => query.Include(k => k.KpiContacts).ThenInclude(kc => kc.Contact));
 
             if (kpi == null)
                 return NotFound($"KPI with ID {id} not found");
@@ -215,12 +216,19 @@ public class KpiController : ControllerBase
             _mapper.Map(request, existingKpi);
             existingKpi.ModifiedDate = DateTime.UtcNow;
 
+            // Update contact assignments
+            await UpdateContactAssignmentsAsync(existingKpi, request.ContactIds);
+
             await kpiRepository.UpdateAsync(existingKpi);
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
 
-            var kpiDto = _mapper.Map<KpiDto>(existingKpi);
+            // Reload KPI with contacts for response
+            var updatedKpi = await kpiRepository.GetByIdWithThenIncludesAsync(id,
+                query => query.Include(k => k.KpiContacts).ThenInclude(kc => kc.Contact));
+
+            var kpiDto = _mapper.Map<KpiDto>(updatedKpi);
             return Ok(kpiDto);
         }
         catch (ArgumentException ex)
@@ -702,4 +710,35 @@ public class KpiController : ControllerBase
         }
     }
     */
+
+    /// <summary>
+    /// Updates the contact assignments for a KPI
+    /// </summary>
+    private async Task UpdateContactAssignmentsAsync(KPI kpi, List<int> contactIds)
+    {
+        var kpiContactRepository = _unitOfWork.Repository<KpiContact>();
+
+        // Remove existing assignments
+        var existingAssignments = await kpiContactRepository.GetAsync(kc => kc.KpiId == kpi.KpiId);
+
+        if (existingAssignments.Any())
+        {
+            await kpiContactRepository.DeleteRangeAsync(existingAssignments);
+        }
+
+        // Add new assignments
+        if (contactIds.Any())
+        {
+            var newAssignments = contactIds.Select(contactId => new KpiContact
+            {
+                KpiId = kpi.KpiId,
+                ContactId = contactId
+            });
+
+            await kpiContactRepository.AddRangeAsync(newAssignments);
+        }
+
+        _logger.LogInformation("Updated contact assignments for KPI {KpiId}. Assigned to {Count} contacts",
+            kpi.KpiId, contactIds.Count);
+    }
 }
