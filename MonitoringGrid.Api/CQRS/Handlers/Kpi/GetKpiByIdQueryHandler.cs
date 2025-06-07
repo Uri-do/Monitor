@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.CQRS.Queries;
 using MonitoringGrid.Api.CQRS.Queries.Kpi;
@@ -34,7 +35,8 @@ public class GetKpiByIdQueryHandler : IQueryHandler<GetKpiByIdQuery, KpiDto?>
             _logger.LogDebug("Getting KPI with ID: {KpiId}", request.KpiId);
 
             var kpiRepository = _unitOfWork.Repository<KPI>();
-            var kpi = await kpiRepository.GetByIdAsync(request.KpiId, cancellationToken);
+            var kpi = await kpiRepository.GetByIdWithThenIncludesAsync(request.KpiId,
+                query => query.Include(k => k.KpiContacts).ThenInclude(kc => kc.Contact));
 
             if (kpi == null)
             {

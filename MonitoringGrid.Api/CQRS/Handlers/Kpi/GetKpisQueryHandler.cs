@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.CQRS.Queries;
 using MonitoringGrid.Api.CQRS.Queries.Kpi;
@@ -46,7 +47,11 @@ public class GetKpisQueryHandler : IQueryHandler<GetKpisQuery, List<KpiDto>>
             }
             else
             {
-                kpis = await kpiRepository.GetAllAsync(cancellationToken);
+                kpis = await kpiRepository.GetWithThenIncludesAsync(
+                    k => true,
+                    k => k.Indicator,
+                    true,
+                    query => query.Include(k => k.KpiContacts).ThenInclude(kc => kc.Contact));
             }
 
             // Apply additional filters

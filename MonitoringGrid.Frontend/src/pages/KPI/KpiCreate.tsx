@@ -554,6 +554,7 @@ const KpiCreate: React.FC = () => {
                   getOptionLabel={(option) => option.name}
                   value={selectedContacts}
                   onChange={handleContactChange}
+                  isOptionEqualToValue={(option, value) => option.contactId === value.contactId}
                   renderInput={(params) => (
                     <TextField
                       {...params}
