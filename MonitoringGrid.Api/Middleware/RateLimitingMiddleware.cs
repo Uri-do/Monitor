@@ -146,10 +146,17 @@ public class RateLimitingMiddleware
         var count = _cache.GetOrCreate(cacheKey, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(windowMinutes);
+            entry.Size = 1; // Required when SizeLimit is set
             return 0;
         });
 
-        _cache.Set(cacheKey, count + 1, TimeSpan.FromMinutes(windowMinutes));
+        var options = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(windowMinutes),
+            Size = 1 // Required when SizeLimit is set
+        };
+
+        _cache.Set(cacheKey, count + 1, options);
         return Task.CompletedTask;
     }
 

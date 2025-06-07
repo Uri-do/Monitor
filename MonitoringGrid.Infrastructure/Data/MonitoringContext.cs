@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Security;
 using MonitoringGrid.Infrastructure.Data.Configurations;
 
 namespace MonitoringGrid.Infrastructure.Data;
@@ -26,12 +27,13 @@ public class MonitoringContext : DbContext
 
     // Authentication DbSets
     public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<Core.Entities.Role> Roles { get; set; }
+    public DbSet<Core.Entities.Permission> Permissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UserPassword> UserPasswords { get; set; }
+    public DbSet<Core.Security.SecurityAuditEvent> SecurityAuditEvents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,5 +58,6 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new RolePermissionConfiguration());
         modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
         modelBuilder.ApplyConfiguration(new UserPasswordConfiguration());
+        modelBuilder.ApplyConfiguration(new SecurityAuditEventConfiguration());
     }
 }

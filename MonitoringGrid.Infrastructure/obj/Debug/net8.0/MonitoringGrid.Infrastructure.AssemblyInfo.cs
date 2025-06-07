@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e689e035bd3dd37e4892906002fbb7f4acfa2c87")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b13adcee4b884db7dd08905a91647f00616c991")]
 [assembly: System.Reflection.AssemblyProductAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -192,3 +192,9 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\OpenTelemetry.Instrument
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Prometheus.NetStandard.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Prometheus.AspNetCore.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MediatR.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MediatR.Contracts.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.xml
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Annotations.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.xml
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll

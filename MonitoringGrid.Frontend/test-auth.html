@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>MonitoringGrid Authentication Test</h1>
+    
+    <h2>Test API Connection</h2>
+    <button onclick="testApiConnection()">Test API Connection</button>
+    
+    <h2>Test Login</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" value="admin" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" value="admin123" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'https://localhost:7000';
+        
+        function showResult(message, isSuccess = true) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="result ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+        
+        async function testApiConnection() {
+            try {
+                showResult('Testing API connection...', true);
+                
+                const response = await fetch(`${API_BASE_URL}/api/info`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult(`API Connection Successful!<br>
+                        Name: ${data.name}<br>
+                        Version: ${data.version}<br>
+                        Environment: ${data.environment}<br>
+                        Timestamp: ${data.timestamp}`, true);
+                } else {
+                    showResult(`API Connection Failed: ${response.status} ${response.statusText}`, false);
+                }
+            } catch (error) {
+                showResult(`API Connection Error: ${error.message}`, false);
+            }
+        }
+        
+        async function testLogin(username, password) {
+            try {
+                showResult('Testing login...', true);
+                
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        rememberMe: false
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.isSuccess) {
+                        showResult(`Login Successful!<br>
+                            User: ${data.user?.displayName || data.user?.username}<br>
+                            Token: ${data.token?.accessToken ? 'Received' : 'Not received'}<br>
+                            Expires: ${data.token?.expiresAt}`, true);
+                    } else {
+                        showResult(`Login Failed: ${data.errorMessage}`, false);
+                    }
+                } else {
+                    showResult(`Login Request Failed: ${response.status} ${response.statusText}<br>
+                        Response: ${JSON.stringify(data, null, 2)}`, false);
+                }
+            } catch (error) {
+                showResult(`Login Error: ${error.message}`, false);
+            }
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            testLogin(username, password);
+        });
+        
+        // Test API connection on page load
+        window.addEventListener('load', testApiConnection);
+    </script>
+</body>
+</html>

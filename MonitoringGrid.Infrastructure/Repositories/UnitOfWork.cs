@@ -14,13 +14,15 @@ public class UnitOfWork : IUnitOfWork
     private readonly MonitoringContext _context;
     private readonly ConcurrentDictionary<Type, object> _repositories;
     private readonly List<IDomainEvent> _domainEvents;
+    private readonly IDomainEventPublisher _domainEventPublisher;
     private bool _disposed;
 
-    public UnitOfWork(MonitoringContext context)
+    public UnitOfWork(MonitoringContext context, IDomainEventPublisher domainEventPublisher)
     {
         _context = context;
         _repositories = new ConcurrentDictionary<Type, object>();
         _domainEvents = new List<IDomainEvent>();
+        _domainEventPublisher = domainEventPublisher;
     }
 
     public IRepository<T> Repository<T>() where T : class
@@ -110,17 +112,18 @@ public class UnitOfWork : IUnitOfWork
 
     private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
-        // In a real implementation, you would use a domain event publisher
-        // For now, we'll just clear the events after "publishing"
-        
-        // TODO: Implement actual domain event publishing using MediatR or similar
-        // Example:
-        // foreach (var domainEvent in _domainEvents)
-        // {
-        //     await _mediator.Publish(domainEvent, cancellationToken);
-        // }
+        if (!_domainEvents.Any()) return;
 
-        _domainEvents.Clear();
+        try
+        {
+            // Publish all domain events through the domain event publisher
+            await _domainEventPublisher.PublishAsync(_domainEvents, cancellationToken);
+        }
+        finally
+        {
+            // Always clear domain events after attempting to publish
+            _domainEvents.Clear();
+        }
     }
 
     protected virtual void Dispose(bool disposing)

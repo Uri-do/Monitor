@@ -50,7 +50,7 @@ const USE_MOCK_DATA = false;
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: USE_MOCK_DATA ? '/api' : 'http://localhost:57653/api',
+  baseURL: '/api', // Use proxy for all requests
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -378,11 +378,7 @@ export const systemApi = {
       await mockDelay();
       return mockHealthCheck;
     }
-    const healthApi = axios.create({
-      baseURL: 'https://localhost:57652',
-      timeout: 30000,
-    });
-    const response: AxiosResponse<HealthCheckResponse> = await healthApi.get('/health');
+    const response: AxiosResponse<HealthCheckResponse> = await api.get('/health');
     return response.data;
   },
 
@@ -393,11 +389,7 @@ export const systemApi = {
     environment: string;
     timestamp: string;
   }> => {
-    const infoApi = axios.create({
-      baseURL: 'https://localhost:57652',
-      timeout: 30000,
-    });
-    const response = await infoApi.get('/api/info');
+    const response = await api.get('/info');
     return response.data;
   },
 };

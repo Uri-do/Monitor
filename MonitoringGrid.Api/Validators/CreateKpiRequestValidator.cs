@@ -1,5 +1,6 @@
 using FluentValidation;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.Validation;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.Validators;
@@ -23,19 +24,22 @@ public class CreateKpiRequestValidator : AbstractValidator<CreateKpiRequest>
 
         RuleFor(x => x.DescriptionTemplate)
             .NotEmpty().WithMessage("Description template is required")
-            .MaximumLength(1000).WithMessage("Description template must not exceed 1000 characters");
+            .MaximumLength(1000).WithMessage("Description template must not exceed 1000 characters")
+            .MustBeValidTemplate("Description");
 
         RuleFor(x => x.SpName)
             .NotEmpty().WithMessage("Stored procedure name is required")
             .MaximumLength(255).WithMessage("Stored procedure name must not exceed 255 characters")
-            .Must(BeValidStoredProcedureName).WithMessage("Stored procedure name contains invalid characters");
+            .Must(BeValidStoredProcedureName).WithMessage("Stored procedure name contains invalid characters")
+            .MustBeSecureStoredProcedureName();
 
         RuleFor(x => x.Deviation)
             .InclusiveBetween(0, 100).WithMessage("Deviation must be between 0 and 100 percent");
 
         RuleFor(x => x.Frequency)
             .GreaterThan(0).WithMessage("Frequency must be greater than 0 minutes")
-            .LessThanOrEqualTo(10080).WithMessage("Frequency cannot exceed 7 days (10080 minutes)"); // 7 days max
+            .LessThanOrEqualTo(10080).WithMessage("Frequency cannot exceed 7 days (10080 minutes)") // 7 days max
+            .MustHaveAppropriateFrequencyForPriority(x => x.Priority);
 
         RuleFor(x => x.Owner)
             .NotEmpty().WithMessage("Owner is required")
@@ -47,11 +51,18 @@ public class CreateKpiRequestValidator : AbstractValidator<CreateKpiRequest>
 
         RuleFor(x => x.SubjectTemplate)
             .NotEmpty().WithMessage("Subject template is required")
-            .MaximumLength(500).WithMessage("Subject template must not exceed 500 characters");
+            .MaximumLength(500).WithMessage("Subject template must not exceed 500 characters")
+            .MustBeValidTemplate("Subject");
 
         RuleFor(x => x.CooldownMinutes)
             .GreaterThanOrEqualTo(0).WithMessage("Cooldown minutes cannot be negative")
-            .LessThanOrEqualTo(10080).WithMessage("Cooldown cannot exceed 7 days (10080 minutes)");
+            .LessThanOrEqualTo(10080).WithMessage("Cooldown cannot exceed 7 days (10080 minutes)")
+            .MustHaveReasonableCooldownForFrequency(x => x.Frequency);
+
+        RuleFor(x => x.LastMinutes)
+            .GreaterThan(0).WithMessage("Data window (LastMinutes) must be greater than 0")
+            .LessThanOrEqualTo(43200).WithMessage("Data window cannot exceed 30 days (43200 minutes)")
+            .MustHaveAppropriateDataWindowForFrequency(x => x.Frequency);
 
         RuleFor(x => x.ContactIds)
             .NotEmpty().WithMessage("At least one contact must be assigned")
@@ -60,6 +71,8 @@ public class CreateKpiRequestValidator : AbstractValidator<CreateKpiRequest>
         // Custom validation for related fields
         RuleFor(x => x)
             .Must(HaveReasonableFrequencyForPriority).WithMessage("Frequency should be appropriate for priority level");
+
+
     }
 
     private async Task<bool> BeUniqueIndicator(string indicator, CancellationToken cancellationToken)
@@ -97,6 +110,8 @@ public class CreateKpiRequestValidator : AbstractValidator<CreateKpiRequest>
         return true;
     }
 
+
+
     private enum QueryComplexity
     {
         Simple,
@@ -130,14 +145,16 @@ public class UpdateKpiRequestValidator : AbstractValidator<UpdateKpiRequest>
         RuleFor(x => x.SpName)
             .NotEmpty().WithMessage("Stored procedure name is required")
             .MaximumLength(255).WithMessage("Stored procedure name must not exceed 255 characters")
-            .Must(BeValidStoredProcedureName).WithMessage("Stored procedure name contains invalid characters");
+            .Must(BeValidStoredProcedureName).WithMessage("Stored procedure name contains invalid characters")
+            .MustBeSecureStoredProcedureName();
 
         RuleFor(x => x.Deviation)
             .InclusiveBetween(0, 100).WithMessage("Deviation must be between 0 and 100 percent");
 
         RuleFor(x => x.Frequency)
             .GreaterThan(0).WithMessage("Frequency must be greater than 0 minutes")
-            .LessThanOrEqualTo(10080).WithMessage("Frequency cannot exceed 7 days (10080 minutes)");
+            .LessThanOrEqualTo(10080).WithMessage("Frequency cannot exceed 7 days (10080 minutes)")
+            .MustHaveAppropriateFrequencyForPriority(x => x.Priority);
 
         RuleFor(x => x.Owner)
             .NotEmpty().WithMessage("Owner is required")
@@ -149,11 +166,13 @@ public class UpdateKpiRequestValidator : AbstractValidator<UpdateKpiRequest>
 
         RuleFor(x => x.SubjectTemplate)
             .NotEmpty().WithMessage("Subject template is required")
-            .MaximumLength(500).WithMessage("Subject template must not exceed 500 characters");
+            .MaximumLength(500).WithMessage("Subject template must not exceed 500 characters")
+            .MustBeValidTemplate("Subject");
 
         RuleFor(x => x.CooldownMinutes)
             .GreaterThanOrEqualTo(0).WithMessage("Cooldown minutes cannot be negative")
-            .LessThanOrEqualTo(10080).WithMessage("Cooldown cannot exceed 7 days (10080 minutes)");
+            .LessThanOrEqualTo(10080).WithMessage("Cooldown cannot exceed 7 days (10080 minutes)")
+            .MustHaveReasonableCooldownForFrequency(x => x.Frequency);
     }
 
     private async Task<bool> BeUniqueIndicatorForUpdate(UpdateKpiRequest request, string indicator, CancellationToken cancellationToken)
