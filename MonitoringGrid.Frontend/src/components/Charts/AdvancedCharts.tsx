@@ -66,20 +66,7 @@ interface AdvancedChartsProps {
   showControls?: boolean;
 }
 
-const COLORS = {
-  primary: '#1976d2',
-  secondary: '#dc004e',
-  success: '#2e7d32',
-  warning: '#ed6c02',
-  error: '#d32f2f',
-  info: '#0288d1'
-};
 
-const STATUS_COLORS = {
-  healthy: COLORS.success,
-  warning: COLORS.warning,
-  critical: COLORS.error
-};
 
 export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
   data,
@@ -88,9 +75,26 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
   title = 'KPI Analytics',
   showControls = true
 }) => {
+  const theme = useTheme();
   const [chartType, setChartType] = React.useState<'line' | 'area' | 'bar' | 'scatter'>('line');
   const [timeRange, setTimeRange] = React.useState<'1d' | '7d' | '30d' | '90d'>('7d');
   const [showTarget, setShowTarget] = React.useState(true);
+
+  // Theme-aware colors
+  const COLORS = {
+    primary: theme.palette.primary.main,
+    secondary: theme.palette.secondary.main,
+    success: theme.palette.success.main,
+    warning: theme.palette.warning.main,
+    error: theme.palette.error.main,
+    info: theme.palette.info.main
+  };
+
+  const STATUS_COLORS = {
+    healthy: COLORS.success,
+    warning: COLORS.warning,
+    critical: COLORS.error
+  };
 
   // Filter data based on time range
   const filteredData = React.useMemo(() => {
@@ -140,12 +144,16 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
       case 'area':
         return (
           <AreaChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              stroke={theme.palette.text.secondary}
             />
-            <YAxis />
+            <YAxis stroke={theme.palette.text.secondary} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Area
@@ -173,12 +181,16 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
       case 'bar':
         return (
           <BarChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              stroke={theme.palette.text.secondary}
             />
-            <YAxis />
+            <YAxis stroke={theme.palette.text.secondary} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Bar dataKey="value" fill={COLORS.primary} name="Value" />
@@ -191,12 +203,16 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
       case 'scatter':
         return (
           <ScatterChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              stroke={theme.palette.text.secondary}
             />
-            <YAxis />
+            <YAxis stroke={theme.palette.text.secondary} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Scatter
@@ -210,12 +226,16 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
       default: // line
         return (
           <LineChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              stroke={theme.palette.text.secondary}
             />
-            <YAxis />
+            <YAxis stroke={theme.palette.text.secondary} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line
@@ -353,9 +373,15 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                 <Box sx={{ height: 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
+                      />
+                      <XAxis
+                        dataKey="period"
+                        stroke={theme.palette.text.secondary}
+                      />
+                      <YAxis stroke={theme.palette.text.secondary} />
                       <Tooltip />
                       <Legend />
                       <Bar dataKey="current" fill={COLORS.primary} name="Current Period" />
