@@ -137,6 +137,13 @@ public class KpiStatusDto
     public decimal? LastCurrentValue { get; set; }
     public decimal? LastHistoricalValue { get; set; }
     public decimal? LastDeviation { get; set; }
+    public int? MinutesUntilDue { get; set; }
+
+    // Execution state properties
+    public bool IsCurrentlyRunning { get; set; }
+    public DateTime? ExecutionStartTime { get; set; }
+    public string? ExecutionContext { get; set; }
+    public int? ExecutionDurationSeconds { get; set; }
 }
 
 /// <summary>
@@ -196,12 +203,30 @@ public class KpiDashboardDto
     public int InactiveKpis { get; set; }
     public int KpisInErrorCount { get; set; }
     public int KpisDue { get; set; }
+    public int KpisRunning { get; set; }
     public int AlertsToday { get; set; }
     public int AlertsThisWeek { get; set; }
     public DateTime LastUpdate { get; set; }
     public List<KpiStatusDto> RecentAlerts { get; set; } = new();
     public List<KpiStatusDto> KpisInError { get; set; } = new();
     public List<KpiStatusDto> DueKpis { get; set; } = new();
+    public List<KpiStatusDto> RunningKpis { get; set; } = new();
+    public KpiStatusDto? NextKpiDue { get; set; }
+    public List<KpiExecutionStatusDto> RecentExecutions { get; set; } = new();
+}
+
+/// <summary>
+/// KPI execution status for dashboard
+/// </summary>
+public class KpiExecutionStatusDto
+{
+    public int KpiId { get; set; }
+    public string Indicator { get; set; } = string.Empty;
+    public DateTime ExecutionTime { get; set; }
+    public bool IsSuccessful { get; set; }
+    public decimal Value { get; set; }
+    public int? ExecutionTimeMs { get; set; }
+    public string Status => IsSuccessful ? "Success" : "Failed";
 }
 
 /// <summary>

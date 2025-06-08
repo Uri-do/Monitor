@@ -75,7 +75,8 @@ const ExecutionHistoryList: React.FC = () => {
       pageSize,
       pageNumber,
     }),
-    staleTime: 30000, // 30 seconds
+    staleTime: 5000, // 5 seconds - reduced for testing
+    refetchInterval: 10000, // Auto-refresh every 10 seconds
   });
 
   const executions = historyData?.executions || [];
@@ -250,8 +251,56 @@ const ExecutionHistoryList: React.FC = () => {
       <PageHeader
         title="Execution History"
         subtitle={`View detailed execution logs and performance metrics (${historyData?.totalCount || 0} total executions)`}
-        onRefresh={refetch}
+        onRefresh={() => {
+          console.log('🔄 Manual refresh triggered');
+          refetch();
+        }}
         refreshing={isLoading}
+        actions={[
+          <Button
+            key="debug"
+            variant="outlined"
+            onClick={() => {
+              console.log('🐛 Debug info:');
+              console.log('- Filters:', filters);
+              console.log('- Page:', pageNumber, 'Size:', pageSize);
+              console.log('- History data:', historyData);
+              console.log('- Executions:', executions);
+              toast.success(`Debug info logged to console. Total: ${historyData?.totalCount || 0}`);
+            }}
+          >
+            Debug Info
+          </Button>,
+          <Button
+            key="force-refresh"
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              console.log('🔄 Force refresh - clearing cache');
+              // Clear React Query cache for execution history
+              window.location.reload();
+            }}
+          >
+            Force Refresh
+          </Button>,
+          <Button
+            key="test-db"
+            variant="outlined"
+            color="warning"
+            onClick={async () => {
+              try {
+                console.log('🧪 Testing database connection...');
+                const result = await executionHistoryApi.testDatabaseConnection();
+                toast.success('Database test completed - check console');
+              } catch (error) {
+                console.error('Database test failed:', error);
+                toast.error('Database test failed - check console');
+              }
+            }}
+          >
+            Test DB
+          </Button>
+        ]}
       />
 
       <FilterPanel

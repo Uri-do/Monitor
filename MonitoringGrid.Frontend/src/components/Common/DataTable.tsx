@@ -161,7 +161,7 @@ const DataTable = <T extends Record<string, any>>({
     const visibleActions = allActions.filter(action => !action.hidden?.(row));
 
     return (
-      <Box sx={{ display: 'flex', gap: 0.5 }}>
+      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
         {visibleActions.map((action, index) => (
           <Tooltip key={index} title={action.label}>
             <span>
@@ -170,6 +170,28 @@ const DataTable = <T extends Record<string, any>>({
                 onClick={() => action.onClick(row)}
                 color={action.color || 'default'}
                 disabled={action.disabled?.(row)}
+                sx={{
+                  borderRadius: 1,
+                  backgroundColor: 'transparent',
+                  border: '1px solid transparent',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: action.color === 'error'
+                      ? 'rgba(244, 67, 54, 0.08)'
+                      : action.color === 'primary'
+                      ? 'rgba(102, 126, 234, 0.08)'
+                      : 'rgba(0, 0, 0, 0.04)',
+                    borderColor: action.color === 'error'
+                      ? 'error.light'
+                      : action.color === 'primary'
+                      ? 'primary.light'
+                      : 'divider',
+                    transform: 'scale(1.05)',
+                  },
+                  '&:disabled': {
+                    opacity: 0.5,
+                  },
+                }}
               >
                 {action.icon}
               </IconButton>
@@ -200,34 +222,57 @@ const DataTable = <T extends Record<string, any>>({
   }
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+    <Paper
+      sx={{
+        width: '100%',
+        overflow: 'hidden',
+        borderRadius: 1,
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.06)',
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       {(title || subtitle) && (
-        <Toolbar>
+        <Toolbar
+          sx={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: '4px 4px 0 0',
+          }}
+        >
           <Box>
             {title && (
-              <Typography variant="h6" component="div">
+              <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
                 {title}
               </Typography>
             )}
             {subtitle && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 {subtitle}
               </Typography>
             )}
           </Box>
         </Toolbar>
       )}
-      
-      <TableContainer sx={{ maxHeight: 440 }}>
+
+      <TableContainer sx={{ maxHeight: 'none' }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
               {selectable && (
-                <TableCell padding="checkbox">
+                <TableCell
+                  padding="checkbox"
+                  sx={{
+                    backgroundColor: 'grey.50',
+                    borderBottom: '2px solid',
+                    borderColor: 'primary.light',
+                  }}
+                >
                   <Checkbox
                     indeterminate={selected.length > 0 && selected.length < data.length}
                     checked={data.length > 0 && selected.length === data.length}
                     onChange={handleSelectAllClick}
+                    sx={{ color: 'primary.main' }}
                   />
                 </TableCell>
               )}
@@ -236,12 +281,27 @@ const DataTable = <T extends Record<string, any>>({
                   key={String(column.id)}
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
+                  sx={{
+                    backgroundColor: 'grey.50',
+                    borderBottom: '2px solid',
+                    borderColor: 'primary.light',
+                    fontWeight: 600,
+                    color: 'text.primary',
+                  }}
                 >
                   {column.sortable && sorting ? (
                     <TableSortLabel
                       active={sorting.orderBy === column.id}
                       direction={sorting.orderBy === column.id ? sorting.order : 'asc'}
                       onClick={() => handleSort(String(column.id))}
+                      sx={{
+                        '&.Mui-active': {
+                          color: 'primary.main',
+                        },
+                        '&:hover': {
+                          color: 'primary.main',
+                        },
+                      }}
                     >
                       {column.label}
                     </TableSortLabel>
@@ -251,19 +311,33 @@ const DataTable = <T extends Record<string, any>>({
                 </TableCell>
               ))}
               {(actions.length > 0 || defaultActions) && (
-                <TableCell align="center">Actions</TableCell>
+                <TableCell
+                  align="center"
+                  sx={{
+                    backgroundColor: 'grey.50',
+                    borderBottom: '2px solid',
+                    borderColor: 'primary.light',
+                    fontWeight: 600,
+                    color: 'text.primary',
+                  }}
+                >
+                  Actions
+                </TableCell>
               )}
             </TableRow>
           </TableHead>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell 
+                <TableCell
                   colSpan={columns.length + (selectable ? 1 : 0) + ((actions.length > 0 || defaultActions) ? 1 : 0)}
                   align="center"
-                  sx={{ py: 4 }}
+                  sx={{
+                    py: 6,
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                  }}
                 >
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" variant="h6" sx={{ fontWeight: 500 }}>
                     {emptyMessage}
                   </Typography>
                 </TableCell>
@@ -276,22 +350,44 @@ const DataTable = <T extends Record<string, any>>({
                     hover
                     key={String(row[rowKey]) || index}
                     selected={isItemSelected}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(102, 126, 234, 0.12)',
+                        },
+                      },
+                      '&:nth-of-type(even)': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      },
+                    }}
                   >
                     {selectable && (
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={isItemSelected}
                           onChange={() => handleRowSelect(row)}
+                          sx={{ color: 'primary.main' }}
                         />
                       </TableCell>
                     )}
                     {columns.map((column) => {
                       const value = row[column.id];
                       return (
-                        <TableCell key={String(column.id)} align={column.align}>
-                          {column.render 
+                        <TableCell
+                          key={String(column.id)}
+                          align={column.align}
+                          sx={{
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          {column.render
                             ? column.render(value, row)
-                            : column.format 
+                            : column.format
                             ? column.format(value, row)
                             : value
                           }
@@ -299,7 +395,13 @@ const DataTable = <T extends Record<string, any>>({
                       );
                     })}
                     {(actions.length > 0 || defaultActions) && (
-                      <TableCell align="center">
+                      <TableCell
+                        align="center"
+                        sx={{
+                          borderBottom: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      >
                         {renderActions(row)}
                       </TableCell>
                     )}

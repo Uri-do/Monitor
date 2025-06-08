@@ -51,15 +51,29 @@ public class KpiExecutionService : IKpiExecutionService
         {
             _logger.LogDebug("Executing KPI {Indicator} using stored procedure {SpName}", kpi.Indicator, kpi.SpName);
 
-            return await _retryPolicy.ExecuteAsync(async () =>
+            // Mark KPI as currently running
+            kpi.StartExecution("Manual");
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var result = await _retryPolicy.ExecuteAsync(async () =>
             {
                 return await ExecuteStoredProcedureAsync(kpi, cancellationToken);
             });
+
+            // Mark KPI execution as completed
+            kpi.CompleteExecution();
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute KPI {Indicator}: {Message}", kpi.Indicator, ex.Message);
-            
+
+            // Mark KPI execution as completed even on error
+            kpi.CompleteExecution();
+            await _context.SaveChangesAsync(cancellationToken);
+
             return new KpiExecutionResult
             {
                 Key = kpi.Indicator,

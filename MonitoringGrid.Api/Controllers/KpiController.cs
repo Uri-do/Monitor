@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Filters;
+using MonitoringGrid.Api.Middleware;
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Factories;
@@ -30,6 +31,7 @@ public class KpiController : ControllerBase
     private readonly KpiDomainService _kpiDomainService;
     private readonly KpiFactory _kpiFactory;
     private readonly MetricsService _metricsService;
+    private readonly ICacheInvalidationService _cacheInvalidationService;
     private readonly ILogger<KpiController> _logger;
 
     public KpiController(
@@ -39,6 +41,7 @@ public class KpiController : ControllerBase
         KpiDomainService kpiDomainService,
         KpiFactory kpiFactory,
         MetricsService metricsService,
+        ICacheInvalidationService cacheInvalidationService,
         ILogger<KpiController> logger)
     {
         _unitOfWork = unitOfWork;
@@ -47,6 +50,7 @@ public class KpiController : ControllerBase
         _kpiDomainService = kpiDomainService;
         _kpiFactory = kpiFactory;
         _metricsService = metricsService;
+        _cacheInvalidationService = cacheInvalidationService;
         _logger = logger;
     }
 
@@ -222,6 +226,10 @@ public class KpiController : ControllerBase
             await kpiRepository.UpdateAsync(existingKpi);
             await _unitOfWork.SaveChangesAsync();
 
+            // Invalidate cache for this KPI
+            await _cacheInvalidationService.InvalidateByTagAsync("kpi");
+            await _cacheInvalidationService.InvalidateByKeyAsync($"kpi_{id}");
+
             _logger.LogInformation("Updated KPI {Indicator} with ID {KpiId}", existingKpi.Indicator, id);
 
             // Reload KPI with contacts for response
@@ -390,6 +398,35 @@ public class KpiController : ControllerBase
                 .Select(k => _mapper.Map<KpiStatusDto>(k))
                 .ToList();
 
+            // Get next KPI due for execution
+            var nextKpiDue = kpis
+                .Where(k => k.IsActive && k.LastRun.HasValue)
+                .Select(k => new {
+                    Kpi = k,
+                    NextRun = k.LastRun.Value.AddMinutes(k.Frequency),
+                    MinutesUntilDue = (k.LastRun.Value.AddMinutes(k.Frequency) - now).TotalMinutes
+                })
+                .Where(x => x.MinutesUntilDue > 0)
+                .OrderBy(x => x.NextRun)
+                .FirstOrDefault();
+
+            // Get recent executions (from historical data)
+            var historicalRepository = _unitOfWork.Repository<HistoricalData>();
+            var recentExecutions = (await historicalRepository.GetAllAsync())
+                .Where(h => h.Timestamp >= now.AddHours(-24))
+                .OrderByDescending(h => h.Timestamp)
+                .Take(10)
+                .Select(h => new KpiExecutionStatusDto
+                {
+                    KpiId = h.KpiId,
+                    Indicator = kpis.FirstOrDefault(k => k.KpiId == h.KpiId)?.Indicator ?? "Unknown",
+                    ExecutionTime = h.Timestamp,
+                    IsSuccessful = h.IsSuccessful,
+                    Value = h.Value,
+                    ExecutionTimeMs = h.ExecutionTimeMs
+                })
+                .ToList();
+
             var dashboard = new KpiDashboardDto
             {
                 TotalKpis = kpis.Count,
@@ -402,7 +439,17 @@ public class KpiController : ControllerBase
                 LastUpdate = now,
                 RecentAlerts = recentAlerts,
                 KpisInError = recentAlerts,
-                DueKpis = dueKpis
+                DueKpis = dueKpis,
+                NextKpiDue = nextKpiDue != null ? new KpiStatusDto
+                {
+                    KpiId = nextKpiDue.Kpi.KpiId,
+                    Indicator = nextKpiDue.Kpi.Indicator,
+                    Owner = nextKpiDue.Kpi.Owner,
+                    NextRun = nextKpiDue.NextRun,
+                    MinutesUntilDue = (int)Math.Max(0, nextKpiDue.MinutesUntilDue),
+                    Status = nextKpiDue.MinutesUntilDue <= 5 ? "Due Soon" : "Scheduled"
+                } : null,
+                RecentExecutions = recentExecutions
             };
 
             var duration = DateTime.UtcNow - startTime;

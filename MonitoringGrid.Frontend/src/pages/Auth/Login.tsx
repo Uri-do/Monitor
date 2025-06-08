@@ -18,10 +18,10 @@ import {
 import {
   Visibility,
   VisibilityOff,
-  Security,
   Microsoft,
   Google
 } from '@mui/icons-material';
+import mgLogo from '../../assets/images/mglogo.png';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -113,10 +113,15 @@ export const Login: React.FC = () => {
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Security sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
-            <Typography variant="h4" component="h1" gutterBottom>
-              MonitoringGrid
-            </Typography>
+            <Box
+              component="img"
+              src={mgLogo}
+              alt="MonitoringGrid Logo"
+              sx={{
+                width: '100%',
+                mb: 2
+              }}
+            />
             <Typography variant="body2" color="text.secondary">
               Sign in to your account
             </Typography>

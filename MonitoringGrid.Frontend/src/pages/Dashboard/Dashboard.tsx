@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Grid,
   Card,
@@ -13,6 +13,9 @@ import {
   IconButton,
   LinearProgress,
   Skeleton,
+  Divider,
+  Tooltip,
+  Badge,
 } from '@mui/material';
 import {
   TrendingUp,
@@ -22,20 +25,27 @@ import {
   Error,
   PlayArrow,
   Refresh,
+  Schedule,
+  Speed,
+  Timer,
+  AccessTime,
+  PlayCircle,
+  History,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { kpiApi, alertApi } from '@/services/api';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [countdown, setCountdown] = useState<number | null>(null);
 
-  // Fetch dashboard data
+  // Fetch dashboard data with more frequent refresh for real-time updates
   const { data: kpiDashboard, isLoading: kpiLoading, refetch: refetchKpi } = useQuery({
     queryKey: ['kpi-dashboard'],
     queryFn: kpiApi.getDashboard,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 15000, // Refresh every 15 seconds for real-time updates
   });
 
   const { data: alertDashboard, isLoading: alertLoading, refetch: refetchAlert } = useQuery({
@@ -44,9 +54,40 @@ const Dashboard: React.FC = () => {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Countdown timer for next KPI due
+  useEffect(() => {
+    if (kpiDashboard?.nextKpiDue?.minutesUntilDue !== undefined) {
+      setCountdown(kpiDashboard.nextKpiDue.minutesUntilDue * 60); // Convert to seconds
+    }
+  }, [kpiDashboard?.nextKpiDue?.minutesUntilDue]);
+
+  // Update countdown every second
+  useEffect(() => {
+    if (countdown === null || countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          // Refresh data when countdown reaches 0
+          refetchKpi();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown, refetchKpi]);
+
   const handleRefresh = () => {
     refetchKpi();
     refetchAlert();
+  };
+
+  const formatCountdown = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -107,25 +148,64 @@ const Dashboard: React.FC = () => {
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Dashboard
-          </Typography>
+          <Box display="flex" alignItems="center" gap={2} mb={1}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              Dashboard
+            </Typography>
+            <Chip
+              label="LIVE"
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                color: 'white',
+                fontWeight: 600,
+                animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { opacity: 1 },
+                  '50%': { opacity: 0.7 },
+                  '100%': { opacity: 1 },
+                },
+              }}
+            />
+          </Box>
           <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
             Monitor your KPIs and system health in real-time
           </Typography>
+          {kpiDashboard?.lastUpdate && (
+            <Typography variant="caption" sx={{ opacity: 0.8, mt: 0.5, display: 'block' }}>
+              Last updated: {formatDistanceToNow(new Date(kpiDashboard.lastUpdate), { addSuffix: true })}
+            </Typography>
+          )}
         </Box>
-        <IconButton
-          onClick={handleRefresh}
-          sx={{
-            color: 'white',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            },
-          }}
-        >
-          <Refresh />
-        </IconButton>
+        <Box display="flex" alignItems="center" gap={1}>
+          {kpiDashboard?.nextKpiDue && countdown !== null && countdown > 0 && (
+            <Tooltip title="Next KPI execution countdown">
+              <Chip
+                icon={<Timer sx={{ fontSize: '16px !important' }} />}
+                label={formatCountdown(countdown)}
+                size="small"
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  fontWeight: 600,
+                  mr: 1,
+                }}
+              />
+            </Tooltip>
+          )}
+          <IconButton
+            onClick={handleRefresh}
+            sx={{
+              color: 'white',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              },
+            }}
+          >
+            <Refresh />
+          </IconButton>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -245,7 +325,73 @@ const Dashboard: React.FC = () => {
 
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{
-            background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+            background: kpiDashboard?.kpisRunning
+              ? 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)'
+              : 'linear-gradient(135deg, #9e9e9e 0%, #757575 100%)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '70px',
+              height: '70px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              transform: 'translate(20px, -20px)',
+            }
+          }}>
+            <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+              <Typography variant="subtitle2" sx={{ opacity: 0.9, mb: 2 }}>
+                KPIs Running
+              </Typography>
+              {kpiLoading ? (
+                <Skeleton variant="text" width={60} height={60} sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }} />
+              ) : (
+                <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
+                  {kpiDashboard?.kpisRunning || 0}
+                </Typography>
+              )}
+              <Box display="flex" alignItems="center">
+                {kpiDashboard?.kpisRunning ? (
+                  <Chip
+                    label="Executing Now"
+                    size="small"
+                    icon={<PlayCircle sx={{ fontSize: '16px !important' }} />}
+                    sx={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white',
+                      fontWeight: 600,
+                      animation: 'pulse 2s infinite',
+                      '@keyframes pulse': {
+                        '0%': { opacity: 1 },
+                        '50%': { opacity: 0.7 },
+                        '100%': { opacity: 1 },
+                      },
+                    }}
+                  />
+                ) : (
+                  <Chip
+                    label="All Idle"
+                    size="small"
+                    icon={<CheckCircle sx={{ fontSize: '16px !important' }} />}
+                    sx={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white',
+                      fontWeight: 600,
+                    }}
+                  />
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{
+            background: 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)',
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
@@ -295,48 +441,384 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            background: alertDashboard?.unresolvedAlerts
-              ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)'
-              : 'linear-gradient(135deg, #9e9e9e 0%, #757575 100%)',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: '70px',
-              height: '70px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50%',
-              transform: 'translate(20px, -20px)',
-            }
-          }}>
-            <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-              <Typography variant="subtitle2" sx={{ opacity: 0.9, mb: 2 }}>
-                Unresolved Alerts
-              </Typography>
-              {alertLoading ? (
-                <Skeleton variant="text" width={60} height={60} sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }} />
-              ) : (
-                <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
-                  {alertDashboard?.unresolvedAlerts || 0}
-                </Typography>
-              )}
-              <Box display="flex" alignItems="center">
-                <Chip
-                  label={`${alertDashboard?.criticalAlerts || 0} Critical`}
+        {/* Move Unresolved Alerts to second row */}
+
+        {/* Running KPIs */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <PlayCircle sx={{ color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Currently Running KPIs
+                  </Typography>
+                </Box>
+                <IconButton
                   size="small"
-                  icon={<Error sx={{ fontSize: '16px !important' }} />}
+                  onClick={() => navigate('/kpis')}
                   sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: 'primary.main',
                     color: 'white',
-                    fontWeight: 600,
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
                   }}
-                />
+                >
+                  <PlayArrow />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                {kpiDashboard?.runningKpis && kpiDashboard.runningKpis.length > 0 ? (
+                  <List sx={{ p: 0 }}>
+                    {kpiDashboard.runningKpis.map((kpi) => (
+                      <ListItem
+                        key={kpi.kpiId}
+                        sx={{
+                          borderRadius: 2,
+                          mb: 1,
+                          border: '1px solid',
+                          borderColor: 'primary.light',
+                          backgroundColor: 'primary.50',
+                          '&:hover': {
+                            backgroundColor: 'primary.100',
+                            transform: 'translateX(4px)',
+                            transition: 'all 0.2s ease-in-out',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Chip
+                              label="Running"
+                              color="primary"
+                              size="small"
+                              icon={<PlayCircle sx={{ fontSize: '14px !important' }} />}
+                              sx={{
+                                fontWeight: 600,
+                                animation: 'pulse 2s infinite',
+                                '@keyframes pulse': {
+                                  '0%': { opacity: 1 },
+                                  '50%': { opacity: 0.7 },
+                                  '100%': { opacity: 1 },
+                                },
+                              }}
+                            />
+                            {kpi.executionDurationSeconds && (
+                              <Tooltip title="Execution Duration">
+                                <Chip
+                                  icon={<Timer sx={{ fontSize: '14px !important' }} />}
+                                  label={`${Math.floor(kpi.executionDurationSeconds / 60)}:${(kpi.executionDurationSeconds % 60).toString().padStart(2, '0')}`}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    height: 20,
+                                    color: kpi.executionDurationSeconds > 300 ? 'warning.main' : 'text.secondary'
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              {kpi.indicator}
+                            </Typography>
+                          }
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                Owner: {kpi.owner}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Context: {kpi.executionContext || 'Manual'}
+                                {kpi.executionStartTime && ` • Started: ${formatDistanceToNow(new Date(kpi.executionStartTime), { addSuffix: true })}`}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    py={4}
+                    sx={{
+                      backgroundColor: 'grey.50',
+                      borderRadius: 2,
+                      border: '2px dashed',
+                      borderColor: 'grey.300',
+                    }}
+                  >
+                    <PlayCircle sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                    <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+                      No KPIs currently running
+                    </Typography>
+                    <Typography color="text.secondary" variant="caption">
+                      All KPIs are idle
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Next KPI Due */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Schedule sx={{ color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Next KPI Execution
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => navigate('/kpis')}
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
+                  }}
+                >
+                  <PlayArrow />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                {kpiDashboard?.nextKpiDue ? (
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                      border: '1px solid',
+                      borderColor: 'primary.light',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" gap={2} mb={2}>
+                      <Badge
+                        badgeContent={
+                          <Timer sx={{ fontSize: 12, color: 'white' }} />
+                        }
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            backgroundColor: kpiDashboard.nextKpiDue.status === 'Due Soon' ? 'warning.main' : 'primary.main',
+                            color: 'white',
+                          }
+                        }}
+                      >
+                        <PlayCircle sx={{ fontSize: 32, color: 'primary.main' }} />
+                      </Badge>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.dark' }}>
+                          {kpiDashboard.nextKpiDue.indicator}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Owner: {kpiDashboard.nextKpiDue.owner}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          Next Run
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss')}
+                        </Typography>
+                      </Box>
+                      <Box textAlign="center">
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          Countdown
+                        </Typography>
+                        <Chip
+                          label={countdown !== null && countdown > 0 ? formatCountdown(countdown) : 'Due Now!'}
+                          color={countdown !== null && countdown <= 300 ? 'warning' : 'primary'} // Warning if less than 5 minutes
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            animation: countdown !== null && countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                            '@keyframes pulse': {
+                              '0%': { opacity: 1 },
+                              '50%': { opacity: 0.7 },
+                              '100%': { opacity: 1 },
+                            },
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Chip
+                        label={kpiDashboard.nextKpiDue.status}
+                        color={getStatusColor(kpiDashboard.nextKpiDue.status)}
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {kpiDashboard.nextKpiDue.minutesUntilDue <= 5 ? 'Executing soon...' : 'Scheduled'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    py={4}
+                    sx={{
+                      backgroundColor: 'grey.50',
+                      borderRadius: 2,
+                      border: '2px dashed',
+                      borderColor: 'grey.300',
+                    }}
+                  >
+                    <AccessTime sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                    <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+                      No KPIs scheduled
+                    </Typography>
+                    <Typography color="text.secondary" variant="caption">
+                      All KPIs are inactive or have no schedule
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Recent KPI Executions */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <History sx={{ color: 'success.main' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Recent Executions
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => navigate('/kpis')}
+                  sx={{
+                    backgroundColor: 'success.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'success.dark',
+                    },
+                  }}
+                >
+                  <PlayArrow />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                {kpiDashboard?.recentExecutions && kpiDashboard.recentExecutions.length > 0 ? (
+                  <List sx={{ p: 0 }}>
+                    {kpiDashboard.recentExecutions.slice(0, 5).map((execution, index) => (
+                      <ListItem
+                        key={`${execution.kpiId}-${execution.executionTime}-${index}`}
+                        sx={{
+                          borderRadius: 2,
+                          mb: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          backgroundColor: execution.isSuccessful ? 'success.50' : 'error.50',
+                          '&:hover': {
+                            backgroundColor: execution.isSuccessful ? 'success.100' : 'error.100',
+                            transform: 'translateX(4px)',
+                            transition: 'all 0.2s ease-in-out',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Chip
+                              label={execution.status}
+                              color={execution.isSuccessful ? 'success' : 'error'}
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                            {execution.executionTimeMs && (
+                              <Tooltip title="Execution Time">
+                                <Chip
+                                  icon={<Speed sx={{ fontSize: '14px !important' }} />}
+                                  label={`${execution.executionTimeMs}ms`}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    height: 20,
+                                    color: execution.executionTimeMs > 1000 ? 'warning.main' : 'text.secondary'
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              {execution.indicator}
+                            </Typography>
+                          }
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                Value: {execution.value.toFixed(2)}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {formatDistanceToNow(new Date(execution.executionTime), { addSuffix: true })}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    py={4}
+                    sx={{
+                      backgroundColor: 'grey.50',
+                      borderRadius: 2,
+                      border: '2px dashed',
+                      borderColor: 'grey.300',
+                    }}
+                  >
+                    <History sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+                    <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+                      No recent executions
+                    </Typography>
+                    <Typography color="text.secondary" variant="caption">
+                      KPI execution history will appear here
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>

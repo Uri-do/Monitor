@@ -56,6 +56,13 @@ public class KPI : AggregateRoot
     public DateTime? LastRun { get; set; }
 
     /// <summary>
+    /// Execution state tracking for real-time monitoring
+    /// </summary>
+    public bool IsCurrentlyRunning { get; set; } = false;
+    public DateTime? ExecutionStartTime { get; set; }
+    public string? ExecutionContext { get; set; } // "Manual", "Scheduled", "Test"
+
+    /// <summary>
     /// Cooldown period in minutes to prevent alert flooding
     /// </summary>
     public int CooldownMinutes { get; set; } = 30;
@@ -135,6 +142,47 @@ public class KPI : AggregateRoot
         LastRun = DateTime.UtcNow;
         ModifiedDate = DateTime.UtcNow;
         MarkAsModified();
+    }
+
+    /// <summary>
+    /// Marks the KPI as currently executing
+    /// </summary>
+    public void StartExecution(string context = "Manual")
+    {
+        IsCurrentlyRunning = true;
+        ExecutionStartTime = DateTime.UtcNow;
+        ExecutionContext = context;
+        MarkAsModified();
+
+        // Raise domain event for real-time updates
+        var startedEvent = new KpiExecutionStartedEvent(KpiId, Indicator, Owner, context);
+        AddDomainEvent(startedEvent);
+    }
+
+    /// <summary>
+    /// Marks the KPI execution as completed
+    /// </summary>
+    public void CompleteExecution()
+    {
+        IsCurrentlyRunning = false;
+        ExecutionStartTime = null;
+        ExecutionContext = null;
+        MarkAsModified();
+
+        // Raise domain event for real-time updates
+        var completedEvent = new KpiExecutionCompletedEvent(KpiId, Indicator, Owner);
+        AddDomainEvent(completedEvent);
+    }
+
+    /// <summary>
+    /// Gets the execution duration if currently running
+    /// </summary>
+    public TimeSpan? GetExecutionDuration()
+    {
+        if (!IsCurrentlyRunning || !ExecutionStartTime.HasValue)
+            return null;
+
+        return DateTime.UtcNow - ExecutionStartTime.Value;
     }
 
     /// <summary>

@@ -55,14 +55,20 @@ public class MappingProfile : Profile
         CreateMap<ExecutionStepInfo, ExecutionStepInfoDto>();
 
         CreateMap<KPI, KpiStatusDto>()
-            .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src => 
+            .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src =>
                 src.LastRun.HasValue ? src.LastRun.Value.AddMinutes(src.Frequency) : (DateTime?)null))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => GetKpiStatus(src)))
             .ForMember(dest => dest.LastAlert, opt => opt.Ignore())
             .ForMember(dest => dest.AlertsToday, opt => opt.Ignore())
             .ForMember(dest => dest.LastCurrentValue, opt => opt.Ignore())
             .ForMember(dest => dest.LastHistoricalValue, opt => opt.Ignore())
-            .ForMember(dest => dest.LastDeviation, opt => opt.Ignore());
+            .ForMember(dest => dest.LastDeviation, opt => opt.Ignore())
+            .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.MapFrom(src => src.IsCurrentlyRunning))
+            .ForMember(dest => dest.ExecutionStartTime, opt => opt.MapFrom(src => src.ExecutionStartTime))
+            .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => src.ExecutionContext))
+            .ForMember(dest => dest.ExecutionDurationSeconds, opt => opt.MapFrom(src =>
+                src.IsCurrentlyRunning && src.ExecutionStartTime.HasValue ?
+                (int?)(DateTime.UtcNow - src.ExecutionStartTime.Value).TotalSeconds : null));
 
         CreateMap<KPI, KpiSummaryDto>();
 
@@ -124,6 +130,9 @@ public class MappingProfile : Profile
         if (!kpi.IsActive)
             return "Inactive";
 
+        if (kpi.IsCurrentlyRunning)
+            return "Running";
+
         if (!kpi.LastRun.HasValue)
             return "Never Run";
 
@@ -136,7 +145,7 @@ public class MappingProfile : Profile
         if (nextRun <= now.AddMinutes(5))
             return "Due Soon";
 
-        return "Running";
+        return "Scheduled";
     }
 
     /// <summary>

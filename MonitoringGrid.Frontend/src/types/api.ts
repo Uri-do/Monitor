@@ -154,6 +154,13 @@ export interface KpiStatusDto {
   lastCurrentValue?: number;
   lastHistoricalValue?: number;
   lastDeviation?: number;
+  minutesUntilDue?: number;
+
+  // Execution state properties
+  isCurrentlyRunning: boolean;
+  executionStartTime?: string;
+  executionContext?: string;
+  executionDurationSeconds?: number;
 }
 
 export interface KpiDashboardDto {
@@ -162,12 +169,16 @@ export interface KpiDashboardDto {
   inactiveKpis: number;
   kpisInErrorCount: number;
   kpisDue: number;
+  kpisRunning: number;
   alertsToday: number;
   alertsThisWeek: number;
   lastUpdate: string;
   recentAlerts: KpiStatusDto[];
   kpisInError: KpiStatusDto[];
   dueKpis: KpiStatusDto[];
+  runningKpis: KpiStatusDto[];
+  nextKpiDue?: KpiStatusDto;
+  recentExecutions: KpiExecutionStatusDto[];
 }
 
 export interface AlertDashboardDto {

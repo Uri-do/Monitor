@@ -70,8 +70,22 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
             .ToList();
 
         var dueKpis = kpis
-            .Where(k => k.IsActive && (k.LastRun == null || k.LastRun < now.AddMinutes(-k.Frequency)))
+            .Where(k => k.IsActive && !k.IsCurrentlyRunning && (k.LastRun == null || k.LastRun < now.AddMinutes(-k.Frequency)))
             .Select(k => _mapper.Map<KpiStatusDto>(k))
+            .ToList();
+
+        var runningKpis = kpis
+            .Where(k => k.IsCurrentlyRunning)
+            .Select(k =>
+            {
+                var dto = _mapper.Map<KpiStatusDto>(k);
+                dto.Status = "Running";
+                dto.IsCurrentlyRunning = true;
+                dto.ExecutionStartTime = k.ExecutionStartTime;
+                dto.ExecutionContext = k.ExecutionContext;
+                dto.ExecutionDurationSeconds = k.GetExecutionDuration()?.TotalSeconds is double duration ? (int)duration : null;
+                return dto;
+            })
             .ToList();
 
         var dashboard = new KpiDashboardDto
@@ -81,12 +95,14 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
             InactiveKpis = kpis.Count(k => !k.IsActive),
             KpisInErrorCount = recentAlerts.Count,
             KpisDue = dueKpis.Count,
+            KpisRunning = runningKpis.Count,
             AlertsToday = alertsToday,
             AlertsThisWeek = alertsThisWeek,
             LastUpdate = now,
             RecentAlerts = recentAlerts,
             KpisInError = recentAlerts,
-            DueKpis = dueKpis
+            DueKpis = dueKpis,
+            RunningKpis = runningKpis
         };
 
         var duration = DateTime.UtcNow - startTime;

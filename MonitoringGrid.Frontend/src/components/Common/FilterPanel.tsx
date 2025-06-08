@@ -94,6 +94,30 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const renderFilterField = (field: FilterField) => {
     const value = filters[field.name] || field.defaultValue || '';
 
+    const commonTextFieldProps = {
+      size: "small" as const,
+      fullWidth: true,
+      sx: {
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 1,
+          backgroundColor: 'rgba(102, 126, 234, 0.04)',
+          '&:hover': {
+            backgroundColor: 'rgba(102, 126, 234, 0.08)',
+          },
+          '&.Mui-focused': {
+            backgroundColor: 'white',
+            boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          fontWeight: 500,
+          '&.Mui-focused': {
+            color: 'primary.main',
+          },
+        },
+      },
+    };
+
     switch (field.type) {
       case 'text':
       case 'number':
@@ -105,8 +129,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             value={value}
             onChange={(e) => handleFilterChange(field.name, e.target.value)}
             placeholder={field.placeholder}
-            size="small"
-            fullWidth
+            {...commonTextFieldProps}
           />
         );
 
@@ -118,11 +141,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             label={field.label}
             value={value}
             onChange={(e) => handleFilterChange(field.name, e.target.value)}
-            size="small"
-            fullWidth
             SelectProps={{
               native: true,
             }}
+            {...commonTextFieldProps}
           >
             <option value="">All</option>
             {field.options?.map((option) => (
@@ -141,11 +163,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             type="date"
             value={value}
             onChange={(e) => handleFilterChange(field.name, e.target.value)}
-            size="small"
-            fullWidth
             InputLabelProps={{
               shrink: true,
             }}
+            {...commonTextFieldProps}
           />
         );
 
@@ -157,30 +178,63 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const hasActiveFilters = activeFilters.length > 0 || Object.keys(filters).some(key => filters[key]);
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card
+      sx={{
+        mb: 3,
+        borderRadius: 1,
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.06)',
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       <CardContent sx={{ pb: 2 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 2,
+            p: 2,
+            borderRadius: 1,
+            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+            border: '1px solid',
+            borderColor: 'primary.light',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FilterIcon color="primary" />
-            <Typography variant="h6">Filters</Typography>
+            <FilterIcon sx={{ color: 'primary.main' }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
+              Filters
+            </Typography>
             {hasActiveFilters && (
               <Chip
                 label={`${activeFilters.length || Object.keys(filters).length} active`}
                 size="small"
-                color="primary"
-                variant="outlined"
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  fontWeight: 600,
+                }}
               />
             )}
           </Box>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {hasActiveFilters && (
               <Button
                 size="small"
                 startIcon={<ClearIcon />}
                 onClick={handleClear}
-                color="secondary"
+                variant="outlined"
+                sx={{
+                  borderColor: 'primary.light',
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'white',
+                  },
+                }}
               >
                 Clear All
               </Button>
@@ -189,6 +243,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               <IconButton
                 onClick={() => setExpanded(!expanded)}
                 size="small"
+                sx={{
+                  color: 'primary.main',
+                  backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(102, 126, 234, 0.16)',
+                  },
+                }}
               >
                 {expanded ? <CollapseIcon /> : <ExpandIcon />}
               </IconButton>
@@ -205,8 +266,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1,
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'white',
+                    boxShadow: '0 0 0 2px rgba(102, 126, 234, 0.2)',
+                  },
+                },
+              }}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'primary.main' }} />,
               }}
             />
           </Box>
@@ -215,7 +289,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         {/* Active Filters */}
         {activeFilters.length > 0 && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
               Active Filters:
             </Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -225,8 +299,17 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   label={`${filter.label}: ${filter.displayValue}`}
                   onDelete={() => removeActiveFilter(filter.field)}
                   size="small"
-                  variant="outlined"
-                  color="primary"
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    fontWeight: 500,
+                    '& .MuiChip-deleteIcon': {
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      '&:hover': {
+                        color: 'white',
+                      },
+                    },
+                  }}
                 />
               ))}
             </Stack>
@@ -237,14 +320,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         <Collapse in={!collapsible || expanded}>
           {fields.length > 0 && (
             <>
-              <Divider sx={{ mb: 2 }} />
-              <Grid container spacing={2}>
-                {fields.map((field) => (
-                  <Grid item xs={12} sm={6} md={4} key={field.name}>
-                    {renderFilterField(field)}
-                  </Grid>
-                ))}
-              </Grid>
+              <Divider sx={{ mb: 3, borderColor: 'primary.light' }} />
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1,
+                  backgroundColor: 'rgba(102, 126, 234, 0.02)',
+                  border: '1px solid',
+                  borderColor: 'rgba(102, 126, 234, 0.1)',
+                }}
+              >
+                <Grid container spacing={3}>
+                  {fields.map((field) => (
+                    <Grid item xs={12} sm={6} md={4} key={field.name}>
+                      {renderFilterField(field)}
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
             </>
           )}
         </Collapse>

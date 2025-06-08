@@ -404,7 +404,9 @@ export const executionHistoryApi = {
     pageSize?: number;
     pageNumber?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
+    console.log('🔍 Fetching execution history with params:', params);
     const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get('/executionhistory', { params });
+    console.log('📊 Execution history response:', response.data);
     return response.data;
   },
 
@@ -420,6 +422,14 @@ export const executionHistoryApi = {
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
     const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(`/executionhistory/${historicalId}`);
+    return response.data;
+  },
+
+  // Test database connection and recent records
+  testDatabaseConnection: async (): Promise<any> => {
+    console.log('🔍 Testing database connection and recent records...');
+    const response = await api.get('/executionhistory/test');
+    console.log('📊 Database test response:', response.data);
     return response.data;
   },
 };
