@@ -63,7 +63,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
     // Error logged to error boundary for debugging
   }
 
