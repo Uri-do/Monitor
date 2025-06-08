@@ -295,7 +295,7 @@ public class UserService : IUserService
         }
     }
 
-    private async Task AssignRolesInternalAsync(string userId, IEnumerable<string> roleIds, string? assignedBy, CancellationToken cancellationToken)
+    private Task AssignRolesInternalAsync(string userId, IEnumerable<string> roleIds, string? assignedBy, CancellationToken cancellationToken)
     {
         foreach (var roleId in roleIds)
         {
@@ -309,6 +309,8 @@ public class UserService : IUserService
 
             _context.UserRoles.Add(userRole);
         }
+
+        return Task.CompletedTask;
     }
 
     private async Task UpdateUserRolesInternalAsync(string userId, IEnumerable<string> roleIds, string? assignedBy, CancellationToken cancellationToken)

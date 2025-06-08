@@ -9,7 +9,7 @@ using MonitoringGrid.Api.Filters;
 namespace MonitoringGrid.Api.Controllers;
 
 /// <summary>
-/// Result Pattern-based API controller for managing KPIs using MediatR with Result<T>
+/// Result Pattern-based API controller for managing KPIs using MediatR with Result&lt;T&gt;
 /// </summary>
 [ApiController]
 [ApiVersion("3.0")]

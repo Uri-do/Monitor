@@ -252,10 +252,10 @@ public class ReportingService : IReportingService
     }
 
     // Private helper methods
-    private async Task<List<KpiSummary>> GenerateKpiSummariesAsync(
-        List<KPI> kpis, 
-        List<HistoricalData> historicalData, 
-        List<AlertLog> alerts, 
+    private Task<List<KpiSummary>> GenerateKpiSummariesAsync(
+        List<KPI> kpis,
+        List<HistoricalData> historicalData,
+        List<AlertLog> alerts,
         KpiReportRequest request,
         CancellationToken cancellationToken)
     {
@@ -281,7 +281,7 @@ public class ReportingService : IReportingService
             summaries.Add(summary);
         }
 
-        return summaries;
+        return Task.FromResult(summaries);
     }
 
     private async Task<List<KpiTrendSummary>> GenerateTrendAnalysisAsync(List<KPI> kpis, CancellationToken cancellationToken)
@@ -312,9 +312,9 @@ public class ReportingService : IReportingService
         return trendSummaries;
     }
 
-    private async Task<AlertStatistics> GenerateAlertStatisticsAsync(List<AlertLog> alerts, CancellationToken cancellationToken)
+    private Task<AlertStatistics> GenerateAlertStatisticsAsync(List<AlertLog> alerts, CancellationToken cancellationToken)
     {
-        return new AlertStatistics
+        var statistics = new AlertStatistics
         {
             TotalAlerts = alerts.Count,
             AverageAlertsPerDay = alerts.Any() ? alerts.Count / Math.Max(1, (alerts.Max(a => a.TriggerTime) - alerts.Min(a => a.TriggerTime)).Days) : 0,
@@ -325,6 +325,8 @@ public class ReportingService : IReportingService
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault()?.Key ?? 0
         };
+
+        return Task.FromResult(statistics);
     }
 
     private async Task<SystemMetrics> GenerateSystemMetricsAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
@@ -341,7 +343,7 @@ public class ReportingService : IReportingService
         };
     }
 
-    private async Task<List<Dictionary<string, object>>> ExecuteCustomQueryAsync(string query, Dictionary<string, object> parameters, CancellationToken cancellationToken)
+    private Task<List<Dictionary<string, object>>> ExecuteCustomQueryAsync(string query, Dictionary<string, object> parameters, CancellationToken cancellationToken)
     {
         // This is a simplified implementation. In production, you'd want proper query validation and security
         // Consider using a query builder or predefined query templates for security
@@ -367,14 +369,14 @@ public class ReportingService : IReportingService
         return DateTime.UtcNow.AddHours(1);
     }
 
-    private async Task<byte[]> GeneratePdfReportAsync(object reportData, string title)
+    private Task<byte[]> GeneratePdfReportAsync(object reportData, string title)
     {
         // PDF generation implementation would go here
         // Consider using libraries like iTextSharp, PdfSharp, or DinkToPdf
         throw new NotImplementedException("PDF generation requires additional PDF library implementation");
     }
 
-    private async Task<byte[]> GenerateExcelReportAsync(object reportData, string title)
+    private Task<byte[]> GenerateExcelReportAsync(object reportData, string title)
     {
         // Excel generation implementation would go here
         // Consider using libraries like EPPlus, ClosedXML, or NPOI

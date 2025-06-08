@@ -312,22 +312,22 @@ public class Repository<T> : IRepository<T> where T : class
         return entityList.Count;
     }
 
-    public virtual async Task<int> BulkUpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    public virtual Task<int> BulkUpdateAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         var entityList = entities.ToList();
-        if (!entityList.Any()) return 0;
+        if (!entityList.Any()) return Task.FromResult(0);
 
         _dbSet.UpdateRange(entityList);
-        return entityList.Count;
+        return Task.FromResult(entityList.Count);
     }
 
-    public virtual async Task<int> BulkDeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    public virtual Task<int> BulkDeleteAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         var entityList = entities.ToList();
-        if (!entityList.Any()) return 0;
+        if (!entityList.Any()) return Task.FromResult(0);
 
         _dbSet.RemoveRange(entityList);
-        return entityList.Count;
+        return Task.FromResult(entityList.Count);
     }
 
     public virtual async Task<int> BulkDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)

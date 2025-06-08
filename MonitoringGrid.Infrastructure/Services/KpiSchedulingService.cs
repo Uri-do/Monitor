@@ -236,19 +236,19 @@ public class KpiSchedulingService : IKpiSchedulingService
         }
     }
 
-    public async Task<ScheduleValidationResult> ValidateScheduleConfigurationAsync(string scheduleConfiguration, CancellationToken cancellationToken = default)
+    public Task<ScheduleValidationResult> ValidateScheduleConfigurationAsync(string scheduleConfiguration, CancellationToken cancellationToken = default)
     {
         var result = new ScheduleValidationResult();
 
         try
         {
             var config = ParseScheduleConfiguration(scheduleConfiguration);
-            
+
             if (!config.IsEnabled)
             {
                 result.IsValid = true;
                 result.ScheduleDescription = "Scheduling disabled";
-                return result;
+                return Task.FromResult(result);
             }
 
             // Validate based on schedule type
@@ -275,7 +275,7 @@ public class KpiSchedulingService : IKpiSchedulingService
             result.Errors.Add($"Failed to parse schedule configuration: {ex.Message}");
         }
 
-        return result;
+        return Task.FromResult(result);
     }
 
     // Private helper methods

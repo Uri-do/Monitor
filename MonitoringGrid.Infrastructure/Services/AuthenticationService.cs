@@ -528,11 +528,12 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    private async Task LockAccountAsync(string username, CancellationToken cancellationToken)
+    private Task LockAccountAsync(string username, CancellationToken cancellationToken)
     {
         // This method is now handled in RecordFailedLoginAttemptAsync
         // Keeping for compatibility but functionality moved to User entity
         _logger.LogWarning("Account locked for user {Username} due to multiple failed login attempts", username);
+        return Task.CompletedTask;
     }
 
     private async Task ClearFailedLoginAttemptsAsync(string username, CancellationToken cancellationToken)
@@ -596,11 +597,12 @@ public class AuthenticationService : IAuthenticationService
         return Convert.ToBase64String(randomBytes);
     }
 
-    private async Task StorePasswordResetTokenAsync(string userId, string token, DateTime expiresAt, CancellationToken cancellationToken)
+    private Task StorePasswordResetTokenAsync(string userId, string token, DateTime expiresAt, CancellationToken cancellationToken)
     {
         // Temporarily disabled - would need PasswordResetToken entity in DbContext
         // For now, password reset tokens are not persisted
         _logger.LogInformation("Password reset token generated for user {UserId} (not persisted)", userId);
+        return Task.CompletedTask;
     }
 }
 

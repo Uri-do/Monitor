@@ -464,7 +464,7 @@ public class KpiExecutionService : IKpiExecutionService
         }
 
         // Default to monitoring database
-        return _context.Database.GetConnectionString();
+        return _context.Database.GetConnectionString() ?? throw new InvalidOperationException("No connection string found for monitoring database");
     }
 
     private bool IsResultSetBasedStoredProcedure(string spName)

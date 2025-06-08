@@ -403,8 +403,8 @@ public class KpiController : ControllerBase
                 .Where(k => k.IsActive && k.LastRun.HasValue)
                 .Select(k => new {
                     Kpi = k,
-                    NextRun = k.LastRun.Value.AddMinutes(k.Frequency),
-                    MinutesUntilDue = (k.LastRun.Value.AddMinutes(k.Frequency) - now).TotalMinutes
+                    NextRun = k.LastRun!.Value.AddMinutes(k.Frequency),
+                    MinutesUntilDue = (k.LastRun!.Value.AddMinutes(k.Frequency) - now).TotalMinutes
                 })
                 .Where(x => x.MinutesUntilDue > 0)
                 .OrderBy(x => x.NextRun)

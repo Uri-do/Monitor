@@ -18,9 +18,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        ISystemClock clock,
         IApiKeyService apiKeyService)
-        : base(options, logger, encoder, clock)
+        : base(options, logger, encoder)
     {
         _apiKeyService = apiKeyService;
         _logger = logger.CreateLogger<ApiKeyAuthenticationHandler>();

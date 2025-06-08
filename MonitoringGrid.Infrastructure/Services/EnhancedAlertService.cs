@@ -289,17 +289,19 @@ public class EnhancedAlertService : IAlertService
         }
     }
 
-    private async Task ScheduleEscalationsAsync(long alertId, KPI kpi, AlertSeverity severity, CancellationToken cancellationToken)
+    private Task ScheduleEscalationsAsync(long alertId, KPI kpi, AlertSeverity severity, CancellationToken cancellationToken)
     {
         // Implementation for scheduling escalations
         // This would create escalation records in the database
         _logger.LogDebug("Scheduling escalations for alert {AlertId}", alertId);
+        return Task.CompletedTask;
     }
 
-    private async Task ScheduleAutoResolutionAsync(long alertId, CancellationToken cancellationToken)
+    private Task ScheduleAutoResolutionAsync(long alertId, CancellationToken cancellationToken)
     {
         // Implementation for scheduling auto-resolution
         _logger.LogDebug("Scheduling auto-resolution for alert {AlertId}", alertId);
+        return Task.CompletedTask;
     }
 
     public string BuildMessageFromTemplate(string template, KPI kpi, KpiExecutionResult result)

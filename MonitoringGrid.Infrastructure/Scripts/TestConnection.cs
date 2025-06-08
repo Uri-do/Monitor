@@ -90,8 +90,9 @@ public class TestConnection
         {
             var sql = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'monitoring' AND TABLE_NAME = '{table.Split('.')[1]}'";
             using var command = new SqlCommand(sql, connection);
-            var count = (int)await command.ExecuteScalarAsync();
-            
+            var result = await command.ExecuteScalarAsync();
+            var count = result != null ? (int)result : 0;
+
             if (count > 0)
             {
                 Console.WriteLine($"  ✅ Table {table} exists");
@@ -167,19 +168,22 @@ public class TestConnection
             // Test KPIs
             var kpiSql = "SELECT COUNT(*) FROM monitoring.KPIs WHERE IsActive = 1";
             using var kpiCommand = new SqlCommand(kpiSql, connection);
-            var kpiCount = (int)await kpiCommand.ExecuteScalarAsync();
+            var kpiResult = await kpiCommand.ExecuteScalarAsync();
+            var kpiCount = kpiResult != null ? (int)kpiResult : 0;
             Console.WriteLine($"  ✅ Active KPIs: {kpiCount}");
 
             // Test Contacts
             var contactSql = "SELECT COUNT(*) FROM monitoring.Contacts WHERE IsActive = 1";
             using var contactCommand = new SqlCommand(contactSql, connection);
-            var contactCount = (int)await contactCommand.ExecuteScalarAsync();
+            var contactResult = await contactCommand.ExecuteScalarAsync();
+            var contactCount = contactResult != null ? (int)contactResult : 0;
             Console.WriteLine($"  ✅ Active Contacts: {contactCount}");
 
             // Test Config
             var configSql = "SELECT COUNT(*) FROM monitoring.Config";
             using var configCommand = new SqlCommand(configSql, connection);
-            var configCount = (int)await configCommand.ExecuteScalarAsync();
+            var configResult = await configCommand.ExecuteScalarAsync();
+            var configCount = configResult != null ? (int)configResult : 0;
             Console.WriteLine($"  ✅ Configuration entries: {configCount}");
 
             // Test KPI-Contact mappings

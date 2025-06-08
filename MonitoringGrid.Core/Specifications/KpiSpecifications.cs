@@ -48,12 +48,12 @@ public class HighPriorityKpisSpecification : BaseSpecification<KPI>
 /// </summary>
 public class StaleKpisSpecification : BaseSpecification<KPI>
 {
-    public StaleKpisSpecification(int hoursThreshold = 24) 
-        : base(k => k.IsActive && 
-                   k.LastRun.HasValue && 
+    public StaleKpisSpecification(int hoursThreshold = 24)
+        : base(k => k.IsActive &&
+                   k.LastRun.HasValue &&
                    k.LastRun < DateTime.UtcNow.AddHours(-hoursThreshold))
     {
-        ApplyOrderBy(k => k.LastRun);
+        ApplyOrderBy(k => k.LastRun ?? DateTime.MinValue);
     }
 }
 
@@ -100,12 +100,12 @@ public class KpisByDeviationThresholdSpecification : BaseSpecification<KPI>
 /// </summary>
 public class KpisInCooldownSpecification : BaseSpecification<KPI>
 {
-    public KpisInCooldownSpecification() 
-        : base(k => k.IsActive && 
-                   k.LastRun.HasValue && 
+    public KpisInCooldownSpecification()
+        : base(k => k.IsActive &&
+                   k.LastRun.HasValue &&
                    k.LastRun > DateTime.UtcNow.AddMinutes(-k.CooldownMinutes))
     {
-        ApplyOrderByDescending(k => k.LastRun);
+        ApplyOrderByDescending(k => k.LastRun ?? DateTime.MinValue);
     }
 }
 
