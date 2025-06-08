@@ -37,6 +37,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { kpiApi, alertApi } from '@/services/api';
 import { format, formatDistanceToNow } from 'date-fns';
+import WorkerDashboardCard from '@/components/Worker/WorkerDashboardCard';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -1045,6 +1046,11 @@ const Dashboard: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
+        </Grid>
+
+        {/* Worker Management */}
+        <Grid item xs={12} md={6}>
+          <WorkerDashboardCard />
         </Grid>
 
         {/* Top Alerting KPIs */}

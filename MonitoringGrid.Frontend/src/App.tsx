@@ -32,6 +32,7 @@ const Administration = React.lazy(() => import('@/pages/Administration/Administr
 const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
 const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
 const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
+const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
 const ComponentShowcase = React.lazy(() => import('@/pages/Demo/ComponentShowcase'));
 const VisualizationShowcase = React.lazy(() => import('@/pages/Demo/VisualizationShowcase'));
 const InteractiveShowcase = React.lazy(() => import('@/pages/Demo/InteractiveShowcase'));
@@ -296,6 +297,13 @@ function App() {
               <Route path="/worker" element={
                 <LazyRoute>
                   <WorkerManagement />
+                </LazyRoute>
+              } />
+
+              {/* Worker Debug */}
+              <Route path="/worker-debug" element={
+                <LazyRoute>
+                  <WorkerDebug />
                 </LazyRoute>
               } />
 

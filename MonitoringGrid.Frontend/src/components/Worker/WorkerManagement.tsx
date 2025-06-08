@@ -2,26 +2,33 @@ import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+  Typography,
+  Button,
+  Chip,
+  Alert,
+  Box,
+  Divider,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
+  Grid,
+  Paper,
+} from '@mui/material';
 import {
-  Play,
-  Square,
-  RotateCcw,
+  PlayArrow,
+  Stop,
+  Refresh,
   Activity,
-  Clock,
-  Cpu,
-  AlertCircle,
+  Schedule,
+  Memory,
+  Error as ErrorIcon,
   CheckCircle,
-  RefreshCw,
-} from 'lucide-react';
-import { toast } from 'sonner';
+  Build,
+  AutorenewOutlined,
+} from '@mui/icons-material';
+import { toast } from 'react-hot-toast';
 
 interface WorkerService {
   name: string;
@@ -122,186 +129,223 @@ const WorkerManagement: React.FC = () => {
 
   if (!status) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Worker Management
-          </CardTitle>
-          <CardDescription>
-            Loading worker status...
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <Box sx={{ p: 3 }}>
+        <Card>
+          <CardHeader>
+            <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Build />
+              Worker Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Loading worker status...
+            </Typography>
+          </CardHeader>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <Box sx={{ p: 3 }}>
+      <Card sx={{ mb: 3 }}>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Box>
+              <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Build />
                 Worker Management
-              </CardTitle>
-              <CardDescription>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 Control and monitor the MonitoringGrid Worker service
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className={autoRefresh ? 'bg-green-50' : ''}
-              >
-                <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-                Auto Refresh
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoRefresh}
+                    onChange={(e) => setAutoRefresh(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Auto Refresh"
+              />
+              <IconButton
                 onClick={fetchStatus}
                 disabled={loading}
+                color="primary"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
-          </div>
+                {loading ? <CircularProgress size={20} /> : <Refresh />}
+              </IconButton>
+            </Box>
+          </Box>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           {/* Status Overview */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              {status.isRunning ? (
-                <CheckCircle className="h-6 w-6 text-green-500" />
-              ) : (
-                <AlertCircle className="h-6 w-6 text-red-500" />
-              )}
-              <div>
-                <div className="font-semibold">
-                  Status: {' '}
-                  <Badge variant={status.isRunning ? 'default' : 'destructive'}>
-                    {status.isRunning ? 'Running' : 'Stopped'}
-                  </Badge>
-                </div>
-                <div className="text-sm text-gray-600">
-                  Mode: {status.mode}
-                  {status.processId && ` (PID: ${status.processId})`}
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-right text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                Uptime: {formatUptime(status.startTime)}
-              </div>
-              <div>Started: {formatDateTime(status.startTime)}</div>
-            </div>
-          </div>
+          <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
+            <Grid container spacing={3} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {status.isRunning ? (
+                    <CheckCircle sx={{ color: 'success.main', fontSize: 32 }} />
+                  ) : (
+                    <ErrorIcon sx={{ color: 'error.main', fontSize: 32 }} />
+                  )}
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Typography variant="h6">Status:</Typography>
+                      <Chip
+                        label={status.isRunning ? 'Running' : 'Stopped'}
+                        color={status.isRunning ? 'success' : 'error'}
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Mode: {status.mode}
+                      {status.processId && ` (PID: ${status.processId})`}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' }, mb: 0.5 }}>
+                    <Schedule fontSize="small" />
+                    <Typography variant="body2">
+                      Uptime: {formatUptime(status.startTime)}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Started: {formatDateTime(status.startTime)}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
 
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <Button
+              variant="contained"
+              color="success"
               onClick={() => performAction('start')}
               disabled={status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'}
-              className="flex items-center gap-2"
+              startIcon={actionLoading === 'start' ? <CircularProgress size={16} /> : <PlayArrow />}
             >
-              <Play className="h-4 w-4" />
               {actionLoading === 'start' ? 'Starting...' : 'Start Worker'}
             </Button>
-            
+
             <Button
-              variant="destructive"
+              variant="contained"
+              color="error"
               onClick={() => performAction('stop')}
               disabled={!status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'}
-              className="flex items-center gap-2"
+              startIcon={actionLoading === 'stop' ? <CircularProgress size={16} /> : <Stop />}
             >
-              <Square className="h-4 w-4" />
               {actionLoading === 'stop' ? 'Stopping...' : 'Stop Worker'}
             </Button>
-            
+
             <Button
-              variant="outline"
+              variant="outlined"
               onClick={() => performAction('restart')}
               disabled={!status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'}
-              className="flex items-center gap-2"
+              startIcon={actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />}
             >
-              <RotateCcw className="h-4 w-4" />
               {actionLoading === 'restart' ? 'Restarting...' : 'Restart Worker'}
             </Button>
-          </div>
+          </Box>
 
           {/* Integration Mode Alert */}
           {status.mode === 'Integrated' && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Worker services are running in integrated mode. To control them separately, 
-                set <code>EnableWorkerServices</code> to <code>false</code> in configuration and restart the API.
-              </AlertDescription>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Worker services are running in integrated mode. To control them separately,
+              set <code>EnableWorkerServices</code> to <code>false</code> in configuration and restart the API.
             </Alert>
           )}
 
-          <Separator />
+          <Divider sx={{ mb: 3 }} />
 
           {/* Services Status */}
-          <div>
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Cpu className="h-4 w-4" />
+          <Box>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Memory />
               Worker Services ({status.services.length})
-            </h3>
-            
+            </Typography>
+
             {status.services.length > 0 ? (
-              <div className="space-y-2">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {status.services.map((service, index) => (
-                  <div
+                  <Paper
                     key={index}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    sx={{ p: 2, border: 1, borderColor: 'divider' }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        service.status === 'Running' ? 'bg-green-500' : 'bg-red-500'
-                      }`} />
-                      <div>
-                        <div className="font-medium">{service.name}</div>
-                        {service.errorMessage && (
-                          <div className="text-sm text-red-600">{service.errorMessage}</div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="text-right text-sm text-gray-600">
-                      <Badge variant={service.status === 'Running' ? 'default' : 'destructive'}>
-                        {service.status}
-                      </Badge>
-                      {service.lastActivity && (
-                        <div className="mt-1">
-                          Last: {formatDateTime(service.lastActivity)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={8}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: service.status === 'Running' ? 'success.main' : 'error.main'
+                            }}
+                          />
+                          <Box>
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              {service.name}
+                            </Typography>
+                            {service.errorMessage && (
+                              <Typography variant="body2" color="error">
+                                {service.errorMessage}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                          <Chip
+                            label={service.status}
+                            color={service.status === 'Running' ? 'success' : 'error'}
+                            size="small"
+                            sx={{ mb: service.lastActivity ? 1 : 0 }}
+                          />
+                          {service.lastActivity && (
+                            <Typography variant="body2" color="text.secondary">
+                              Last: {formatDateTime(service.lastActivity)}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Paper>
                 ))}
-              </div>
+              </Box>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                No worker services running
-              </div>
+              <Paper sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="body1" color="text.secondary">
+                  No worker services running
+                </Typography>
+              </Paper>
             )}
-          </div>
+          </Box>
 
           {/* Last Updated */}
-          <div className="text-xs text-gray-500 text-center">
-            Last updated: {formatDateTime(status.timestamp)}
-          </div>
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Typography variant="caption" color="text.secondary">
+              Last updated: {formatDateTime(status.timestamp)}
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
-    </div>
+    </Box>
   );
 };
 

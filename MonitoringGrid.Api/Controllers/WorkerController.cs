@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using MonitoringGrid.Api.DTOs;
@@ -332,6 +333,91 @@ public class WorkerController : ControllerBase
         {
             _logger.LogError(ex, "Error getting Worker configuration");
             return StatusCode(500, "Error getting Worker configuration");
+        }
+    }
+
+    /// <summary>
+    /// Get KPI status for debugging
+    /// </summary>
+    [HttpGet("kpi-status")]
+    public async Task<IActionResult> GetKpiStatus()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+            var kpis = await context.KPIs
+                .Select(k => new
+                {
+                    k.KpiId,
+                    k.Indicator,
+                    k.Owner,
+                    k.IsActive,
+                    k.Frequency,
+                    k.LastRun,
+                    k.ScheduleConfiguration,
+                    k.IsCurrentlyRunning,
+                    NextDue = k.LastRun.HasValue ? k.LastRun.Value.AddMinutes(k.Frequency) : (DateTime?)null,
+                    MinutesUntilDue = k.LastRun.HasValue ?
+                        (int)Math.Max(0, (k.LastRun.Value.AddMinutes(k.Frequency) - DateTime.UtcNow).TotalMinutes) : 0,
+                    IsDue = !k.LastRun.HasValue || DateTime.UtcNow >= k.LastRun.Value.AddMinutes(k.Frequency)
+                })
+                .ToListAsync();
+
+            var summary = new
+            {
+                TotalKpis = kpis.Count,
+                ActiveKpis = kpis.Count(k => k.IsActive),
+                KpisWithScheduleConfig = kpis.Count(k => !string.IsNullOrEmpty(k.ScheduleConfiguration)),
+                KpisNeverRun = kpis.Count(k => !k.LastRun.HasValue),
+                KpisDue = kpis.Count(k => k.IsDue && k.IsActive),
+                KpisRunning = kpis.Count(k => k.IsCurrentlyRunning),
+                KpiDetails = kpis
+            };
+
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving KPI status");
+            return StatusCode(500, new { success = false, message = "Failed to retrieve KPI status" });
+        }
+    }
+
+    /// <summary>
+    /// Reset KPI LastRun times to make them due for execution (for testing)
+    /// </summary>
+    [HttpPost("reset-kpi-times")]
+    public async Task<IActionResult> ResetKpiTimes()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+            var kpis = await context.KPIs.Where(k => k.IsActive).ToListAsync();
+
+            foreach (var kpi in kpis)
+            {
+                kpi.LastRun = null; // Reset to make them due for execution
+                kpi.IsCurrentlyRunning = false; // Ensure they're not marked as running
+            }
+
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("Reset LastRun times for {Count} active KPIs", kpis.Count);
+
+            return Ok(new {
+                success = true,
+                message = $"Reset {kpis.Count} KPIs to be due for execution",
+                resetKpis = kpis.Select(k => new { k.KpiId, k.Indicator }).ToList()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting KPI times");
+            return StatusCode(500, new { success = false, message = "Failed to reset KPI times" });
         }
     }
 }
