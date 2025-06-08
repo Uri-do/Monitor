@@ -163,7 +163,7 @@ const Administration: React.FC = () => {
       case 'error':
         return 'error';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 

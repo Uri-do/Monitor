@@ -53,7 +53,7 @@ const StatusChip: React.FC<StatusChipProps> = ({ status, customColors = {}, ...c
         warning: { color: 'warning', icon: <WarningIcon /> },
         info: { color: 'info', icon: <InfoIcon /> },
         pending: { color: 'warning', icon: <PendingIcon /> },
-        inactive: { color: 'default', icon: <InactiveIcon /> },
+        inactive: { color: 'secondary', icon: <InactiveIcon /> },
 
         // KPI statuses
         active: { color: 'success', icon: <SuccessIcon /> },
@@ -79,7 +79,7 @@ const StatusChip: React.FC<StatusChipProps> = ({ status, customColors = {}, ...c
         '4': { color: 'success', icon: <SuccessIcon /> },
       };
 
-    return statusConfigs[status.toLowerCase()] || { color: 'default' as ChipProps['color'] };
+    return statusConfigs[status.toLowerCase()] || { color: 'secondary' as ChipProps['color'] };
   };
 
   const config = getStatusConfig(status);

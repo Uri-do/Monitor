@@ -122,7 +122,7 @@ const KpiDetail: React.FC = () => {
       case 'never run':
         return 'error';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 

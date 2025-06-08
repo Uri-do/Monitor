@@ -362,7 +362,7 @@ const ComponentShowcase: React.FC = () => {
                 <AnimatedChip
                   icon={<Dashboard />}
                   label="Never Run"
-                  color="default"
+                  color="secondary"
                   sx={{ fontWeight: 600 }}
                 />
               </Box>

@@ -310,7 +310,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 
   const getSystemStatusColor = () => {
-    if (!healthData) return 'default';
+    if (!healthData) return 'secondary';
     return healthData.status === 'Healthy' ? 'success' : 'error';
   };
 

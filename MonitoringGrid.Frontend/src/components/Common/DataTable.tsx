@@ -247,46 +247,55 @@ const DataTable = <T extends Record<string, any>>({
 
     const visibleActions = allActions.filter(action => !action.hidden?.(row));
 
+    // Helper function to ensure valid color
+    const getValidColor = (color?: string): 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' => {
+      const validColors = ['primary', 'secondary', 'error', 'warning', 'info', 'success'];
+      return validColors.includes(color as string) ? (color as any) : 'primary';
+    };
+
     return (
       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-        {visibleActions.map((action, index) => (
-          <Tooltip key={index} title={action.label}>
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => action.onClick(row)}
-                color={action.color || 'default'}
-                disabled={action.disabled?.(row)}
-                sx={{
-                  borderRadius: 1,
-                  backgroundColor: 'transparent',
-                  border: '1px solid transparent',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor:
-                      action.color === 'error'
-                        ? 'rgba(244, 67, 54, 0.08)'
-                        : action.color === 'primary'
-                          ? 'rgba(102, 126, 234, 0.08)'
-                          : 'rgba(0, 0, 0, 0.04)',
-                    borderColor:
-                      action.color === 'error'
-                        ? 'error.light'
-                        : action.color === 'primary'
-                          ? 'primary.light'
-                          : 'divider',
-                    transform: 'scale(1.05)',
-                  },
-                  '&:disabled': {
-                    opacity: 0.5,
-                  },
-                }}
-              >
-                {action.icon}
-              </IconButton>
-            </span>
-          </Tooltip>
-        ))}
+        {visibleActions.map((action, index) => {
+          const actionColor = getValidColor(action.color);
+          return (
+            <Tooltip key={index} title={action.label}>
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => action.onClick(row)}
+                  color={actionColor}
+                  disabled={action.disabled?.(row)}
+                  sx={{
+                    borderRadius: 1,
+                    backgroundColor: 'transparent',
+                    border: '1px solid transparent',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      backgroundColor:
+                        actionColor === 'error'
+                          ? 'rgba(244, 67, 54, 0.08)'
+                          : actionColor === 'primary'
+                            ? 'rgba(102, 126, 234, 0.08)'
+                            : 'rgba(0, 0, 0, 0.04)',
+                      borderColor: (theme) =>
+                        actionColor === 'error'
+                          ? theme.palette.error.light
+                          : actionColor === 'primary'
+                            ? theme.palette.primary.light
+                            : theme.palette.divider,
+                      transform: 'scale(1.05)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.5,
+                    },
+                  }}
+                >
+                  {action.icon}
+                </IconButton>
+              </span>
+            </Tooltip>
+          );
+        })}
       </Box>
     );
   };

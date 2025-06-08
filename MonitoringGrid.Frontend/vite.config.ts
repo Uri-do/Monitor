@@ -20,6 +20,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/monitoring-hub': {
+        target: 'http://localhost:57653',
+        changeOrigin: true,
+        secure: false,
+        ws: true, // Enable WebSocket proxying for SignalR
+      },
     },
   },
   build: {

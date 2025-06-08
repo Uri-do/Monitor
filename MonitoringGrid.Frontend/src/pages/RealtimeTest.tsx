@@ -13,6 +13,8 @@ import {
   Paper,
   LinearProgress,
   Badge,
+  Button,
+  Alert,
 } from '@mui/material';
 import {
   Wifi,
@@ -23,13 +25,34 @@ import {
   Build,
   CheckCircle,
   Error as ErrorIcon,
+  Send,
+  Refresh,
 } from '@mui/icons-material';
 import { useRealtimeDashboard } from '../hooks/useRealtimeDashboard';
 import { format } from 'date-fns';
+import { signalRService } from '../services/signalRService';
 
 const RealtimeTest: React.FC = () => {
   const realtimeDashboard = useRealtimeDashboard();
   const [events, setEvents] = useState<Array<{ timestamp: Date; type: string; data: any }>>([]);
+  const [connectionState, setConnectionState] = useState<string>('Unknown');
+  const [testResults, setTestResults] = useState<Array<{ test: string; success: boolean; message: string }>>([]);
+
+  // Track connection state
+  useEffect(() => {
+    const updateConnectionState = () => {
+      const state = signalRService.getConnectionState();
+      setConnectionState(state);
+    };
+
+    // Update immediately
+    updateConnectionState();
+
+    // Update every second
+    const interval = setInterval(updateConnectionState, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Track events for debugging
   useEffect(() => {
@@ -41,9 +64,10 @@ const RealtimeTest: React.FC = () => {
         runningKpis: realtimeDashboard.runningKpis.length,
         countdown: realtimeDashboard.countdown,
         workerStatus: realtimeDashboard.workerStatus?.isRunning,
+        connectionState,
       },
     };
-    
+
     setEvents(prev => [newEvent, ...prev.slice(0, 19)]); // Keep last 20 events
   }, [
     realtimeDashboard.isConnected,
@@ -51,7 +75,86 @@ const RealtimeTest: React.FC = () => {
     realtimeDashboard.countdown,
     realtimeDashboard.workerStatus,
     realtimeDashboard.lastUpdate,
+    connectionState,
   ]);
+
+  // Test functions
+  const testSignalRConnection = async () => {
+    try {
+      const response = await fetch('/api/v1/signalrtest/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      setTestResults(prev => [...prev, {
+        test: 'Connection Test',
+        success: result.success,
+        message: result.message
+      }]);
+    } catch (error) {
+      setTestResults(prev => [...prev, {
+        test: 'Connection Test',
+        success: false,
+        message: `Error: ${error}`
+      }]);
+    }
+  };
+
+  const testWorkerStatus = async () => {
+    try {
+      const response = await fetch('/api/v1/signalrtest/test-worker-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      setTestResults(prev => [...prev, {
+        test: 'Worker Status Test',
+        success: result.success,
+        message: result.message
+      }]);
+    } catch (error) {
+      setTestResults(prev => [...prev, {
+        test: 'Worker Status Test',
+        success: false,
+        message: `Error: ${error}`
+      }]);
+    }
+  };
+
+  const testCountdown = async () => {
+    try {
+      const response = await fetch('/api/v1/signalrtest/test-countdown', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      setTestResults(prev => [...prev, {
+        test: 'Countdown Test',
+        success: result.success,
+        message: result.message
+      }]);
+    } catch (error) {
+      setTestResults(prev => [...prev, {
+        test: 'Countdown Test',
+        success: false,
+        message: `Error: ${error}`
+      }]);
+    }
+  };
+
+  const clearTestResults = () => {
+    setTestResults([]);
+    setEvents([]);
+  };
 
   const formatCountdown = (seconds: number | null): string => {
     if (seconds === null || seconds <= 0) return 'N/A';
@@ -74,7 +177,64 @@ const RealtimeTest: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Real-time Dashboard Test
       </Typography>
-      
+
+      {/* Test Controls */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            SignalR Connection Tests
+          </Typography>
+
+          <Box display="flex" gap={2} mb={2}>
+            <Button
+              variant="contained"
+              startIcon={<Send />}
+              onClick={testSignalRConnection}
+            >
+              Test Connection
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Build />}
+              onClick={testWorkerStatus}
+            >
+              Test Worker Status
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Timer />}
+              onClick={testCountdown}
+            >
+              Test Countdown
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={clearTestResults}
+            >
+              Clear Results
+            </Button>
+          </Box>
+
+          {testResults.length > 0 && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Test Results:
+              </Typography>
+              {testResults.map((result, index) => (
+                <Alert
+                  key={index}
+                  severity={result.success ? 'success' : 'error'}
+                  sx={{ mb: 1 }}
+                >
+                  <strong>{result.test}:</strong> {result.message}
+                </Alert>
+              ))}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
       <Grid container spacing={3}>
         {/* Connection Status */}
         <Grid item xs={12} md={6}>

@@ -161,7 +161,7 @@ export const RealTimeDashboard: React.FC = () => {
       case 'critical':
         return 'error';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 

@@ -96,7 +96,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
     }) || [];
 
   const getKpiStatusColor = (kpi: KpiDto) => {
-    if (!kpi.isActive) return 'default';
+    if (!kpi.isActive) return 'secondary';
     if (kpi.lastRun) {
       const nextDue = new Date(kpi.lastRun);
       nextDue.setMinutes(nextDue.getMinutes() + kpi.frequency);
@@ -414,7 +414,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                     <Grid item xs={6} md={3}>
                       <Card>
                         <CardContent sx={{ textAlign: 'center' }}>
-                          <Typography variant="h4" color="primary.main">
+                          <Typography variant="h4" color="primary">
                             {kpiAnalytics.totalExecutions}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
@@ -426,7 +426,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                     <Grid item xs={6} md={3}>
                       <Card>
                         <CardContent sx={{ textAlign: 'center' }}>
-                          <Typography variant="h4" color="success.main">
+                          <Typography variant="h4" color="success">
                             {kpiAnalytics.successRate.toFixed(1)}%
                           </Typography>
                           <Typography variant="body2" color="text.secondary">

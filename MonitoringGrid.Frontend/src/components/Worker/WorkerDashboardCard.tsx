@@ -52,9 +52,13 @@ interface WorkerActionResult {
 
 interface WorkerDashboardCardProps {
   workerStatus?: WorkerStatusUpdate | null;
+  realtimeEnabled?: boolean;
 }
 
-const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({ workerStatus: realtimeWorkerStatus }) => {
+const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
+  workerStatus: realtimeWorkerStatus,
+  realtimeEnabled = false
+}) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
@@ -188,7 +192,7 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({ workerStatus:
       <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center" gap={1}>
-            <Build sx={{ color: 'primary.main' }} />
+            <Build sx={{ color: (theme) => theme.palette.primary.main }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Worker Service
             </Typography>
@@ -199,10 +203,10 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({ workerStatus:
               onClick={fetchStatus}
               disabled={loading}
               sx={{
-                backgroundColor: 'primary.main',
+                backgroundColor: (theme) => theme.palette.primary.main,
                 color: 'white',
                 '&:hover': {
-                  backgroundColor: 'primary.dark',
+                  backgroundColor: (theme) => theme.palette.primary.dark,
                 },
               }}
             >
@@ -350,6 +354,17 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({ workerStatus:
               {currentStatus.mode === 'Integrated' && (
                 <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
                   Running in integrated mode. Use API restart to control.
+                </Alert>
+              )}
+
+              {/* Real-time Status Alert */}
+              {currentStatus.isRunning && currentStatus.mode !== 'Integrated' && (
+                <Alert
+                  severity={realtimeEnabled ? "success" : "info"}
+                  sx={{ mb: 2, fontSize: '0.8rem' }}
+                >
+                  Real-time features: {realtimeEnabled ? 'Connected' : 'Disconnected'}
+                  {!realtimeEnabled && ' - Go to Worker Management to enable'}
                 </Alert>
               )}
 

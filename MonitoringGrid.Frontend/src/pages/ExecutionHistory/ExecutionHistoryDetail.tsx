@@ -101,7 +101,7 @@ const ExecutionHistoryDetail: React.FC = () => {
       case 'very slow':
         return 'error';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 

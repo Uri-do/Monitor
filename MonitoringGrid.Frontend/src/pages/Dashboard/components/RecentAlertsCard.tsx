@@ -37,7 +37,7 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
       case 'low':
         return 'success';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 

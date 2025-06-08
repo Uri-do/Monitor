@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { kpiApi, alertApi } from '@/services/api';
 import WorkerDashboardCard from '@/components/Worker/WorkerDashboardCard';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { useRealtime } from '@/contexts/RealtimeContext';
 
 // Dashboard Components
 import DashboardHeader from './components/DashboardHeader';
@@ -15,8 +16,22 @@ import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingKpisCard from './components/TopAlertingKpisCard';
 
 const Dashboard: React.FC = () => {
-  // Real-time dashboard state
+  const { isEnabled: realtimeEnabled } = useRealtime();
+
+  // Real-time dashboard state - only enabled when real-time features are active
   const realtimeDashboard = useRealtimeDashboard();
+
+  // Use real-time data only if enabled, otherwise use mock data
+  const dashboardState = realtimeEnabled ? realtimeDashboard : {
+    workerStatus: null,
+    runningKpis: [],
+    countdown: null,
+    nextKpiDue: null,
+    dashboardData: null,
+    isConnected: false,
+    lastUpdate: new Date(),
+    refreshDashboard: () => {},
+  };
 
   // Fetch dashboard data with less frequent refresh since we have real-time updates
   const {
@@ -45,8 +60,8 @@ const Dashboard: React.FC = () => {
 
     return {
       ...kpiDashboard,
-      runningKpis: realtimeDashboard.runningKpis.length > 0
-        ? realtimeDashboard.runningKpis.map(kpi => ({
+      runningKpis: dashboardState.runningKpis.length > 0
+        ? dashboardState.runningKpis.map(kpi => ({
             kpiId: kpi.kpiId,
             indicator: kpi.indicator,
             owner: kpi.owner,
@@ -55,14 +70,14 @@ const Dashboard: React.FC = () => {
             estimatedCompletion: kpi.estimatedCompletion,
           }))
         : kpiDashboard.runningKpis,
-      nextKpiDue: realtimeDashboard.nextKpiDue || kpiDashboard.nextKpiDue,
+      nextKpiDue: dashboardState.nextKpiDue || kpiDashboard.nextKpiDue,
     };
-  }, [kpiDashboard, realtimeDashboard.runningKpis, realtimeDashboard.nextKpiDue]);
+  }, [kpiDashboard, dashboardState.runningKpis, dashboardState.nextKpiDue]);
 
   const handleRefresh = () => {
     refetchKpi();
     refetchAlert();
-    realtimeDashboard.refreshDashboard();
+    dashboardState.refreshDashboard();
   };
 
   if (kpiLoading || alertLoading) {
@@ -81,7 +96,7 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <DashboardHeader
         lastUpdate={kpiDashboard?.lastUpdate}
-        countdown={countdown}
+        countdown={dashboardState.countdown}
         onRefresh={handleRefresh}
       />
 
@@ -99,20 +114,23 @@ const Dashboard: React.FC = () => {
 
         {/* Worker Management - Moved to top */}
         <Grid item xs={12} md={6}>
-          <WorkerDashboardCard workerStatus={realtimeDashboard.workerStatus} />
+          <WorkerDashboardCard
+            workerStatus={dashboardState.workerStatus}
+            realtimeEnabled={realtimeEnabled}
+          />
         </Grid>
 
         {/* Running KPIs */}
         <RunningKpisCard
           kpiDashboard={mergedKpiDashboard}
-          realtimeRunningKpis={realtimeDashboard.runningKpis}
+          realtimeRunningKpis={dashboardState.runningKpis}
         />
 
         {/* Next KPI Due */}
         <NextKpiExecutionCard
           kpiDashboard={mergedKpiDashboard}
-          countdown={realtimeDashboard.countdown}
-          isConnected={realtimeDashboard.isConnected}
+          countdown={dashboardState.countdown}
+          isConnected={dashboardState.isConnected}
         />
 
         {/* Recent Alerts */}

@@ -112,7 +112,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         '& .MuiInputLabel-root': {
           fontWeight: 500,
           '&.Mui-focused': {
-            color: 'primary.main',
+            color: (theme) => theme.palette.primary.main,
           },
         },
       },
@@ -201,12 +201,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             background:
               'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
             border: '1px solid',
-            borderColor: 'primary.light',
+            borderColor: (theme) => theme.palette.primary.light,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FilterIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
+            <FilterIcon sx={{ color: (theme) => theme.palette.primary.main }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, color: (theme) => theme.palette.primary.main }}>
               Filters
             </Typography>
             {hasActiveFilters && (
@@ -214,7 +214,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 label={`${activeFilters.length || Object.keys(filters).length} active`}
                 size="small"
                 sx={{
-                  backgroundColor: 'primary.main',
+                  backgroundColor: (theme) => theme.palette.primary.main,
                   color: 'white',
                   fontWeight: 600,
                 }}
@@ -282,7 +282,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 },
               }}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'primary.main' }} />,
+                startAdornment: <SearchIcon sx={{ mr: 1, color: (theme) => theme.palette.primary.main }} />,
               }}
             />
           </Box>
@@ -302,7 +302,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   onDelete={() => removeActiveFilter(filter.field)}
                   size="small"
                   sx={{
-                    backgroundColor: 'primary.main',
+                    backgroundColor: (theme) => theme.palette.primary.main,
                     color: 'white',
                     fontWeight: 500,
                     '& .MuiChip-deleteIcon': {

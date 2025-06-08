@@ -10,6 +10,7 @@ import {
   RunningKpisUpdate,
 } from '../services/signalRService';
 import { KpiDashboardDto } from '../types/api';
+import { useRealtime } from '../contexts/RealtimeContext';
 
 export interface RealtimeDashboardState {
   // Worker status
@@ -52,6 +53,8 @@ export interface RealtimeDashboardActions {
 }
 
 export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboardActions => {
+  const { isEnabled: realtimeEnabled, isConnected: realtimeConnected } = useRealtime();
+
   const [state, setState] = useState<RealtimeDashboardState>({
     workerStatus: null,
     runningKpis: [],
@@ -168,10 +171,10 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   // Subscribe to real-time updates
   const subscribeToUpdates = useCallback(() => {
-    if (isConnected) {
+    if (realtimeEnabled && realtimeConnected) {
       // Join dashboard group
       joinGroup('Dashboard');
-      
+
       // Set up event handlers
       on('onWorkerStatusUpdate', handleWorkerStatusUpdate);
       on('onKpiExecutionStarted', handleKpiExecutionStarted);
@@ -182,7 +185,8 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
       on('onRunningKpisUpdate', handleRunningKpisUpdate);
     }
   }, [
-    isConnected,
+    realtimeEnabled,
+    realtimeConnected,
     joinGroup,
     on,
     handleWorkerStatusUpdate,
@@ -207,16 +211,16 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     off('onRunningKpisUpdate');
   }, [leaveGroup, off]);
 
-  // Auto-subscribe when connected
+  // Auto-subscribe when connected and real-time is enabled
   useEffect(() => {
-    if (isConnected) {
+    if (realtimeEnabled && realtimeConnected) {
       subscribeToUpdates();
     }
-    
+
     return () => {
       unsubscribeFromUpdates();
     };
-  }, [isConnected, subscribeToUpdates, unsubscribeFromUpdates]);
+  }, [realtimeEnabled, realtimeConnected, subscribeToUpdates, unsubscribeFromUpdates]);
 
   // Countdown timer - update every second
   useEffect(() => {
@@ -240,6 +244,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   return {
     ...state,
+    isConnected: realtimeEnabled && realtimeConnected,
     refreshDashboard,
     subscribeToUpdates,
     unsubscribeFromUpdates,

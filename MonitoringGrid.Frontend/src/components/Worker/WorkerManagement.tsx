@@ -15,6 +15,8 @@ import {
   CircularProgress,
   Grid,
   Paper,
+  LinearProgress,
+  Tooltip,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -26,8 +28,15 @@ import {
   CheckCircle,
   Build,
   AutorenewOutlined,
+  Wifi,
+  WifiOff,
+  Timer,
+  TrendingUp,
+  AccessTime,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
+import { useRealtime } from '../../contexts/RealtimeContext';
+import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
 
 interface WorkerService {
   name: string;
@@ -54,10 +63,21 @@ interface WorkerActionResult {
 }
 
 const WorkerManagement: React.FC = () => {
+  const { isEnabled: realtimeEnabled, isConnected: signalRConnected, toggleRealtime } = useRealtime();
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Disabled by default to prevent rate limiting
+
+  // Real-time dashboard data
+  const {
+    workerStatus: realtimeWorkerStatus,
+    runningKpis,
+    countdown,
+    nextKpiDue,
+    isConnected: realtimeConnected,
+    lastUpdate: realtimeLastUpdate,
+  } = useRealtimeDashboard();
 
   const fetchStatus = async () => {
     try {
@@ -88,6 +108,11 @@ const WorkerManagement: React.FC = () => {
       if (result.success) {
         toast.success(result.message);
         await fetchStatus(); // Refresh status
+
+        // If worker was stopped, disable real-time features
+        if (action === 'stop' && realtimeEnabled) {
+          await toggleRealtime();
+        }
       } else {
         toast.error(result.message);
       }
@@ -96,6 +121,16 @@ const WorkerManagement: React.FC = () => {
       console.error(`Error ${action}ing worker:`, error);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const toggleRealtimeFeatures = async () => {
+    try {
+      await toggleRealtime();
+      toast.success(`Real-time features ${realtimeEnabled ? 'disabled' : 'enabled'}`);
+    } catch (error) {
+      toast.error(`Failed to ${realtimeEnabled ? 'disable' : 'enable'} real-time features`);
+      console.error('Real-time toggle error:', error);
     }
   };
 
@@ -117,11 +152,57 @@ const WorkerManagement: React.FC = () => {
     return new Date(dateTime).toLocaleString();
   };
 
+  const formatCountdown = (seconds: number): string => {
+    if (seconds <= 0) return 'Due Now!';
+
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+    const mins = Math.floor((seconds % (60 * 60)) / 60);
+    const secs = seconds % 60;
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${mins}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${mins}m ${secs}s`;
+    } else if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
+  const getCountdownProgress = (seconds: number, frequency: string): number => {
+    // Calculate progress based on frequency
+    let totalSeconds = 0;
+    switch (frequency?.toLowerCase()) {
+      case 'hourly':
+        totalSeconds = 60 * 60;
+        break;
+      case 'daily':
+        totalSeconds = 24 * 60 * 60;
+        break;
+      case '5 minutes':
+        totalSeconds = 5 * 60;
+        break;
+      case '15 minutes':
+        totalSeconds = 15 * 60;
+        break;
+      case '30 minutes':
+        totalSeconds = 30 * 60;
+        break;
+      default:
+        totalSeconds = 60 * 60; // Default to hourly
+    }
+
+    const elapsed = totalSeconds - seconds;
+    return Math.max(0, Math.min(100, (elapsed / totalSeconds) * 100));
+  };
+
   useEffect(() => {
     fetchStatus();
 
     if (autoRefresh) {
-      const interval = setInterval(fetchStatus, 5000); // Refresh every 5 seconds
+      const interval = setInterval(fetchStatus, 15000); // Refresh every 15 seconds to prevent rate limiting
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
@@ -241,7 +322,7 @@ const WorkerManagement: React.FC = () => {
           </Paper>
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
             <Button
               variant="contained"
               color="success"
@@ -278,7 +359,68 @@ const WorkerManagement: React.FC = () => {
             >
               {actionLoading === 'restart' ? 'Restarting...' : 'Restart Worker'}
             </Button>
+
+            {/* Real-time Features Toggle */}
+            <Button
+              variant={realtimeEnabled ? "contained" : "outlined"}
+              color={realtimeEnabled ? "primary" : "secondary"}
+              onClick={toggleRealtimeFeatures}
+              disabled={!status.isRunning || status.mode === 'Integrated'}
+              startIcon={realtimeEnabled ? <Wifi /> : <WifiOff />}
+            >
+              {realtimeEnabled ? 'Disable Real-time' : 'Enable Real-time'}
+            </Button>
           </Box>
+
+          {/* Real-time Features Status */}
+          {status.isRunning && status.mode !== 'Integrated' && (
+            <Alert
+              severity={realtimeEnabled ? "success" : "info"}
+              sx={{ mb: 3 }}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={toggleRealtimeFeatures}
+                  startIcon={realtimeEnabled ? <WifiOff /> : <Wifi />}
+                >
+                  {realtimeEnabled ? 'Disable' : 'Enable'}
+                </Button>
+              }
+            >
+              Real-time features are {realtimeEnabled ? 'enabled' : 'disabled'}.
+              {realtimeEnabled
+                ? ' Dashboard will show live updates and countdown timers.'
+                : ' Enable to see live KPI execution status and countdown timers.'
+              }
+              {realtimeEnabled && (
+                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: realtimeConnected ? 'success.main' : 'error.main',
+                      animation: realtimeConnected ? 'pulse 2s infinite' : 'none',
+                      '@keyframes pulse': {
+                        '0%': { opacity: 1 },
+                        '50%': { opacity: 0.5 },
+                        '100%': { opacity: 1 },
+                      },
+                    }}
+                  />
+                  <Typography variant="caption">
+                    {realtimeConnected ? 'Connected' : 'Disconnected'}
+                  </Typography>
+                  {realtimeLastUpdate && (
+                    <Typography variant="caption" color="text.secondary">
+                      • Last update: {formatDateTime(realtimeLastUpdate.toISOString())}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Alert>
+          )}
 
           {/* Integration Mode Alert */}
           {status.mode === 'Integrated' && (
@@ -287,6 +429,172 @@ const WorkerManagement: React.FC = () => {
               <code>EnableWorkerServices</code> to <code>false</code> in configuration and restart
               the API.
             </Alert>
+          )}
+
+          {/* Real-time Monitoring Section */}
+          {realtimeEnabled && realtimeConnected && (
+            <>
+              {/* Next KPI Execution Countdown */}
+              {nextKpiDue && countdown !== null && countdown !== undefined && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.50', border: 1, borderColor: 'primary.200' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Timer sx={{ color: 'primary.main' }} />
+                    <Typography variant="h6" color="primary.main">
+                      Next KPI Execution
+                    </Typography>
+                    <Chip
+                      label="LIVE"
+                      size="small"
+                      color="success"
+                      sx={{
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                          '100%': { opacity: 1 },
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} md={8}>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {nextKpiDue.indicator}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Owner: {nextKpiDue.owner} • Frequency: {nextKpiDue.frequency}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                        <Chip
+                          label={countdown > 0 ? formatCountdown(countdown) : 'Due Now!'}
+                          color={countdown <= 300 ? 'warning' : 'primary'}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  {/* Progress Bar */}
+                  {countdown > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Typography variant="caption" color="text.secondary">
+                          Progress to next execution
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {Math.round(getCountdownProgress(countdown, nextKpiDue.frequency))}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={getCountdownProgress(countdown, nextKpiDue.frequency)}
+                        sx={{
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: 'grey.200',
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 3,
+                            bgcolor: countdown <= 300 ? 'warning.main' : 'primary.main',
+                          },
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Paper>
+              )}
+
+              {/* Running KPIs */}
+              {runningKpis.length > 0 && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: 'success.50', border: 1, borderColor: 'success.200' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <TrendingUp sx={{ color: 'success.main' }} />
+                    <Typography variant="h6" color="success.main">
+                      Currently Executing KPIs ({runningKpis.length})
+                    </Typography>
+                    <Chip
+                      label="LIVE"
+                      size="small"
+                      color="success"
+                      sx={{
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                          '100%': { opacity: 1 },
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {runningKpis.map((kpi, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          p: 2,
+                          bgcolor: 'background.paper',
+                          borderRadius: 1,
+                          border: 1,
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item xs={12} md={8}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  bgcolor: 'success.main',
+                                  animation: 'pulse 1s infinite',
+                                }}
+                              />
+                              <Box>
+                                <Typography variant="subtitle1" fontWeight="medium">
+                                  {kpi.indicator}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Owner: {kpi.owner}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12} md={4}>
+                            <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Started: {formatDateTime(kpi.startTime)}
+                              </Typography>
+                              {kpi.progress !== undefined && (
+                                <Box sx={{ mt: 1 }}>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={kpi.progress}
+                                    sx={{ height: 4, borderRadius: 2 }}
+                                  />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {kpi.progress}% complete
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              )}
+            </>
           )}
 
           <Divider sx={{ mb: 3 }} />

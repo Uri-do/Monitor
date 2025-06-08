@@ -266,7 +266,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 size="medium"
                 sx={{
                   backgroundColor: 'white',
-                  color: 'primary.main',
+                  color: (theme) => theme.palette.primary.main,
                   fontWeight: 600,
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.9)',

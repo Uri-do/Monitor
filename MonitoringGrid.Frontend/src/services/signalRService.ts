@@ -105,10 +105,13 @@ class SignalRService {
   }
 
   private initializeConnection(): void {
-    const baseUrl = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:7001';
+    // Use the proxied URL for SignalR connection in development
+    const hubUrl = '/monitoring-hub';
+
+    console.log('Initializing SignalR connection to:', hubUrl);
 
     this.connection = new HubConnectionBuilder()
-      .withUrl(`${baseUrl}/hubs/monitoring`, {
+      .withUrl(hubUrl, {
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -131,6 +134,15 @@ class SignalRService {
 
   private setupEventHandlers(): void {
     if (!this.connection) return;
+
+    // Test events
+    this.connection.on('TestMessage', (data: any) => {
+      console.log('✅ SignalR Test Message received:', data);
+    });
+
+    this.connection.on('GroupTestMessage', (data: any) => {
+      console.log('✅ SignalR Group Test Message received:', data);
+    });
 
     // Alert events
     this.connection.on('AlertTriggered', (alert: AlertNotification) => {
@@ -244,6 +256,12 @@ class SignalRService {
       console.log('Running KPIs update:', data);
       this.eventHandlers.onRunningKpisUpdate?.(data);
     });
+
+    // Handle system status updates (if server sends them)
+    this.connection.on('systemstatus', (data: any) => {
+      console.log('System status update:', data);
+      // Handle system status if needed
+    });
   }
 
   private setupConnectionEvents(): void {
@@ -271,6 +289,18 @@ class SignalRService {
       this.initializeConnection();
     }
 
+    // Check if already connected or connecting
+    if (this.connection!.state === 'Connected') {
+      console.log('SignalR connection already connected');
+      this.eventHandlers.onConnectionStateChanged?.('Connected');
+      return;
+    }
+
+    if (this.connection!.state === 'Connecting') {
+      console.log('SignalR connection already connecting');
+      return;
+    }
+
     try {
       await this.connection!.start();
       console.log('SignalR connection started');
@@ -289,11 +319,24 @@ class SignalRService {
   }
 
   public async stop(): Promise<void> {
-    if (this.connection) {
+    if (this.connection && this.connection.state !== 'Disconnected') {
       await this.connection.stop();
       console.log('SignalR connection stopped');
       this.eventHandlers.onConnectionStateChanged?.('Disconnected');
     }
+  }
+
+  // Alias methods for RealtimeContext compatibility
+  public async connect(): Promise<void> {
+    return this.start();
+  }
+
+  public async disconnect(): Promise<void> {
+    return this.stop();
+  }
+
+  public isConnected(): boolean {
+    return this.connection?.state === 'Connected';
   }
 
   public on<K extends keyof SignalREvents>(event: K, handler: SignalREvents[K]): void {
@@ -310,7 +353,8 @@ class SignalRService {
         await this.connection.invoke('JoinGroup', groupName);
         console.log(`Joined group: ${groupName}`);
       } catch (error) {
-        console.error(`Error joining group ${groupName}:`, error);
+        // Gracefully handle missing server method
+        console.warn(`JoinGroup method not available on server for group ${groupName}:`, error);
       }
     }
   }
@@ -321,7 +365,8 @@ class SignalRService {
         await this.connection.invoke('LeaveGroup', groupName);
         console.log(`Left group: ${groupName}`);
       } catch (error) {
-        console.error(`Error leaving group ${groupName}:`, error);
+        // Gracefully handle missing server method
+        console.warn(`LeaveGroup method not available on server for group ${groupName}:`, error);
       }
     }
   }
@@ -374,8 +419,8 @@ export const useSignalR = () => {
 
     signalRService.on('onConnectionStateChanged', handleConnectionStateChanged);
 
-    // Start connection
-    signalRService.start();
+    // Don't auto-start connection - let RealtimeContext manage it
+    // signalRService.start();
 
     return () => {
       signalRService.off('onConnectionStateChanged');

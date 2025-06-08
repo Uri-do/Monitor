@@ -48,6 +48,9 @@ import { AuthProvider } from '@/hooks/useAuth';
 // Theme Provider
 import { CustomThemeProvider } from '@/hooks/useTheme';
 
+// Realtime Provider
+import { RealtimeProvider } from '@/contexts/RealtimeContext';
+
 // Error Boundary for catching routing errors
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -185,8 +188,9 @@ function App() {
       <CustomThemeProvider>
         <CssBaseline />
         <AuthProvider>
-          <ErrorBoundary>
-            <Router>
+          <RealtimeProvider>
+            <ErrorBoundary>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/login" element={<Login />} />
@@ -484,6 +488,7 @@ function App() {
               </Routes>
             </Router>
           </ErrorBoundary>
+          </RealtimeProvider>
         </AuthProvider>
 
         {/* Toast notifications */}
