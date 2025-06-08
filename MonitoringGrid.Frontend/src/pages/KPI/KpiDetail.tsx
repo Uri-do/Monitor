@@ -46,6 +46,7 @@ import {
 } from '@/components/Common';
 import { PaginatedExecutionHistoryDto } from '@/types/api';
 import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
+import { getScheduleDescription } from '@/utils/schedulerUtils';
 
 const KpiDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -193,6 +194,35 @@ const KpiDetail: React.FC = () => {
                     Every {kpi.frequency} minutes
                   </Typography>
                 </Grid>
+                {kpi.scheduleConfiguration && (
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="textSecondary">
+                      Schedule Configuration
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <Chip
+                        icon={<ScheduleIcon />}
+                        label={getScheduleDescription(kpi.scheduleConfiguration)}
+                        color={kpi.scheduleConfiguration.isEnabled ? 'success' : 'default'}
+                        variant="outlined"
+                        sx={{ mr: 1 }}
+                      />
+                      <Chip
+                        label={kpi.scheduleConfiguration.isEnabled ? 'Enabled' : 'Disabled'}
+                        color={kpi.scheduleConfiguration.isEnabled ? 'success' : 'default'}
+                        size="small"
+                      />
+                      {kpi.scheduleConfiguration.timezone && (
+                        <Chip
+                          label={`Timezone: ${kpi.scheduleConfiguration.timezone}`}
+                          variant="outlined"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      )}
+                    </Box>
+                  </Grid>
+                )}
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
                     Data Window

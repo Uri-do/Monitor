@@ -131,6 +131,9 @@ const KpiCreate: React.FC = () => {
   // Watch priority for color display
   const watchedPriority = watch('priority');
 
+  // Watch frequency field to sync with schedule configuration
+  const watchedFrequency = watch('frequency');
+
   // Update form when KPI data is loaded
   useEffect(() => {
     if (kpi && isEdit) {
@@ -235,6 +238,30 @@ const KpiCreate: React.FC = () => {
   const handleContactChange = (event: any, newValue: ContactDto[]) => {
     setSelectedContacts(newValue);
   };
+
+  // Handle schedule configuration changes and sync with frequency field
+  const handleScheduleConfigChange = (newScheduleConfig: ScheduleConfiguration) => {
+    setScheduleConfig(newScheduleConfig);
+
+    // Sync the frequency field with the schedule configuration
+    if (newScheduleConfig.scheduleType === ScheduleType.Interval && newScheduleConfig.intervalMinutes) {
+      // Update the form's frequency field to match the schedule interval
+      reset({
+        ...watch(),
+        frequency: newScheduleConfig.intervalMinutes
+      });
+    }
+  };
+
+  // Sync frequency field changes back to schedule configuration
+  React.useEffect(() => {
+    if (scheduleConfig.scheduleType === ScheduleType.Interval && watchedFrequency !== scheduleConfig.intervalMinutes) {
+      setScheduleConfig(prev => ({
+        ...prev,
+        intervalMinutes: watchedFrequency
+      }));
+    }
+  }, [watchedFrequency, scheduleConfig.scheduleType, scheduleConfig.intervalMinutes]);
 
   const handleTest = () => {
     if (isEdit && kpiId) {
@@ -375,7 +402,7 @@ const KpiCreate: React.FC = () => {
           <Grid item xs={12}>
             <SchedulerComponent
               value={scheduleConfig}
-              onChange={setScheduleConfig}
+              onChange={handleScheduleConfigChange}
               showAdvanced={true}
             />
           </Grid>
@@ -399,7 +426,7 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.frequency}
-                          helperText={errors.frequency?.message || 'How often to check this KPI'}
+                          helperText={errors.frequency?.message || 'How often to check this KPI (synced with schedule configuration)'}
                           inputProps={{ min: 1 }}
                         />
                       )}

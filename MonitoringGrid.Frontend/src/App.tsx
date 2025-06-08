@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, Component, ErrorInfo, ReactNode, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
@@ -31,6 +31,9 @@ const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
 const Administration = React.lazy(() => import('@/pages/Administration/Administration'));
 const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
 const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
+const ComponentShowcase = React.lazy(() => import('@/pages/Demo/ComponentShowcase'));
+const VisualizationShowcase = React.lazy(() => import('@/pages/Demo/VisualizationShowcase'));
+const InteractiveShowcase = React.lazy(() => import('@/pages/Demo/InteractiveShowcase'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -38,39 +41,98 @@ import { AuthProvider } from '@/hooks/useAuth';
 // Theme Provider
 import { CustomThemeProvider } from '@/hooks/useTheme';
 
+// Error Boundary for catching routing errors
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Route Error Boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            gap: 2,
+            p: 3,
+          }}
+        >
+          <Typography variant="h5" color="error">
+            Something went wrong
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </Typography>
+          <button onClick={() => window.location.reload()}>
+            Reload Page
+          </button>
+        </Box>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // Loading fallback component for lazy loaded routes
-const LoadingFallback: React.FC = () => (
-  <Box
-    sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '60vh',
-      gap: 2,
-    }}
-  >
-    <CircularProgress size={40} />
-    <Typography variant="body1" color="text.secondary">
-      Loading...
-    </Typography>
-  </Box>
-);
+const LoadingFallback: React.FC = () => {
+  console.log('LoadingFallback rendered'); // Debug log
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        gap: 2,
+        backgroundColor: 'background.default',
+        width: '100%',
+      }}
+    >
+      <CircularProgress size={40} />
+      <Typography variant="body1" color="text.secondary">
+        Loading page...
+      </Typography>
+    </Box>
+  );
+};
 
 // Helper component to wrap lazy loaded routes
 const LazyRoute: React.FC<{
   children: React.ReactNode;
   requiredPermissions?: string[];
   requiredRoles?: string[];
-}> = ({ children, requiredPermissions, requiredRoles }) => (
-  <ProtectedRoute requiredPermissions={requiredPermissions} requiredRoles={requiredRoles}>
-    <Layout>
-      <Suspense fallback={<LoadingFallback />}>
-        {children}
-      </Suspense>
-    </Layout>
-  </ProtectedRoute>
-);
+}> = ({ children, requiredPermissions, requiredRoles }) => {
+  console.log('LazyRoute rendered with permissions:', requiredPermissions); // Debug log
+  return (
+    <ProtectedRoute requiredPermissions={requiredPermissions} requiredRoles={requiredRoles}>
+      <Layout>
+        <Suspense fallback={<LoadingFallback />}>
+          {children}
+        </Suspense>
+      </Layout>
+    </ProtectedRoute>
+  );
+};
 
 // Theme-aware Toaster component
 const ThemedToaster: React.FC = () => {
@@ -116,14 +178,27 @@ const queryClient = new QueryClient({
   },
 });
 
+// Route change detector for debugging
+const RouteChangeDetector: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('Route changed to:', location.pathname);
+  }, [location]);
+
+  return null;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <CustomThemeProvider>
         <CssBaseline />
         <AuthProvider>
-          <Router>
-            <Routes>
+          <ErrorBoundary>
+            <Router>
+              <RouteChangeDetector />
+              <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -165,163 +240,149 @@ function App() {
 
               {/* Contact Management */}
               <Route path="/contacts" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ContactList />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ContactList />
+                </LazyRoute>
               } />
               <Route path="/contacts/create" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ContactCreate />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ContactCreate />
+                </LazyRoute>
               } />
               <Route path="/contacts/:id" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ContactDetail />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ContactDetail />
+                </LazyRoute>
               } />
               <Route path="/contacts/:id/edit" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ContactCreate />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ContactCreate />
+                </LazyRoute>
               } />
 
               {/* Alert Management */}
               <Route path="/alerts" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <AlertList />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <AlertList />
+                </LazyRoute>
               } />
               <Route path="/alerts/:id" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <AlertDetail />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <AlertDetail />
+                </LazyRoute>
               } />
 
               {/* Analytics */}
               <Route path="/analytics" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Analytics />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Analytics />
+                </LazyRoute>
               } />
 
               {/* Execution History */}
               <Route path="/execution-history" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ExecutionHistoryList />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ExecutionHistoryList />
+                </LazyRoute>
               } />
               <Route path="/execution-history/:id" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ExecutionHistoryDetail />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <ExecutionHistoryDetail />
+                </LazyRoute>
               } />
 
               {/* User Profile */}
               <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <UserProfile />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <UserProfile />
+                </LazyRoute>
               } />
 
               {/* Administration Routes */}
               <Route path="/administration" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Administration />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Administration />
+                </LazyRoute>
               } />
 
               <Route path="/administration/security" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Administration />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Administration />
+                </LazyRoute>
               } />
 
               <Route path="/administration/api-keys" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Administration />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Administration />
+                </LazyRoute>
               } />
 
               <Route path="/administration/audit" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Administration />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Administration />
+                </LazyRoute>
               } />
 
               {/* Admin Routes */}
               <Route path="/admin" element={
-                <ProtectedRoute requiredPermissions={['System:Admin']}>
-                  <Layout>
-                    <AdminDashboard />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute requiredPermissions={['System:Admin']}>
+                  <AdminDashboard />
+                </LazyRoute>
               } />
 
               <Route path="/admin/users" element={
-                <ProtectedRoute requiredPermissions={['User:Read']}>
-                  <Layout>
-                    <UserManagement />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute requiredPermissions={['User:Read']}>
+                  <UserManagement />
+                </LazyRoute>
               } />
 
               <Route path="/admin/roles" element={
-                <ProtectedRoute requiredPermissions={['Role:Read']}>
-                  <Layout>
-                    <RoleManagement />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute requiredPermissions={['Role:Read']}>
+                  <RoleManagement />
+                </LazyRoute>
               } />
 
               <Route path="/admin/settings" element={
-                <ProtectedRoute requiredPermissions={['System:Admin']}>
-                  <Layout>
-                    <SystemSettings />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute requiredPermissions={['System:Admin']}>
+                  <SystemSettings />
+                </LazyRoute>
               } />
 
               {/* Settings */}
               <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Settings />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Settings />
+                </LazyRoute>
               } />
+
+              {/* Component Showcase (Development/Demo) */}
+              <Route path="/showcase" element={
+                <LazyRoute>
+                  <ComponentShowcase />
+                </LazyRoute>
+              } />
+
+              {/* Visualization Showcase (Development/Demo) */}
+              <Route path="/visualizations" element={
+                <LazyRoute>
+                  <VisualizationShowcase />
+                </LazyRoute>
+              } />
+
+              {/* Interactive Showcase (Development/Demo) */}
+              <Route path="/interactions" element={
+                <LazyRoute>
+                  <InteractiveShowcase />
+                </LazyRoute>
+              } />
+
+
 
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </Router>
+              </Routes>
+            </Router>
+          </ErrorBoundary>
         </AuthProvider>
 
         {/* Toast notifications */}

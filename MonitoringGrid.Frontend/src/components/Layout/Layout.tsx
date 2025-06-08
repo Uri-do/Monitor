@@ -93,6 +93,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log('Navigating to:', path); // Debug log
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);

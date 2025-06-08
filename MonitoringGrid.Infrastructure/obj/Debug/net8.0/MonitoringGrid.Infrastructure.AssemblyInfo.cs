@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5914e6738081d9d54f03742f47236cdf649433b2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+19952b068501dffdcd610cda8053a31114c26362")]
 [assembly: System.Reflection.AssemblyProductAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MonitoringGrid.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
