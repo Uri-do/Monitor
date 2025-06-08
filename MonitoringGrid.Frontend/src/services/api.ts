@@ -50,7 +50,7 @@ const USE_MOCK_DATA = false;
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api/v1.0', // Use versioned API endpoints
+  baseURL: '/api/v1', // Use versioned API endpoints (v1 not v1.0)
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

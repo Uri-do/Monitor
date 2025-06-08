@@ -1,5 +1,5 @@
-import React, { Suspense, Component, ErrorInfo, ReactNode, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense, Component, ErrorInfo, ReactNode } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
@@ -96,7 +96,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 
 // Loading fallback component for lazy loaded routes
 const LoadingFallback: React.FC = () => {
-  console.log('LoadingFallback rendered'); // Debug log
   return (
     <Box
       sx={{
@@ -124,7 +123,6 @@ const LazyRoute: React.FC<{
   requiredPermissions?: string[];
   requiredRoles?: string[];
 }> = ({ children, requiredPermissions, requiredRoles }) => {
-  console.log('LazyRoute rendered with permissions:', requiredPermissions); // Debug log
   return (
     <ProtectedRoute requiredPermissions={requiredPermissions} requiredRoles={requiredRoles}>
       <Layout>
@@ -180,17 +178,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Route change detector for debugging
-const RouteChangeDetector: React.FC = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.log('Route changed to:', location.pathname);
-  }, [location]);
-
-  return null;
-};
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -199,7 +186,6 @@ function App() {
         <AuthProvider>
           <ErrorBoundary>
             <Router>
-              <RouteChangeDetector />
               <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
@@ -391,8 +377,6 @@ function App() {
                   <InteractiveShowcase />
                 </LazyRoute>
               } />
-
-
 
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />

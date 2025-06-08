@@ -29,11 +29,8 @@ export { useKpis } from '@/hooks/useKpis';
 export { useAlerts } from '@/hooks/useAlerts';
 export { useSignalR } from '@/services/signalRService';
 
-// Data Visualization Components
+// Core visualization components - actively used
 export { default as EnhancedChart } from './EnhancedCharts';
-export { default as RealtimeDashboard } from './RealtimeDashboard';
-export { default as InteractiveVisualization } from './InteractiveVisualizations';
-export { default as KpiVisualization } from './KpiVisualization';
 
 // Design tokens for consistent styling
 export { designTokens, statusColors } from '../../theme/designTokens';

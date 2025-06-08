@@ -398,17 +398,28 @@ public class KpiController : ControllerBase
                 .Select(k => _mapper.Map<KpiStatusDto>(k))
                 .ToList();
 
-            // Get next KPI due for execution
-            var nextKpiDue = kpis
-                .Where(k => k.IsActive && k.LastRun.HasValue)
+            // Get next KPI due for execution (including overdue ones)
+            var activeKpisWithLastRun = kpis.Where(k => k.IsActive && k.LastRun.HasValue).ToList();
+            _logger.LogInformation("Found {Count} active KPIs with LastRun values", activeKpisWithLastRun.Count);
+
+            var nextKpiDue = activeKpisWithLastRun
                 .Select(k => new {
                     Kpi = k,
                     NextRun = k.LastRun!.Value.AddMinutes(k.Frequency),
                     MinutesUntilDue = (k.LastRun!.Value.AddMinutes(k.Frequency) - now).TotalMinutes
                 })
-                .Where(x => x.MinutesUntilDue > 0)
                 .OrderBy(x => x.NextRun)
                 .FirstOrDefault();
+
+            if (nextKpiDue != null)
+            {
+                _logger.LogInformation("Next KPI due: {Indicator} (ID: {KpiId}), NextRun: {NextRun}, MinutesUntilDue: {MinutesUntilDue}",
+                    nextKpiDue.Kpi.Indicator, nextKpiDue.Kpi.KpiId, nextKpiDue.NextRun, nextKpiDue.MinutesUntilDue);
+            }
+            else
+            {
+                _logger.LogInformation("No next KPI due found");
+            }
 
             // Get recent executions (from historical data)
             var historicalRepository = _unitOfWork.Repository<HistoricalData>();
@@ -447,7 +458,9 @@ public class KpiController : ControllerBase
                     Owner = nextKpiDue.Kpi.Owner,
                     NextRun = nextKpiDue.NextRun,
                     MinutesUntilDue = (int)Math.Max(0, nextKpiDue.MinutesUntilDue),
-                    Status = nextKpiDue.MinutesUntilDue <= 5 ? "Due Soon" : "Scheduled"
+                    Status = nextKpiDue.MinutesUntilDue <= 0 ? "Due Now" :
+                             nextKpiDue.MinutesUntilDue <= 5 ? "Due Soon" : "Scheduled",
+                    Frequency = nextKpiDue.Kpi.Frequency
                 } : null,
                 RecentExecutions = recentExecutions
             };

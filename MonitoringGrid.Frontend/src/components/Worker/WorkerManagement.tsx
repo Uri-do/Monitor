@@ -20,7 +20,6 @@ import {
   PlayArrow,
   Stop,
   Refresh,
-  Activity,
   Schedule,
   Memory,
   Error as ErrorIcon,
