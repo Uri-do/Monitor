@@ -60,7 +60,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
 import { securityService } from '../../services/securityService';
-import { SecurityConfig, SecurityEvent, User, Role, Permission } from '../../types/auth';
+import { SecurityConfig, SecurityEvent as AuthSecurityEvent, User, Role, Permission } from '../../types/auth';
+import { PageHeader } from '../../components/Common';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -94,7 +95,7 @@ interface ApiKey {
   createdAt: string;
 }
 
-interface SecurityEvent {
+interface SecurityEventLocal {
   eventId: string;
   eventType: string;
   userId?: string;
@@ -107,18 +108,28 @@ interface SecurityEvent {
 const securitySchema = yup.object({
   passwordPolicy: yup.object({
     minimumLength: yup.number().min(6).max(128).required(),
+    requireUppercase: yup.boolean().required(),
+    requireLowercase: yup.boolean().required(),
+    requireNumbers: yup.boolean().required(),
+    requireSpecialChars: yup.boolean().required(),
     passwordExpirationDays: yup.number().min(1).max(365).required(),
     maxFailedAttempts: yup.number().min(1).max(10).required(),
     lockoutDurationMinutes: yup.number().min(1).max(1440).required()
   }),
   sessionSettings: yup.object({
     sessionTimeoutMinutes: yup.number().min(5).max(1440).required(),
-    idleTimeoutMinutes: yup.number().min(5).max(240).required()
+    idleTimeoutMinutes: yup.number().min(5).max(240).required(),
+    allowConcurrentSessions: yup.boolean().required()
+  }),
+  twoFactorSettings: yup.object({
+    enabled: yup.boolean().required(),
+    required: yup.boolean().required(),
+    methods: yup.array().of(yup.string().required()).required()
   }),
   rateLimitSettings: yup.object({
-    requestsPerMinute: yup.number().min(1).max(10000).required(),
-    requestsPerHour: yup.number().min(1).max(100000).required(),
-    requestsPerDay: yup.number().min(1).max(1000000).required()
+    enabled: yup.boolean().required(),
+    maxRequestsPerMinute: yup.number().min(1).max(10000).required(),
+    maxRequestsPerHour: yup.number().min(1).max(100000).required()
   })
 });
 
@@ -126,7 +137,7 @@ export const SecuritySettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [config, setConfig] = useState<SecurityConfig | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
+  const [securityEvents, setSecurityEvents] = useState<SecurityEventLocal[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -202,7 +213,15 @@ export const SecuritySettings: React.FC = () => {
 
       setConfig(configData);
       setApiKeys(apiKeysData.status === 'fulfilled' ? apiKeysData.value : []);
-      setSecurityEvents(eventsData.status === 'fulfilled' ? eventsData.value : []);
+      setSecurityEvents(eventsData.status === 'fulfilled' ? eventsData.value.map((event: any) => ({
+        eventId: event.id || event.eventId,
+        eventType: event.type || event.eventType,
+        userId: event.userId,
+        ipAddress: event.ipAddress,
+        timestamp: event.timestamp,
+        isSuccess: event.isSuccess ?? true,
+        description: event.description || event.details || ''
+      })) : []);
       setUsers(usersData.status === 'fulfilled' ? usersData.value : []);
       setRoles(rolesData.status === 'fulfilled' ? rolesData.value : []);
       setPermissions(permissionsData.status === 'fulfilled' ? permissionsData.value : []);
@@ -242,12 +261,15 @@ export const SecuritySettings: React.FC = () => {
     if (!newApiKeyName.trim()) return;
 
     try {
-      const newKey = await securityService.createApiKey({
-        name: newApiKeyName,
-        scopes: ['read:kpis', 'write:kpis']
-      });
+      const newKey = await securityService.createApiKey(newApiKeyName, ['read:kpis', 'write:kpis']);
       
-      setApiKeys(prev => [newKey, ...prev]);
+      setApiKeys(prev => [{
+        keyId: newKey.keyId,
+        name: newApiKeyName,
+        scopes: ['read:kpis', 'write:kpis'],
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
       setApiKeyDialogOpen(false);
       setNewApiKeyName('');
       setSuccess('API key created successfully');
@@ -298,7 +320,7 @@ export const SecuritySettings: React.FC = () => {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit as any)}>
         <Grid container spacing={3}>
           {/* Password Policy */}
           <Grid item xs={12} md={6}>
@@ -351,7 +373,7 @@ export const SecuritySettings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="passwordPolicy.requireDigit"
+                      name="passwordPolicy.requireNumbers"
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -363,7 +385,7 @@ export const SecuritySettings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="passwordPolicy.requireSpecialCharacter"
+                      name="passwordPolicy.requireSpecialChars"
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
@@ -453,24 +475,108 @@ export const SecuritySettings: React.FC = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="sessionSettings.requireHttps"
+                      name="sessionSettings.allowConcurrentSessions"
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
                           control={<Switch {...field} checked={field.value} />}
-                          label="Require HTTPS"
+                          label="Allow Concurrent Sessions"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Two-Factor Authentication */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Two-Factor Authentication
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="twoFactorSettings.enabled"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Switch {...field} checked={field.value} />}
+                          label="Enable Two-Factor Authentication"
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="sessionSettings.secureCookies"
+                      name="twoFactorSettings.required"
                       control={control}
                       render={({ field }) => (
                         <FormControlLabel
                           control={<Switch {...field} checked={field.value} />}
-                          label="Secure Cookies"
+                          label="Require Two-Factor Authentication for All Users"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Rate Limiting */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Rate Limiting
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="rateLimitSettings.enabled"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Switch {...field} checked={field.value} />}
+                          label="Enable Rate Limiting"
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="rateLimitSettings.maxRequestsPerMinute"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Max Requests Per Minute"
+                          type="number"
+                          fullWidth
+                          error={!!errors.rateLimitSettings?.maxRequestsPerMinute}
+                          helperText={errors.rateLimitSettings?.maxRequestsPerMinute?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="rateLimitSettings.maxRequestsPerHour"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Max Requests Per Hour"
+                          type="number"
+                          fullWidth
+                          error={!!errors.rateLimitSettings?.maxRequestsPerHour}
+                          helperText={errors.rateLimitSettings?.maxRequestsPerHour?.message}
                         />
                       )}
                     />

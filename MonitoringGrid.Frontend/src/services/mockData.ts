@@ -228,6 +228,9 @@ export const mockKpiDashboard: KpiDashboardDto = {
   lastUpdate: '2024-01-15T10:45:00Z',
   recentAlerts: [],
   kpisInError: [],
+  kpisRunning: 2,
+  runningKpis: [],
+  recentExecutions: [],
   dueKpis: [
     {
       kpiId: 1,
@@ -237,7 +240,8 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastRun: '2024-01-15T08:00:00Z',
       frequency: 5,
       status: 'Never Run',
-      alertsToday: 0
+      alertsToday: 0,
+      isCurrentlyRunning: false
     },
     {
       kpiId: 2,
@@ -247,7 +251,8 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastRun: '2024-01-15T09:45:00Z',
       frequency: 15,
       status: 'Never Run',
-      alertsToday: 0
+      alertsToday: 0,
+      isCurrentlyRunning: false
     },
     {
       kpiId: 3,
@@ -257,7 +262,8 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastRun: '2024-01-15T07:30:00Z',
       frequency: 15,
       status: 'Never Run',
-      alertsToday: 0
+      alertsToday: 0,
+      isCurrentlyRunning: false
     },
     {
       kpiId: 4,
@@ -267,7 +273,8 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastRun: '2024-01-15T10:15:00Z',
       frequency: 30,
       status: 'Never Run',
-      alertsToday: 0
+      alertsToday: 0,
+      isCurrentlyRunning: false
     },
     {
       kpiId: 5,
@@ -277,7 +284,8 @@ export const mockKpiDashboard: KpiDashboardDto = {
       lastRun: '2024-01-15T09:30:00Z',
       frequency: 30,
       status: 'Never Run',
-      alertsToday: 0
+      alertsToday: 0,
+      isCurrentlyRunning: false
     }
   ]
 };

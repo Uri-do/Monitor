@@ -86,26 +86,26 @@ const configSchema = yup.object({
   general: yup.object({
     siteName: yup.string().required('Site name is required'),
     siteDescription: yup.string().required('Site description is required'),
-    maintenanceMode: yup.boolean(),
-    debugMode: yup.boolean()
+    maintenanceMode: yup.boolean().required(),
+    debugMode: yup.boolean().required()
   }),
   security: yup.object({
     sessionTimeout: yup.number().min(5).max(1440).required(),
     maxLoginAttempts: yup.number().min(1).max(10).required(),
     passwordExpiration: yup.number().min(30).max(365).required(),
-    twoFactorRequired: yup.boolean()
+    twoFactorRequired: yup.boolean().required()
   }),
   notifications: yup.object({
-    emailEnabled: yup.boolean(),
-    smsEnabled: yup.boolean(),
-    slackEnabled: yup.boolean(),
-    webhookEnabled: yup.boolean()
+    emailEnabled: yup.boolean().required(),
+    smsEnabled: yup.boolean().required(),
+    slackEnabled: yup.boolean().required(),
+    webhookEnabled: yup.boolean().required()
   }),
   monitoring: yup.object({
     dataRetentionDays: yup.number().min(30).max(2555).required(),
     alertCooldown: yup.number().min(1).max(60).required(),
     maxConcurrentKpis: yup.number().min(10).max(1000).required(),
-    autoArchive: yup.boolean()
+    autoArchive: yup.boolean().required()
   })
 });
 
@@ -222,7 +222,7 @@ const SystemSettings: React.FC = () => {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit as any)}>
         <Grid container spacing={3}>
           {/* General Settings */}
           <Grid item xs={12} md={6}>

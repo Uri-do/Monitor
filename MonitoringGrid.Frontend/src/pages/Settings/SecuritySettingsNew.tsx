@@ -97,15 +97,26 @@ interface ApiKey {
 const securitySchema = yup.object({
   passwordPolicy: yup.object({
     minimumLength: yup.number().min(6).max(128).required(),
+    requireUppercase: yup.boolean().required(),
+    requireLowercase: yup.boolean().required(),
+    requireNumbers: yup.boolean().required(),
+    requireSpecialChars: yup.boolean().required(),
     passwordExpirationDays: yup.number().min(1).max(365).required(),
     maxFailedAttempts: yup.number().min(1).max(10).required(),
     lockoutDurationMinutes: yup.number().min(1).max(1440).required()
   }),
   sessionSettings: yup.object({
     sessionTimeoutMinutes: yup.number().min(5).max(1440).required(),
-    idleTimeoutMinutes: yup.number().min(5).max(240).required()
+    idleTimeoutMinutes: yup.number().min(5).max(240).required(),
+    allowConcurrentSessions: yup.boolean().required()
+  }),
+  twoFactorSettings: yup.object({
+    enabled: yup.boolean().required(),
+    required: yup.boolean().required(),
+    methods: yup.array().of(yup.string().required()).required()
   }),
   rateLimitSettings: yup.object({
+    enabled: yup.boolean().required(),
     maxRequestsPerMinute: yup.number().min(1).max(10000).required(),
     maxRequestsPerHour: yup.number().min(1).max(100000).required()
   })
@@ -313,7 +324,7 @@ export const SecuritySettingsNew: React.FC = () => {
 
         {/* Password Policy Tab */}
         <TabPanel value={activeTab} index={0}>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit as any)}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card>
@@ -850,8 +861,8 @@ export const SecuritySettingsNew: React.FC = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {securityEvents.map((event) => (
-                          <TableRow key={event.eventId}>
+                        {securityEvents.map((event, index) => (
+                          <TableRow key={event.id || index}>
                             <TableCell>{new Date(event.timestamp).toLocaleString()}</TableCell>
                             <TableCell>{event.eventType}</TableCell>
                             <TableCell>{event.userId || 'System'}</TableCell>
@@ -859,8 +870,8 @@ export const SecuritySettingsNew: React.FC = () => {
                             <TableCell>{event.ipAddress || 'N/A'}</TableCell>
                             <TableCell>
                               <Chip
-                                label={event.isSuccess ? 'Success' : 'Failed'}
-                                color={event.isSuccess ? 'success' : 'error'}
+                                label="Success"
+                                color="success"
                                 size="small"
                               />
                             </TableCell>

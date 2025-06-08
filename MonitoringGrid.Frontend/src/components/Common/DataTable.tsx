@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -14,7 +14,6 @@ import {
   Toolbar,
   Typography,
   Box,
-
   Tooltip,
   CircularProgress,
   Alert,
@@ -23,17 +22,24 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
-
 } from '@mui/icons-material';
 
 export interface DataTableColumn<T = any> {
   id: keyof T;
   label: string;
   minWidth?: number;
+  maxWidth?: number;
+  width?: number;
   align?: 'left' | 'right' | 'center';
   sortable?: boolean;
+  filterable?: boolean;
+  searchable?: boolean;
   format?: (value: any, row: T) => React.ReactNode;
   render?: (value: any, row: T) => React.ReactNode;
+  headerRender?: () => React.ReactNode;
+  sticky?: boolean;
+  hidden?: boolean;
+  resizable?: boolean;
 }
 
 export interface DataTableAction<T = any> {
@@ -43,6 +49,29 @@ export interface DataTableAction<T = any> {
   color?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
   disabled?: (row: T) => boolean;
   hidden?: (row: T) => boolean;
+  variant?: 'icon' | 'button' | 'menu';
+  tooltip?: string;
+  confirmMessage?: string;
+  loading?: boolean;
+}
+
+export interface DataTableBulkAction<T = any> {
+  label: string;
+  icon: React.ReactNode;
+  onClick: (rows: T[]) => void;
+  color?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
+  disabled?: (rows: T[]) => boolean;
+  confirmMessage?: string;
+  loading?: boolean;
+}
+
+export interface DataTableFilter {
+  id: string;
+  label: string;
+  type: 'text' | 'select' | 'date' | 'dateRange' | 'number' | 'boolean';
+  options?: { label: string; value: any }[];
+  value?: any;
+  onChange: (value: any) => void;
 }
 
 export interface DataTableProps<T = any> {
@@ -56,6 +85,7 @@ export interface DataTableProps<T = any> {
   selectedRows?: T[];
   onSelectionChange?: (selected: T[]) => void;
   actions?: DataTableAction<T>[];
+  bulkActions?: DataTableBulkAction<T>[];
   defaultActions?: {
     view?: (row: T) => void;
     edit?: (row: T) => void;
@@ -67,14 +97,40 @@ export interface DataTableProps<T = any> {
     totalCount: number;
     onPageChange: (page: number) => void;
     onRowsPerPageChange: (rowsPerPage: number) => void;
+    rowsPerPageOptions?: number[];
   };
   sorting?: {
     orderBy: string;
     order: 'asc' | 'desc';
     onSort: (property: string) => void;
   };
+  filters?: DataTableFilter[];
+  searchable?: boolean;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  exportable?: boolean;
+  onExport?: () => void;
+  refreshable?: boolean;
+  onRefresh?: () => void;
   emptyMessage?: string;
+  emptyIcon?: React.ReactNode;
   rowKey?: keyof T;
+  dense?: boolean;
+  stickyHeader?: boolean;
+  maxHeight?: number | string;
+  virtualized?: boolean;
+  rowHeight?: number;
+  onRowClick?: (row: T) => void;
+  onRowDoubleClick?: (row: T) => void;
+  rowClassName?: (row: T) => string;
+  headerActions?: React.ReactNode;
+  footerContent?: React.ReactNode;
+  expandable?: {
+    renderExpandedRow: (row: T) => React.ReactNode;
+    isExpanded?: (row: T) => boolean;
+    onToggleExpand?: (row: T) => void;
+  };
 }
 
 const DataTable = <T extends Record<string, any>>({
@@ -91,22 +147,44 @@ const DataTable = <T extends Record<string, any>>({
   defaultActions,
   pagination,
   sorting,
+  searchable = false,
+  searchValue = '',
+  onSearchChange,
   emptyMessage = 'No data available',
   rowKey = 'id' as keyof T,
 }: DataTableProps<T>) => {
   const [selected, setSelected] = useState<T[]>(selectedRows);
+  const [expandedRows] = useState<Set<string>>(new Set());
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Memoized filtered and sorted data
+  const processedData = useMemo(() => {
+    let result = [...data];
+
+    // Apply search if enabled
+    if (searchable && searchValue && onSearchChange) {
+      const searchableColumns = columns.filter(col => col.searchable !== false);
+      result = result.filter(row =>
+        searchableColumns.some(col => {
+          const value = row[col.id];
+          return value?.toString().toLowerCase().includes(searchValue.toLowerCase());
+        })
+      );
+    }
+
+    return result;
+  }, [data, searchValue, searchable, columns]);
+
+  const handleSelectAllClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelected(data);
-      onSelectionChange?.(data);
+      setSelected(processedData);
+      onSelectionChange?.(processedData);
     } else {
       setSelected([]);
       onSelectionChange?.([]);
     }
-  };
+  }, [processedData, onSelectionChange]);
 
-  const handleRowSelect = (row: T) => {
+  const handleRowSelect = useCallback((row: T) => {
     const selectedIndex = selected.findIndex(item => item[rowKey] === row[rowKey]);
     let newSelected: T[] = [];
 
@@ -118,9 +196,10 @@ const DataTable = <T extends Record<string, any>>({
 
     setSelected(newSelected);
     onSelectionChange?.(newSelected);
-  };
+  }, [selected, rowKey, onSelectionChange]);
 
-  const isSelected = (row: T) => selected.some(item => item[rowKey] === row[rowKey]);
+  const isSelected = useCallback((row: T) =>
+    selected.some(item => item[rowKey] === row[rowKey]), [selected, rowKey]);
 
   const handleSort = (property: string) => {
     if (sorting) {

@@ -163,7 +163,7 @@ const ContactList: React.FC = () => {
             icon: <AssignIcon />,
             onClick: () => {
               // TODO: Implement bulk assignment
-              toast.info('Bulk assignment feature coming soon');
+              toast('Bulk assignment feature coming soon', { icon: 'ℹ️' });
             },
             disabled: selectedRows.length === 0,
           },
@@ -210,7 +210,7 @@ const ContactList: React.FC = () => {
             icon: <AssignIcon />,
             onClick: (contact) => {
               // TODO: Implement KPI assignment
-              toast.info('KPI assignment feature coming soon');
+              toast('KPI assignment feature coming soon', { icon: 'ℹ️' });
             },
             color: 'primary',
           },

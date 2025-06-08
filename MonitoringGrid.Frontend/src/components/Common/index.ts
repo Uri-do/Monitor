@@ -1,6 +1,15 @@
 // Export all common components
 export { default as DataTable } from './DataTable';
-export type { DataTableColumn, DataTableAction, DataTableProps } from './DataTable';
+export type {
+  DataTableColumn,
+  DataTableAction,
+  DataTableBulkAction,
+  DataTableFilter,
+  DataTableProps
+} from './DataTable';
+
+export { default as Page } from './Page';
+export type { PageProps, PageBreadcrumb } from './Page';
 
 export { default as StatusChip } from './StatusChip';
 export type { StatusType } from './StatusChip';

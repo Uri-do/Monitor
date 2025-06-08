@@ -220,12 +220,14 @@ const KpiCreate: React.FC = () => {
       updateMutation.mutate({
         ...formData,
         kpiId,
-        isActive: formData.isActive ?? true
+        isActive: formData.isActive ?? true,
+        minimumThreshold: formData.minimumThreshold ?? undefined
       });
     } else {
       createMutation.mutate({
         ...formData,
-        isActive: formData.isActive ?? true
+        isActive: formData.isActive ?? true,
+        minimumThreshold: formData.minimumThreshold ?? undefined
       });
     }
   };
@@ -238,7 +240,7 @@ const KpiCreate: React.FC = () => {
     if (isEdit && kpiId) {
       testMutation.mutate();
     } else {
-      toast.info('Save the KPI first to test it');
+      toast('Save the KPI first to test it', { icon: 'ℹ️' });
     }
   };
 

@@ -143,7 +143,7 @@ const FormField: React.FC<FormFieldProps> = (props) => {
         <Autocomplete
           {...field}
           options={fieldProps.options}
-          getOptionLabel={(option) => option.label || ''}
+          getOptionLabel={(option) => typeof option === 'string' ? option : option.label || ''}
           isOptionEqualToValue={(option, value) => option.value === value?.value}
           multiple={fieldProps.multiple}
           freeSolo={fieldProps.freeSolo}

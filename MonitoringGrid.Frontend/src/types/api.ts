@@ -178,7 +178,7 @@ export interface KpiDashboardDto {
   dueKpis: KpiStatusDto[];
   runningKpis: KpiStatusDto[];
   nextKpiDue?: KpiStatusDto;
-  recentExecutions: KpiExecutionStatusDto[];
+  recentExecutions: ExecutionStatsDto[];
 }
 
 export interface AlertDashboardDto {

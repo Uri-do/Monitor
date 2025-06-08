@@ -87,7 +87,7 @@ const AlertList: React.FC = () => {
 
   const handleResolve = (alert: AlertLogDto) => {
     if (alert.isResolved) {
-      toast.info('Alert is already resolved');
+      toast('Alert is already resolved', { icon: 'ℹ️' });
       return;
     }
     resolveMutation.mutate(alert.alertId);
@@ -96,7 +96,7 @@ const AlertList: React.FC = () => {
   const handleBulkResolve = () => {
     const unresolvedAlerts = selectedRows.filter(alert => !alert.isResolved);
     if (unresolvedAlerts.length === 0) {
-      toast.info('No unresolved alerts selected');
+      toast('No unresolved alerts selected', { icon: 'ℹ️' });
       return;
     }
     bulkResolveMutation.mutate(unresolvedAlerts.map(alert => alert.alertId));
@@ -226,7 +226,7 @@ const AlertList: React.FC = () => {
           {
             label: 'Export',
             icon: <ExportIcon />,
-            onClick: () => toast.info('Export feature coming soon'),
+            onClick: () => toast('Export feature coming soon', { icon: 'ℹ️' }),
             variant: 'outlined',
           },
         ]}

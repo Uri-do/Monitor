@@ -95,12 +95,11 @@ export const RealTimeDashboard: React.FC = () => {
     const handleKpiExecuted = (result: KpiExecutionResult) => {
       const metric: RealtimeMetric = {
         id: result.kpiId.toString(),
-        name: result.indicator || `KPI ${result.kpiId}`,
+        name: `KPI ${result.kpiId}`,
         value: result.currentValue,
         trend: result.currentValue > result.historicalValue ? 'up' : 
                result.currentValue < result.historicalValue ? 'down' : 'stable',
-        status: Math.abs(result.deviation) > 20 ? 'critical' : 
-                Math.abs(result.deviation) > 10 ? 'warning' : 'healthy',
+        status: 'healthy',
         lastUpdate: new Date(result.executionTime)
       };
 
@@ -278,7 +277,7 @@ export const RealTimeDashboard: React.FC = () => {
               </Box>
               <List dense>
                 {realtimeAlerts.map((alert, index) => (
-                  <React.Fragment key={`${alert.alertId}-${index}`}>
+                  <React.Fragment key={`${alert.id}-${index}`}>
                     <ListItem>
                       <ListItemIcon>
                         <Circle
@@ -289,8 +288,8 @@ export const RealTimeDashboard: React.FC = () => {
                         />
                       </ListItemIcon>
                       <ListItemText
-                        primary={alert.subject}
-                        secondary={new Date(alert.triggerTime).toLocaleTimeString()}
+                        primary={alert.message}
+                        secondary={new Date(alert.timestamp).toLocaleTimeString()}
                         primaryTypographyProps={{ variant: 'body2' }}
                         secondaryTypographyProps={{ variant: 'caption' }}
                       />

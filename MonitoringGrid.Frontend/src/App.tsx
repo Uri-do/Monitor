@@ -1,40 +1,76 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
 import { useTheme } from '@mui/material/styles';
 
-// Components
+// Core Components (not lazy loaded for better initial performance)
 import Layout from '@/components/Layout/Layout';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
-import Dashboard from '@/pages/Dashboard/Dashboard';
-import KpiList from '@/pages/KPI/KpiList';
-import KpiDetail from '@/pages/KPI/KpiDetail';
-import KpiCreate from '@/pages/KPI/KpiCreate';
-import ContactList from '@/pages/Contact/ContactList';
-import ContactDetail from '@/pages/Contact/ContactDetail';
-import ContactCreate from '@/pages/Contact/ContactCreate';
-import AlertList from '@/pages/Alert/AlertList';
-import AlertDetail from '@/pages/Alert/AlertDetail';
-import Analytics from '@/pages/Analytics/Analytics';
-import Settings from '@/pages/Settings/Settings';
 import Login from '@/pages/Auth/Login';
 import Register from '@/pages/Auth/Register';
-import UserProfile from '@/pages/User/UserProfile';
-import UserManagement from '@/pages/Users/UserManagement';
-import RoleManagement from '@/pages/Admin/RoleManagement';
-import AdminDashboard from '@/pages/Admin/AdminDashboard';
-import SystemSettings from '@/pages/Admin/SystemSettings';
-import Administration from '@/pages/Administration/Administration';
-import ExecutionHistoryList from '@/pages/ExecutionHistory/ExecutionHistoryList';
-import ExecutionHistoryDetail from '@/pages/ExecutionHistory/ExecutionHistoryDetail';
+
+// Lazy loaded components for code splitting
+const Dashboard = React.lazy(() => import('@/pages/Dashboard/Dashboard'));
+const KpiList = React.lazy(() => import('@/pages/KPI/KpiList'));
+const KpiDetail = React.lazy(() => import('@/pages/KPI/KpiDetail'));
+const KpiCreate = React.lazy(() => import('@/pages/KPI/KpiCreate'));
+const ContactList = React.lazy(() => import('@/pages/Contact/ContactList'));
+const ContactDetail = React.lazy(() => import('@/pages/Contact/ContactDetail'));
+const ContactCreate = React.lazy(() => import('@/pages/Contact/ContactCreate'));
+const AlertList = React.lazy(() => import('@/pages/Alert/AlertList'));
+const AlertDetail = React.lazy(() => import('@/pages/Alert/AlertDetail'));
+const Analytics = React.lazy(() => import('@/pages/Analytics/Analytics'));
+const Settings = React.lazy(() => import('@/pages/Settings/Settings'));
+const UserProfile = React.lazy(() => import('@/pages/User/UserProfile'));
+const UserManagement = React.lazy(() => import('@/pages/Users/UserManagement'));
+const RoleManagement = React.lazy(() => import('@/pages/Admin/RoleManagement'));
+const AdminDashboard = React.lazy(() => import('@/pages/Admin/AdminDashboard'));
+const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
+const Administration = React.lazy(() => import('@/pages/Administration/Administration'));
+const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
+const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
 
 // Theme Provider
 import { CustomThemeProvider } from '@/hooks/useTheme';
+
+// Loading fallback component for lazy loaded routes
+const LoadingFallback: React.FC = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '60vh',
+      gap: 2,
+    }}
+  >
+    <CircularProgress size={40} />
+    <Typography variant="body1" color="text.secondary">
+      Loading...
+    </Typography>
+  </Box>
+);
+
+// Helper component to wrap lazy loaded routes
+const LazyRoute: React.FC<{
+  children: React.ReactNode;
+  requiredPermissions?: string[];
+  requiredRoles?: string[];
+}> = ({ children, requiredPermissions, requiredRoles }) => (
+  <ProtectedRoute requiredPermissions={requiredPermissions} requiredRoles={requiredRoles}>
+    <Layout>
+      <Suspense fallback={<LoadingFallback />}>
+        {children}
+      </Suspense>
+    </Layout>
+  </ProtectedRoute>
+);
 
 // Theme-aware Toaster component
 const ThemedToaster: React.FC = () => {
@@ -100,41 +136,31 @@ function App() {
               } />
 
               <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <Dashboard />
+                </LazyRoute>
               } />
 
               {/* KPI Management */}
               <Route path="/kpis" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <KpiList />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <KpiList />
+                </LazyRoute>
               } />
               <Route path="/kpis/create" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <KpiCreate />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <KpiCreate />
+                </LazyRoute>
               } />
               <Route path="/kpis/:id" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <KpiDetail />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <KpiDetail />
+                </LazyRoute>
               } />
               <Route path="/kpis/:id/edit" element={
-                <ProtectedRoute>
-                  <Layout>
-                    <KpiCreate />
-                  </Layout>
-                </ProtectedRoute>
+                <LazyRoute>
+                  <KpiCreate />
+                </LazyRoute>
               } />
 
               {/* Contact Management */}

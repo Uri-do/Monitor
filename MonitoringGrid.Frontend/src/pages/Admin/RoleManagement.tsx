@@ -42,7 +42,7 @@ import toast from 'react-hot-toast';
 const roleSchema = yup.object({
   name: yup.string().required('Role name is required').min(2, 'Role name must be at least 2 characters'),
   description: yup.string().required('Description is required'),
-  permissionIds: yup.array().of(yup.string().required()).min(1, 'At least one permission is required'),
+  permissionIds: yup.array().of(yup.string().required()).required().min(1, 'At least one permission is required'),
   isActive: yup.boolean().required()
 });
 
@@ -312,7 +312,7 @@ const RoleManagement: React.FC = () => {
         maxWidth="md"
         fullWidth
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit as any)}>
           <DialogTitle>
             {editingRole ? 'Edit Role' : 'Create New Role'}
           </DialogTitle>

@@ -52,8 +52,8 @@ const userSchema = yup.object({
   lastName: yup.string(),
   department: yup.string(),
   title: yup.string(),
-  roles: yup.array().of(yup.string().required()).min(1, 'At least one role is required'),
-  isActive: yup.boolean()
+  roles: yup.array().of(yup.string().required()).required().min(1, 'At least one role is required'),
+  isActive: yup.boolean().required()
 });
 
 interface UserFormData {
@@ -424,7 +424,7 @@ export const UserManagement: React.FC = () => {
         maxWidth="md"
         fullWidth
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit as any)}>
           <DialogTitle>
             {editingUser ? 'Edit User' : 'Create New User'}
           </DialogTitle>

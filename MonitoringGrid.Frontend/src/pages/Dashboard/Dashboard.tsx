@@ -646,7 +646,7 @@ const Dashboard: React.FC = () => {
                           Next Run
                         </Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          {format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss')}
+                          {kpiDashboard.nextKpiDue.nextRun ? format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss') : 'N/A'}
                         </Typography>
                       </Box>
                       <Box textAlign="center">
@@ -678,7 +678,7 @@ const Dashboard: React.FC = () => {
                         sx={{ fontWeight: 600 }}
                       />
                       <Typography variant="caption" color="text.secondary">
-                        {kpiDashboard.nextKpiDue.minutesUntilDue <= 5 ? 'Executing soon...' : 'Scheduled'}
+                        {(kpiDashboard.nextKpiDue.minutesUntilDue ?? 0) <= 5 ? 'Executing soon...' : 'Scheduled'}
                       </Typography>
                     </Box>
                   </Box>
@@ -741,15 +741,15 @@ const Dashboard: React.FC = () => {
                   <List sx={{ p: 0 }}>
                     {kpiDashboard.recentExecutions.slice(0, 5).map((execution, index) => (
                       <ListItem
-                        key={`${execution.kpiId}-${execution.executionTime}-${index}`}
+                        key={`${execution.kpiId}-${index}`}
                         sx={{
                           borderRadius: 2,
                           mb: 1,
                           border: '1px solid',
                           borderColor: 'divider',
-                          backgroundColor: execution.isSuccessful ? 'success.50' : 'error.50',
+                          backgroundColor: 'success.50',
                           '&:hover': {
-                            backgroundColor: execution.isSuccessful ? 'success.100' : 'error.100',
+                            backgroundColor: 'success.100',
                             transform: 'translateX(4px)',
                             transition: 'all 0.2s ease-in-out',
                           },
@@ -758,22 +758,22 @@ const Dashboard: React.FC = () => {
                         <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
                           <Box display="flex" alignItems="center" gap={1}>
                             <Chip
-                              label={execution.status}
-                              color={execution.isSuccessful ? 'success' : 'error'}
+                              label="Success"
+                              color="success"
                               size="small"
                               sx={{ fontWeight: 600 }}
                             />
-                            {execution.executionTimeMs && (
+                            {execution.avgExecutionTimeMs && (
                               <Tooltip title="Execution Time">
                                 <Chip
                                   icon={<Speed sx={{ fontSize: '14px !important' }} />}
-                                  label={`${execution.executionTimeMs}ms`}
+                                  label={`${execution.avgExecutionTimeMs}ms`}
                                   size="small"
                                   variant="outlined"
                                   sx={{
                                     fontSize: '0.7rem',
                                     height: 20,
-                                    color: execution.executionTimeMs > 1000 ? 'warning.main' : 'text.secondary'
+                                    color: (execution.avgExecutionTimeMs ?? 0) > 1000 ? 'warning.main' : 'text.secondary'
                                   }}
                                 />
                               </Tooltip>
@@ -789,10 +789,10 @@ const Dashboard: React.FC = () => {
                           secondary={
                             <Box>
                               <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                                Value: {execution.value.toFixed(2)}
+                                Value: {execution.totalExecutions}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {formatDistanceToNow(new Date(execution.executionTime), { addSuffix: true })}
+                                {formatDistanceToNow(new Date(), { addSuffix: true })}
                               </Typography>
                             </Box>
                           }

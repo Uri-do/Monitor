@@ -257,37 +257,31 @@ const ExecutionHistoryList: React.FC = () => {
         }}
         refreshing={isLoading}
         actions={[
-          <Button
-            key="debug"
-            variant="outlined"
-            onClick={() => {
+          {
+            label: 'Debug Info',
+            onClick: () => {
               console.log('🐛 Debug info:');
               console.log('- Filters:', filters);
               console.log('- Page:', pageNumber, 'Size:', pageSize);
               console.log('- History data:', historyData);
               console.log('- Executions:', executions);
               toast.success(`Debug info logged to console. Total: ${historyData?.totalCount || 0}`);
-            }}
-          >
-            Debug Info
-          </Button>,
-          <Button
-            key="force-refresh"
-            variant="contained"
-            color="secondary"
-            onClick={() => {
+            },
+            variant: 'outlined' as const,
+          },
+          {
+            label: 'Force Refresh',
+            onClick: () => {
               console.log('🔄 Force refresh - clearing cache');
               // Clear React Query cache for execution history
               window.location.reload();
-            }}
-          >
-            Force Refresh
-          </Button>,
-          <Button
-            key="test-db"
-            variant="outlined"
-            color="warning"
-            onClick={async () => {
+            },
+            variant: 'contained' as const,
+            color: 'secondary' as const,
+          },
+          {
+            label: 'Test DB',
+            onClick: async () => {
               try {
                 console.log('🧪 Testing database connection...');
                 const result = await executionHistoryApi.testDatabaseConnection();
@@ -296,10 +290,10 @@ const ExecutionHistoryList: React.FC = () => {
                 console.error('Database test failed:', error);
                 toast.error('Database test failed - check console');
               }
-            }}
-          >
-            Test DB
-          </Button>
+            },
+            variant: 'outlined' as const,
+            color: 'warning' as const,
+          }
         ]}
       />
 
@@ -382,10 +376,10 @@ const ExecutionHistoryList: React.FC = () => {
         ]}
         pagination={{
           page: pageNumber,
-          pageSize: pageSize,
+          rowsPerPage: pageSize,
           totalCount: historyData?.totalCount || 0,
           onPageChange: setPageNumber,
-          onPageSizeChange: (newSize) => {
+          onRowsPerPageChange: (newSize: number) => {
             setPageSize(newSize);
             setPageNumber(1);
           },
