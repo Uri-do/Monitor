@@ -31,6 +31,7 @@ const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
 const Administration = React.lazy(() => import('@/pages/Administration/Administration'));
 const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
 const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
+const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
 const ComponentShowcase = React.lazy(() => import('@/pages/Demo/ComponentShowcase'));
 const VisualizationShowcase = React.lazy(() => import('@/pages/Demo/VisualizationShowcase'));
 const InteractiveShowcase = React.lazy(() => import('@/pages/Demo/InteractiveShowcase'));
@@ -288,6 +289,13 @@ function App() {
               <Route path="/execution-history/:id" element={
                 <LazyRoute>
                   <ExecutionHistoryDetail />
+                </LazyRoute>
+              } />
+
+              {/* Worker Management */}
+              <Route path="/worker" element={
+                <LazyRoute>
+                  <WorkerManagement />
                 </LazyRoute>
               } />
 

@@ -40,14 +40,15 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.4" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="Quartz" Version="3.8.0" />
-    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.8.0" />
+    <PackageReference Include="Quartz" Version="3.13.1" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
     <PackageReference Include="Quartz.Serialization.Json" Version="3.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MonitoringGrid.Core\MonitoringGrid.Core.csproj" />
     <ProjectReference Include="..\MonitoringGrid.Infrastructure\MonitoringGrid.Infrastructure.csproj" />
+    <ProjectReference Include="..\MonitoringGrid.Worker\MonitoringGrid.Worker.csproj" />
   </ItemGroup>
 
 </Project>

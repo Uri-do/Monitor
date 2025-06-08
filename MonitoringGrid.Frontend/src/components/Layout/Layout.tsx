@@ -37,6 +37,7 @@ import {
   ChevronRight as ChevronRightIcon,
   DarkMode,
   LightMode,
+  Build as WorkerIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi, alertApi } from '@/services/api';
@@ -136,6 +137,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       text: 'Execution History',
       icon: <HistoryIcon />,
       path: '/execution-history',
+    },
+    {
+      text: 'Worker Management',
+      icon: <WorkerIcon />,
+      path: '/worker',
     },
     {
       text: 'Administration',

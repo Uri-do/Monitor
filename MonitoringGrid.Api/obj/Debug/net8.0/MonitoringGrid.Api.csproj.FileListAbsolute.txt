@@ -198,3 +198,15 @@ C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Api.xml
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Annotations.dll
 C:\Dev\code\Monitor\MonitoringGrid.Api\obj\Debug\net8.0\MonitoringGrid.Api.xml
 C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.deps.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.runtimeconfig.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.exe
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\appsettings.Development.json
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Microsoft.Extensions.Hosting.WindowsServices.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\OpenTelemetry.Instrumentation.Runtime.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\Polly.Extensions.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\System.ServiceProcess.ServiceController.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.dll
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.pdb
+C:\Dev\code\Monitor\MonitoringGrid.Api\bin\Debug\net8.0\MonitoringGrid.Worker.xml

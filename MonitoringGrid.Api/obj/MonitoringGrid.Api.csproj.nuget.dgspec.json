@@ -33,6 +33,9 @@
               },
               "C:\\Dev\\code\\Monitor\\MonitoringGrid.Infrastructure\\MonitoringGrid.Infrastructure.csproj": {
                 "projectPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Infrastructure\\MonitoringGrid.Infrastructure.csproj"
+              },
+              "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\MonitoringGrid.Worker.csproj": {
+                "projectPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\MonitoringGrid.Worker.csproj"
               }
             }
           }
@@ -141,11 +144,11 @@
             },
             "Quartz": {
               "target": "Package",
-              "version": "[3.8.0, )"
+              "version": "[3.13.1, )"
             },
             "Quartz.Extensions.Hosting": {
               "target": "Package",
-              "version": "[3.8.0, )"
+              "version": "[3.13.1, )"
             },
             "Quartz.Serialization.Json": {
               "target": "Package",
@@ -383,6 +386,150 @@
             "Quartz.Serialization.Json": {
               "target": "Package",
               "version": "[3.8.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\MonitoringGrid.Worker.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\MonitoringGrid.Worker.csproj",
+        "projectName": "MonitoringGrid.Worker",
+        "projectPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\MonitoringGrid.Worker.csproj",
+        "packagesPath": "C:\\Users\\Work\\.nuget\\packages\\",
+        "outputPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Worker\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Work\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Dev\\code\\Monitor\\MonitoringGrid.Core\\MonitoringGrid.Core.csproj": {
+                "projectPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Core\\MonitoringGrid.Core.csproj"
+              },
+              "C:\\Dev\\code\\Monitor\\MonitoringGrid.Infrastructure\\MonitoringGrid.Infrastructure.csproj": {
+                "projectPath": "C:\\Dev\\code\\Monitor\\MonitoringGrid.Infrastructure\\MonitoringGrid.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[11.11.0, )"
+            },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[11.11.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Diagnostics.HealthChecks": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Hosting.WindowsServices": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Console": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.EventLog": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "OpenTelemetry": {
+              "target": "Package",
+              "version": "[1.9.0, )"
+            },
+            "OpenTelemetry.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[1.9.0, )"
+            },
+            "OpenTelemetry.Instrumentation.Runtime": {
+              "target": "Package",
+              "version": "[1.9.0, )"
+            },
+            "Polly": {
+              "target": "Package",
+              "version": "[8.4.2, )"
+            },
+            "Polly.Extensions": {
+              "target": "Package",
+              "version": "[8.4.2, )"
+            },
+            "Quartz": {
+              "target": "Package",
+              "version": "[3.13.1, )"
+            },
+            "Quartz.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[3.13.1, )"
             }
           },
           "imports": [

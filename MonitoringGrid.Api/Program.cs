@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
+using Quartz;
 using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Api.Middleware;
@@ -420,8 +421,43 @@ builder.Services.AddScoped<MonitoringGrid.Core.Events.IDomainEventPublisher, Mon
 // Add API key authentication services
 builder.Services.AddSingleton<MonitoringGrid.Api.Authentication.IApiKeyService, InMemoryApiKeyService>();
 
-// Add enhanced background services
-builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+// Add background services based on configuration
+var enableWorkerServices = builder.Configuration.GetValue<bool>("Monitoring:EnableWorkerServices", false);
+if (enableWorkerServices)
+{
+    // Add Worker services directly in API (for single-process deployment)
+    builder.Services.AddScoped<MonitoringGrid.Core.Interfaces.IKpiService, MonitoringGrid.Infrastructure.Services.KpiService>();
+
+    // Add Worker configuration
+    builder.Services.Configure<MonitoringGrid.Worker.Configuration.WorkerConfiguration>(
+        builder.Configuration.GetSection("Worker"));
+
+    // Add Worker services
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.KpiMonitoringWorker>();
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Worker>();
+
+    // Add Quartz for Worker services
+    builder.Services.AddQuartz(q =>
+    {
+        q.UseSimpleTypeLoader();
+        q.UseInMemoryStore();
+        q.UseDefaultThreadPool(tp => tp.MaxConcurrency = 10);
+    });
+    builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+    // Add Worker health checks
+    builder.Services.AddHealthChecks()
+        .AddCheck<MonitoringGrid.Worker.Services.KpiExecutionHealthCheck>("worker-kpi-execution")
+        .AddCheck<MonitoringGrid.Worker.Services.AlertProcessingHealthCheck>("worker-alert-processing");
+}
+else
+{
+    // Use legacy enhanced scheduler (deprecated - use Worker service instead)
+    // builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+}
 
 
 
