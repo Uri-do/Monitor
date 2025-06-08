@@ -3,6 +3,72 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
 import { AlertNotification, KpiExecutionResult, SystemStatus } from '../types/monitoring';
 import { RealtimeStatusDto, LiveDashboardDto } from '../types/api';
 
+// Real-time event interfaces
+export interface WorkerStatusUpdate {
+  isRunning: boolean;
+  mode: string;
+  processId?: number;
+  services: Array<{ name: string; status: string; }>;
+  lastHeartbeat: string;
+  uptime: string;
+}
+
+export interface KpiExecutionStarted {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  startTime: string;
+  estimatedDuration?: number;
+}
+
+export interface KpiExecutionProgress {
+  kpiId: number;
+  indicator: string;
+  progress: number; // 0-100
+  currentStep: string;
+  elapsedTime: number;
+  estimatedTimeRemaining?: number;
+}
+
+export interface KpiExecutionCompleted {
+  kpiId: number;
+  indicator: string;
+  success: boolean;
+  value?: number;
+  duration: number;
+  completedAt: string;
+  errorMessage?: string;
+}
+
+export interface CountdownUpdate {
+  nextKpiId: number;
+  indicator: string;
+  owner: string;
+  secondsUntilDue: number;
+  scheduledTime: string;
+}
+
+export interface NextKpiScheduleUpdate {
+  nextKpis: Array<{
+    kpiId: number;
+    indicator: string;
+    owner: string;
+    scheduledTime: string;
+    minutesUntilDue: number;
+  }>;
+}
+
+export interface RunningKpisUpdate {
+  runningKpis: Array<{
+    kpiId: number;
+    indicator: string;
+    owner: string;
+    startTime: string;
+    progress?: number;
+    estimatedCompletion?: string;
+  }>;
+}
+
 export interface SignalREvents {
   onAlertTriggered: (alert: AlertNotification) => void;
   onKpiExecuted: (result: KpiExecutionResult) => void;
@@ -17,6 +83,14 @@ export interface SignalREvents {
   onKpiExecutionWebhook: (data: any) => void;
   onAlertWebhook: (data: any) => void;
   onSystemStatusWebhook: (data: any) => void;
+  // Worker service real-time events
+  onWorkerStatusUpdate: (status: WorkerStatusUpdate) => void;
+  onKpiExecutionStarted: (data: KpiExecutionStarted) => void;
+  onKpiExecutionProgress: (data: KpiExecutionProgress) => void;
+  onKpiExecutionCompleted: (data: KpiExecutionCompleted) => void;
+  onCountdownUpdate: (data: CountdownUpdate) => void;
+  onNextKpiScheduleUpdate: (data: NextKpiScheduleUpdate) => void;
+  onRunningKpisUpdate: (data: RunningKpisUpdate) => void;
 }
 
 class SignalRService {
@@ -133,6 +207,42 @@ class SignalRService {
     this.connection.on('SystemStatusWebhook', (data: any) => {
       console.log('System status webhook:', data);
       this.eventHandlers.onSystemStatusWebhook?.(data);
+    });
+
+    // Worker service real-time events
+    this.connection.on('WorkerStatusUpdate', (status: WorkerStatusUpdate) => {
+      console.log('Worker status update:', status);
+      this.eventHandlers.onWorkerStatusUpdate?.(status);
+    });
+
+    this.connection.on('KpiExecutionStarted', (data: KpiExecutionStarted) => {
+      console.log('KPI execution started (enhanced):', data);
+      this.eventHandlers.onKpiExecutionStarted?.(data);
+    });
+
+    this.connection.on('KpiExecutionProgress', (data: KpiExecutionProgress) => {
+      console.log('KPI execution progress:', data);
+      this.eventHandlers.onKpiExecutionProgress?.(data);
+    });
+
+    this.connection.on('KpiExecutionCompleted', (data: KpiExecutionCompleted) => {
+      console.log('KPI execution completed:', data);
+      this.eventHandlers.onKpiExecutionCompleted?.(data);
+    });
+
+    this.connection.on('CountdownUpdate', (data: CountdownUpdate) => {
+      console.log('Countdown update:', data);
+      this.eventHandlers.onCountdownUpdate?.(data);
+    });
+
+    this.connection.on('NextKpiScheduleUpdate', (data: NextKpiScheduleUpdate) => {
+      console.log('Next KPI schedule update:', data);
+      this.eventHandlers.onNextKpiScheduleUpdate?.(data);
+    });
+
+    this.connection.on('RunningKpisUpdate', (data: RunningKpisUpdate) => {
+      console.log('Running KPIs update:', data);
+      this.eventHandlers.onRunningKpisUpdate?.(data);
     });
   }
 

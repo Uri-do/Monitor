@@ -439,6 +439,9 @@ if (enableWorkerServices)
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Worker>();
 
+    // Add real-time update service
+    builder.Services.AddHostedService<RealtimeUpdateService>();
+
     // Add Quartz for Worker services
     builder.Services.AddQuartz(q =>
     {

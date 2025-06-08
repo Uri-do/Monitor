@@ -40,6 +40,7 @@ const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
 const ComponentShowcase = React.lazy(() => import('@/pages/Demo/ComponentShowcase'));
 const VisualizationShowcase = React.lazy(() => import('@/pages/Demo/VisualizationShowcase'));
 const InteractiveShowcase = React.lazy(() => import('@/pages/Demo/InteractiveShowcase'));
+const RealtimeTest = React.lazy(() => import('@/pages/RealtimeTest'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -464,6 +465,16 @@ function App() {
                   element={
                     <LazyRoute>
                       <InteractiveShowcase />
+                    </LazyRoute>
+                  }
+                />
+
+                {/* Real-time Test (Development/Demo) */}
+                <Route
+                  path="/realtime-test"
+                  element={
+                    <LazyRoute>
+                      <RealtimeTest />
                     </LazyRoute>
                   }
                 />

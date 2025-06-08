@@ -13,19 +13,48 @@ import {
   IconButton,
   Tooltip,
   useTheme,
+  LinearProgress,
+  Badge,
 } from '@mui/material';
-import { PlayCircle, PlayArrow, Timer } from '@mui/icons-material';
+import { PlayCircle, PlayArrow, Timer, TrendingUp } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { KpiDashboardDto } from '../../../types/api';
 
-interface RunningKpisCardProps {
-  kpiDashboard?: KpiDashboardDto;
+interface RealtimeRunningKpi {
+  kpiId: number;
+  indicator: string;
+  owner: string;
+  startTime: string;
+  progress?: number;
+  estimatedCompletion?: string;
+  currentStep?: string;
+  elapsedTime?: number;
 }
 
-const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
+interface RunningKpisCardProps {
+  kpiDashboard?: KpiDashboardDto;
+  realtimeRunningKpis?: RealtimeRunningKpi[];
+}
+
+const RunningKpisCard: React.FC<RunningKpisCardProps> = ({
+  kpiDashboard,
+  realtimeRunningKpis = []
+}) => {
   const navigate = useNavigate();
   const theme = useTheme();
+
+  // Use real-time data if available, otherwise fall back to dashboard data
+  const runningKpis = realtimeRunningKpis.length > 0
+    ? realtimeRunningKpis
+    : kpiDashboard?.runningKpis || [];
+
+  const formatElapsedTime = (elapsedTime?: number) => {
+    if (!elapsedTime) return '';
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   return (
     <Grid item xs={12} md={6}>
@@ -33,7 +62,13 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
-              <PlayCircle sx={{ color: 'primary.main' }} />
+              <Badge
+                badgeContent={runningKpis.length}
+                color="primary"
+                sx={{ '& .MuiBadge-badge': { fontSize: '0.7rem' } }}
+              >
+                <PlayCircle sx={{ color: 'primary.main' }} />
+              </Badge>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Currently Running KPIs
               </Typography>
@@ -54,9 +89,9 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {kpiDashboard?.runningKpis && kpiDashboard.runningKpis.length > 0 ? (
+            {runningKpis.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {kpiDashboard.runningKpis.map(kpi => (
+                {runningKpis.map(kpi => (
                   <ListItem
                     key={kpi.kpiId}
                     sx={{

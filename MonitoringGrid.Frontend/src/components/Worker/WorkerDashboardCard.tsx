@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { WorkerStatusUpdate } from '../../services/signalRService';
 
 interface WorkerService {
   name: string;
@@ -49,7 +50,11 @@ interface WorkerActionResult {
   timestamp: string;
 }
 
-const WorkerDashboardCard: React.FC = () => {
+interface WorkerDashboardCardProps {
+  workerStatus?: WorkerStatusUpdate | null;
+}
+
+const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({ workerStatus: realtimeWorkerStatus }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
@@ -132,15 +137,31 @@ const WorkerDashboardCard: React.FC = () => {
     }
   };
 
+  // Merge real-time status with fetched status
+  const currentStatus = React.useMemo(() => {
+    if (realtimeWorkerStatus) {
+      // Convert real-time status to WorkerStatus format
+      return {
+        isRunning: realtimeWorkerStatus.isRunning,
+        mode: realtimeWorkerStatus.mode,
+        processId: realtimeWorkerStatus.processId,
+        startTime: realtimeWorkerStatus.lastHeartbeat, // Use lastHeartbeat as startTime approximation
+        services: realtimeWorkerStatus.services,
+        timestamp: realtimeWorkerStatus.lastHeartbeat,
+      };
+    }
+    return status;
+  }, [realtimeWorkerStatus, status]);
+
   useEffect(() => {
     fetchStatus();
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchStatus, 30000);
+    // Reduce auto-refresh interval since we have real-time updates
+    const interval = setInterval(fetchStatus, 60000); // Reduced to 60 seconds
     return () => clearInterval(interval);
   }, []);
 
-  if (loading && !status) {
+  if (loading && !currentStatus) {
     return (
       <Card sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -204,25 +225,52 @@ const WorkerDashboardCard: React.FC = () => {
         </Box>
 
         <Box sx={{ flexGrow: 1 }}>
-          {status ? (
+          {currentStatus ? (
             <>
               {/* Status Overview */}
               <Box sx={{ mb: 3 }}>
                 <Grid container spacing={2} alignItems="center">
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {status.isRunning ? (
-                        <CheckCircle sx={{ color: 'success.main', fontSize: 24 }} />
+                      {currentStatus.isRunning ? (
+                        <CheckCircle sx={{
+                          color: 'success.main',
+                          fontSize: 24,
+                          animation: realtimeWorkerStatus ? 'pulse 2s infinite' : 'none',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                            '100%': { opacity: 1 },
+                          },
+                        }} />
                       ) : (
                         <ErrorIcon sx={{ color: 'error.main', fontSize: 24 }} />
                       )}
                       <Box>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                          {status.isRunning ? 'Running' : 'Stopped'}
+                          {currentStatus.isRunning ? 'Running' : 'Stopped'}
+                          {realtimeWorkerStatus && (
+                            <Chip
+                              label="Live"
+                              size="small"
+                              color="success"
+                              sx={{
+                                ml: 1,
+                                fontSize: '0.6rem',
+                                height: 16,
+                                animation: 'pulse 2s infinite',
+                                '@keyframes pulse': {
+                                  '0%': { opacity: 1 },
+                                  '50%': { opacity: 0.8 },
+                                  '100%': { opacity: 1 },
+                                },
+                              }}
+                            />
+                          )}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {status.mode} Mode
-                          {status.processId && ` (PID: ${status.processId})`}
+                          {currentStatus.mode} Mode
+                          {currentStatus.processId && ` (PID: ${currentStatus.processId})`}
                         </Typography>
                       </Box>
                     </Box>
@@ -239,7 +287,7 @@ const WorkerDashboardCard: React.FC = () => {
                         }}
                       >
                         <Schedule fontSize="small" />
-                        <Typography variant="body2">{formatUptime(status.startTime)}</Typography>
+                        <Typography variant="body2">{formatUptime(currentStatus.startTime)}</Typography>
                       </Box>
                       <Typography variant="caption" color="text.secondary">
                         Uptime
@@ -257,7 +305,7 @@ const WorkerDashboardCard: React.FC = () => {
                   size="small"
                   onClick={() => performAction('start')}
                   disabled={
-                    status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'
+                    currentStatus.isRunning || actionLoading === 'start' || currentStatus.mode === 'Integrated'
                   }
                   startIcon={
                     actionLoading === 'start' ? <CircularProgress size={14} /> : <PlayArrow />
@@ -272,7 +320,7 @@ const WorkerDashboardCard: React.FC = () => {
                   size="small"
                   onClick={() => performAction('stop')}
                   disabled={
-                    !status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'
+                    !currentStatus.isRunning || actionLoading === 'stop' || currentStatus.mode === 'Integrated'
                   }
                   startIcon={actionLoading === 'stop' ? <CircularProgress size={14} /> : <Stop />}
                 >
@@ -284,7 +332,7 @@ const WorkerDashboardCard: React.FC = () => {
                   size="small"
                   onClick={() => performAction('restart')}
                   disabled={
-                    !status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'
+                    !currentStatus.isRunning || actionLoading === 'restart' || currentStatus.mode === 'Integrated'
                   }
                   startIcon={
                     actionLoading === 'restart' ? (
@@ -299,7 +347,7 @@ const WorkerDashboardCard: React.FC = () => {
               </Box>
 
               {/* Integration Mode Alert */}
-              {status.mode === 'Integrated' && (
+              {currentStatus.mode === 'Integrated' && (
                 <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
                   Running in integrated mode. Use API restart to control.
                 </Alert>
@@ -310,13 +358,13 @@ const WorkerDashboardCard: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Memory fontSize="small" />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    Services ({status.services.length})
+                    Services ({currentStatus.services.length})
                   </Typography>
                 </Box>
 
-                {status.services.length > 0 ? (
+                {currentStatus.services.length > 0 ? (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {status.services.slice(0, 4).map((service, index) => (
+                    {currentStatus.services.slice(0, 4).map((service, index) => (
                       <Tooltip key={index} title={service.name}>
                         <Chip
                           label={service.name.replace('MonitoringWorker', '').replace('Worker', '')}
@@ -326,9 +374,9 @@ const WorkerDashboardCard: React.FC = () => {
                         />
                       </Tooltip>
                     ))}
-                    {status.services.length > 4 && (
+                    {currentStatus.services.length > 4 && (
                       <Chip
-                        label={`+${status.services.length - 4} more`}
+                        label={`+${currentStatus.services.length - 4} more`}
                         size="small"
                         variant="outlined"
                         sx={{ fontSize: '0.7rem', height: 20 }}

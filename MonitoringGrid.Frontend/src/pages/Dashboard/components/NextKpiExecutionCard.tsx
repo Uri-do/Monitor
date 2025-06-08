@@ -12,7 +12,7 @@ import {
   useTheme,
   LinearProgress,
 } from '@mui/material';
-import { Schedule, PlayArrow, Timer, PlayCircle, AccessTime } from '@mui/icons-material';
+import { Schedule, PlayArrow, Timer, PlayCircle, AccessTime, Wifi, WifiOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { KpiDashboardDto } from '../../../types/api';
@@ -20,9 +20,14 @@ import { KpiDashboardDto } from '../../../types/api';
 interface NextKpiExecutionCardProps {
   kpiDashboard?: KpiDashboardDto;
   countdown?: number | null;
+  isConnected?: boolean;
 }
 
-const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({ kpiDashboard, countdown }) => {
+const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
+  kpiDashboard,
+  countdown,
+  isConnected = false
+}) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -77,6 +82,24 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({ kpiDashboar
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Next KPI Execution
               </Typography>
+              <Tooltip title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}>
+                <Chip
+                  icon={isConnected ? <Wifi sx={{ fontSize: '14px !important' }} /> : <WifiOff sx={{ fontSize: '14px !important' }} />}
+                  label={isConnected ? 'Live' : 'Offline'}
+                  size="small"
+                  color={isConnected ? 'success' : 'error'}
+                  sx={{
+                    fontSize: '0.7rem',
+                    height: 20,
+                    animation: isConnected ? 'pulse 2s infinite' : 'none',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 1 },
+                      '50%': { opacity: 0.8 },
+                      '100%': { opacity: 1 },
+                    },
+                  }}
+                />
+              </Tooltip>
             </Box>
             <IconButton
               size="small"

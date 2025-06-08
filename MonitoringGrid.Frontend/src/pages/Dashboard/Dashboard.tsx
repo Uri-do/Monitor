@@ -3,6 +3,7 @@ import { Box, Grid, LinearProgress, Typography, useTheme } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { kpiApi, alertApi } from '@/services/api';
 import WorkerDashboardCard from '@/components/Worker/WorkerDashboardCard';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 
 // Dashboard Components
 import DashboardHeader from './components/DashboardHeader';
@@ -14,10 +15,10 @@ import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingKpisCard from './components/TopAlertingKpisCard';
 
 const Dashboard: React.FC = () => {
-  // const theme = useTheme(); // Available for future theming
-  const [countdown, setCountdown] = useState<number | null>(null);
+  // Real-time dashboard state
+  const realtimeDashboard = useRealtimeDashboard();
 
-  // Fetch dashboard data with more frequent refresh for real-time updates
+  // Fetch dashboard data with less frequent refresh since we have real-time updates
   const {
     data: kpiDashboard,
     isLoading: kpiLoading,
@@ -25,7 +26,7 @@ const Dashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['kpi-dashboard'],
     queryFn: kpiApi.getDashboard,
-    refetchInterval: 15000, // Refresh every 15 seconds for real-time updates
+    refetchInterval: 60000, // Reduced to 60 seconds since we have real-time updates
   });
 
   const {
@@ -35,37 +36,33 @@ const Dashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['alert-dashboard'],
     queryFn: alertApi.getDashboard,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Reduced to 60 seconds
   });
 
-  // Countdown timer for next KPI due
-  useEffect(() => {
-    if (kpiDashboard?.nextKpiDue?.minutesUntilDue !== undefined) {
-      setCountdown(kpiDashboard.nextKpiDue.minutesUntilDue * 60); // Convert to seconds
-    }
-  }, [kpiDashboard?.nextKpiDue?.minutesUntilDue]);
+  // Merge real-time data with dashboard data
+  const mergedKpiDashboard = React.useMemo(() => {
+    if (!kpiDashboard) return kpiDashboard;
 
-  // Update countdown every second
-  useEffect(() => {
-    if (countdown === null || countdown <= 0) return;
-
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev === null || prev <= 1) {
-          // Refresh data when countdown reaches 0
-          refetchKpi();
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [countdown, refetchKpi]);
+    return {
+      ...kpiDashboard,
+      runningKpis: realtimeDashboard.runningKpis.length > 0
+        ? realtimeDashboard.runningKpis.map(kpi => ({
+            kpiId: kpi.kpiId,
+            indicator: kpi.indicator,
+            owner: kpi.owner,
+            startTime: kpi.startTime,
+            progress: kpi.progress,
+            estimatedCompletion: kpi.estimatedCompletion,
+          }))
+        : kpiDashboard.runningKpis,
+      nextKpiDue: realtimeDashboard.nextKpiDue || kpiDashboard.nextKpiDue,
+    };
+  }, [kpiDashboard, realtimeDashboard.runningKpis, realtimeDashboard.nextKpiDue]);
 
   const handleRefresh = () => {
     refetchKpi();
     refetchAlert();
+    realtimeDashboard.refreshDashboard();
   };
 
   if (kpiLoading || alertLoading) {
@@ -91,25 +88,32 @@ const Dashboard: React.FC = () => {
       <Grid container spacing={3}>
         {/* KPI Overview Cards */}
         <KpiOverviewCards
-          kpiDashboard={kpiDashboard}
+          kpiDashboard={mergedKpiDashboard}
           alertDashboard={alertDashboard}
           kpiLoading={kpiLoading}
           alertLoading={alertLoading}
         />
 
         {/* KPIs Due for Execution - Moved to top */}
-        <KpisDueCard kpiDashboard={kpiDashboard} />
+        <KpisDueCard kpiDashboard={mergedKpiDashboard} />
 
         {/* Worker Management - Moved to top */}
         <Grid item xs={12} md={6}>
-          <WorkerDashboardCard />
+          <WorkerDashboardCard workerStatus={realtimeDashboard.workerStatus} />
         </Grid>
 
         {/* Running KPIs */}
-        <RunningKpisCard kpiDashboard={kpiDashboard} />
+        <RunningKpisCard
+          kpiDashboard={mergedKpiDashboard}
+          realtimeRunningKpis={realtimeDashboard.runningKpis}
+        />
 
         {/* Next KPI Due */}
-        <NextKpiExecutionCard kpiDashboard={kpiDashboard} countdown={countdown} />
+        <NextKpiExecutionCard
+          kpiDashboard={mergedKpiDashboard}
+          countdown={realtimeDashboard.countdown}
+          isConnected={realtimeDashboard.isConnected}
+        />
 
         {/* Recent Alerts */}
         <RecentAlertsCard alertDashboard={alertDashboard} />
