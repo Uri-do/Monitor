@@ -1,6 +1,6 @@
 using System;
 
-namespace MonitoringGrid.Infrastructure.Utilities
+namespace MonitoringGrid.Core.Utilities
 {
     /// <summary>
     /// Utility class for calculating "whole time" scheduling intervals.

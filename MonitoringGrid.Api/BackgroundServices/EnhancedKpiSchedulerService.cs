@@ -131,7 +131,7 @@ public class EnhancedKpiSchedulerService : BackgroundService
 
     private static bool IsKpiDue(KPI kpi, DateTime now)
     {
-        return MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+        return MonitoringGrid.Core.Utilities.WholeTimeScheduler
             .IsKpiDueForWholeTimeExecution(kpi.LastRun, kpi.Frequency, now);
     }
 

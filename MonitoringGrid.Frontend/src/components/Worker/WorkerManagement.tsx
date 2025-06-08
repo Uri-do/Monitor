@@ -77,6 +77,7 @@ const WorkerManagement: React.FC = () => {
     nextKpiDue,
     isConnected: realtimeConnected,
     lastUpdate: realtimeLastUpdate,
+    dashboardData,
   } = useRealtimeDashboard();
 
   const fetchStatus = async () => {
@@ -134,6 +135,9 @@ const WorkerManagement: React.FC = () => {
     }
   };
 
+  // Real-time uptime calculation
+  const [realtimeUptime, setRealtimeUptime] = useState<string>('0h 0m');
+
   const formatUptime = (startTime?: string) => {
     if (!startTime) return 'N/A';
 
@@ -146,6 +150,27 @@ const WorkerManagement: React.FC = () => {
 
     return `${hours}h ${minutes}m`;
   };
+
+  // Update uptime in real-time when worker is running
+  useEffect(() => {
+    if (!status?.isRunning || !status?.startTime) {
+      setRealtimeUptime('0h 0m');
+      return;
+    }
+
+    const updateUptime = () => {
+      const uptime = formatUptime(status.startTime);
+      setRealtimeUptime(uptime);
+    };
+
+    // Update immediately
+    updateUptime();
+
+    // Update every 30 seconds for real-time feel
+    const interval = setInterval(updateUptime, 30000);
+
+    return () => clearInterval(interval);
+  }, [status?.isRunning, status?.startTime]);
 
   const formatDateTime = (dateTime?: string) => {
     if (!dateTime) return 'N/A';
@@ -171,29 +196,9 @@ const WorkerManagement: React.FC = () => {
     }
   };
 
-  const getCountdownProgress = (seconds: number, frequency: string): number => {
-    // Calculate progress based on frequency
-    let totalSeconds = 0;
-    switch (frequency?.toLowerCase()) {
-      case 'hourly':
-        totalSeconds = 60 * 60;
-        break;
-      case 'daily':
-        totalSeconds = 24 * 60 * 60;
-        break;
-      case '5 minutes':
-        totalSeconds = 5 * 60;
-        break;
-      case '15 minutes':
-        totalSeconds = 15 * 60;
-        break;
-      case '30 minutes':
-        totalSeconds = 30 * 60;
-        break;
-      default:
-        totalSeconds = 60 * 60; // Default to hourly
-    }
-
+  const getCountdownProgress = (seconds: number, frequencyMinutes: number): number => {
+    if (seconds <= 0) return 100;
+    const totalSeconds = frequencyMinutes * 60; // Convert minutes to seconds
     const elapsed = totalSeconds - seconds;
     return Math.max(0, Math.min(100, (elapsed / totalSeconds) * 100));
   };
@@ -276,7 +281,27 @@ const WorkerManagement: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   {status.isRunning ? (
-                    <CheckCircle sx={{ color: 'success.main', fontSize: 32 }} />
+                    <Box sx={{ position: 'relative' }}>
+                      <CheckCircle sx={{ color: 'success.main', fontSize: 32 }} />
+                      {/* Pulsing indicator for active worker */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -2,
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          bgcolor: 'success.main',
+                          animation: 'pulse 2s infinite',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1, transform: 'scale(1)' },
+                            '50%': { opacity: 0.7, transform: 'scale(1.1)' },
+                            '100%': { opacity: 1, transform: 'scale(1)' },
+                          },
+                        }}
+                      />
+                    </Box>
                   ) : (
                     <ErrorIcon sx={{ color: 'error.main', fontSize: 32 }} />
                   )}
@@ -287,7 +312,32 @@ const WorkerManagement: React.FC = () => {
                         label={status.isRunning ? 'Running' : 'Stopped'}
                         color={status.isRunning ? 'success' : 'error'}
                         size="small"
+                        sx={{
+                          animation: status.isRunning ? 'pulse 3s infinite' : 'none',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1 },
+                            '50%': { opacity: 0.8 },
+                            '100%': { opacity: 1 },
+                          },
+                        }}
                       />
+                      {status.isRunning && realtimeEnabled && (
+                        <Chip
+                          label="LIVE"
+                          size="small"
+                          color="primary"
+                          sx={{
+                            fontSize: '0.7rem',
+                            height: 20,
+                            animation: 'pulse 2s infinite',
+                            '@keyframes pulse': {
+                              '0%': { opacity: 1 },
+                              '50%': { opacity: 0.7 },
+                              '100%': { opacity: 1 },
+                            },
+                          }}
+                        />
+                      )}
                     </Box>
                     <Typography variant="body2" color="text.secondary">
                       Mode: {status.mode}
@@ -308,10 +358,37 @@ const WorkerManagement: React.FC = () => {
                       mb: 0.5,
                     }}
                   >
-                    <Schedule fontSize="small" />
-                    <Typography variant="body2">
-                      Uptime: {formatUptime(status.startTime)}
+                    <Schedule fontSize="small" sx={{
+                      color: status.isRunning ? 'success.main' : 'text.secondary',
+                      animation: status.isRunning && realtimeEnabled ? 'pulse 3s infinite' : 'none',
+                      '@keyframes pulse': {
+                        '0%': { opacity: 1 },
+                        '50%': { opacity: 0.7 },
+                        '100%': { opacity: 1 },
+                      },
+                    }} />
+                    <Typography variant="body2" sx={{
+                      fontWeight: status.isRunning ? 'medium' : 'normal',
+                      color: status.isRunning ? 'success.main' : 'text.primary'
+                    }}>
+                      Uptime: {status.isRunning ? realtimeUptime : 'N/A'}
                     </Typography>
+                    {status.isRunning && realtimeEnabled && (
+                      <Box
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          bgcolor: 'success.main',
+                          animation: 'pulse 1s infinite',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1, transform: 'scale(1)' },
+                            '50%': { opacity: 0.5, transform: 'scale(1.2)' },
+                            '100%': { opacity: 1, transform: 'scale(1)' },
+                          },
+                        }}
+                      />
+                    )}
                   </Box>
                   <Typography variant="body2" color="text.secondary">
                     Started: {formatDateTime(status.startTime)}
@@ -435,7 +512,7 @@ const WorkerManagement: React.FC = () => {
           {realtimeEnabled && realtimeConnected && (
             <>
               {/* Next KPI Execution Countdown */}
-              {nextKpiDue && countdown !== null && countdown !== undefined && (
+              {(nextKpiDue || dashboardData?.nextKpiDue) && countdown !== null && countdown !== undefined && (
                 <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.50', border: 1, borderColor: 'primary.200' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                     <Timer sx={{ color: 'primary.main' }} />
@@ -461,10 +538,11 @@ const WorkerManagement: React.FC = () => {
                     <Grid item xs={12} md={8}>
                       <Box>
                         <Typography variant="subtitle1" fontWeight="medium">
-                          {nextKpiDue.indicator}
+                          {nextKpiDue?.indicator || dashboardData?.nextKpiDue?.indicator}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Owner: {nextKpiDue.owner} • Frequency: {nextKpiDue.frequency}
+                          Owner: {nextKpiDue?.owner || dashboardData?.nextKpiDue?.owner} •
+                          Frequency: {dashboardData?.nextKpiDue?.frequency || 30} min
                         </Typography>
                       </Box>
                     </Grid>
@@ -491,12 +569,12 @@ const WorkerManagement: React.FC = () => {
                           Progress to next execution
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {Math.round(getCountdownProgress(countdown, nextKpiDue.frequency))}%
+                          {Math.round(getCountdownProgress(countdown, dashboardData?.nextKpiDue?.frequency || 30))}%
                         </Typography>
                       </Box>
                       <LinearProgress
                         variant="determinate"
-                        value={getCountdownProgress(countdown, nextKpiDue.frequency)}
+                        value={getCountdownProgress(countdown, dashboardData?.nextKpiDue?.frequency || 30)}
                         sx={{
                           height: 6,
                           borderRadius: 3,
@@ -594,6 +672,34 @@ const WorkerManagement: React.FC = () => {
                   </Box>
                 </Paper>
               )}
+
+              {/* Real-time Status Indicator when no data */}
+              {(!nextKpiDue && !dashboardData?.nextKpiDue && runningKpis.length === 0) && (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <AccessTime sx={{ color: 'info.main' }} />
+                    <Typography variant="h6" color="info.main">
+                      Real-time Monitoring Active
+                    </Typography>
+                    <Chip
+                      label="LIVE"
+                      size="small"
+                      color="success"
+                      sx={{
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                          '100%': { opacity: 1 },
+                        },
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Waiting for KPI execution data... The system is monitoring for scheduled KPIs and will display countdown timers and execution status when available.
+                  </Typography>
+                </Paper>
+              )}
             </>
           )}
 
@@ -619,12 +725,37 @@ const WorkerManagement: React.FC = () => {
                               height: 8,
                               borderRadius: '50%',
                               bgcolor: service.status === 'Running' ? 'success.main' : 'error.main',
+                              animation: service.status === 'Running' && realtimeEnabled ? 'pulse 2s infinite' : 'none',
+                              '@keyframes pulse': {
+                                '0%': { opacity: 1, transform: 'scale(1)' },
+                                '50%': { opacity: 0.6, transform: 'scale(1.3)' },
+                                '100%': { opacity: 1, transform: 'scale(1)' },
+                              },
                             }}
                           />
                           <Box>
-                            <Typography variant="subtitle1" fontWeight="medium">
-                              {service.name}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                {service.name}
+                              </Typography>
+                              {service.status === 'Running' && realtimeEnabled && (
+                                <Chip
+                                  label="ACTIVE"
+                                  size="small"
+                                  color="success"
+                                  sx={{
+                                    fontSize: '0.65rem',
+                                    height: 18,
+                                    animation: 'pulse 3s infinite',
+                                    '@keyframes pulse': {
+                                      '0%': { opacity: 1 },
+                                      '50%': { opacity: 0.7 },
+                                      '100%': { opacity: 1 },
+                                    },
+                                  }}
+                                />
+                              )}
+                            </Box>
                             {service.errorMessage && (
                               <Typography variant="body2" color="error">
                                 {service.errorMessage}
@@ -640,7 +771,15 @@ const WorkerManagement: React.FC = () => {
                             label={service.status}
                             color={service.status === 'Running' ? 'success' : 'error'}
                             size="small"
-                            sx={{ mb: service.lastActivity ? 1 : 0 }}
+                            sx={{
+                              mb: service.lastActivity ? 1 : 0,
+                              animation: service.status === 'Running' && realtimeEnabled ? 'pulse 4s infinite' : 'none',
+                              '@keyframes pulse': {
+                                '0%': { opacity: 1 },
+                                '50%': { opacity: 0.8 },
+                                '100%': { opacity: 1 },
+                              },
+                            }}
                           />
                           {service.lastActivity && (
                             <Typography variant="body2" color="text.secondary">

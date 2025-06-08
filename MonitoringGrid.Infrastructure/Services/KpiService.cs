@@ -65,7 +65,7 @@ public class KpiService : IKpiService
 
         // Filter using whole time scheduling logic
         var dueKpis = allActiveKpis
-            .Where(k => MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+            .Where(k => MonitoringGrid.Core.Utilities.WholeTimeScheduler
                 .IsKpiDueForWholeTimeExecution(k.LastRun, k.Frequency))
             .OrderBy(k => k.LastRun ?? DateTime.MinValue)
             .ToList();

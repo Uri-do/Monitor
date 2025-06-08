@@ -118,7 +118,7 @@ public class KpiMonitoringWorker : BackgroundService
                 return false;
 
             // Check if KPI is due for execution using whole time scheduling
-            return MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+            return MonitoringGrid.Core.Utilities.WholeTimeScheduler
                 .IsKpiDueForWholeTimeExecution(kpi.LastRun, kpi.Frequency);
         }).ToList();
 

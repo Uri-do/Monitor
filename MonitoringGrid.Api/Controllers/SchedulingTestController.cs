@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MonitoringGrid.Infrastructure.Utilities;
+using MonitoringGrid.Core.Utilities;
 
 namespace MonitoringGrid.Api.Controllers
 {

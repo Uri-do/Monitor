@@ -122,11 +122,14 @@ public class KPI : AggregateRoot
     {
         if (!LastRun.HasValue)
         {
-            // If never run, return now
-            return DateTime.UtcNow;
+            // If never run, return next whole time execution from now
+            return MonitoringGrid.Core.Utilities.WholeTimeScheduler
+                .GetNextWholeTimeExecution(Frequency);
         }
 
-        return LastRun.Value.AddMinutes(Frequency);
+        // Use whole time scheduler for consistent scheduling
+        return MonitoringGrid.Core.Utilities.WholeTimeScheduler
+            .GetNextWholeTimeExecution(Frequency, LastRun.Value);
     }
 
     /// <summary>
