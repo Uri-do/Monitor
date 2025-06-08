@@ -16,6 +16,7 @@ import {
   Divider,
   Tooltip,
   Badge,
+  useTheme,
 } from '@mui/material';
 import {
   TrendingUp,
@@ -39,6 +40,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Fetch dashboard data with more frequent refresh for real-time updates
@@ -551,10 +553,10 @@ const Dashboard: React.FC = () => {
                     justifyContent="center"
                     py={4}
                     sx={{
-                      backgroundColor: 'grey.50',
+                      backgroundColor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
                       borderRadius: 2,
                       border: '2px dashed',
-                      borderColor: 'grey.300',
+                      borderColor: theme.palette.mode === 'light' ? 'grey.300' : 'grey.700',
                     }}
                   >
                     <PlayCircle sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
@@ -603,7 +605,9 @@ const Dashboard: React.FC = () => {
                     sx={{
                       p: 3,
                       borderRadius: 2,
-                      background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                      background: theme.palette.mode === 'light'
+                        ? 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
+                        : 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.2) 100%)',
                       border: '1px solid',
                       borderColor: 'primary.light',
                       position: 'relative',
@@ -686,10 +690,10 @@ const Dashboard: React.FC = () => {
                     justifyContent="center"
                     py={4}
                     sx={{
-                      backgroundColor: 'grey.50',
+                      backgroundColor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
                       borderRadius: 2,
                       border: '2px dashed',
-                      borderColor: 'grey.300',
+                      borderColor: theme.palette.mode === 'light' ? 'grey.300' : 'grey.700',
                     }}
                   >
                     <AccessTime sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
@@ -804,10 +808,10 @@ const Dashboard: React.FC = () => {
                     justifyContent="center"
                     py={4}
                     sx={{
-                      backgroundColor: 'grey.50',
+                      backgroundColor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
                       borderRadius: 2,
                       border: '2px dashed',
-                      borderColor: 'grey.300',
+                      borderColor: theme.palette.mode === 'light' ? 'grey.300' : 'grey.700',
                     }}
                   >
                     <History sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
@@ -907,10 +911,10 @@ const Dashboard: React.FC = () => {
                     justifyContent="center"
                     py={4}
                     sx={{
-                      backgroundColor: 'grey.50',
+                      backgroundColor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
                       borderRadius: 2,
                       border: '2px dashed',
-                      borderColor: 'grey.300',
+                      borderColor: theme.palette.mode === 'light' ? 'grey.300' : 'grey.700',
                     }}
                   >
                     <CheckCircle sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
@@ -1023,10 +1027,10 @@ const Dashboard: React.FC = () => {
                     justifyContent="center"
                     py={4}
                     sx={{
-                      backgroundColor: 'grey.50',
+                      backgroundColor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
                       borderRadius: 2,
                       border: '2px dashed',
-                      borderColor: 'grey.300',
+                      borderColor: theme.palette.mode === 'light' ? 'grey.300' : 'grey.700',
                     }}
                   >
                     <CheckCircle sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
@@ -1047,7 +1051,9 @@ const Dashboard: React.FC = () => {
         {alertDashboard?.topAlertingKpis && alertDashboard.topAlertingKpis.length > 0 && (
           <Grid item xs={12}>
             <Card sx={{
-              background: 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)',
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)'
+                : 'linear-gradient(135deg, rgba(244, 67, 54, 0.8) 0%, rgba(211, 47, 47, 0.8) 100%)',
               color: 'white',
             }}>
               <CardContent>

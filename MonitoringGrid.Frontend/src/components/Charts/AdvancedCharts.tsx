@@ -10,7 +10,8 @@ import {
   Select,
   MenuItem,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  useTheme
 } from '@mui/material';
 import {
   LineChart,
