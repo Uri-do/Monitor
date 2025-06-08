@@ -55,18 +55,23 @@ public class KpiService : IKpiService
 
     public async Task<List<KPI>> GetDueKpisAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Retrieving KPIs due for execution");
-        
-        var now = DateTime.UtcNow;
-        
-        return await _context.KPIs
+        _logger.LogDebug("Retrieving KPIs due for execution using whole time scheduling");
+
+        var allActiveKpis = await _context.KPIs
             .Include(k => k.KpiContacts)
                 .ThenInclude(kc => kc.Contact)
-            .Where(k => k.IsActive &&
-                       (!k.LastRun.HasValue ||
-                        k.LastRun.Value.AddMinutes(k.Frequency) <= now))
-            .OrderBy(k => k.LastRun ?? DateTime.MinValue)
+            .Where(k => k.IsActive)
             .ToListAsync(cancellationToken);
+
+        // Filter using whole time scheduling logic
+        var dueKpis = allActiveKpis
+            .Where(k => MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+                .IsKpiDueForWholeTimeExecution(k.LastRun, k.Frequency))
+            .OrderBy(k => k.LastRun ?? DateTime.MinValue)
+            .ToList();
+
+        _logger.LogDebug("Found {Count} KPIs due for execution", dueKpis.Count);
+        return dueKpis;
     }
 
     public async Task<KPI> CreateKpiAsync(KPI kpi, CancellationToken cancellationToken = default)
@@ -111,7 +116,7 @@ public class KpiService : IKpiService
         existingKpi.Indicator = kpi.Indicator;
         existingKpi.Owner = kpi.Owner;
         existingKpi.Priority = kpi.Priority;
-        existingKpi.Frequency = kpi.Frequency;
+        existingKpi.ScheduleConfiguration = kpi.ScheduleConfiguration; // Update schedule configuration instead of frequency
         existingKpi.LastMinutes = kpi.LastMinutes;
         existingKpi.Deviation = kpi.Deviation;
         existingKpi.SpName = kpi.SpName;

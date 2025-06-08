@@ -131,13 +131,8 @@ public class EnhancedKpiSchedulerService : BackgroundService
 
     private static bool IsKpiDue(KPI kpi, DateTime now)
     {
-        if (!kpi.LastRun.HasValue)
-            return true; // Never run before
-
-        var timeSinceLastRun = now - kpi.LastRun.Value;
-        var frequencyTimeSpan = TimeSpan.FromMinutes(kpi.Frequency);
-
-        return timeSinceLastRun >= frequencyTimeSpan;
+        return MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+            .IsKpiDueForWholeTimeExecution(kpi.LastRun, kpi.Frequency, now);
     }
 
     private async Task ExecuteKpiWithMonitoringAsync(

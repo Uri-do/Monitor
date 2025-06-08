@@ -106,7 +106,7 @@ public class KpiMonitoringWorker : BackgroundService
     private async Task<List<KPI>> GetDueKpisAsync(IKpiService kpiService, CancellationToken cancellationToken)
     {
         var allKpis = await kpiService.GetAllKpisAsync(cancellationToken);
-        
+
         var dueKpis = allKpis.Where(kpi =>
         {
             // Only process active KPIs if configured
@@ -117,12 +117,9 @@ public class KpiMonitoringWorker : BackgroundService
             if (_configuration.KpiMonitoring.SkipRunningKpis && kpi.IsCurrentlyRunning)
                 return false;
 
-            // Check if KPI is due for execution
-            if (!kpi.LastRun.HasValue)
-                return true; // Never run before
-
-            var nextRun = kpi.LastRun.Value.AddMinutes(kpi.Frequency);
-            return DateTime.UtcNow >= nextRun;
+            // Check if KPI is due for execution using whole time scheduling
+            return MonitoringGrid.Infrastructure.Utilities.WholeTimeScheduler
+                .IsKpiDueForWholeTimeExecution(kpi.LastRun, kpi.Frequency);
         }).ToList();
 
         return dueKpis;

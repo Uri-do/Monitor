@@ -45,9 +45,11 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
 
         var kpiRepository = _unitOfWork.Repository<KPI>();
         var alertRepository = _unitOfWork.Repository<AlertLog>();
+        var historicalRepository = _unitOfWork.Repository<HistoricalData>();
 
         var kpis = (await kpiRepository.GetAllAsync(cancellationToken)).ToList();
         var allAlerts = (await alertRepository.GetAllAsync(cancellationToken)).ToList();
+        var allHistoricalData = (await historicalRepository.GetAllAsync(cancellationToken)).ToList();
 
         activity?.SetTag("dashboard.kpi_count", kpis.Count)
                 ?.SetTag("dashboard.alert_count", allAlerts.Count);
@@ -88,6 +90,35 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
             })
             .ToList();
 
+        // Find the next KPI due for execution using simple frequency-based calculation
+        var nextKpiDue = kpis
+            .Where(k => k.IsActive && !k.IsCurrentlyRunning && k.LastRun.HasValue)
+            .Select(k => new
+            {
+                Kpi = k,
+                NextRun = k.LastRun!.Value.AddMinutes(k.Frequency),
+                MinutesUntilDue = (k.LastRun!.Value.AddMinutes(k.Frequency) - now).TotalMinutes
+            })
+            .Where(x => x.MinutesUntilDue > 0) // Only future executions
+            .OrderBy(x => x.NextRun)
+            .FirstOrDefault();
+
+        // Get recent executions (last 10)
+        var recentExecutions = allHistoricalData
+            .Where(h => h.Timestamp >= now.AddHours(-24)) // Last 24 hours
+            .OrderByDescending(h => h.Timestamp)
+            .Take(10)
+            .Select(h => new KpiExecutionStatusDto
+            {
+                KpiId = h.KpiId,
+                Indicator = kpis.FirstOrDefault(k => k.KpiId == h.KpiId)?.Indicator ?? "Unknown",
+                ExecutionTime = h.Timestamp,
+                IsSuccessful = h.IsSuccessful,
+                Value = h.Value,
+                ExecutionTimeMs = h.ExecutionTimeMs
+            })
+            .ToList();
+
         var dashboard = new KpiDashboardDto
         {
             TotalKpis = kpis.Count,
@@ -102,7 +133,21 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
             RecentAlerts = recentAlerts,
             KpisInError = recentAlerts,
             DueKpis = dueKpis,
-            RunningKpis = runningKpis
+            RunningKpis = runningKpis,
+            NextKpiDue = nextKpiDue != null ? new KpiStatusDto
+            {
+                KpiId = nextKpiDue.Kpi.KpiId,
+                Indicator = nextKpiDue.Kpi.Indicator,
+                Owner = nextKpiDue.Kpi.Owner,
+                NextRun = nextKpiDue.NextRun,
+                MinutesUntilDue = (int)Math.Ceiling(Math.Max(0, nextKpiDue.MinutesUntilDue)),
+                Status = nextKpiDue.MinutesUntilDue <= 0 ? "Due Now" :
+                         nextKpiDue.MinutesUntilDue <= 5 ? "Due Soon" : "Scheduled",
+                IsActive = true,
+                Frequency = nextKpiDue.Kpi.Frequency,
+                LastRun = nextKpiDue.Kpi.LastRun
+            } : null,
+            RecentExecutions = recentExecutions
         };
 
         var duration = DateTime.UtcNow - startTime;

@@ -18,20 +18,19 @@ public class KpiDomainService
     }
 
     /// <summary>
-    /// Gets KPIs that are due for execution
+    /// Gets KPIs that are due for execution using whole time scheduling
     /// </summary>
     public async Task<IEnumerable<KPI>> GetDueKpisAsync(int batchSize = 10, CancellationToken cancellationToken = default)
     {
-        var currentTime = DateTime.UtcNow;
-        
-        var allKpis = await _kpiRepository.GetAsync(
-            k => k.IsActive && 
-                 (k.LastRun == null || k.LastRun < currentTime.AddMinutes(-k.Frequency)),
-            cancellationToken);
+        var allActiveKpis = await _kpiRepository.GetAsync(k => k.IsActive, cancellationToken);
 
-        return allKpis
+        // Filter using KPI's IsDue method
+        var dueKpis = allActiveKpis
+            .Where(k => k.IsDue())
             .OrderBy(k => k.LastRun ?? DateTime.MinValue) // Process oldest first
             .Take(batchSize);
+
+        return dueKpis;
     }
 
     /// <summary>

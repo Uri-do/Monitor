@@ -426,7 +426,7 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.frequency}
-                          helperText={errors.frequency?.message || 'How often to check this KPI (synced with schedule configuration)'}
+                          helperText={errors.frequency?.message || 'How often to check this KPI. Uses whole time scheduling (e.g., 5min = xx:00, xx:05, xx:10...)'}
                           inputProps={{ min: 1 }}
                         />
                       )}

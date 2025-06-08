@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.ValueObjects;
 
 namespace MonitoringGrid.Infrastructure.Data;
 
@@ -66,7 +68,8 @@ public static class SeedData
         await context.Contacts.AddRangeAsync(contacts);
         await context.SaveChangesAsync();
 
-        // Seed KPIs
+        // Seed KPIs with realistic LastRun values to show countdown
+        var now = DateTime.UtcNow;
         var kpis = new List<KPI>
         {
             new KPI
@@ -75,6 +78,7 @@ public static class SeedData
                 Owner = "John Smith",
                 Priority = 1, // Critical
                 Frequency = 60, // Every hour
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(60)), // Every hour
                 Deviation = 15.0m,
                 SpName = "sp_GetDailySalesRevenue",
                 SubjectTemplate = "Sales Alert: {{indicator}} deviation detected",
@@ -82,6 +86,7 @@ public static class SeedData
                 IsActive = true,
                 CooldownMinutes = 30,
                 MinimumThreshold = 1000,
+                LastRun = now.AddMinutes(-50), // Last ran 50 minutes ago, due in 10 minutes
                 CreatedDate = DateTime.UtcNow,
                 ModifiedDate = DateTime.UtcNow
             },
@@ -91,6 +96,7 @@ public static class SeedData
                 Owner = "Sarah Johnson",
                 Priority = 2, // High
                 Frequency = 120, // Every 2 hours
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(120)), // Every 2 hours
                 Deviation = 10.0m,
                 SpName = "sp_GetCustomerSatisfaction",
                 SubjectTemplate = "Customer Alert: {{indicator}} deviation detected",
@@ -98,6 +104,7 @@ public static class SeedData
                 IsActive = true,
                 CooldownMinutes = 60,
                 MinimumThreshold = 80,
+                LastRun = now.AddMinutes(-110), // Last ran 1.83 hours ago, due in 10 minutes
                 CreatedDate = DateTime.UtcNow,
                 ModifiedDate = DateTime.UtcNow
             },
@@ -107,6 +114,7 @@ public static class SeedData
                 Owner = "Mike Wilson",
                 Priority = 1, // Critical
                 Frequency = 30, // Every 30 minutes
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(30)), // Every 30 minutes
                 Deviation = 20.0m,
                 SpName = "sp_GetSystemResponseTime",
                 SubjectTemplate = "Performance Alert: {{indicator}} deviation detected",
@@ -114,6 +122,7 @@ public static class SeedData
                 IsActive = true,
                 CooldownMinutes = 15,
                 MinimumThreshold = 500,
+                LastRun = now.AddMinutes(-27), // Last ran 27 minutes ago, due in 3 minutes
                 CreatedDate = DateTime.UtcNow,
                 ModifiedDate = DateTime.UtcNow
             },
@@ -123,6 +132,7 @@ public static class SeedData
                 Owner = "Lisa Davis",
                 Priority = 2, // High
                 Frequency = 90, // Every 1.5 hours
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(90)), // Every 1.5 hours
                 Deviation = 12.0m,
                 SpName = "sp_GetOrderProcessingRate",
                 SubjectTemplate = "Operations Alert: {{indicator}} deviation detected",
@@ -130,6 +140,43 @@ public static class SeedData
                 IsActive = true,
                 CooldownMinutes = 45,
                 MinimumThreshold = 100,
+                LastRun = now.AddMinutes(-85), // Last ran 1.42 hours ago, due in 5 minutes
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            },
+            new KPI
+            {
+                Indicator = "Transaction Success Rate",
+                Owner = "Gavriel",
+                Priority = 1, // Critical
+                Frequency = 30, // Every 30 minutes
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(30)), // Every 30 minutes
+                Deviation = 5.0m,
+                SpName = "[stats].[stp_MonitorTransactions]",
+                SubjectTemplate = "Transaction success rate alert: {{deviation}}% deviation detected",
+                DescriptionTemplate = "Transaction monitoring alert: Current success rate is {{current}}%, historical average is {{historical}}%. Deviation of {{deviation}}% detected.",
+                IsActive = true,
+                CooldownMinutes = 60,
+                MinimumThreshold = 90,
+                LastRun = now.AddMinutes(-29), // Last ran 29 minutes ago, due in 1 minute
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            },
+            new KPI
+            {
+                Indicator = "API Error Rate",
+                Owner = "Tech Team",
+                Priority = 1, // Critical
+                Frequency = 10, // Every 10 minutes
+                ScheduleConfiguration = JsonSerializer.Serialize(ScheduleConfiguration.CreateInterval(10)), // Every 10 minutes
+                Deviation = 8.0m,
+                SpName = "sp_GetApiErrorRate",
+                SubjectTemplate = "API Alert: {{indicator}} threshold exceeded",
+                DescriptionTemplate = "API error rate: {{current}}%, threshold: {{threshold}}%, deviation: {{deviation}}%",
+                IsActive = false, // Inactive to show variety
+                CooldownMinutes = 20,
+                MinimumThreshold = 2,
+                LastRun = now.AddMinutes(-120), // Last ran 2 hours ago
                 CreatedDate = DateTime.UtcNow,
                 ModifiedDate = DateTime.UtcNow
             }
@@ -145,6 +192,8 @@ public static class SeedData
             new KpiContact { KpiId = kpis[1].KpiId, ContactId = contacts[1].ContactId }, // Sarah -> Customer Satisfaction
             new KpiContact { KpiId = kpis[2].KpiId, ContactId = contacts[2].ContactId }, // Mike -> System Response
             new KpiContact { KpiId = kpis[3].KpiId, ContactId = contacts[3].ContactId }, // Lisa -> Order Processing
+            new KpiContact { KpiId = kpis[4].KpiId, ContactId = contacts[0].ContactId }, // John -> Transaction Success Rate
+            new KpiContact { KpiId = kpis[5].KpiId, ContactId = contacts[2].ContactId }, // Mike -> API Error Rate
             new KpiContact { KpiId = kpis[0].KpiId, ContactId = contacts[3].ContactId }, // Lisa also gets Sales alerts
             new KpiContact { KpiId = kpis[2].KpiId, ContactId = contacts[0].ContactId }, // John also gets System alerts
         };

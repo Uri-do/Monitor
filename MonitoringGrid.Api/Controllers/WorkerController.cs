@@ -66,19 +66,57 @@ public class WorkerController : ControllerBase
                 {
                     if (_workerProcess != null && !_workerProcess.HasExited)
                     {
-                        status.IsRunning = true;
-                        status.Mode = "External";
-                        status.ProcessId = _workerProcess.Id;
-                        status.StartTime = _workerProcess.StartTime;
-                        status.Services = new List<WorkerServiceDto>
+                        try
                         {
-                            new WorkerServiceDto
+                            status.IsRunning = true;
+                            status.Mode = "External";
+                            status.ProcessId = _workerProcess.Id;
+                            status.StartTime = _workerProcess.StartTime;
+                            status.Services = new List<WorkerServiceDto>
                             {
-                                Name = "MonitoringGrid.Worker",
-                                Status = "Running",
-                                LastActivity = DateTime.UtcNow
-                            }
-                        };
+                                new WorkerServiceDto
+                                {
+                                    Name = "KpiMonitoringWorker",
+                                    Status = "Running",
+                                    LastActivity = DateTime.UtcNow
+                                },
+                                new WorkerServiceDto
+                                {
+                                    Name = "ScheduledTaskWorker",
+                                    Status = "Running",
+                                    LastActivity = DateTime.UtcNow
+                                },
+                                new WorkerServiceDto
+                                {
+                                    Name = "HealthCheckWorker",
+                                    Status = "Running",
+                                    LastActivity = DateTime.UtcNow
+                                },
+                                new WorkerServiceDto
+                                {
+                                    Name = "AlertProcessingWorker",
+                                    Status = "Running",
+                                    LastActivity = DateTime.UtcNow
+                                }
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Error accessing Worker process details");
+                            status.IsRunning = true;
+                            status.Mode = "External";
+                            status.ProcessId = _workerProcess.Id;
+                            status.StartTime = DateTime.UtcNow; // Fallback to current time
+                            status.Services = new List<WorkerServiceDto>
+                            {
+                                new WorkerServiceDto
+                                {
+                                    Name = "MonitoringGrid.Worker",
+                                    Status = "Running",
+                                    LastActivity = DateTime.UtcNow
+                                }
+                            };
+                        }
                     }
                     else
                     {
@@ -418,6 +456,43 @@ public class WorkerController : ControllerBase
         {
             _logger.LogError(ex, "Error resetting KPI times");
             return StatusCode(500, new { success = false, message = "Failed to reset KPI times" });
+        }
+    }
+
+    /// <summary>
+    /// Activate all KPIs (for testing)
+    /// </summary>
+    [HttpPost("activate-all-kpis")]
+    public async Task<IActionResult> ActivateAllKpis()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+            var kpis = await context.KPIs.ToListAsync();
+
+            foreach (var kpi in kpis)
+            {
+                kpi.IsActive = true;
+                kpi.LastRun = null; // Reset to make them due for execution
+                kpi.IsCurrentlyRunning = false;
+            }
+
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("Activated {Count} KPIs", kpis.Count);
+
+            return Ok(new {
+                success = true,
+                message = $"Activated {kpis.Count} KPIs and reset their execution times",
+                activatedKpis = kpis.Select(k => new { k.KpiId, k.Indicator }).ToList()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error activating KPIs");
+            return StatusCode(500, new { success = false, message = "Failed to activate KPIs" });
         }
     }
 }

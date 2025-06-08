@@ -100,15 +100,35 @@ const WorkerDashboardCard: React.FC = () => {
 
   const formatUptime = (startTime?: string) => {
     if (!startTime) return 'N/A';
-    
-    const start = new Date(startTime);
-    const now = new Date();
-    const diff = now.getTime() - start.getTime();
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m`;
+
+    try {
+      const start = new Date(startTime);
+      const now = new Date();
+
+      // Check if the date is valid
+      if (isNaN(start.getTime())) {
+        return 'Invalid Date';
+      }
+
+      const diff = now.getTime() - start.getTime();
+
+      // If negative or very small, show as just started
+      if (diff < 0 || diff < 60000) { // Less than 1 minute
+        return 'Just started';
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      if (hours === 0) {
+        return `${minutes}m`;
+      }
+
+      return `${hours}h ${minutes}m`;
+    } catch (error) {
+      console.error('Error formatting uptime:', error);
+      return 'Error';
+    }
   };
 
   useEffect(() => {

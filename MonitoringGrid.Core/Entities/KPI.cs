@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Exceptions;
+using MonitoringGrid.Core.ValueObjects;
 
 namespace MonitoringGrid.Core.Entities;
 
@@ -26,9 +28,9 @@ public class KPI : AggregateRoot
     public byte Priority { get; set; }
 
     /// <summary>
-    /// Frequency in minutes
+    /// Frequency in minutes for backward compatibility
     /// </summary>
-    public int Frequency { get; set; }
+    public int Frequency { get; set; } = 60;
 
     /// <summary>
     /// Time window in minutes for data analysis (how far back to look for data)
@@ -106,16 +108,43 @@ public class KPI : AggregateRoot
     // Domain methods
     public bool IsDue()
     {
-        if (!IsActive || !LastRun.HasValue)
+        if (!IsActive)
+            return false;
+
+        // Simple frequency-based check for now
+        if (!LastRun.HasValue)
             return true;
 
-        var nextRun = LastRun.Value.AddMinutes(Frequency);
-        return DateTime.UtcNow >= nextRun;
+        return DateTime.UtcNow >= LastRun.Value.AddMinutes(Frequency);
     }
 
     public DateTime? GetNextRunTime()
     {
-        return LastRun?.AddMinutes(Frequency);
+        if (!LastRun.HasValue)
+        {
+            // If never run, return now
+            return DateTime.UtcNow;
+        }
+
+        return LastRun.Value.AddMinutes(Frequency);
+    }
+
+    /// <summary>
+    /// Gets the schedule configuration object from JSON
+    /// </summary>
+    private ScheduleConfiguration? GetScheduleConfigurationObject()
+    {
+        if (string.IsNullOrWhiteSpace(ScheduleConfiguration))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<ScheduleConfiguration>(ScheduleConfiguration);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public bool IsInCooldown()

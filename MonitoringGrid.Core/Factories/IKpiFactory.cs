@@ -1,4 +1,6 @@
+using System.Text.Json;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.ValueObjects;
 using MonitoringGrid.Core.ValueObjects;
 
 namespace MonitoringGrid.Core.Factories;
@@ -68,13 +70,17 @@ public class KpiFactory : IKpiFactory
         if (string.IsNullOrWhiteSpace(spName))
             throw new ArgumentException("Stored procedure name cannot be empty", nameof(spName));
 
+        // Create schedule configuration
+        var scheduleConfig = ScheduleConfiguration.CreateInterval(frequency);
+        var scheduleJson = JsonSerializer.Serialize(scheduleConfig);
+
         // Create KPI with validated data
         var kpi = new KPI
         {
             Indicator = indicator.Trim(),
             Owner = owner.Trim(),
             Priority = priority,
-            Frequency = frequency,
+            ScheduleConfiguration = scheduleJson,
             Deviation = deviation,
             SpName = spName.Trim(),
             SubjectTemplate = subjectTemplate.Trim(),
