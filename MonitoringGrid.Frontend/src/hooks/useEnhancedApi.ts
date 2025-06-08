@@ -1,9 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  analyticsApi, 
-  realtimeApi, 
-  enhancedAlertApi 
-} from '@/services/api';
+import { analyticsApi, realtimeApi, enhancedAlertApi } from '@/services/api';
 import {
   SystemAnalyticsDto,
   KpiPerformanceAnalyticsDto,
@@ -12,7 +8,7 @@ import {
   RealtimeStatusDto,
   LiveDashboardDto,
   EnhancedAlertDto,
-  AlertStatisticsDto
+  AlertStatisticsDto,
 } from '@/types/api';
 
 // Hook for system analytics
@@ -302,25 +298,28 @@ export const useManualAlert = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendAlert = useCallback(async (kpiId: number, message: string, details?: string, priority: number = 2) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await enhancedAlertApi.sendManualAlert({
-        kpiId,
-        message,
-        details,
-        priority
-      });
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send manual alert';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const sendAlert = useCallback(
+    async (kpiId: number, message: string, details?: string, priority: number = 2) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await enhancedAlertApi.sendManualAlert({
+          kpiId,
+          message,
+          details,
+          priority,
+        });
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to send manual alert';
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   return { sendAlert, loading, error };
 };

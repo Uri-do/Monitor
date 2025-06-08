@@ -174,32 +174,40 @@ const DataTable = <T extends Record<string, any>>({
     return result;
   }, [data, searchValue, searchable, columns]);
 
-  const handleSelectAllClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelected(processedData);
-      onSelectionChange?.(processedData);
-    } else {
-      setSelected([]);
-      onSelectionChange?.([]);
-    }
-  }, [processedData, onSelectionChange]);
+  const handleSelectAllClick = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.checked) {
+        setSelected(processedData);
+        onSelectionChange?.(processedData);
+      } else {
+        setSelected([]);
+        onSelectionChange?.([]);
+      }
+    },
+    [processedData, onSelectionChange]
+  );
 
-  const handleRowSelect = useCallback((row: T) => {
-    const selectedIndex = selected.findIndex(item => item[rowKey] === row[rowKey]);
-    let newSelected: T[] = [];
+  const handleRowSelect = useCallback(
+    (row: T) => {
+      const selectedIndex = selected.findIndex(item => item[rowKey] === row[rowKey]);
+      let newSelected: T[] = [];
 
-    if (selectedIndex === -1) {
-      newSelected = [...selected, row];
-    } else {
-      newSelected = selected.filter(item => item[rowKey] !== row[rowKey]);
-    }
+      if (selectedIndex === -1) {
+        newSelected = [...selected, row];
+      } else {
+        newSelected = selected.filter(item => item[rowKey] !== row[rowKey]);
+      }
 
-    setSelected(newSelected);
-    onSelectionChange?.(newSelected);
-  }, [selected, rowKey, onSelectionChange]);
+      setSelected(newSelected);
+      onSelectionChange?.(newSelected);
+    },
+    [selected, rowKey, onSelectionChange]
+  );
 
-  const isSelected = useCallback((row: T) =>
-    selected.some(item => item[rowKey] === row[rowKey]), [selected, rowKey]);
+  const isSelected = useCallback(
+    (row: T) => selected.some(item => item[rowKey] === row[rowKey]),
+    [selected, rowKey]
+  );
 
   const handleSort = (property: string) => {
     if (sorting) {
@@ -209,31 +217,31 @@ const DataTable = <T extends Record<string, any>>({
 
   const renderActions = (row: T) => {
     const allActions = [...actions];
-    
+
     if (defaultActions?.view) {
       allActions.unshift({
         label: 'View',
         icon: <ViewIcon />,
         onClick: defaultActions.view,
-        color: 'primary'
+        color: 'primary',
       });
     }
-    
+
     if (defaultActions?.edit) {
       allActions.push({
         label: 'Edit',
         icon: <EditIcon />,
         onClick: defaultActions.edit,
-        color: 'primary'
+        color: 'primary',
       });
     }
-    
+
     if (defaultActions?.delete) {
       allActions.push({
         label: 'Delete',
         icon: <DeleteIcon />,
         onClick: defaultActions.delete,
-        color: 'error'
+        color: 'error',
       });
     }
 
@@ -255,16 +263,18 @@ const DataTable = <T extends Record<string, any>>({
                   border: '1px solid transparent',
                   transition: 'all 0.2s ease-in-out',
                   '&:hover': {
-                    backgroundColor: action.color === 'error'
-                      ? 'rgba(244, 67, 54, 0.08)'
-                      : action.color === 'primary'
-                      ? 'rgba(102, 126, 234, 0.08)'
-                      : 'rgba(0, 0, 0, 0.04)',
-                    borderColor: action.color === 'error'
-                      ? 'error.light'
-                      : action.color === 'primary'
-                      ? 'primary.light'
-                      : 'divider',
+                    backgroundColor:
+                      action.color === 'error'
+                        ? 'rgba(244, 67, 54, 0.08)'
+                        : action.color === 'primary'
+                          ? 'rgba(102, 126, 234, 0.08)'
+                          : 'rgba(0, 0, 0, 0.04)',
+                    borderColor:
+                      action.color === 'error'
+                        ? 'error.light'
+                        : action.color === 'primary'
+                          ? 'primary.light'
+                          : 'divider',
                     transform: 'scale(1.05)',
                   },
                   '&:disabled': {
@@ -355,7 +365,7 @@ const DataTable = <T extends Record<string, any>>({
                   />
                 </TableCell>
               )}
-              {columns.map((column) => (
+              {columns.map(column => (
                 <TableCell
                   key={String(column.id)}
                   align={column.align}
@@ -409,7 +419,11 @@ const DataTable = <T extends Record<string, any>>({
             {data.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + (selectable ? 1 : 0) + ((actions.length > 0 || defaultActions) ? 1 : 0)}
+                  colSpan={
+                    columns.length +
+                    (selectable ? 1 : 0) +
+                    (actions.length > 0 || defaultActions ? 1 : 0)
+                  }
                   align="center"
                   sx={{
                     py: 6,
@@ -453,7 +467,7 @@ const DataTable = <T extends Record<string, any>>({
                         />
                       </TableCell>
                     )}
-                    {columns.map((column) => {
+                    {columns.map(column => {
                       const value = row[column.id];
                       return (
                         <TableCell
@@ -467,9 +481,8 @@ const DataTable = <T extends Record<string, any>>({
                           {column.render
                             ? column.render(value, row)
                             : column.format
-                            ? column.format(value, row)
-                            : value
-                          }
+                              ? column.format(value, row)
+                              : value}
                         </TableCell>
                       );
                     })}
@@ -491,7 +504,7 @@ const DataTable = <T extends Record<string, any>>({
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       {pagination && (
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
@@ -500,7 +513,7 @@ const DataTable = <T extends Record<string, any>>({
           rowsPerPage={pagination.rowsPerPage}
           page={pagination.page}
           onPageChange={(_, newPage) => pagination.onPageChange(newPage)}
-          onRowsPerPageChange={(event) => 
+          onRowsPerPageChange={event =>
             pagination.onRowsPerPageChange(parseInt(event.target.value, 10))
           }
         />

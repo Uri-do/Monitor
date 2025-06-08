@@ -5,7 +5,7 @@ export type {
   DataTableAction,
   DataTableBulkAction,
   DataTableFilter,
-  DataTableProps
+  DataTableProps,
 } from './DataTable';
 
 export { default as Page } from './Page';

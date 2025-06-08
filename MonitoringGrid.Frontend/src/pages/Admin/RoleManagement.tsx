@@ -9,27 +9,18 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-
   Chip,
   Alert,
   Switch,
   FormControlLabel,
   Typography,
-
   FormGroup,
   Checkbox,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
 } from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  Security,
-  ExpandMore,
-  Group
-} from '@mui/icons-material';
+import { Add, Edit, Delete, Security, ExpandMore, Group } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -40,10 +31,17 @@ import { PageHeader } from '../../components/Common';
 import toast from 'react-hot-toast';
 
 const roleSchema = yup.object({
-  name: yup.string().required('Role name is required').min(2, 'Role name must be at least 2 characters'),
+  name: yup
+    .string()
+    .required('Role name is required')
+    .min(2, 'Role name must be at least 2 characters'),
   description: yup.string().required('Description is required'),
-  permissionIds: yup.array().of(yup.string().required()).required().min(1, 'At least one permission is required'),
-  isActive: yup.boolean().required()
+  permissionIds: yup
+    .array()
+    .of(yup.string().required())
+    .required()
+    .min(1, 'At least one permission is required'),
+  isActive: yup.boolean().required(),
 });
 
 interface RoleFormData {
@@ -66,13 +64,13 @@ const RoleManagement: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<RoleFormData>({
     resolver: yupResolver(roleSchema),
     defaultValues: {
       isActive: true,
-      permissionIds: []
-    }
+      permissionIds: [],
+    },
   });
 
   useEffect(() => {
@@ -84,7 +82,7 @@ const RoleManagement: React.FC = () => {
       setLoading(true);
       const [rolesData, permissionsData] = await Promise.all([
         roleService.getRoles(),
-        roleService.getAllPermissions()
+        roleService.getAllPermissions(),
       ]);
       setRoles(rolesData);
       setPermissions(permissionsData);
@@ -104,7 +102,7 @@ const RoleManagement: React.FC = () => {
       name: '',
       description: '',
       permissionIds: [],
-      isActive: true
+      isActive: true,
     });
     setDialogOpen(true);
   };
@@ -115,7 +113,7 @@ const RoleManagement: React.FC = () => {
       name: role.name,
       description: role.description,
       permissionIds: role.permissions.map(p => p.permissionId),
-      isActive: role.isActive
+      isActive: role.isActive,
     });
     setDialogOpen(true);
   };
@@ -143,7 +141,7 @@ const RoleManagement: React.FC = () => {
           name: data.name,
           description: data.description,
           permissionIds: data.permissionIds,
-          isActive: data.isActive
+          isActive: data.isActive,
         };
         await roleService.updateRole(editingRole.roleId, updateRequest);
         toast.success('Role updated successfully');
@@ -153,7 +151,7 @@ const RoleManagement: React.FC = () => {
           name: data.name,
           description: data.description,
           permissionIds: data.permissionIds,
-          isActive: data.isActive
+          isActive: data.isActive,
         };
         await roleService.createRole(createRequest);
         toast.success('Role created successfully');
@@ -162,7 +160,8 @@ const RoleManagement: React.FC = () => {
       setDialogOpen(false);
       loadData();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : `Failed to ${editingRole ? 'update' : 'create'} role`;
+      const errorMessage =
+        err instanceof Error ? err.message : `Failed to ${editingRole ? 'update' : 'create'} role`;
       setError(errorMessage);
       toast.error(errorMessage);
       console.error('Error saving role:', err);
@@ -170,13 +169,16 @@ const RoleManagement: React.FC = () => {
   };
 
   const groupPermissionsByResource = (permissions: Permission[]) => {
-    const grouped = permissions.reduce((acc, permission) => {
-      if (!acc[permission.resource]) {
-        acc[permission.resource] = [];
-      }
-      acc[permission.resource].push(permission);
-      return acc;
-    }, {} as Record<string, Permission[]>);
+    const grouped = permissions.reduce(
+      (acc, permission) => {
+        if (!acc[permission.resource]) {
+          acc[permission.resource] = [];
+        }
+        acc[permission.resource].push(permission);
+        return acc;
+      },
+      {} as Record<string, Permission[]>
+    );
     return grouped;
   };
 
@@ -185,62 +187,62 @@ const RoleManagement: React.FC = () => {
       field: 'name',
       headerName: 'Role Name',
       width: 200,
-      renderCell: (params) => (
+      renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Security color={params.row.isSystemRole ? 'error' : 'primary'} />
           <Typography variant="body2">{params.value}</Typography>
         </Box>
-      )
+      ),
     },
     {
       field: 'description',
       headerName: 'Description',
       width: 300,
-      flex: 1
+      flex: 1,
     },
     {
       field: 'permissions',
       headerName: 'Permissions',
       width: 150,
-      renderCell: (params) => (
+      renderCell: params => (
         <Chip
           label={`${params.value.length} permissions`}
           size="small"
           color="primary"
           variant="outlined"
         />
-      )
+      ),
     },
     {
       field: 'isSystemRole',
       headerName: 'Type',
       width: 120,
-      renderCell: (params) => (
+      renderCell: params => (
         <Chip
           label={params.value ? 'System' : 'Custom'}
           color={params.value ? 'error' : 'default'}
           size="small"
         />
-      )
+      ),
     },
     {
       field: 'isActive',
       headerName: 'Status',
       width: 100,
-      renderCell: (params) => (
+      renderCell: params => (
         <Chip
           label={params.value ? 'Active' : 'Inactive'}
           color={params.value ? 'success' : 'error'}
           size="small"
         />
-      )
+      ),
     },
     {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
       width: 120,
-      getActions: (params) => [
+      getActions: params => [
         <GridActionsCellItem
           icon={<Edit />}
           label="Edit"
@@ -253,9 +255,9 @@ const RoleManagement: React.FC = () => {
           onClick={() => handleDeleteRole(params.row.roleId)}
           disabled={params.row.isSystemRole}
           showInMenu
-        />
-      ]
-    }
+        />,
+      ],
+    },
   ];
 
   const groupedPermissions = groupPermissionsByResource(permissions);
@@ -271,8 +273,8 @@ const RoleManagement: React.FC = () => {
             label: 'Add Role',
             icon: <Add />,
             onClick: handleCreateRole,
-            variant: 'contained' as const
-          }
+            variant: 'contained' as const,
+          },
         ]}
       />
 
@@ -294,10 +296,10 @@ const RoleManagement: React.FC = () => {
             rows={roles}
             columns={columns}
             loading={loading}
-            getRowId={(row) => row.roleId}
+            getRowId={row => row.roleId}
             pageSizeOptions={[10, 25, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 25 } }
+              pagination: { paginationModel: { pageSize: 25 } },
             }}
             disableRowSelectionOnClick
             sx={{ height: 600 }}
@@ -306,16 +308,9 @@ const RoleManagement: React.FC = () => {
       </Card>
 
       {/* Role Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit(onSubmit as any)}>
-          <DialogTitle>
-            {editingRole ? 'Edit Role' : 'Create New Role'}
-          </DialogTitle>
+          <DialogTitle>{editingRole ? 'Edit Role' : 'Create New Role'}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               <Controller
@@ -375,17 +370,19 @@ const RoleManagement: React.FC = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                           <FormGroup>
-                            {resourcePermissions.map((permission) => (
+                            {resourcePermissions.map(permission => (
                               <FormControlLabel
                                 key={permission.permissionId}
                                 control={
                                   <Checkbox
                                     checked={field.value.includes(permission.permissionId)}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                       if (e.target.checked) {
                                         field.onChange([...field.value, permission.permissionId]);
                                       } else {
-                                        field.onChange(field.value.filter(id => id !== permission.permissionId));
+                                        field.onChange(
+                                          field.value.filter(id => id !== permission.permissionId)
+                                        );
                                       }
                                     }}
                                   />

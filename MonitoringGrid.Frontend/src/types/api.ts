@@ -14,7 +14,7 @@ export interface ScheduleConfiguration {
 export enum ScheduleType {
   Interval = 'interval',
   Cron = 'cron',
-  OneTime = 'onetime'
+  OneTime = 'onetime',
 }
 
 export interface CronPreset {
@@ -28,7 +28,7 @@ export enum KpiType {
   SuccessRate = 'success_rate',
   TransactionVolume = 'transaction_volume',
   Threshold = 'threshold',
-  TrendAnalysis = 'trend_analysis'
+  TrendAnalysis = 'trend_analysis',
 }
 
 export interface KpiTypeDefinition {

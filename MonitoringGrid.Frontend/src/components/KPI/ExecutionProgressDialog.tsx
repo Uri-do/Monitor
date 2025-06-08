@@ -43,7 +43,12 @@ import {
   QueryStats as QueryIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { KpiExecutionResultDto, ExecutionStepInfo, ExecutionTimingInfo, DatabaseExecutionInfo } from '@/types/api';
+import {
+  KpiExecutionResultDto,
+  ExecutionStepInfo,
+  ExecutionTimingInfo,
+  DatabaseExecutionInfo,
+} from '@/types/api';
 
 interface ExecutionStep {
   id: string;
@@ -109,9 +114,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
   ]);
 
   const updateStep = (stepId: string, updates: Partial<ExecutionStep>) => {
-    setSteps(prev => prev.map(step => 
-      step.id === stepId ? { ...step, ...updates } : step
-    ));
+    setSteps(prev => prev.map(step => (step.id === stepId ? { ...step, ...updates } : step)));
   };
 
   const simulateExecution = async () => {
@@ -125,76 +128,77 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
       // Step 1: Initialize
       updateStep('initialize', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 500));
-      updateStep('initialize', { 
-        status: 'completed', 
+      updateStep('initialize', {
+        status: 'completed',
         endTime: new Date(),
-        details: 'Execution context prepared'
+        details: 'Execution context prepared',
       });
       setActiveStep(1);
 
       // Step 2: Connect to Database
       updateStep('connect', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 800));
-      updateStep('connect', { 
-        status: 'completed', 
+      updateStep('connect', {
+        status: 'completed',
         endTime: new Date(),
-        details: 'Connected to ProgressPlayDBTest database'
+        details: 'Connected to ProgressPlayDBTest database',
       });
       setActiveStep(2);
 
       // Step 3: Execute Stored Procedure
       updateStep('execute', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 1200));
-      
+
       // Actually execute the KPI
       const result = await onExecute();
-      
-      updateStep('execute', { 
-        status: 'completed', 
+
+      updateStep('execute', {
+        status: 'completed',
         endTime: new Date(),
-        details: `Stored procedure executed successfully in ${result.executionTimeMs || 'N/A'}ms`
+        details: `Stored procedure executed successfully in ${result.executionTimeMs || 'N/A'}ms`,
       });
       setActiveStep(3);
 
       // Step 4: Process Results
       updateStep('process', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 600));
-      updateStep('process', { 
-        status: 'completed', 
+      updateStep('process', {
+        status: 'completed',
         endTime: new Date(),
-        details: `Current value: ${result.currentValue}, Deviation: ${result.deviationPercent?.toFixed(2) || 'N/A'}%`
+        details: `Current value: ${result.currentValue}, Deviation: ${result.deviationPercent?.toFixed(2) || 'N/A'}%`,
       });
       setActiveStep(4);
 
       // Step 5: Store Historical Data
       updateStep('store', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 400));
-      updateStep('store', { 
-        status: 'completed', 
+      updateStep('store', {
+        status: 'completed',
         endTime: new Date(),
-        details: 'Audit data stored with comprehensive metadata'
+        details: 'Audit data stored with comprehensive metadata',
       });
       setActiveStep(5);
 
       // Step 6: Complete
       updateStep('complete', { status: 'active', startTime: new Date() });
       await new Promise(resolve => setTimeout(resolve, 200));
-      updateStep('complete', { 
-        status: 'completed', 
+      updateStep('complete', {
+        status: 'completed',
         endTime: new Date(),
-        details: result.isSuccessful ? 'Execution completed successfully' : 'Execution completed with errors'
+        details: result.isSuccessful
+          ? 'Execution completed successfully'
+          : 'Execution completed with errors',
       });
 
       setExecutionResult(result);
       setEndTime(new Date());
-
     } catch (error: any) {
       const currentStepId = steps[activeStep]?.id;
       if (currentStepId) {
-        updateStep(currentStepId, { 
-          status: 'error', 
+        updateStep(currentStepId, {
+          status: 'error',
           endTime: new Date(),
-          error: error.message || 'Unknown error occurred'
+          error: error.message || 'Unknown error occurred',
         });
       }
       setExecutionError(error.message || 'Execution failed');
@@ -238,8 +242,8 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={handleClose}
       maxWidth="md"
       fullWidth
@@ -267,8 +271,8 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                 {Math.round((activeStep / (steps.length - 1)) * 100)}%
               </Typography>
             </Box>
-            <LinearProgress 
-              variant="determinate" 
+            <LinearProgress
+              variant="determinate"
               value={(activeStep / (steps.length - 1)) * 100}
               sx={{ height: 8, borderRadius: 4 }}
             />
@@ -289,7 +293,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                   )}
                 </Box>
                 {getTotalDuration() && (
-                  <Chip 
+                  <Chip
                     icon={<TimerIcon />}
                     label={`${getTotalDuration()}ms`}
                     color="primary"
@@ -302,17 +306,14 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
 
           {/* Execution Result */}
           {executionResult && (
-            <Alert 
-              severity={executionResult.isSuccessful ? 'success' : 'error'}
-              sx={{ mb: 2 }}
-            >
+            <Alert severity={executionResult.isSuccessful ? 'success' : 'error'} sx={{ mb: 2 }}>
               <Typography variant="body2">
                 <strong>Execution {executionResult.isSuccessful ? 'Successful' : 'Failed'}</strong>
               </Typography>
               <Typography variant="body2">
-                Current Value: {executionResult.currentValue}, 
-                Historical: {executionResult.historicalValue || 'N/A'}, 
-                Deviation: {executionResult.deviationPercent?.toFixed(2) || 'N/A'}%
+                Current Value: {executionResult.currentValue}, Historical:{' '}
+                {executionResult.historicalValue || 'N/A'}, Deviation:{' '}
+                {executionResult.deviationPercent?.toFixed(2) || 'N/A'}%
               </Typography>
               {executionResult.errorMessage && (
                 <Typography variant="body2" color="error">
@@ -328,9 +329,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
               <Typography variant="body2">
                 <strong>Execution Failed</strong>
               </Typography>
-              <Typography variant="body2">
-                {executionError}
-              </Typography>
+              <Typography variant="body2">{executionError}</Typography>
             </Alert>
           )}
         </Box>
@@ -339,14 +338,9 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
         <Stepper activeStep={activeStep} orientation="vertical">
           {steps.map((step, index) => (
             <Step key={step.id}>
-              <StepLabel 
-                icon={getStepIcon(step)}
-                error={step.status === 'error'}
-              >
+              <StepLabel icon={getStepIcon(step)} error={step.status === 'error'}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2">
-                    {step.label}
-                  </Typography>
+                  <Typography variant="body2">{step.label}</Typography>
                   {step.startTime && step.endTime && (
                     <Typography variant="caption" color="text.secondary">
                       {step.endTime.getTime() - step.startTime.getTime()}ms
@@ -400,11 +394,15 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="body2">Current Value:</Typography>
-                            <Typography variant="body2" fontWeight="medium">{executionResult.currentValue}</Typography>
+                            <Typography variant="body2" fontWeight="medium">
+                              {executionResult.currentValue}
+                            </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="body2">Historical Value:</Typography>
-                            <Typography variant="body2">{executionResult.historicalValue || 'N/A'}</Typography>
+                            <Typography variant="body2">
+                              {executionResult.historicalValue || 'N/A'}
+                            </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="body2">Deviation:</Typography>
@@ -417,7 +415,11 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           {executionResult.executionTimeMs && (
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Execution Time:</Typography>
-                              <Chip label={`${executionResult.executionTimeMs}ms`} size="small" color="info" />
+                              <Chip
+                                label={`${executionResult.executionTimeMs}ms`}
+                                size="small"
+                                color="info"
+                              />
                             </Box>
                           )}
                         </Box>
@@ -432,16 +434,29 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <Box>
-                            <Typography variant="body2" color="text.secondary">KPI Key:</Typography>
-                            <Typography variant="body2" fontFamily="monospace">{executionResult.key}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              KPI Key:
+                            </Typography>
+                            <Typography variant="body2" fontFamily="monospace">
+                              {executionResult.key}
+                            </Typography>
                           </Box>
                           <Box>
-                            <Typography variant="body2" color="text.secondary">Execution Time:</Typography>
-                            <Typography variant="body2">{format(new Date(executionResult.executionTime), 'yyyy-MM-dd HH:mm:ss')}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Execution Time:
+                            </Typography>
+                            <Typography variant="body2">
+                              {format(
+                                new Date(executionResult.executionTime),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )}
+                            </Typography>
                           </Box>
                           {executionResult.shouldAlert && (
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Alert Status:</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Alert Status:
+                              </Typography>
                               <Chip label="Alert Triggered" size="small" color="warning" />
                             </Box>
                           )}
@@ -473,23 +488,39 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Total Execution:</Typography>
-                              <Chip label={`${executionResult.timingInfo.totalExecutionMs}ms`} size="small" color="primary" />
+                              <Chip
+                                label={`${executionResult.timingInfo.totalExecutionMs}ms`}
+                                size="small"
+                                color="primary"
+                              />
                             </Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Database Connection:</Typography>
-                              <Chip label={`${executionResult.timingInfo.databaseConnectionMs}ms`} size="small" />
+                              <Chip
+                                label={`${executionResult.timingInfo.databaseConnectionMs}ms`}
+                                size="small"
+                              />
                             </Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Stored Procedure:</Typography>
-                              <Chip label={`${executionResult.timingInfo.storedProcedureExecutionMs}ms`} size="small" />
+                              <Chip
+                                label={`${executionResult.timingInfo.storedProcedureExecutionMs}ms`}
+                                size="small"
+                              />
                             </Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Result Processing:</Typography>
-                              <Chip label={`${executionResult.timingInfo.resultProcessingMs}ms`} size="small" />
+                              <Chip
+                                label={`${executionResult.timingInfo.resultProcessingMs}ms`}
+                                size="small"
+                              />
                             </Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2">Historical Data Save:</Typography>
-                              <Chip label={`${executionResult.timingInfo.historicalDataSaveMs}ms`} size="small" />
+                              <Chip
+                                label={`${executionResult.timingInfo.historicalDataSaveMs}ms`}
+                                size="small"
+                              />
                             </Box>
                           </Box>
                         </CardContent>
@@ -503,12 +534,26 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           </Typography>
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Started:</Typography>
-                              <Typography variant="body2">{format(new Date(executionResult.timingInfo.startTime), 'HH:mm:ss.SSS')}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Started:
+                              </Typography>
+                              <Typography variant="body2">
+                                {format(
+                                  new Date(executionResult.timingInfo.startTime),
+                                  'HH:mm:ss.SSS'
+                                )}
+                              </Typography>
                             </Box>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Completed:</Typography>
-                              <Typography variant="body2">{format(new Date(executionResult.timingInfo.endTime), 'HH:mm:ss.SSS')}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Completed:
+                              </Typography>
+                              <Typography variant="body2">
+                                {format(
+                                  new Date(executionResult.timingInfo.endTime),
+                                  'HH:mm:ss.SSS'
+                                )}
+                              </Typography>
                             </Box>
                           </Box>
                         </CardContent>
@@ -538,20 +583,40 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           </Typography>
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Server:</Typography>
-                              <Typography variant="body2" fontFamily="monospace">{executionResult.databaseInfo.serverName}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Server:
+                              </Typography>
+                              <Typography variant="body2" fontFamily="monospace">
+                                {executionResult.databaseInfo.serverName}
+                              </Typography>
                             </Box>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Database:</Typography>
-                              <Typography variant="body2" fontFamily="monospace">{executionResult.databaseInfo.databaseName}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Database:
+                              </Typography>
+                              <Typography variant="body2" fontFamily="monospace">
+                                {executionResult.databaseInfo.databaseName}
+                              </Typography>
                             </Box>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Rows Returned:</Typography>
-                              <Chip label={executionResult.databaseInfo.rowsReturned} size="small" color="info" />
+                              <Typography variant="body2" color="text.secondary">
+                                Rows Returned:
+                              </Typography>
+                              <Chip
+                                label={executionResult.databaseInfo.rowsReturned}
+                                size="small"
+                                color="info"
+                              />
                             </Box>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Result Sets:</Typography>
-                              <Chip label={executionResult.databaseInfo.resultSetsReturned} size="small" color="info" />
+                              <Typography variant="body2" color="text.secondary">
+                                Result Sets:
+                              </Typography>
+                              <Chip
+                                label={executionResult.databaseInfo.resultSetsReturned}
+                                size="small"
+                                color="info"
+                              />
                             </Box>
                           </Box>
                         </CardContent>
@@ -563,16 +628,19 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                           <Typography variant="subtitle2" gutterBottom>
                             SQL Command
                           </Typography>
-                          <Box component="pre" sx={{
-                            backgroundColor: 'grey.100',
-                            p: 1,
-                            borderRadius: 1,
-                            overflow: 'auto',
-                            fontSize: '0.75rem',
-                            fontFamily: 'monospace',
-                            maxHeight: 150,
-                            whiteSpace: 'pre-wrap'
-                          }}>
+                          <Box
+                            component="pre"
+                            sx={{
+                              backgroundColor: 'grey.100',
+                              p: 1,
+                              borderRadius: 1,
+                              overflow: 'auto',
+                              fontSize: '0.75rem',
+                              fontFamily: 'monospace',
+                              maxHeight: 150,
+                              whiteSpace: 'pre-wrap',
+                            }}
+                          >
                             {executionResult.databaseInfo.sqlCommand}
                           </Box>
                           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -607,37 +675,45 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {executionResult.executionSteps.map((step: ExecutionStepInfo, index: number) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="medium">
-                                {step.stepName}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={step.status}
-                                size="small"
-                                color={step.status === 'Success' ? 'success' : step.status === 'Error' ? 'error' : 'default'}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontFamily="monospace">
-                                {step.durationMs}ms
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" color="text.secondary">
-                                {step.details || '-'}
-                              </Typography>
-                              {step.errorMessage && (
-                                <Typography variant="body2" color="error">
-                                  Error: {step.errorMessage}
+                        {executionResult.executionSteps.map(
+                          (step: ExecutionStepInfo, index: number) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {step.stepName}
                                 </Typography>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={step.status}
+                                  size="small"
+                                  color={
+                                    step.status === 'Success'
+                                      ? 'success'
+                                      : step.status === 'Error'
+                                        ? 'error'
+                                        : 'default'
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2" fontFamily="monospace">
+                                  {step.durationMs}ms
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2" color="text.secondary">
+                                  {step.details || '-'}
+                                </Typography>
+                                {step.errorMessage && (
+                                  <Typography variant="body2" color="error">
+                                    Error: {step.errorMessage}
+                                  </Typography>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        )}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -655,16 +731,19 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box component="pre" sx={{
-                    backgroundColor: 'grey.100',
-                    p: 2,
-                    borderRadius: 1,
-                    overflow: 'auto',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    maxHeight: 400,
-                    whiteSpace: 'pre-wrap'
-                  }}>
+                  <Box
+                    component="pre"
+                    sx={{
+                      backgroundColor: 'grey.100',
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: 'auto',
+                      fontSize: '0.75rem',
+                      fontFamily: 'monospace',
+                      maxHeight: 400,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
                     {executionResult.executionDetails}
                   </Box>
                 </AccordionDetails>
@@ -687,10 +766,14 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                         <Card variant="outlined" sx={{ height: '100%' }}>
                           <CardContent>
                             <Typography variant="subtitle2" gutterBottom color="primary">
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              {key
+                                .replace(/([A-Z])/g, ' $1')
+                                .replace(/^./, str => str.toUpperCase())}
                             </Typography>
                             <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                              {typeof value === 'object'
+                                ? JSON.stringify(value, null, 2)
+                                : String(value)}
                             </Typography>
                           </CardContent>
                         </Card>
@@ -711,16 +794,19 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box component="pre" sx={{
-                    backgroundColor: 'grey.100',
-                    p: 2,
-                    borderRadius: 1,
-                    overflow: 'auto',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    maxHeight: 400,
-                    whiteSpace: 'pre-wrap'
-                  }}>
+                  <Box
+                    component="pre"
+                    sx={{
+                      backgroundColor: 'grey.100',
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: 'auto',
+                      fontSize: '0.75rem',
+                      fontFamily: 'monospace',
+                      maxHeight: 400,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
                     {executionResult.databaseInfo.rawResponse}
                   </Box>
                 </AccordionDetails>
@@ -736,15 +822,18 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Box component="pre" sx={{
-                  backgroundColor: 'grey.100',
-                  p: 2,
-                  borderRadius: 1,
-                  overflow: 'auto',
-                  fontSize: '0.75rem',
-                  fontFamily: 'monospace',
-                  maxHeight: 400
-                }}>
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    fontSize: '0.75rem',
+                    fontFamily: 'monospace',
+                    maxHeight: 400,
+                  }}
+                >
                   {JSON.stringify(executionResult, null, 2)}
                 </Box>
               </AccordionDetails>
@@ -755,15 +844,11 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
 
       <DialogActions>
         {!isExecuting && !executionResult && (
-          <Button 
-            onClick={simulateExecution}
-            variant="contained"
-            startIcon={<ExecuteIcon />}
-          >
+          <Button onClick={simulateExecution} variant="contained" startIcon={<ExecuteIcon />}>
             Execute KPI
           </Button>
         )}
-        <Button 
+        <Button
           onClick={handleClose}
           disabled={isExecuting}
           variant={executionResult ? 'contained' : 'outlined'}

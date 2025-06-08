@@ -62,7 +62,7 @@ export interface EnhancedChartProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   const theme = useTheme();
-  
+
   if (active && payload && payload.length) {
     return (
       <Paper
@@ -89,7 +89,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               }}
             />
             <Typography variant="body2" color="text.secondary">
-              {entry.name}: 
+              {entry.name}:
             </Typography>
             <Typography variant="body2" fontWeight={600}>
               {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
@@ -102,9 +102,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const AnimatedNumber: React.FC<{ value: number; duration?: number }> = ({ 
-  value, 
-  duration = 1000 
+const AnimatedNumber: React.FC<{ value: number; duration?: number }> = ({
+  value,
+  duration = 1000,
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -115,16 +115,16 @@ const AnimatedNumber: React.FC<{ value: number; duration?: number }> = ({
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      
+
       setDisplayValue(Math.floor(value * progress));
-      
+
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate);
       }
     };
 
     animationFrame = requestAnimationFrame(animate);
-    
+
     return () => {
       if (animationFrame) {
         cancelAnimationFrame(animationFrame);
@@ -167,7 +167,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       const interval = setInterval(() => {
         setAnimationKey(prev => prev + 1);
       }, refreshInterval);
-      
+
       return () => clearInterval(interval);
     }
   }, [realTime, refreshInterval]);
@@ -186,10 +186,12 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       margin: { top: 20, right: 30, left: 20, bottom: 20 },
     };
 
-    const animationProps = animated ? {
-      animationBegin: 0,
-      animationDuration: 1000,
-    } : {};
+    const animationProps = animated
+      ? {
+          animationBegin: 0,
+          animationDuration: 1000,
+        }
+      : {};
 
     switch (type) {
       case 'line':
@@ -202,26 +204,23 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
               </linearGradient>
             </defs>
             {showGrid && (
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke={alpha(theme.palette.divider, 0.3)}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
             )}
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
             {showTooltip && <Tooltip content={CustomTooltip as any} />}
             {threshold && (
-              <ReferenceLine 
-                y={threshold} 
+              <ReferenceLine
+                y={threshold}
                 stroke={theme.palette.warning.main}
                 strokeDasharray="5 5"
                 label="Threshold"
@@ -250,18 +249,15 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
               </linearGradient>
             </defs>
             {showGrid && (
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke={alpha(theme.palette.divider, 0.3)}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
             )}
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
@@ -282,29 +278,21 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
         return (
           <BarChart {...commonProps}>
             {showGrid && (
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke={alpha(theme.palette.divider, 0.3)}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
             )}
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
             {showTooltip && <Tooltip content={CustomTooltip as any} />}
-            <Bar
-              dataKey="value"
-              fill={chartColor}
-              radius={[4, 4, 0, 0]}
-              {...animationProps}
-            />
+            <Bar dataKey="value" fill={chartColor} radius={[4, 4, 0, 0]} {...animationProps} />
           </BarChart>
         );
 
@@ -332,8 +320,8 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
               {...animationProps}
             >
               {data.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
+                <Cell
+                  key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
                   onClick={() => onDataPointClick?.(entry)}
                   style={{ cursor: onDataPointClick ? 'pointer' : 'default' }}
@@ -363,10 +351,10 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
   }
 
   return (
-    <Paper 
-      sx={{ 
-        p: 3, 
-        borderRadius: '16px', 
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: '16px',
         height,
         transition: 'all 0.3s ease',
         '&:hover': {
@@ -375,12 +363,14 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       }}
     >
       {(title || subtitle) && (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'flex-start',
-          mb: 2 
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            mb: 2,
+          }}
+        >
           <Box>
             {title && (
               <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
@@ -396,18 +386,14 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
           <IconButton size="small" onClick={handleMenuClick}>
             <MoreVert />
           </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={handleMenuClose}>Export Chart</MenuItem>
             <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
             <MenuItem onClick={handleMenuClose}>Configure</MenuItem>
           </Menu>
         </Box>
       )}
-      
+
       <Box sx={{ height: height - (title || subtitle ? 100 : 50) }}>
         <ResponsiveContainer width="100%" height="100%" key={animationKey}>
           {renderChart()}

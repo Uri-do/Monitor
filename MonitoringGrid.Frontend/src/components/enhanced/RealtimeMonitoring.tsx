@@ -18,7 +18,7 @@ import {
   Switch,
   FormControlLabel,
   Badge,
-  Paper
+  Paper,
 } from '@mui/material';
 import {
   Timeline as Activity,
@@ -31,16 +31,20 @@ import {
   WifiOff,
   Speed,
   Timeline,
-  Notifications
+  Notifications,
 } from '@mui/icons-material';
-import { 
-  useRealtimeStatus, 
-  useLiveDashboard, 
-  useSystemHealth 
-} from '@/hooks/useEnhancedApi';
+import { useRealtimeStatus, useLiveDashboard, useSystemHealth } from '@/hooks/useEnhancedApi';
 import { useSignalR } from '@/services/signalRService';
 import { RealtimeStatusDto, LiveDashboardDto, SystemHealthDto } from '@/types/api';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface RealtimeEvent {
   id: number;
@@ -59,81 +63,89 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const { 
-    data: realtimeStatus, 
-    loading: statusLoading, 
-    refetch: refetchStatus 
+  const {
+    data: realtimeStatus,
+    loading: statusLoading,
+    refetch: refetchStatus,
   } = useRealtimeStatus(isMonitoring && autoRefresh, 5000);
 
-  const { 
-    data: liveDashboard, 
-    loading: dashboardLoading, 
-    refetch: refetchDashboard 
+  const {
+    data: liveDashboard,
+    loading: dashboardLoading,
+    refetch: refetchDashboard,
   } = useLiveDashboard(isMonitoring && autoRefresh, 10000);
 
-  const { 
-    data: systemHealth, 
-    loading: healthLoading 
-  } = useSystemHealth(isMonitoring && autoRefresh, 30000);
+  const { data: systemHealth, loading: healthLoading } = useSystemHealth(
+    isMonitoring && autoRefresh,
+    30000
+  );
 
-  const { 
-    isConnected, 
-    connectionState, 
-    joinGroup, 
-    leaveGroup, 
-    on, 
-    off 
-  } = useSignalR();
+  const { isConnected, connectionState, joinGroup, leaveGroup, on, off } = useSignalR();
 
   // Real-time event handlers
   const handleStatusUpdate = useCallback((status: RealtimeStatusDto) => {
-    setRealtimeEvents(prev => [{
-      id: Date.now(),
-      type: 'status_update',
-      timestamp: new Date(),
-      message: `System status updated - ${status.activeKpis} active KPIs, ${status.dueKpis} due`,
-      data: status
-    }, ...prev.slice(0, 49)]);
+    setRealtimeEvents(prev => [
+      {
+        id: Date.now(),
+        type: 'status_update',
+        timestamp: new Date(),
+        message: `System status updated - ${status.activeKpis} active KPIs, ${status.dueKpis} due`,
+        data: status,
+      },
+      ...prev.slice(0, 49),
+    ]);
   }, []);
 
   const handleDashboardUpdate = useCallback((dashboard: LiveDashboardDto) => {
-    setRealtimeEvents(prev => [{
-      id: Date.now(),
-      type: 'dashboard_update',
-      timestamp: new Date(),
-      message: `Dashboard updated - ${dashboard.executionsLastHour} executions in last hour`,
-      data: dashboard
-    }, ...prev.slice(0, 49)]);
+    setRealtimeEvents(prev => [
+      {
+        id: Date.now(),
+        type: 'dashboard_update',
+        timestamp: new Date(),
+        message: `Dashboard updated - ${dashboard.executionsLastHour} executions in last hour`,
+        data: dashboard,
+      },
+      ...prev.slice(0, 49),
+    ]);
   }, []);
 
   const handleKpiExecuted = useCallback((data: any) => {
-    setRealtimeEvents(prev => [{
-      id: Date.now(),
-      type: 'kpi_executed',
-      timestamp: new Date(),
-      message: `KPI executed: ${data.Indicator} - ${data.Result?.isSuccessful ? 'Success' : 'Failed'}`,
-      data: data
-    }, ...prev.slice(0, 49)]);
+    setRealtimeEvents(prev => [
+      {
+        id: Date.now(),
+        type: 'kpi_executed',
+        timestamp: new Date(),
+        message: `KPI executed: ${data.Indicator} - ${data.Result?.isSuccessful ? 'Success' : 'Failed'}`,
+        data,
+      },
+      ...prev.slice(0, 49),
+    ]);
   }, []);
 
   const handleAlertTriggered = useCallback((data: any) => {
-    setRealtimeEvents(prev => [{
-      id: Date.now(),
-      type: 'alert_triggered',
-      timestamp: new Date(),
-      message: `Alert triggered: ${data.indicator} - ${data.severity} severity`,
-      data: data
-    }, ...prev.slice(0, 49)]);
+    setRealtimeEvents(prev => [
+      {
+        id: Date.now(),
+        type: 'alert_triggered',
+        timestamp: new Date(),
+        message: `Alert triggered: ${data.indicator} - ${data.severity} severity`,
+        data,
+      },
+      ...prev.slice(0, 49),
+    ]);
   }, []);
 
   const handleSystemHealthUpdate = useCallback((health: any) => {
-    setRealtimeEvents(prev => [{
-      id: Date.now(),
-      type: 'health_update',
-      timestamp: new Date(),
-      message: `System health updated - Score: ${health.overallHealthScore?.toFixed(1)}%`,
-      data: health
-    }, ...prev.slice(0, 49)]);
+    setRealtimeEvents(prev => [
+      {
+        id: Date.now(),
+        type: 'health_update',
+        timestamp: new Date(),
+        message: `System health updated - Score: ${health.overallHealthScore?.toFixed(1)}%`,
+        data: health,
+      },
+      ...prev.slice(0, 49),
+    ]);
   }, []);
 
   // Setup SignalR event listeners
@@ -156,9 +168,19 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
         leaveGroup('monitoring');
       };
     }
-  }, [isConnected, isMonitoring, on, off, joinGroup, leaveGroup, 
-      handleStatusUpdate, handleDashboardUpdate, handleKpiExecuted, 
-      handleAlertTriggered, handleSystemHealthUpdate]);
+  }, [
+    isConnected,
+    isMonitoring,
+    on,
+    off,
+    joinGroup,
+    leaveGroup,
+    handleStatusUpdate,
+    handleDashboardUpdate,
+    handleKpiExecuted,
+    handleAlertTriggered,
+    handleSystemHealthUpdate,
+  ]);
 
   const toggleMonitoring = () => {
     setIsMonitoring(!isMonitoring);
@@ -171,33 +193,47 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
 
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'status_update': return <Activity color="primary" />;
-      case 'dashboard_update': return <Timeline color="success" />;
-      case 'kpi_executed': return <PlayArrow color="secondary" />;
-      case 'alert_triggered': return <AlertTriangle color="error" />;
-      case 'health_update': return <CheckCircle color="success" />;
-      default: return <Activity color="disabled" />;
+      case 'status_update':
+        return <Activity color="primary" />;
+      case 'dashboard_update':
+        return <Timeline color="success" />;
+      case 'kpi_executed':
+        return <PlayArrow color="secondary" />;
+      case 'alert_triggered':
+        return <AlertTriangle color="error" />;
+      case 'health_update':
+        return <CheckCircle color="success" />;
+      default:
+        return <Activity color="disabled" />;
     }
   };
 
   const getEventColor = (type: string) => {
     switch (type) {
-      case 'status_update': return 'primary.light';
-      case 'dashboard_update': return 'success.light';
-      case 'kpi_executed': return 'secondary.light';
-      case 'alert_triggered': return 'error.light';
-      case 'health_update': return 'success.light';
-      default: return 'grey.100';
+      case 'status_update':
+        return 'primary.light';
+      case 'dashboard_update':
+        return 'success.light';
+      case 'kpi_executed':
+        return 'secondary.light';
+      case 'alert_triggered':
+        return 'error.light';
+      case 'health_update':
+        return 'success.light';
+      default:
+        return 'grey.100';
     }
   };
 
   const formatRecentExecutions = () => {
-    return liveDashboard?.recentExecutions?.slice(0, 10).map((execution, index) => ({
-      time: new Date(execution.timestamp).toLocaleTimeString(),
-      value: execution.value,
-      deviation: Math.abs(execution.deviationPercent),
-      success: execution.isSuccessful ? 1 : 0
-    })) || [];
+    return (
+      liveDashboard?.recentExecutions?.slice(0, 10).map((execution, index) => ({
+        time: new Date(execution.timestamp).toLocaleTimeString(),
+        value: execution.value,
+        deviation: Math.abs(execution.deviationPercent),
+        success: execution.isSuccessful ? 1 : 0,
+      })) || []
+    );
   };
 
   return (
@@ -212,7 +248,7 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
             control={
               <Switch
                 checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
+                onChange={e => setAutoRefresh(e.target.checked)}
                 color="primary"
               />
             }
@@ -220,8 +256,8 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
           />
           <Chip
             icon={isConnected ? <Wifi /> : <WifiOff />}
-            label={isConnected ? "Connected" : "Disconnected"}
-            color={isConnected ? "success" : "error"}
+            label={isConnected ? 'Connected' : 'Disconnected'}
+            color={isConnected ? 'success' : 'error'}
             variant="outlined"
           />
           <Typography variant="body2" color="text.secondary">
@@ -234,9 +270,9 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
           </Tooltip>
           <Button
             onClick={toggleMonitoring}
-            variant={isMonitoring ? "contained" : "outlined"}
+            variant={isMonitoring ? 'contained' : 'outlined'}
             startIcon={isMonitoring ? <Pause /> : <PlayArrow />}
-            color={isMonitoring ? "secondary" : "primary"}
+            color={isMonitoring ? 'secondary' : 'primary'}
           >
             {isMonitoring ? 'Pause' : 'Start'} Monitoring
           </Button>
@@ -261,13 +297,15 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                   <Typography color="text.secondary" gutterBottom variant="body2">
                     System Health
                   </Typography>
-                  <Typography 
-                    variant="h4" 
-                    component="div" 
+                  <Typography
+                    variant="h4"
+                    component="div"
                     color={
-                      (systemHealth?.overallHealthScore || 0) >= 90 ? 'success.main' :
-                      (systemHealth?.overallHealthScore || 0) >= 70 ? 'warning.main' :
-                      'error.main'
+                      (systemHealth?.overallHealthScore || 0) >= 90
+                        ? 'success.main'
+                        : (systemHealth?.overallHealthScore || 0) >= 70
+                          ? 'warning.main'
+                          : 'error.main'
                     }
                   >
                     {systemHealth?.overallHealthScore?.toFixed(1) || 0}%
@@ -276,11 +314,13 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                     {systemHealth?.systemStatus || 'Unknown'}
                   </Typography>
                 </Box>
-                <CheckCircle 
+                <CheckCircle
                   color={
-                    (systemHealth?.overallHealthScore || 0) >= 90 ? 'success' :
-                    (systemHealth?.overallHealthScore || 0) >= 70 ? 'warning' :
-                    'error'
+                    (systemHealth?.overallHealthScore || 0) >= 90
+                      ? 'success'
+                      : (systemHealth?.overallHealthScore || 0) >= 70
+                        ? 'warning'
+                        : 'error'
                   }
                 />
               </Box>
@@ -369,17 +409,17 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                     <XAxis dataKey="time" />
                     <YAxis />
                     <RechartsTooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#4caf50" 
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#4caf50"
                       strokeWidth={2}
                       name="Value"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="deviation" 
-                      stroke="#f44336" 
+                    <Line
+                      type="monotone"
+                      dataKey="deviation"
+                      stroke="#f44336"
                       strokeWidth={2}
                       name="Deviation %"
                     />
@@ -395,37 +435,29 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
-                  Live Event Stream
-                </Typography>
-                <Chip 
-                  label={`${realtimeEvents.length} events`} 
-                  size="small" 
-                  variant="outlined"
-                />
+                <Typography variant="h6">Live Event Stream</Typography>
+                <Chip label={`${realtimeEvents.length} events`} size="small" variant="outlined" />
               </Box>
-              <Paper 
-                sx={{ 
-                  maxHeight: 300, 
+              <Paper
+                sx={{
+                  maxHeight: 300,
                   overflow: 'auto',
-                  backgroundColor: 'grey.50'
+                  backgroundColor: 'grey.50',
                 }}
               >
                 <List dense>
-                  {realtimeEvents.map((event) => (
-                    <ListItem 
+                  {realtimeEvents.map(event => (
+                    <ListItem
                       key={event.id}
                       sx={{
                         backgroundColor: getEventColor(event.type),
                         mb: 0.5,
                         borderRadius: 1,
                         border: 1,
-                        borderColor: 'grey.300'
+                        borderColor: 'grey.300',
                       }}
                     >
-                      <ListItemIcon>
-                        {getEventIcon(event.type)}
-                      </ListItemIcon>
+                      <ListItemIcon>{getEventIcon(event.type)}</ListItemIcon>
                       <ListItemText
                         primary={event.message}
                         secondary={event.timestamp.toLocaleTimeString()}
@@ -434,12 +466,12 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                       />
                     </ListItem>
                   ))}
-                  
+
                   {realtimeEvents.length === 0 && (
                     <ListItem>
                       <ListItemText
                         primary="Waiting for real-time events..."
-                        secondary={!isConnected ? "Connect to see live updates" : "No events yet"}
+                        secondary={!isConnected ? 'Connect to see live updates' : 'No events yet'}
                         sx={{ textAlign: 'center', color: 'text.secondary' }}
                       />
                     </ListItem>
@@ -459,7 +491,7 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
               </Typography>
               <List>
                 {liveDashboard?.recentExecutions?.slice(0, 5).map((execution, index) => (
-                  <ListItem 
+                  <ListItem
                     key={index}
                     sx={{
                       border: 1,
@@ -467,14 +499,15 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                       borderRadius: 1,
                       mb: 1,
                       backgroundColor: execution.isSuccessful ? 'success.light' : 'error.light',
-                      opacity: 0.8
+                      opacity: 0.8,
                     }}
                   >
                     <ListItemIcon>
-                      {execution.isSuccessful ? 
-                        <CheckCircle color="success" /> : 
+                      {execution.isSuccessful ? (
+                        <CheckCircle color="success" />
+                      ) : (
                         <AlertTriangle color="error" />
-                      }
+                      )}
                     </ListItemIcon>
                     <ListItemText
                       primary={execution.indicator}
@@ -485,8 +518,9 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                     </Typography>
                   </ListItem>
                 ))}
-                
-                {(!liveDashboard?.recentExecutions || liveDashboard.recentExecutions.length === 0) && (
+
+                {(!liveDashboard?.recentExecutions ||
+                  liveDashboard.recentExecutions.length === 0) && (
                   <ListItem>
                     <ListItemText
                       primary="No recent executions"
@@ -508,26 +542,30 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
               </Typography>
               <List>
                 {liveDashboard?.recentAlerts?.slice(0, 5).map((alert, index) => (
-                  <ListItem 
+                  <ListItem
                     key={index}
                     sx={{
                       border: 1,
                       borderColor: 'grey.300',
                       borderRadius: 1,
                       mb: 1,
-                      backgroundColor: 
-                        alert.severity === 'Critical' ? 'error.light' :
-                        alert.severity === 'High' ? 'warning.light' :
-                        'info.light',
-                      opacity: 0.8
+                      backgroundColor:
+                        alert.severity === 'Critical'
+                          ? 'error.light'
+                          : alert.severity === 'High'
+                            ? 'warning.light'
+                            : 'info.light',
+                      opacity: 0.8,
                     }}
                   >
                     <ListItemIcon>
-                      <AlertTriangle 
+                      <AlertTriangle
                         color={
-                          alert.severity === 'Critical' ? 'error' :
-                          alert.severity === 'High' ? 'warning' :
-                          'info'
+                          alert.severity === 'Critical'
+                            ? 'error'
+                            : alert.severity === 'High'
+                              ? 'warning'
+                              : 'info'
                         }
                       />
                     </ListItemIcon>
@@ -539,14 +577,16 @@ export const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ classNam
                       label={alert.severity}
                       size="small"
                       color={
-                        alert.severity === 'Critical' ? 'error' :
-                        alert.severity === 'High' ? 'warning' :
-                        'default'
+                        alert.severity === 'Critical'
+                          ? 'error'
+                          : alert.severity === 'High'
+                            ? 'warning'
+                            : 'default'
                       }
                     />
                   </ListItem>
                 ))}
-                
+
                 {(!liveDashboard?.recentAlerts || liveDashboard.recentAlerts.length === 0) && (
                   <ListItem>
                     <ListItemText

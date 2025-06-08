@@ -32,7 +32,7 @@ import {
   ManualAlertRequest,
   PaginatedExecutionHistoryDto,
   ExecutionStatsDto,
-  ExecutionHistoryDetailDto
+  ExecutionHistoryDetailDto,
 } from '@/types/api';
 import {
   mockKpis,
@@ -40,7 +40,7 @@ import {
   mockAlerts,
   mockKpiDashboard,
   mockAlertDashboard,
-  mockHealthCheck
+  mockHealthCheck,
 } from './mockData';
 
 // Enable mock mode for development (set to false when backend is ready)
@@ -60,26 +60,24 @@ const api = axios.create({
 // Mock delay function to simulate API calls
 const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Request interceptor for logging
+// Request interceptor for authentication
 api.interceptors.request.use(
-  (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+  config => {
     return config;
   },
-  (error) => {
-    console.error('API Request Error:', error);
+  error => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
+  response => {
     return response;
   },
-  (error) => {
+  error => {
     console.error('API Response Error:', error);
-    
+
     if (error.response?.status === 401) {
       // Handle unauthorized access
       console.error('Unauthorized access');
@@ -87,7 +85,7 @@ api.interceptors.response.use(
       // Handle server errors
       console.error('Server error occurred');
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -107,7 +105,9 @@ export const kpiApi = {
         filteredKpis = filteredKpis.filter(kpi => kpi.isActive === params.isActive);
       }
       if (params?.owner) {
-        filteredKpis = filteredKpis.filter(kpi => kpi.owner.toLowerCase().includes(params.owner!.toLowerCase()));
+        filteredKpis = filteredKpis.filter(kpi =>
+          kpi.owner.toLowerCase().includes(params.owner!.toLowerCase())
+        );
       }
       if (params?.priority) {
         filteredKpis = filteredKpis.filter(kpi => kpi.priority === params.priority);
@@ -149,20 +149,26 @@ export const kpiApi = {
 
   // Execute KPI manually
   executeKpi: async (request: TestKpiRequest): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/kpi/${request.kpiId}/execute`, request);
+    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
+      `/kpi/${request.kpiId}/execute`,
+      request
+    );
     return response.data;
   },
 
   // Test KPI (alias for executeKpi for backward compatibility)
   testKpi: async (request: TestKpiRequest): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/kpi/${request.kpiId}/execute`, request);
+    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
+      `/kpi/${request.kpiId}/execute`,
+      request
+    );
     return response.data;
   },
 
   // Get KPI metrics
   getKpiMetrics: async (id: number, days: number = 30): Promise<KpiMetricsDto> => {
     const response: AxiosResponse<KpiMetricsDto> = await api.get(`/kpi/${id}/metrics`, {
-      params: { days }
+      params: { days },
     });
     return response.data;
   },
@@ -177,8 +183,6 @@ export const kpiApi = {
     return response.data;
   },
 
-
-
   // Bulk operations
   bulkOperation: async (request: BulkKpiOperationRequest): Promise<{ message: string }> => {
     const response: AxiosResponse<{ message: string }> = await api.post('/kpi/bulk', request);
@@ -189,10 +193,7 @@ export const kpiApi = {
 // Contact API endpoints
 export const contactApi = {
   // Get all contacts
-  getContacts: async (params?: {
-    isActive?: boolean;
-    search?: string;
-  }): Promise<ContactDto[]> => {
+  getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
     if (USE_MOCK_DATA) {
       await mockDelay();
       let filteredContacts = [...mockContacts];
@@ -201,10 +202,11 @@ export const contactApi = {
       }
       if (params?.search) {
         const searchLower = params.search.toLowerCase();
-        filteredContacts = filteredContacts.filter(contact =>
-          contact.name.toLowerCase().includes(searchLower) ||
-          contact.email?.toLowerCase().includes(searchLower) ||
-          contact.phone?.toLowerCase().includes(searchLower)
+        filteredContacts = filteredContacts.filter(
+          contact =>
+            contact.name.toLowerCase().includes(searchLower) ||
+            contact.email?.toLowerCase().includes(searchLower) ||
+            contact.phone?.toLowerCase().includes(searchLower)
         );
       }
       return filteredContacts;
@@ -233,7 +235,10 @@ export const contactApi = {
 
   // Update contact
   updateContact: async (contact: UpdateContactRequest): Promise<ContactDto> => {
-    const response: AxiosResponse<ContactDto> = await api.put(`/contact/${contact.contactId}`, contact);
+    const response: AxiosResponse<ContactDto> = await api.put(
+      `/contact/${contact.contactId}`,
+      contact
+    );
     return response.data;
   },
 
@@ -246,7 +251,7 @@ export const contactApi = {
   assignToKpis: async (id: number, kpiIds: number[]): Promise<{ message: string }> => {
     const response: AxiosResponse<{ message: string }> = await api.post(`/contact/${id}/assign`, {
       contactId: id,
-      kpiIds
+      kpiIds,
     });
     return response.data;
   },
@@ -272,10 +277,11 @@ export const alertApi = {
 
       if (filter.searchText) {
         const searchLower = filter.searchText.toLowerCase();
-        filteredAlerts = filteredAlerts.filter(alert =>
-          alert.kpiIndicator.toLowerCase().includes(searchLower) ||
-          alert.message.toLowerCase().includes(searchLower) ||
-          alert.severity.toLowerCase().includes(searchLower)
+        filteredAlerts = filteredAlerts.filter(
+          alert =>
+            alert.kpiIndicator.toLowerCase().includes(searchLower) ||
+            alert.message.toLowerCase().includes(searchLower) ||
+            alert.severity.toLowerCase().includes(searchLower)
         );
       }
 
@@ -290,7 +296,7 @@ export const alertApi = {
       };
     }
     const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
-      params: filter
+      params: filter,
     });
     return response.data;
   },
@@ -322,7 +328,10 @@ export const alertApi = {
       }
       return { message: 'Alert resolved successfully' };
     }
-    const response: AxiosResponse<{ message: string }> = await api.post(`/alert/${request.alertId}/resolve`, request);
+    const response: AxiosResponse<{ message: string }> = await api.post(
+      `/alert/${request.alertId}/resolve`,
+      request
+    );
     return response.data;
   },
 
@@ -343,14 +352,17 @@ export const alertApi = {
       });
       return { message: `${request.alertIds.length} alerts resolved successfully` };
     }
-    const response: AxiosResponse<{ message: string }> = await api.post('/alert/resolve-bulk', request);
+    const response: AxiosResponse<{ message: string }> = await api.post(
+      '/alert/resolve-bulk',
+      request
+    );
     return response.data;
   },
 
   // Get alert statistics
   getStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
     const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
-      params: { days }
+      params: { days },
     });
     return response.data;
   },
@@ -405,7 +417,10 @@ export const executionHistoryApi = {
     pageNumber?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
     console.log('🔍 Fetching execution history with params:', params);
-    const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get('/executionhistory', { params });
+    const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get(
+      '/executionhistory',
+      { params }
+    );
     console.log('📊 Execution history response:', response.data);
     return response.data;
   },
@@ -415,13 +430,17 @@ export const executionHistoryApi = {
     kpiId?: number;
     days?: number;
   }): Promise<ExecutionStatsDto[]> => {
-    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/executionhistory/stats', { params });
+    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/executionhistory/stats', {
+      params,
+    });
     return response.data;
   },
 
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
-    const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(`/executionhistory/${historicalId}`);
+    const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(
+      `/executionhistory/${historicalId}`
+    );
     return response.data;
   },
 
@@ -439,23 +458,29 @@ export const analyticsApi = {
   // Get system-wide analytics
   getSystemAnalytics: async (days: number = 30): Promise<SystemAnalyticsDto> => {
     const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/analytics/system', {
-      params: { days }
+      params: { days },
     });
     return response.data;
   },
 
   // Get KPI performance analytics
-  getKpiPerformanceAnalytics: async (id: number, days: number = 30): Promise<KpiPerformanceAnalyticsDto> => {
-    const response: AxiosResponse<KpiPerformanceAnalyticsDto> = await api.get(`/analytics/kpi/${id}/performance`, {
-      params: { days }
-    });
+  getKpiPerformanceAnalytics: async (
+    id: number,
+    days: number = 30
+  ): Promise<KpiPerformanceAnalyticsDto> => {
+    const response: AxiosResponse<KpiPerformanceAnalyticsDto> = await api.get(
+      `/analytics/kpi/${id}/performance`,
+      {
+        params: { days },
+      }
+    );
     return response.data;
   },
 
   // Get owner-based analytics
   getOwnerAnalytics: async (days: number = 30): Promise<OwnerAnalyticsDto[]> => {
     const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/analytics/owners', {
-      params: { days }
+      params: { days },
     });
     return response.data;
   },
@@ -477,7 +502,9 @@ export const realtimeApi = {
 
   // Execute KPI in real-time
   executeKpiRealtime: async (id: number): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(`/realtime/execute/${id}`);
+    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
+      `/realtime/execute/${id}`
+    );
     return response.data;
   },
 
@@ -489,7 +516,10 @@ export const realtimeApi = {
 
   // Send webhook
   sendWebhook: async (payload: WebhookPayloadDto): Promise<{ message: string }> => {
-    const response: AxiosResponse<{ message: string }> = await api.post('/realtime/webhook', payload);
+    const response: AxiosResponse<{ message: string }> = await api.post(
+      '/realtime/webhook',
+      payload
+    );
     return response.data;
   },
 
@@ -507,7 +537,7 @@ export const enhancedAlertApi = {
   // Get enhanced alerts with additional insights
   getEnhancedAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
     const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
-      params: filter
+      params: filter,
     });
     return response.data;
   },
@@ -525,15 +555,20 @@ export const enhancedAlertApi = {
   },
 
   // Send manual alert
-  sendManualAlert: async (request: ManualAlertRequest): Promise<{ message: string; alertId: number }> => {
-    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post('/alert/manual', request);
+  sendManualAlert: async (
+    request: ManualAlertRequest
+  ): Promise<{ message: string; alertId: number }> => {
+    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post(
+      '/alert/manual',
+      request
+    );
     return response.data;
   },
 
   // Get enhanced alert statistics with value object insights
   getEnhancedStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
     const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
-      params: { days }
+      params: { days },
     });
     return response.data;
   },

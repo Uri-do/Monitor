@@ -10,7 +10,7 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   Settings,
@@ -20,7 +20,7 @@ import {
   Notifications,
   Help,
   DarkMode,
-  LightMode
+  LightMode,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
@@ -97,8 +97,8 @@ const UserMenu: React.FC = () => {
           invisible={user.emailConfirmed}
           sx={{
             '& .MuiBadge-badge': {
-              backgroundColor: 'warning.main'
-            }
+              backgroundColor: 'warning.main',
+            },
           }}
         >
           <Avatar
@@ -106,7 +106,7 @@ const UserMenu: React.FC = () => {
               width: 32,
               height: 32,
               bgcolor: 'primary.main',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
             }}
           >
             {getInitials(user.displayName)}
@@ -157,7 +157,7 @@ const UserMenu: React.FC = () => {
               sx={{
                 width: 40,
                 height: 40,
-                bgcolor: 'primary.main'
+                bgcolor: 'primary.main',
               }}
             >
               {getInitials(user.displayName)}
@@ -242,9 +242,7 @@ const UserMenu: React.FC = () => {
             {mode === 'light' ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
           </ListItemIcon>
           <ListItemText>
-            <Typography variant="body2">
-              {mode === 'light' ? 'Dark Mode' : 'Light Mode'}
-            </Typography>
+            <Typography variant="body2">{mode === 'light' ? 'Dark Mode' : 'Light Mode'}</Typography>
           </ListItemText>
         </MenuItem>
 

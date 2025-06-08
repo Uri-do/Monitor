@@ -18,13 +18,21 @@ const Dashboard: React.FC = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Fetch dashboard data with more frequent refresh for real-time updates
-  const { data: kpiDashboard, isLoading: kpiLoading, refetch: refetchKpi } = useQuery({
+  const {
+    data: kpiDashboard,
+    isLoading: kpiLoading,
+    refetch: refetchKpi,
+  } = useQuery({
     queryKey: ['kpi-dashboard'],
     queryFn: kpiApi.getDashboard,
     refetchInterval: 15000, // Refresh every 15 seconds for real-time updates
   });
 
-  const { data: alertDashboard, isLoading: alertLoading, refetch: refetchAlert } = useQuery({
+  const {
+    data: alertDashboard,
+    isLoading: alertLoading,
+    refetch: refetchAlert,
+  } = useQuery({
     queryKey: ['alert-dashboard'],
     queryFn: alertApi.getDashboard,
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -101,10 +109,7 @@ const Dashboard: React.FC = () => {
         <RunningKpisCard kpiDashboard={kpiDashboard} />
 
         {/* Next KPI Due */}
-        <NextKpiExecutionCard
-          kpiDashboard={kpiDashboard}
-          countdown={countdown}
-        />
+        <NextKpiExecutionCard kpiDashboard={kpiDashboard} countdown={countdown} />
 
         {/* Recent Alerts */}
         <RecentAlertsCard alertDashboard={alertDashboard} />

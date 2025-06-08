@@ -36,7 +36,7 @@ import {
   MenuItem,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
 } from '@mui/material';
 import {
   Security,
@@ -54,7 +54,7 @@ import {
   History,
   ExpandMore,
   Save,
-  AdminPanelSettings
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -103,23 +103,23 @@ const securitySchema = yup.object({
     requireSpecialChars: yup.boolean().required(),
     passwordExpirationDays: yup.number().min(1).max(365).required(),
     maxFailedAttempts: yup.number().min(1).max(10).required(),
-    lockoutDurationMinutes: yup.number().min(1).max(1440).required()
+    lockoutDurationMinutes: yup.number().min(1).max(1440).required(),
   }),
   sessionSettings: yup.object({
     sessionTimeoutMinutes: yup.number().min(5).max(1440).required(),
     idleTimeoutMinutes: yup.number().min(5).max(240).required(),
-    allowConcurrentSessions: yup.boolean().required()
+    allowConcurrentSessions: yup.boolean().required(),
   }),
   twoFactorSettings: yup.object({
     enabled: yup.boolean().required(),
     required: yup.boolean().required(),
-    methods: yup.array().of(yup.string().required()).required()
+    methods: yup.array().of(yup.string().required()).required(),
   }),
   rateLimitSettings: yup.object({
     enabled: yup.boolean().required(),
     maxRequestsPerMinute: yup.number().min(1).max(10000).required(),
-    maxRequestsPerHour: yup.number().min(1).max(100000).required()
-  })
+    maxRequestsPerHour: yup.number().min(1).max(100000).required(),
+  }),
 });
 
 export const SecuritySettingsNew: React.FC = () => {
@@ -142,9 +142,9 @@ export const SecuritySettingsNew: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<SecurityConfig>({
-    resolver: yupResolver(securitySchema)
+    resolver: yupResolver(securitySchema),
   });
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export const SecuritySettingsNew: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Load security configuration with default values if API fails
       let configData: SecurityConfig;
       try {
@@ -171,42 +171,43 @@ export const SecuritySettingsNew: React.FC = () => {
             requireSpecialChars: true,
             passwordExpirationDays: 90,
             maxFailedAttempts: 5,
-            lockoutDurationMinutes: 30
+            lockoutDurationMinutes: 30,
           },
           sessionSettings: {
             sessionTimeoutMinutes: 480,
             idleTimeoutMinutes: 60,
-            allowConcurrentSessions: false
+            allowConcurrentSessions: false,
           },
           twoFactorSettings: {
             enabled: false,
             required: false,
-            methods: ['TOTP', 'SMS', 'Email']
+            methods: ['TOTP', 'SMS', 'Email'],
           },
           rateLimitSettings: {
             enabled: true,
             maxRequestsPerMinute: 100,
-            maxRequestsPerHour: 1000
-          }
+            maxRequestsPerHour: 1000,
+          },
         };
       }
 
       // Load other data with error handling
-      const [apiKeysData, eventsData, usersData, rolesData, permissionsData] = await Promise.allSettled([
-        securityService.getApiKeys(),
-        securityService.getSecurityEvents(),
-        securityService.getUsers(),
-        securityService.getRoles(),
-        securityService.getPermissions()
-      ]);
-      
+      const [apiKeysData, eventsData, usersData, rolesData, permissionsData] =
+        await Promise.allSettled([
+          securityService.getApiKeys(),
+          securityService.getSecurityEvents(),
+          securityService.getUsers(),
+          securityService.getRoles(),
+          securityService.getPermissions(),
+        ]);
+
       setConfig(configData);
       setApiKeys(apiKeysData.status === 'fulfilled' ? apiKeysData.value : []);
       setSecurityEvents(eventsData.status === 'fulfilled' ? eventsData.value : []);
       setUsers(usersData.status === 'fulfilled' ? usersData.value : []);
       setRoles(rolesData.status === 'fulfilled' ? rolesData.value : []);
       setPermissions(permissionsData.status === 'fulfilled' ? permissionsData.value : []);
-      
+
       reset(configData);
     } catch (err) {
       setError('Failed to load security settings');
@@ -247,21 +248,26 @@ export const SecuritySettingsNew: React.FC = () => {
     try {
       const scopes = newApiKeyScopes.length > 0 ? newApiKeyScopes : ['read'];
       const result = await securityService.createApiKey(newApiKeyName, scopes);
-      setApiKeys(prev => [...prev, {
-        keyId: result.keyId,
-        name: newApiKeyName,
-        scopes: scopes,
-        createdAt: new Date().toISOString(),
-        isActive: true
-      }]);
+      setApiKeys(prev => [
+        ...prev,
+        {
+          keyId: result.keyId,
+          name: newApiKeyName,
+          scopes,
+          createdAt: new Date().toISOString(),
+          isActive: true,
+        },
+      ]);
       setNewApiKeyName('');
       setNewApiKeyScopes([]);
       setApiKeyDialogOpen(false);
       setSuccess(`API key created successfully`);
       toast.success(`API key "${newApiKeyName}" created successfully`);
-      
+
       // Show the API key to the user (this should be done securely)
-      alert(`API Key: ${result.key}\n\nPlease save this key securely. You won't be able to see it again.`);
+      alert(
+        `API Key: ${result.key}\n\nPlease save this key securely. You won't be able to see it again.`
+      );
     } catch (err) {
       const errorMessage = 'Failed to create API key';
       setError(errorMessage);
@@ -466,12 +472,7 @@ export const SecuritySettingsNew: React.FC = () => {
 
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={saving}
-                    startIcon={<Save />}
-                  >
+                  <Button type="submit" variant="contained" disabled={saving} startIcon={<Save />}>
                     {saving ? 'Saving...' : 'Save Password Policy'}
                   </Button>
                 </Box>
@@ -579,9 +580,9 @@ export const SecuritySettingsNew: React.FC = () => {
                           multiple
                           value={config?.twoFactorSettings.methods || []}
                           label="Available Methods"
-                          renderValue={(selected) => (
+                          renderValue={selected => (
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                              {selected.map((value) => (
+                              {selected.map(value => (
                                 <Chip key={value} label={value} size="small" />
                               ))}
                             </Box>
@@ -681,14 +682,19 @@ export const SecuritySettingsNew: React.FC = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {users.map((user) => (
+                        {users.map(user => (
                           <TableRow key={user.userId}>
                             <TableCell>{user.username}</TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.displayName}</TableCell>
                             <TableCell>
-                              {user.roles?.map((role) => (
-                                <Chip key={role.roleId} label={role.name} size="small" sx={{ mr: 0.5 }} />
+                              {user.roles?.map(role => (
+                                <Chip
+                                  key={role.roleId}
+                                  label={role.name}
+                                  size="small"
+                                  sx={{ mr: 0.5 }}
+                                />
                               ))}
                             </TableCell>
                             <TableCell>
@@ -699,7 +705,9 @@ export const SecuritySettingsNew: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                              {user.lastLogin
+                                ? new Date(user.lastLogin).toLocaleDateString()
+                                : 'Never'}
                             </TableCell>
                             <TableCell>
                               <IconButton size="small" color="primary">
@@ -723,12 +731,9 @@ export const SecuritySettingsNew: React.FC = () => {
                     Roles & Permissions
                   </Typography>
                   <List>
-                    {roles.map((role) => (
+                    {roles.map(role => (
                       <ListItem key={role.roleId}>
-                        <ListItemText
-                          primary={role.name}
-                          secondary={role.description}
-                        />
+                        <ListItemText primary={role.name} secondary={role.description} />
                         <ListItemSecondaryAction>
                           <Chip
                             label={role.isSystemRole ? 'System' : 'Custom'}
@@ -751,7 +756,7 @@ export const SecuritySettingsNew: React.FC = () => {
                     System Permissions
                   </Typography>
                   <List>
-                    {permissions.map((permission) => (
+                    {permissions.map(permission => (
                       <ListItem key={permission.permissionId}>
                         <ListItemText
                           primary={permission.name}
@@ -772,7 +777,14 @@ export const SecuritySettingsNew: React.FC = () => {
             <Grid item xs={12}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
+                  >
                     <Typography variant="h6">
                       <Key sx={{ mr: 1, verticalAlign: 'middle' }} />
                       API Keys Management
@@ -798,17 +810,19 @@ export const SecuritySettingsNew: React.FC = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {apiKeys.map((apiKey) => (
+                        {apiKeys.map(apiKey => (
                           <TableRow key={apiKey.keyId}>
                             <TableCell>{apiKey.name}</TableCell>
                             <TableCell>
-                              {apiKey.scopes.map((scope) => (
+                              {apiKey.scopes.map(scope => (
                                 <Chip key={scope} label={scope} size="small" sx={{ mr: 0.5 }} />
                               ))}
                             </TableCell>
                             <TableCell>{new Date(apiKey.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
-                              {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleDateString() : 'Never'}
+                              {apiKey.lastUsed
+                                ? new Date(apiKey.lastUsed).toLocaleDateString()
+                                : 'Never'}
                             </TableCell>
                             <TableCell>
                               <Chip
@@ -869,11 +883,7 @@ export const SecuritySettingsNew: React.FC = () => {
                             <TableCell>{event.description}</TableCell>
                             <TableCell>{event.ipAddress || 'N/A'}</TableCell>
                             <TableCell>
-                              <Chip
-                                label="Success"
-                                color="success"
-                                size="small"
-                              />
+                              <Chip label="Success" color="success" size="small" />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -888,7 +898,12 @@ export const SecuritySettingsNew: React.FC = () => {
       </Paper>
 
       {/* Create API Key Dialog */}
-      <Dialog open={apiKeyDialogOpen} onClose={() => setApiKeyDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={apiKeyDialogOpen}
+        onClose={() => setApiKeyDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Create New API Key</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -899,7 +914,7 @@ export const SecuritySettingsNew: React.FC = () => {
                 label="API Key Name"
                 variant="outlined"
                 value={newApiKeyName}
-                onChange={(e) => setNewApiKeyName(e.target.value)}
+                onChange={e => setNewApiKeyName(e.target.value)}
                 placeholder="Enter a descriptive name for this API key"
               />
             </Grid>
@@ -909,11 +924,11 @@ export const SecuritySettingsNew: React.FC = () => {
                 <Select
                   multiple
                   value={newApiKeyScopes}
-                  onChange={(e) => setNewApiKeyScopes(e.target.value as string[])}
+                  onChange={e => setNewApiKeyScopes(e.target.value as string[])}
                   label="Scopes"
-                  renderValue={(selected) => (
+                  renderValue={selected => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
+                      {selected.map(value => (
                         <Chip key={value} label={value} size="small" />
                       ))}
                     </Box>

@@ -29,12 +29,15 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
 
   return (
     <Grid item xs={12}>
-      <Card sx={{
-        background: theme.palette.mode === 'light'
-          ? 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)'
-          : 'linear-gradient(135deg, rgba(244, 67, 54, 0.8) 0%, rgba(211, 47, 47, 0.8) 100%)',
-        color: 'white',
-      }}>
+      <Card
+        sx={{
+          background:
+            theme.palette.mode === 'light'
+              ? 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)'
+              : 'linear-gradient(135deg, rgba(244, 67, 54, 0.8) 0%, rgba(211, 47, 47, 0.8) 100%)',
+          color: 'white',
+        }}
+      >
         <CardContent>
           <Box display="flex" alignItems="center" gap={1} mb={3}>
             <Error sx={{ fontSize: 28 }} />
@@ -43,7 +46,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
             </Typography>
           </Box>
           <List sx={{ p: 0 }}>
-            {alertDashboard.topAlertingKpis.slice(0, 5).map((kpi) => (
+            {alertDashboard.topAlertingKpis.slice(0, 5).map(kpi => (
               <ListItem
                 key={kpi.kpiId}
                 button

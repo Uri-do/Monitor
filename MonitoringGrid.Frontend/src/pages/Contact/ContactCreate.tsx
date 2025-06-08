@@ -28,20 +28,30 @@ import * as yup from 'yup';
 import { contactApi } from '@/services/api';
 import { CreateContactRequest, UpdateContactRequest } from '@/types/api';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  LoadingSpinner,
-} from '@/components/Common';
+import { PageHeader, LoadingSpinner } from '@/components/Common';
 
 // Validation schema
-const contactSchema = yup.object({
-  name: yup.string().required('Name is required').max(100, 'Name must be less than 100 characters'),
-  email: yup.string().email('Invalid email format').max(255, 'Email must be less than 255 characters').nullable(),
-  phone: yup.string().max(20, 'Phone must be less than 20 characters').nullable(),
-  isActive: yup.boolean(),
-}).test('contact-method', 'At least one contact method (email or phone) is required', function(value) {
-  return !!(value.email || value.phone);
-});
+const contactSchema = yup
+  .object({
+    name: yup
+      .string()
+      .required('Name is required')
+      .max(100, 'Name must be less than 100 characters'),
+    email: yup
+      .string()
+      .email('Invalid email format')
+      .max(255, 'Email must be less than 255 characters')
+      .nullable(),
+    phone: yup.string().max(20, 'Phone must be less than 20 characters').nullable(),
+    isActive: yup.boolean(),
+  })
+  .test(
+    'contact-method',
+    'At least one contact method (email or phone) is required',
+    function (value) {
+      return !!(value.email || value.phone);
+    }
+  );
 
 type ContactFormData = yup.InferType<typeof contactSchema>;
 
@@ -125,12 +135,12 @@ const ContactCreate: React.FC = () => {
       updateMutation.mutate({
         ...formData,
         contactId,
-        isActive: formData.isActive ?? true
+        isActive: formData.isActive ?? true,
       });
     } else {
       createMutation.mutate({
         ...formData,
-        isActive: formData.isActive ?? true
+        isActive: formData.isActive ?? true,
       });
     }
   };
@@ -278,7 +288,7 @@ const ContactCreate: React.FC = () => {
                     startIcon={<SaveIcon />}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Saving...' : (isEdit ? 'Update Contact' : 'Create Contact')}
+                    {isSubmitting ? 'Saving...' : isEdit ? 'Update Contact' : 'Create Contact'}
                   </Button>
                 </Stack>
               </CardContent>

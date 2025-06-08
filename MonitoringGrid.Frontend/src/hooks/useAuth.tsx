@@ -38,7 +38,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             error: null,
           });
         } catch (error) {
-          console.error('Failed to get current user:', error);
           authService.clearToken();
           setState({
             user: null,
@@ -115,13 +114,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     setState(prev => ({ ...prev, isLoading: true }));
-    
+
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      // Logout error handled silently
     }
-    
+
     setState({
       user: null,
       token: null,
@@ -141,7 +140,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error: null,
       }));
     } catch (error) {
-      console.error('Token refresh failed:', error);
       await logout();
       throw error;
     }

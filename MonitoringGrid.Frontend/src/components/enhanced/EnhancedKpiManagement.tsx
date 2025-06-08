@@ -23,7 +23,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -36,16 +36,24 @@ import {
   CheckCircle,
   Warning,
   Error,
-  Pause
+  Pause,
 } from '@mui/icons-material';
-import { 
-  useKpiPerformanceAnalytics, 
-  useRealtimeKpiExecution, 
-  useManualAlert 
+import {
+  useKpiPerformanceAnalytics,
+  useRealtimeKpiExecution,
+  useManualAlert,
 } from '@/hooks/useEnhancedApi';
 import { useKpis } from '@/hooks/useKpis';
 import { KpiDto } from '@/types/api';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface EnhancedKpiManagementProps {
   className?: string;
@@ -58,31 +66,34 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [analyticsPeriod, setAnalyticsPeriod] = useState(30);
 
-  const { 
-    data: kpis, 
-    loading: kpisLoading, 
-    error: kpisError, 
+  const {
+    data: kpis,
+    loading: kpisLoading,
+    error: kpisError,
     refetch: refetchKpis,
     executeKpi,
-    deleteKpi
+    deleteKpi,
   } = useKpis();
 
-  const { 
-    data: kpiAnalytics, 
-    loading: analyticsLoading 
-  } = useKpiPerformanceAnalytics(selectedKpi?.kpiId || 0, analyticsPeriod);
+  const { data: kpiAnalytics, loading: analyticsLoading } = useKpiPerformanceAnalytics(
+    selectedKpi?.kpiId || 0,
+    analyticsPeriod
+  );
 
   const { executeKpi: executeKpiRealtime, loading: executingRealtime } = useRealtimeKpiExecution();
   const { sendAlert: sendManualAlert, loading: sendingAlert } = useManualAlert();
 
   // Filter KPIs based on current filters
-  const filteredKpis = kpis?.filter(kpi => {
-    const matchesOwner = !filterOwner || kpi.owner.toLowerCase().includes(filterOwner.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || 
-      (filterStatus === 'active' && kpi.isActive) ||
-      (filterStatus === 'inactive' && !kpi.isActive);
-    return matchesOwner && matchesStatus;
-  }) || [];
+  const filteredKpis =
+    kpis?.filter(kpi => {
+      const matchesOwner =
+        !filterOwner || kpi.owner.toLowerCase().includes(filterOwner.toLowerCase());
+      const matchesStatus =
+        filterStatus === 'all' ||
+        (filterStatus === 'active' && kpi.isActive) ||
+        (filterStatus === 'inactive' && !kpi.isActive);
+      return matchesOwner && matchesStatus;
+    }) || [];
 
   const getKpiStatusColor = (kpi: KpiDto) => {
     if (!kpi.isActive) return 'default';
@@ -111,10 +122,14 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
   const getKpiStatusIcon = (kpi: KpiDto) => {
     const status = getKpiStatusColor(kpi);
     switch (status) {
-      case 'success': return <CheckCircle color="success" />;
-      case 'warning': return <Warning color="warning" />;
-      case 'error': return <Error color="error" />;
-      default: return <Pause color="disabled" />;
+      case 'success':
+        return <CheckCircle color="success" />;
+      case 'warning':
+        return <Warning color="warning" />;
+      case 'error':
+        return <Error color="error" />;
+      default:
+        return <Pause color="disabled" />;
     }
   };
 
@@ -156,12 +171,14 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
   };
 
   const formatTrendData = (trends: any[]) => {
-    return trends?.map(trend => ({
-      timestamp: new Date(trend.timestamp).toLocaleDateString(),
-      value: trend.value,
-      deviation: Math.abs(trend.deviationPercent),
-      successful: trend.isSuccessful
-    })) || [];
+    return (
+      trends?.map(trend => ({
+        timestamp: new Date(trend.timestamp).toLocaleDateString(),
+        value: trend.value,
+        deviation: Math.abs(trend.deviationPercent),
+        successful: trend.isSuccessful,
+      })) || []
+    );
   };
 
   if (kpisLoading) {
@@ -199,7 +216,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
             label="Filter by Owner"
             placeholder="Enter owner email..."
             value={filterOwner}
-            onChange={(e) => setFilterOwner(e.target.value)}
+            onChange={e => setFilterOwner(e.target.value)}
           />
         </Grid>
         <Grid item xs={12} md={3}>
@@ -208,7 +225,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
             <Select
               value={filterStatus}
               label="Status"
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={e => setFilterStatus(e.target.value as any)}
             >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="active">Active</MenuItem>
@@ -225,7 +242,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
 
       {/* KPI Grid */}
       <Grid container spacing={3}>
-        {filteredKpis.map((kpi) => (
+        {filteredKpis.map(kpi => (
           <Grid item xs={12} md={6} lg={4} key={kpi.kpiId}>
             <Card sx={{ height: '100%' }}>
               <CardContent>
@@ -317,11 +334,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                 </Box>
 
                 <Box display="flex" justifyContent="space-between">
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<Edit />}
-                  >
+                  <Button size="small" variant="outlined" startIcon={<Edit />}>
                     Edit
                   </Button>
                   <Button
@@ -350,11 +363,11 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                 No KPIs found
               </Typography>
               <Typography color="text.secondary" mb={3}>
-                {filterOwner || filterStatus !== 'all' 
-                  ? 'No KPIs match your current filters.' 
+                {filterOwner || filterStatus !== 'all'
+                  ? 'No KPIs match your current filters.'
                   : 'Get started by creating your first KPI.'}
               </Typography>
-              {(!filterOwner && filterStatus === 'all') && (
+              {!filterOwner && filterStatus === 'all' && (
                 <Button variant="contained" startIcon={<Add />}>
                   Create Your First KPI
                 </Button>
@@ -365,15 +378,13 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
       )}
 
       {/* Analytics Dialog */}
-      <Dialog 
-        open={isAnalyticsDialogOpen} 
+      <Dialog
+        open={isAnalyticsDialogOpen}
         onClose={() => setIsAnalyticsDialogOpen(false)}
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>
-          KPI Performance Analytics - {selectedKpi?.indicator}
-        </DialogTitle>
+        <DialogTitle>KPI Performance Analytics - {selectedKpi?.indicator}</DialogTitle>
         <DialogContent>
           {selectedKpi && (
             <Box sx={{ pt: 2 }}>
@@ -382,7 +393,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                 {[7, 30, 90].map(days => (
                   <Button
                     key={days}
-                    variant={analyticsPeriod === days ? "contained" : "outlined"}
+                    variant={analyticsPeriod === days ? 'contained' : 'outlined'}
                     size="small"
                     onClick={() => setAnalyticsPeriod(days)}
                     sx={{ mr: 1 }}
@@ -463,17 +474,17 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
                             <XAxis dataKey="timestamp" />
                             <YAxis />
                             <RechartsTooltip />
-                            <Line 
-                              type="monotone" 
-                              dataKey="value" 
-                              stroke="#4caf50" 
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke="#4caf50"
                               strokeWidth={2}
                               name="Value"
                             />
-                            <Line 
-                              type="monotone" 
-                              dataKey="deviation" 
-                              stroke="#f44336" 
+                            <Line
+                              type="monotone"
+                              dataKey="deviation"
+                              stroke="#f44336"
                               strokeWidth={2}
                               name="Deviation %"
                             />
@@ -515,9 +526,7 @@ export const EnhancedKpiManagement: React.FC<EnhancedKpiManagementProps> = ({ cl
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsAnalyticsDialogOpen(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setIsAnalyticsDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

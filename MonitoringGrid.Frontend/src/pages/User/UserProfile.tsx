@@ -19,7 +19,7 @@ import {
   DialogActions,
   TextField,
   Alert,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import {
   Person,
@@ -27,10 +27,9 @@ import {
   Business,
   Work,
   Security,
-
   VpnKey,
   Verified,
-  Warning
+  Warning,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -53,7 +52,7 @@ const passwordSchema = yup.object({
   confirmPassword: yup
     .string()
     .required('Please confirm your password')
-    .oneOf([yup.ref('newPassword')], 'Passwords must match')
+    .oneOf([yup.ref('newPassword')], 'Passwords must match'),
 });
 
 interface PasswordFormData {
@@ -72,9 +71,9 @@ const UserProfile: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<PasswordFormData>({
-    resolver: yupResolver(passwordSchema)
+    resolver: yupResolver(passwordSchema),
   });
 
   const handleChangePassword = async (data: PasswordFormData) => {
@@ -111,7 +110,9 @@ const UserProfile: React.FC = () => {
 
   if (!user) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -137,40 +138,26 @@ const UserProfile: React.FC = () => {
                   fontSize: '2rem',
                   bgcolor: 'primary.main',
                   mx: 'auto',
-                  mb: 2
+                  mb: 2,
                 }}
               >
                 {getInitials(user.displayName)}
               </Avatar>
-              
+
               <Typography variant="h5" gutterBottom>
                 {user.displayName}
               </Typography>
-              
+
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 @{user.username}
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
-                <Chip
-                  label={getPrimaryRole()}
-                  color="primary"
-                  variant="outlined"
-                />
+                <Chip label={getPrimaryRole()} color="primary" variant="outlined" />
                 {user.emailConfirmed ? (
-                  <Chip
-                    icon={<Verified />}
-                    label="Verified"
-                    color="success"
-                    size="small"
-                  />
+                  <Chip icon={<Verified />} label="Verified" color="success" size="small" />
                 ) : (
-                  <Chip
-                    icon={<Warning />}
-                    label="Unverified"
-                    color="warning"
-                    size="small"
-                  />
+                  <Chip icon={<Warning />} label="Unverified" color="warning" size="small" />
                 )}
               </Box>
 
@@ -193,16 +180,13 @@ const UserProfile: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Profile Information
               </Typography>
-              
+
               <List>
                 <ListItem>
                   <ListItemIcon>
                     <Email />
                   </ListItemIcon>
-                  <ListItemText
-                    primary="Email Address"
-                    secondary={user.email}
-                  />
+                  <ListItemText primary="Email Address" secondary={user.email} />
                 </ListItem>
 
                 {user.firstName && (
@@ -222,10 +206,7 @@ const UserProfile: React.FC = () => {
                     <ListItemIcon>
                       <Business />
                     </ListItemIcon>
-                    <ListItemText
-                      primary="Department"
-                      secondary={user.department}
-                    />
+                    <ListItemText primary="Department" secondary={user.department} />
                   </ListItem>
                 )}
 
@@ -234,10 +215,7 @@ const UserProfile: React.FC = () => {
                     <ListItemIcon>
                       <Work />
                     </ListItemIcon>
-                    <ListItemText
-                      primary="Job Title"
-                      secondary={user.title}
-                    />
+                    <ListItemText primary="Job Title" secondary={user.title} />
                   </ListItem>
                 )}
 
@@ -259,7 +237,7 @@ const UserProfile: React.FC = () => {
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {user.roles.map((role) => (
+                {user.roles.map(role => (
                   <Chip
                     key={role.roleId}
                     label={role.name}
@@ -344,17 +322,10 @@ const UserProfile: React.FC = () => {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button 
-              onClick={() => setPasswordDialogOpen(false)}
-              disabled={loading}
-            >
+            <Button onClick={() => setPasswordDialogOpen(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="contained"
-              disabled={loading}
-            >
+            <Button type="submit" variant="contained" disabled={loading}>
               {loading ? <CircularProgress size={20} /> : 'Change Password'}
             </Button>
           </DialogActions>

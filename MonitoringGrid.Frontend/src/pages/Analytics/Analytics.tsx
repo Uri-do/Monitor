@@ -114,11 +114,7 @@ const Analytics: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>Time Range</InputLabel>
-          <Select
-            value={timeRange}
-            label="Time Range"
-            onChange={(e) => setTimeRange(e.target.value)}
-          >
+          <Select value={timeRange} label="Time Range" onChange={e => setTimeRange(e.target.value)}>
             <MenuItem value="7d">Last 7 Days</MenuItem>
             <MenuItem value="30d">Last 30 Days</MenuItem>
             <MenuItem value="90d">Last 90 Days</MenuItem>
@@ -313,7 +309,13 @@ const Analytics: React.FC = () => {
                         <td style={{ textAlign: 'center', padding: '12px' }}>{kpi.successRate}%</td>
                         <td style={{ textAlign: 'center', padding: '12px' }}>
                           <StatusChip
-                            status={kpi.successRate >= 95 ? 'success' : kpi.successRate >= 90 ? 'warning' : 'error'}
+                            status={
+                              kpi.successRate >= 95
+                                ? 'success'
+                                : kpi.successRate >= 90
+                                  ? 'warning'
+                                  : 'error'
+                            }
                           />
                         </td>
                       </tr>

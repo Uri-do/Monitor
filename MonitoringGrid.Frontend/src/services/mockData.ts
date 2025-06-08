@@ -9,7 +9,7 @@ import {
   AlertStatisticsDto,
   PaginatedAlertsDto,
   AlertFilterDto,
-  HealthCheckResponse
+  HealthCheckResponse,
 } from '@/types/api';
 
 // Mock KPI data
@@ -25,14 +25,15 @@ export const mockKpis: KpiDto[] = [
     deviation: 15,
     spName: 'sp_GetDeposits',
     subjectTemplate: 'Deposits Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: true,
     lastRun: '2024-01-15T10:30:00Z',
     cooldownMinutes: 30,
     minimumThreshold: 1000,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T10:30:00Z',
-    contacts: []
+    contacts: [],
   },
   {
     kpiId: 2,
@@ -45,14 +46,15 @@ export const mockKpis: KpiDto[] = [
     deviation: 10,
     spName: 'sp_GetTransactionVolume',
     subjectTemplate: 'Transaction Volume Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: true,
     lastRun: '2024-01-15T09:45:00Z',
     cooldownMinutes: 60,
     minimumThreshold: 80,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T09:45:00Z',
-    contacts: []
+    contacts: [],
   },
   {
     kpiId: 3,
@@ -65,14 +67,15 @@ export const mockKpis: KpiDto[] = [
     deviation: 12,
     spName: 'sp_GetSettlementCompanies',
     subjectTemplate: 'Settlement Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: true,
     lastRun: '2024-01-15T07:30:00Z',
     cooldownMinutes: 45,
     minimumThreshold: 50,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T07:30:00Z',
-    contacts: []
+    contacts: [],
   },
   {
     kpiId: 4,
@@ -85,14 +88,15 @@ export const mockKpis: KpiDto[] = [
     deviation: 8,
     spName: 'sp_GetTransactions',
     subjectTemplate: 'Transactions Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: true,
     lastRun: '2024-01-15T10:15:00Z',
     cooldownMinutes: 30,
     minimumThreshold: 100,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T10:15:00Z',
-    contacts: []
+    contacts: [],
   },
   {
     kpiId: 5,
@@ -105,14 +109,15 @@ export const mockKpis: KpiDto[] = [
     deviation: 20,
     spName: 'sp_GetWhiteLabelPerformance',
     subjectTemplate: 'White Label Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: true,
     lastRun: '2024-01-15T09:30:00Z',
     cooldownMinutes: 60,
     minimumThreshold: 75,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T09:30:00Z',
-    contacts: []
+    contacts: [],
   },
   {
     kpiId: 6,
@@ -125,15 +130,16 @@ export const mockKpis: KpiDto[] = [
     deviation: 25,
     spName: 'sp_GetLegacySystemStatus',
     subjectTemplate: 'Legacy System Alert: {{indicator}}',
-    descriptionTemplate: 'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
+    descriptionTemplate:
+      'Current: {{current}}, Historical: {{historical}}, Deviation: {{deviation}}%',
     isActive: false,
     lastRun: '2024-01-14T15:00:00Z',
     cooldownMinutes: 120,
     minimumThreshold: 90,
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-14T15:00:00Z',
-    contacts: []
-  }
+    contacts: [],
+  },
 ];
 
 // Mock Contact data
@@ -147,8 +153,14 @@ export const mockContacts: ContactDto[] = [
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T10:30:00Z',
     assignedKpis: [
-      { kpiId: 1, indicator: 'Daily Sales Revenue', owner: 'John Smith', priority: 1, isActive: true }
-    ]
+      {
+        kpiId: 1,
+        indicator: 'Daily Sales Revenue',
+        owner: 'John Smith',
+        priority: 1,
+        isActive: true,
+      },
+    ],
   },
   {
     contactId: 2,
@@ -159,8 +171,14 @@ export const mockContacts: ContactDto[] = [
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T09:00:00Z',
     assignedKpis: [
-      { kpiId: 2, indicator: 'Customer Satisfaction Score', owner: 'Sarah Johnson', priority: 2, isActive: true }
-    ]
+      {
+        kpiId: 2,
+        indicator: 'Customer Satisfaction Score',
+        owner: 'Sarah Johnson',
+        priority: 2,
+        isActive: true,
+      },
+    ],
   },
   {
     contactId: 3,
@@ -171,9 +189,15 @@ export const mockContacts: ContactDto[] = [
     createdDate: '2024-01-01T00:00:00Z',
     modifiedDate: '2024-01-15T10:45:00Z',
     assignedKpis: [
-      { kpiId: 3, indicator: 'System Response Time', owner: 'Mike Wilson', priority: 1, isActive: true }
-    ]
-  }
+      {
+        kpiId: 3,
+        indicator: 'System Response Time',
+        owner: 'Mike Wilson',
+        priority: 1,
+        isActive: true,
+      },
+    ],
+  },
 ];
 
 // Mock Alert data
@@ -193,7 +217,7 @@ export const mockAlerts: AlertLogDto[] = [
     historicalValue: 55000,
     deviationPercent: -18.2,
     isResolved: false,
-    severity: 'Critical'
+    severity: 'Critical',
   },
   {
     alertId: 2,
@@ -212,8 +236,8 @@ export const mockAlerts: AlertLogDto[] = [
     isResolved: true,
     resolvedTime: '2024-01-15T11:00:00Z',
     resolvedBy: 'Mike Wilson',
-    severity: 'High'
-  }
+    severity: 'High',
+  },
 ];
 
 // Mock Dashboard data
@@ -241,7 +265,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
       frequency: 5,
       status: 'Never Run',
       alertsToday: 0,
-      isCurrentlyRunning: false
+      isCurrentlyRunning: false,
     },
     {
       kpiId: 2,
@@ -252,7 +276,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
       frequency: 15,
       status: 'Never Run',
       alertsToday: 0,
-      isCurrentlyRunning: false
+      isCurrentlyRunning: false,
     },
     {
       kpiId: 3,
@@ -263,7 +287,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
       frequency: 15,
       status: 'Never Run',
       alertsToday: 0,
-      isCurrentlyRunning: false
+      isCurrentlyRunning: false,
     },
     {
       kpiId: 4,
@@ -274,7 +298,7 @@ export const mockKpiDashboard: KpiDashboardDto = {
       frequency: 30,
       status: 'Never Run',
       alertsToday: 0,
-      isCurrentlyRunning: false
+      isCurrentlyRunning: false,
     },
     {
       kpiId: 5,
@@ -285,9 +309,9 @@ export const mockKpiDashboard: KpiDashboardDto = {
       frequency: 30,
       status: 'Never Run',
       alertsToday: 0,
-      isCurrentlyRunning: false
-    }
-  ]
+      isCurrentlyRunning: false,
+    },
+  ],
 };
 
 export const mockAlertDashboard: AlertDashboardDto = {
@@ -305,7 +329,7 @@ export const mockAlertDashboard: AlertDashboardDto = {
       alertCount: 5,
       unresolvedCount: 2,
       lastAlert: '2024-01-15T10:30:00Z',
-      averageDeviation: 18.5
+      averageDeviation: 18.5,
     },
     {
       kpiId: 2,
@@ -314,8 +338,8 @@ export const mockAlertDashboard: AlertDashboardDto = {
       alertCount: 3,
       unresolvedCount: 1,
       lastAlert: '2024-01-15T08:45:00Z',
-      averageDeviation: 12.3
-    }
+      averageDeviation: 12.3,
+    },
   ],
   hourlyTrend: [
     {
@@ -324,9 +348,9 @@ export const mockAlertDashboard: AlertDashboardDto = {
       criticalCount: 1,
       highCount: 0,
       mediumCount: 0,
-      lowCount: 0
-    }
-  ]
+      lowCount: 0,
+    },
+  ],
 };
 
 // Mock Health Check
@@ -334,8 +358,13 @@ export const mockHealthCheck: HealthCheckResponse = {
   status: 'Healthy',
   checks: [
     { name: 'Database', status: 'Healthy', description: 'SQL Server connection OK', duration: 45 },
-    { name: 'Email Service', status: 'Healthy', description: 'SMTP server responding', duration: 120 },
-    { name: 'SMS Service', status: 'Healthy', description: 'SMS gateway available', duration: 89 }
+    {
+      name: 'Email Service',
+      status: 'Healthy',
+      description: 'SMTP server responding',
+      duration: 120,
+    },
+    { name: 'SMS Service', status: 'Healthy', description: 'SMS gateway available', duration: 89 },
   ],
-  totalDuration: 254
+  totalDuration: 254,
 };

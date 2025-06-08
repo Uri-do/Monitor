@@ -41,13 +41,10 @@ const Page: React.FC<PageProps> = ({
     if (!breadcrumbs || breadcrumbs.length === 0) return null;
 
     return (
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        sx={{ mb: 2 }}
-      >
+      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 2 }}>
         {breadcrumbs.map((breadcrumb, index) => {
           const isLast = index === breadcrumbs.length - 1;
-          
+
           if (isLast || (!breadcrumb.href && !breadcrumb.onClick)) {
             return (
               <Typography key={index} color="text.primary" variant="body2">
@@ -62,9 +59,9 @@ const Page: React.FC<PageProps> = ({
               color="inherit"
               href={breadcrumb.href}
               onClick={breadcrumb.onClick}
-              sx={{ 
+              sx={{
                 textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' }
+                '&:hover': { textDecoration: 'underline' },
               }}
             >
               {breadcrumb.label}
@@ -78,7 +75,7 @@ const Page: React.FC<PageProps> = ({
   const renderHeader = () => (
     <Box sx={{ mb: 3 }}>
       {renderBreadcrumbs()}
-      
+
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -99,28 +96,16 @@ const Page: React.FC<PageProps> = ({
             {title}
           </Typography>
           {subtitle && (
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ maxWidth: 600 }}
-            >
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600 }}>
               {subtitle}
             </Typography>
           )}
         </Box>
-        
-        {headerActions && (
-          <Box sx={{ flexShrink: 0 }}>
-            {headerActions}
-          </Box>
-        )}
+
+        {headerActions && <Box sx={{ flexShrink: 0 }}>{headerActions}</Box>}
       </Stack>
 
-      {filters && (
-        <Box sx={{ mt: 2 }}>
-          {filters}
-        </Box>
-      )}
+      {filters && <Box sx={{ mt: 2 }}>{filters}</Box>}
     </Box>
   );
 
@@ -167,12 +152,8 @@ const Page: React.FC<PageProps> = ({
     if (sideContent) {
       return (
         <Stack direction="row" spacing={3}>
-          <Box sx={{ flex: 1 }}>
-            {mainContent}
-          </Box>
-          <Box sx={{ width: 300, flexShrink: 0 }}>
-            {sideContent}
-          </Box>
+          <Box sx={{ flex: 1 }}>{mainContent}</Box>
+          <Box sx={{ width: 300, flexShrink: 0 }}>{sideContent}</Box>
         </Stack>
       );
     }
@@ -192,16 +173,10 @@ const Page: React.FC<PageProps> = ({
       }}
     >
       {renderHeader()}
-      
-      <Box sx={{ flex: 1 }}>
-        {renderContent()}
-      </Box>
-      
-      {footerContent && (
-        <Box sx={{ mt: 3 }}>
-          {footerContent}
-        </Box>
-      )}
+
+      <Box sx={{ flex: 1 }}>{renderContent()}</Box>
+
+      {footerContent && <Box sx={{ mt: 3 }}>{footerContent}</Box>}
     </Container>
   );
 };

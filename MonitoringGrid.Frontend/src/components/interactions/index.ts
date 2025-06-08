@@ -1,18 +1,9 @@
 // Advanced Interaction Components
 export { default as DragDropDashboard } from './DragDropDashboard';
 
-export {
-  SwipeableCard,
-  PinchZoom,
-  LongPress,
-  PullToRefresh,
-} from './GestureSupport';
+export { SwipeableCard, PinchZoom, LongPress, PullToRefresh } from './GestureSupport';
 
-export {
-  InteractiveChart,
-  DataFilterPanel,
-  TimeSeriesPlayer,
-} from './DataExploration';
+export { InteractiveChart, DataFilterPanel, TimeSeriesPlayer } from './DataExploration';
 
 export {
   TiltCard,

@@ -1,5 +1,5 @@
-// Enhanced Components - Material-UI Implementation
-// These components leverage our enhanced API hooks for advanced monitoring capabilities
+// Enhanced Components - Production-Ready Material-UI Implementation
+// These components provide advanced monitoring capabilities with real-time data integration
 
 // Page-level enhanced components
 export { EnhancedDashboard } from './EnhancedDashboard';
@@ -22,7 +22,7 @@ export {
   useUnresolvedAlerts,
   useEnhancedAlertStatistics,
   useRealtimeKpiExecution,
-  useManualAlert
+  useManualAlert,
 } from '@/hooks/useEnhancedApi';
 
 export { useKpis } from '@/hooks/useKpis';

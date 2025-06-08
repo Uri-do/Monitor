@@ -83,7 +83,7 @@ const WorkerDashboardCard: React.FC = () => {
       });
 
       const result: WorkerActionResult = await response.json();
-      
+
       if (result.success) {
         toast.success(result.message);
         await fetchStatus(); // Refresh status
@@ -113,7 +113,8 @@ const WorkerDashboardCard: React.FC = () => {
       const diff = now.getTime() - start.getTime();
 
       // If negative or very small, show as just started
-      if (diff < 0 || diff < 60000) { // Less than 1 minute
+      if (diff < 0 || diff < 60000) {
+        // Less than 1 minute
         return 'Just started';
       }
 
@@ -133,7 +134,7 @@ const WorkerDashboardCard: React.FC = () => {
 
   useEffect(() => {
     fetchStatus();
-    
+
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
@@ -151,7 +152,9 @@ const WorkerDashboardCard: React.FC = () => {
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1 }}
+          >
             <CircularProgress />
           </Box>
         </CardContent>
@@ -224,14 +227,19 @@ const WorkerDashboardCard: React.FC = () => {
                       </Box>
                     </Box>
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                        }}
+                      >
                         <Schedule fontSize="small" />
-                        <Typography variant="body2">
-                          {formatUptime(status.startTime)}
-                        </Typography>
+                        <Typography variant="body2">{formatUptime(status.startTime)}</Typography>
                       </Box>
                       <Typography variant="caption" color="text.secondary">
                         Uptime
@@ -248,29 +256,43 @@ const WorkerDashboardCard: React.FC = () => {
                   color="success"
                   size="small"
                   onClick={() => performAction('start')}
-                  disabled={status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'}
-                  startIcon={actionLoading === 'start' ? <CircularProgress size={14} /> : <PlayArrow />}
+                  disabled={
+                    status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'
+                  }
+                  startIcon={
+                    actionLoading === 'start' ? <CircularProgress size={14} /> : <PlayArrow />
+                  }
                 >
                   Start
                 </Button>
-                
+
                 <Button
                   variant="contained"
                   color="error"
                   size="small"
                   onClick={() => performAction('stop')}
-                  disabled={!status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'}
+                  disabled={
+                    !status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'
+                  }
                   startIcon={actionLoading === 'stop' ? <CircularProgress size={14} /> : <Stop />}
                 >
                   Stop
                 </Button>
-                
+
                 <Button
                   variant="outlined"
                   size="small"
                   onClick={() => performAction('restart')}
-                  disabled={!status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'}
-                  startIcon={actionLoading === 'restart' ? <CircularProgress size={14} /> : <AutorenewOutlined />}
+                  disabled={
+                    !status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'
+                  }
+                  startIcon={
+                    actionLoading === 'restart' ? (
+                      <CircularProgress size={14} />
+                    ) : (
+                      <AutorenewOutlined />
+                    )
+                  }
                 >
                   Restart
                 </Button>
@@ -291,7 +313,7 @@ const WorkerDashboardCard: React.FC = () => {
                     Services ({status.services.length})
                   </Typography>
                 </Box>
-                
+
                 {status.services.length > 0 ? (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {status.services.slice(0, 4).map((service, index) => (
@@ -335,12 +357,7 @@ const WorkerDashboardCard: React.FC = () => {
               <Typography color="text.secondary" variant="body2">
                 Unable to connect to Worker service
               </Typography>
-              <Button
-                size="small"
-                onClick={fetchStatus}
-                sx={{ mt: 1 }}
-                startIcon={<Refresh />}
-              >
+              <Button size="small" onClick={fetchStatus} sx={{ mt: 1 }} startIcon={<Refresh />}>
                 Retry
               </Button>
             </Box>

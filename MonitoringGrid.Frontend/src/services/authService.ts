@@ -1,4 +1,10 @@
-import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, User } from '../types/auth';
+import {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+  User,
+} from '../types/auth';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 
@@ -56,7 +62,7 @@ class AuthService {
         await fetch(`${this.baseUrl}/logout`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
       } catch (error) {
@@ -99,7 +105,7 @@ class AuthService {
 
     const response = await fetch(`${this.baseUrl}/profile`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 

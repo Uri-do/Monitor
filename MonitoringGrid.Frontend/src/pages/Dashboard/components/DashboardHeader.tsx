@@ -9,11 +9,7 @@ interface DashboardHeaderProps {
   onRefresh: () => void;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  lastUpdate,
-  countdown,
-  onRefresh,
-}) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown, onRefresh }) => {
   const formatCountdown = (seconds: number): string => {
     if (seconds <= 0) return 'Due Now!';
 
@@ -81,14 +77,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {countdown !== null && countdown !== undefined && countdown > 0 && (
           <Tooltip title="Next KPI execution countdown">
             <Chip
-              icon={<Timer sx={{
-                fontSize: '16px !important',
-                animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
-              }} />}
+              icon={
+                <Timer
+                  sx={{
+                    fontSize: '16px !important',
+                    animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                  }}
+                />
+              }
               label={formatCountdown(countdown)}
               size="small"
               sx={{
-                backgroundColor: countdown <= 300 ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                backgroundColor:
+                  countdown <= 300 ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
                 fontWeight: 600,
                 animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',

@@ -63,13 +63,13 @@ interface CheckboxFormFieldProps extends BaseFormFieldProps {
   checkboxLabel?: string;
 }
 
-type FormFieldProps = 
-  | TextFormFieldProps 
-  | SelectFormFieldProps 
-  | AutocompleteFormFieldProps 
+type FormFieldProps =
+  | TextFormFieldProps
+  | SelectFormFieldProps
+  | AutocompleteFormFieldProps
   | CheckboxFormFieldProps;
 
-const FormField: React.FC<FormFieldProps> = (props) => {
+const FormField: React.FC<FormFieldProps> = props => {
   const { name, control, label, error, helperText, required, disabled, fullWidth = true } = props;
 
   const renderTextField = (fieldProps: TextFormFieldProps) => (
@@ -105,24 +105,22 @@ const FormField: React.FC<FormFieldProps> = (props) => {
           <Select
             {...field}
             multiple={fieldProps.multiple}
-            renderValue={fieldProps.multiple ? (selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {(selected as any[]).map((value) => {
-                  const option = fieldProps.options.find(opt => opt.value === value);
-                  return (
-                    <Chip key={value} label={option?.label || value} size="small" />
-                  );
-                })}
-              </Box>
-            ) : undefined}
+            renderValue={
+              fieldProps.multiple
+                ? selected => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as any[]).map(value => {
+                        const option = fieldProps.options.find(opt => opt.value === value);
+                        return <Chip key={value} label={option?.label || value} size="small" />;
+                      })}
+                    </Box>
+                  )
+                : undefined
+            }
             {...fieldProps.selectProps}
           >
-            {fieldProps.options.map((option) => (
-              <MenuItem 
-                key={option.value} 
-                value={option.value}
-                disabled={option.disabled}
-              >
+            {fieldProps.options.map(option => (
+              <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
                 {option.label}
               </MenuItem>
             ))}
@@ -143,14 +141,14 @@ const FormField: React.FC<FormFieldProps> = (props) => {
         <Autocomplete
           {...field}
           options={fieldProps.options}
-          getOptionLabel={(option) => typeof option === 'string' ? option : option.label || ''}
+          getOptionLabel={option => (typeof option === 'string' ? option : option.label || '')}
           isOptionEqualToValue={(option, value) => option.value === value?.value}
           multiple={fieldProps.multiple}
           freeSolo={fieldProps.freeSolo}
           value={value || (fieldProps.multiple ? [] : null)}
           onChange={(_, newValue) => onChange(newValue)}
           disabled={disabled}
-          renderInput={(params) => (
+          renderInput={params => (
             <TextField
               {...params}
               label={label}

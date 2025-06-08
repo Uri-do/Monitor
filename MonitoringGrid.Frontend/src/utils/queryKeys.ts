@@ -68,28 +68,28 @@ export const getInvalidationKeys = {
     }
     return [queryKeys.kpis.all];
   },
-  
+
   alert: (id?: number) => {
     if (id) {
       return [queryKeys.alerts.detail(id), queryKeys.alerts.lists()];
     }
     return [queryKeys.alerts.all];
   },
-  
+
   contact: (id?: number) => {
     if (id) {
       return [queryKeys.contacts.detail(id), queryKeys.contacts.lists()];
     }
     return [queryKeys.contacts.all];
   },
-  
+
   user: (id?: string) => {
     if (id) {
       return [queryKeys.users.detail(id), queryKeys.users.lists()];
     }
     return [queryKeys.users.all];
   },
-  
+
   dashboard: () => [queryKeys.dashboard.all],
   system: () => [queryKeys.system.all],
 };

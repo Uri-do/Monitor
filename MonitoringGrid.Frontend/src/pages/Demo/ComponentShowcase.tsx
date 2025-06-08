@@ -147,10 +147,12 @@ const ComponentShowcase: React.FC = () => {
             </EnhancedCard>
           </Grid>
           <Grid item xs={12} md={4}>
-            <EnhancedCard sx={{
-              background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.1)} 0%, ${alpha(theme.palette.warning.main, 0.05)} 100%)`,
-              border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
-            }}>
+            <EnhancedCard
+              sx={{
+                background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.1)} 0%, ${alpha(theme.palette.warning.main, 0.05)} 100%)`,
+                border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
+              }}
+            >
               <CardHeader
                 avatar={
                   <Box
@@ -192,10 +194,12 @@ const ComponentShowcase: React.FC = () => {
             </EnhancedCard>
           </Grid>
           <Grid item xs={12} md={4}>
-            <EnhancedCard sx={{
-              border: `2px solid ${theme.palette.success.main}`,
-              backgroundColor: 'transparent',
-            }}>
+            <EnhancedCard
+              sx={{
+                border: `2px solid ${theme.palette.success.main}`,
+                backgroundColor: 'transparent',
+              }}
+            >
               <CardHeader
                 avatar={
                   <Box
@@ -310,11 +314,7 @@ const ComponentShowcase: React.FC = () => {
               </EnhancedButton>
             </Grid>
             <Grid item>
-              <EnhancedButton
-                variant="text"
-                startIcon={<Download />}
-                size="small"
-              >
+              <EnhancedButton variant="text" startIcon={<Download />} size="small">
                 Export
               </EnhancedButton>
             </Grid>
@@ -482,12 +482,22 @@ const ComponentShowcase: React.FC = () => {
                 Typography Scale
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="h4" fontWeight={700}>Heading 4</Typography>
-                <Typography variant="h5" fontWeight={600}>Heading 5</Typography>
-                <Typography variant="h6" fontWeight={600}>Heading 6</Typography>
+                <Typography variant="h4" fontWeight={700}>
+                  Heading 4
+                </Typography>
+                <Typography variant="h5" fontWeight={600}>
+                  Heading 5
+                </Typography>
+                <Typography variant="h6" fontWeight={600}>
+                  Heading 6
+                </Typography>
                 <Typography variant="body1">Body 1 - Regular text</Typography>
-                <Typography variant="body2" color="text.secondary">Body 2 - Secondary text</Typography>
-                <Typography variant="caption" color="text.secondary">Caption text</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Body 2 - Secondary text
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Caption text
+                </Typography>
               </Box>
             </Grid>
           </Grid>

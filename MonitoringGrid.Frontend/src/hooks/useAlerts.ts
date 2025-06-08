@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { alertApi } from '@/services/api';
-import { 
-  AlertLogDto, 
-  AlertFilterDto, 
-  PaginatedAlertsDto, 
-  ResolveAlertRequest, 
-  BulkResolveAlertsRequest 
+import {
+  AlertLogDto,
+  AlertFilterDto,
+  PaginatedAlertsDto,
+  ResolveAlertRequest,
+  BulkResolveAlertsRequest,
 } from '@/types/api';
 
 export const useAlerts = (filters: AlertFilterDto) => {
@@ -38,11 +38,16 @@ export const useAlerts = (filters: AlertFilterDto) => {
         if (!prev) return prev;
         return {
           ...prev,
-          alerts: prev.alerts.map(alert => 
-            alert.alertId === alertId 
-              ? { ...alert, isResolved: true, resolvedTime: new Date().toISOString(), resolvedBy: request.resolvedBy }
+          alerts: prev.alerts.map(alert =>
+            alert.alertId === alertId
+              ? {
+                  ...alert,
+                  isResolved: true,
+                  resolvedTime: new Date().toISOString(),
+                  resolvedBy: request.resolvedBy,
+                }
               : alert
-          )
+          ),
         };
       });
     } catch (err) {
@@ -60,11 +65,16 @@ export const useAlerts = (filters: AlertFilterDto) => {
         if (!prev) return prev;
         return {
           ...prev,
-          alerts: prev.alerts.map(alert => 
+          alerts: prev.alerts.map(alert =>
             request.alertIds.includes(alert.alertId)
-              ? { ...alert, isResolved: true, resolvedTime: new Date().toISOString(), resolvedBy: request.resolvedBy }
+              ? {
+                  ...alert,
+                  isResolved: true,
+                  resolvedTime: new Date().toISOString(),
+                  resolvedBy: request.resolvedBy,
+                }
               : alert
-          )
+          ),
         };
       });
     } catch (err) {
@@ -92,6 +102,6 @@ export const useAlerts = (filters: AlertFilterDto) => {
     refetch: fetchData,
     resolveAlert,
     bulkResolveAlerts,
-    getAlert
+    getAlert,
   };
 };

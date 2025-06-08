@@ -11,7 +11,7 @@ import {
   MenuItem,
   ToggleButton,
   ToggleButtonGroup,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import {
   LineChart,
@@ -33,7 +33,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
   Brush,
-  ComposedChart
+  ComposedChart,
 } from 'recharts';
 import { format, subDays } from 'date-fns';
 
@@ -66,14 +66,12 @@ interface AdvancedChartsProps {
   showControls?: boolean;
 }
 
-
-
 export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
   data,
   trendData = [],
   distributionData = [],
   title = 'KPI Analytics',
-  showControls = true
+  showControls = true,
 }) => {
   const theme = useTheme();
   const [chartType, setChartType] = React.useState<'line' | 'area' | 'bar' | 'scatter'>('line');
@@ -87,13 +85,13 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
     success: theme.palette.success.main,
     warning: theme.palette.warning.main,
     error: theme.palette.error.main,
-    info: theme.palette.info.main
+    info: theme.palette.info.main,
   };
 
   const STATUS_COLORS = {
     healthy: COLORS.success,
     warning: COLORS.warning,
-    critical: COLORS.error
+    critical: COLORS.error,
   };
 
   // Filter data based on time range
@@ -113,18 +111,14 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             border: 1,
             borderColor: 'divider',
             borderRadius: 1,
-            boxShadow: 2
+            boxShadow: 2,
           }}
         >
           <Typography variant="subtitle2">
             {format(new Date(label), 'MMM dd, yyyy HH:mm')}
           </Typography>
           {payload.map((entry: any, index: number) => (
-            <Typography
-              key={index}
-              variant="body2"
-              sx={{ color: entry.color }}
-            >
+            <Typography key={index} variant="body2" sx={{ color: entry.color }}>
               {entry.name}: {entry.value?.toFixed(2)}
             </Typography>
           ))}
@@ -137,7 +131,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
   const renderMainChart = () => {
     const commonProps = {
       data: filteredData,
-      margin: { top: 5, right: 30, left: 20, bottom: 5 }
+      margin: { top: 5, right: 30, left: 20, bottom: 5 },
     };
 
     switch (chartType) {
@@ -150,7 +144,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             />
             <XAxis
               dataKey="timestamp"
-              tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              tickFormatter={value => format(new Date(value), 'MMM dd')}
               stroke={theme.palette.text.secondary}
             />
             <YAxis stroke={theme.palette.text.secondary} />
@@ -187,7 +181,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             />
             <XAxis
               dataKey="timestamp"
-              tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              tickFormatter={value => format(new Date(value), 'MMM dd')}
               stroke={theme.palette.text.secondary}
             />
             <YAxis stroke={theme.palette.text.secondary} />
@@ -195,7 +189,11 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             <Legend />
             <Bar dataKey="value" fill={COLORS.primary} name="Value" />
             {showTarget && (
-              <ReferenceLine y={filteredData[0]?.target} stroke={COLORS.secondary} strokeDasharray="5 5" />
+              <ReferenceLine
+                y={filteredData[0]?.target}
+                stroke={COLORS.secondary}
+                strokeDasharray="5 5"
+              />
             )}
           </BarChart>
         );
@@ -209,17 +207,13 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             />
             <XAxis
               dataKey="timestamp"
-              tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              tickFormatter={value => format(new Date(value), 'MMM dd')}
               stroke={theme.palette.text.secondary}
             />
             <YAxis stroke={theme.palette.text.secondary} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Scatter
-              dataKey="value"
-              fill={COLORS.primary}
-              name="Value"
-            />
+            <Scatter dataKey="value" fill={COLORS.primary} name="Value" />
           </ScatterChart>
         );
 
@@ -232,7 +226,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
             />
             <XAxis
               dataKey="timestamp"
-              tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+              tickFormatter={value => format(new Date(value), 'MMM dd')}
               stroke={theme.palette.text.secondary}
             />
             <YAxis stroke={theme.palette.text.secondary} />
@@ -291,7 +285,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                   <Select
                     value={timeRange}
                     label="Time Range"
-                    onChange={(e) => setTimeRange(e.target.value as any)}
+                    onChange={e => setTimeRange(e.target.value as any)}
                   >
                     <MenuItem value="1d">Last Day</MenuItem>
                     <MenuItem value="7d">Last 7 Days</MenuItem>
@@ -377,10 +371,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                         strokeDasharray="3 3"
                         stroke={theme.palette.mode === 'light' ? '#e0e0e0' : '#424242'}
                       />
-                      <XAxis
-                        dataKey="period"
-                        stroke={theme.palette.text.secondary}
-                      />
+                      <XAxis dataKey="period" stroke={theme.palette.text.secondary} />
                       <YAxis stroke={theme.palette.text.secondary} />
                       <Tooltip />
                       <Legend />

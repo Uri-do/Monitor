@@ -68,13 +68,18 @@ const ExecutionHistoryList: React.FC = () => {
   }>({ open: false });
 
   // Fetch execution history
-  const { data: historyData, isLoading, refetch } = useQuery({
+  const {
+    data: historyData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['executionHistory', filters, pageSize, pageNumber],
-    queryFn: () => executionHistoryApi.getExecutionHistory({
-      ...filters,
-      pageSize,
-      pageNumber,
-    }),
+    queryFn: () =>
+      executionHistoryApi.getExecutionHistory({
+        ...filters,
+        pageSize,
+        pageNumber,
+      }),
     staleTime: 5000, // 5 seconds - reduced for testing
     refetchInterval: 10000, // Auto-refresh every 10 seconds
   });
@@ -110,11 +115,16 @@ const ExecutionHistoryList: React.FC = () => {
   // Get performance category color
   const getPerformanceColor = (category: string) => {
     switch (category.toLowerCase()) {
-      case 'fast': return 'success';
-      case 'normal': return 'info';
-      case 'slow': return 'warning';
-      case 'very slow': return 'error';
-      default: return 'default';
+      case 'fast':
+        return 'success';
+      case 'normal':
+        return 'info';
+      case 'slow':
+        return 'warning';
+      case 'very slow':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -125,7 +135,7 @@ const ExecutionHistoryList: React.FC = () => {
       label: 'Execution Time',
       sortable: true,
       minWidth: 160,
-      render: (value) => (
+      render: value => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
             {format(new Date(value), 'MMM dd, yyyy')}
@@ -158,8 +168,8 @@ const ExecutionHistoryList: React.FC = () => {
       sortable: true,
       minWidth: 100,
       render: (value, row) => (
-        <StatusChip 
-          status={value ? 'success' : 'error'} 
+        <StatusChip
+          status={value ? 'success' : 'error'}
           icon={value ? <SuccessIcon /> : <ErrorIcon />}
         />
       ),
@@ -179,7 +189,8 @@ const ExecutionHistoryList: React.FC = () => {
               variant="caption"
               color={Math.abs(row.deviationPercent) > 10 ? 'error.main' : 'text.secondary'}
             >
-              {row.deviationPercent > 0 ? '+' : ''}{row.deviationPercent.toFixed(1)}%
+              {row.deviationPercent > 0 ? '+' : ''}
+              {row.deviationPercent.toFixed(1)}%
             </Typography>
           )}
         </Box>
@@ -192,12 +203,10 @@ const ExecutionHistoryList: React.FC = () => {
       minWidth: 120,
       render: (value, row) => (
         <Box>
-          <Typography variant="body2">
-            {value ? `${value}ms` : 'N/A'}
-          </Typography>
-          <Chip 
-            label={row.performanceCategory} 
-            size="small" 
+          <Typography variant="body2">{value ? `${value}ms` : 'N/A'}</Typography>
+          <Chip
+            label={row.performanceCategory}
+            size="small"
             color={getPerformanceColor(row.performanceCategory)}
             sx={{ fontSize: '0.7rem', height: 20 }}
           />
@@ -211,9 +220,7 @@ const ExecutionHistoryList: React.FC = () => {
       minWidth: 120,
       render: (value, row) => (
         <Box>
-          <Typography variant="body2">
-            {value || 'System'}
-          </Typography>
+          <Typography variant="body2">{value || 'System'}</Typography>
           <Typography variant="caption" color="text.secondary">
             {row.executionMethod || 'Unknown'}
           </Typography>
@@ -226,19 +233,18 @@ const ExecutionHistoryList: React.FC = () => {
       sortable: true,
       minWidth: 80,
       align: 'center',
-      render: (value, row) => (
+      render: (value, row) =>
         value ? (
-          <Chip 
-            label={row.alertSent ? 'Sent' : 'Pending'} 
-            size="small" 
+          <Chip
+            label={row.alertSent ? 'Sent' : 'Pending'}
+            size="small"
             color={row.alertSent ? 'success' : 'warning'}
           />
         ) : (
           <Typography variant="caption" color="text.secondary">
             No
           </Typography>
-        )
-      ),
+        ),
     },
   ];
 
@@ -293,7 +299,7 @@ const ExecutionHistoryList: React.FC = () => {
             },
             variant: 'outlined' as const,
             color: 'warning' as const,
-          }
+          },
         ]}
       />
 
@@ -337,7 +343,7 @@ const ExecutionHistoryList: React.FC = () => {
             type: 'date',
           },
         ]}
-        onFilterChange={(newFilters) => {
+        onFilterChange={newFilters => {
           setFilters({ ...filters, ...newFilters });
           setPageNumber(1); // Reset to first page
         }}
@@ -345,7 +351,7 @@ const ExecutionHistoryList: React.FC = () => {
           setFilters({ search: '' });
           setPageNumber(1);
         }}
-        onSearch={(searchTerm) => {
+        onSearch={searchTerm => {
           setFilters({ ...filters, search: searchTerm });
           setPageNumber(1);
         }}
@@ -389,8 +395,8 @@ const ExecutionHistoryList: React.FC = () => {
       />
 
       {/* Execution Detail Dialog */}
-      <Dialog 
-        open={detailDialog.open} 
+      <Dialog
+        open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false })}
         maxWidth="lg"
         fullWidth
@@ -402,14 +408,10 @@ const ExecutionHistoryList: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          {detailDialog.execution && (
-            <ExecutionDetailView execution={detailDialog.execution} />
-          )}
+          {detailDialog.execution && <ExecutionDetailView execution={detailDialog.execution} />}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailDialog({ open: false })}>
-            Close
-          </Button>
+          <Button onClick={() => setDetailDialog({ open: false })}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -430,12 +432,24 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 Basic Information
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box><strong>KPI:</strong> {execution.indicator}</Box>
-                <Box><strong>Owner:</strong> {execution.kpiOwner}</Box>
-                <Box><strong>Stored Procedure:</strong> {execution.spName}</Box>
-                <Box><strong>Executed By:</strong> {execution.executedBy || 'System'}</Box>
-                <Box><strong>Method:</strong> {execution.executionMethod || 'Unknown'}</Box>
-                <Box><strong>Timestamp:</strong> {format(new Date(execution.timestamp), 'PPpp')}</Box>
+                <Box>
+                  <strong>KPI:</strong> {execution.indicator}
+                </Box>
+                <Box>
+                  <strong>Owner:</strong> {execution.kpiOwner}
+                </Box>
+                <Box>
+                  <strong>Stored Procedure:</strong> {execution.spName}
+                </Box>
+                <Box>
+                  <strong>Executed By:</strong> {execution.executedBy || 'System'}
+                </Box>
+                <Box>
+                  <strong>Method:</strong> {execution.executionMethod || 'Unknown'}
+                </Box>
+                <Box>
+                  <strong>Timestamp:</strong> {format(new Date(execution.timestamp), 'PPpp')}
+                </Box>
               </Box>
             </CardContent>
           </Card>
@@ -450,22 +464,33 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 Performance Metrics
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box><strong>Current Value:</strong> {execution.currentValue?.toFixed(2) || 'N/A'}</Box>
-                <Box><strong>Historical Value:</strong> {execution.historicalValue?.toFixed(2) || 'N/A'}</Box>
-                <Box><strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%</Box>
-                <Box><strong>Execution Time:</strong> {execution.executionTimeMs || 'N/A'}ms</Box>
-                <Box><strong>Performance:</strong> 
-                  <Chip 
-                    label={execution.performanceCategory} 
-                    size="small" 
+                <Box>
+                  <strong>Current Value:</strong> {execution.currentValue?.toFixed(2) || 'N/A'}
+                </Box>
+                <Box>
+                  <strong>Historical Value:</strong>{' '}
+                  {execution.historicalValue?.toFixed(2) || 'N/A'}
+                </Box>
+                <Box>
+                  <strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%
+                </Box>
+                <Box>
+                  <strong>Execution Time:</strong> {execution.executionTimeMs || 'N/A'}ms
+                </Box>
+                <Box>
+                  <strong>Performance:</strong>
+                  <Chip
+                    label={execution.performanceCategory}
+                    size="small"
                     color={execution.performanceCategory === 'Fast' ? 'success' : 'warning'}
                     sx={{ ml: 1 }}
                   />
                 </Box>
-                <Box><strong>Status:</strong> 
-                  <Chip 
-                    label={execution.isSuccessful ? 'Success' : 'Failed'} 
-                    size="small" 
+                <Box>
+                  <strong>Status:</strong>
+                  <Chip
+                    label={execution.isSuccessful ? 'Success' : 'Failed'}
+                    size="small"
                     color={execution.isSuccessful ? 'success' : 'error'}
                     sx={{ ml: 1 }}
                   />
@@ -487,21 +512,45 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
             <AccordionDetails>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" gutterBottom>Database Information</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '0.875rem' }}>
-                    <Box><strong>Database:</strong> {execution.databaseName || 'N/A'}</Box>
-                    <Box><strong>Server:</strong> {execution.serverName || 'N/A'}</Box>
-                    <Box><strong>Session ID:</strong> {execution.sessionId || 'N/A'}</Box>
-                    <Box><strong>IP Address:</strong> {execution.ipAddress || 'N/A'}</Box>
-                    <Box><strong>User Agent:</strong> {execution.userAgent || 'N/A'}</Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Database Information
+                  </Typography>
+                  <Box
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '0.875rem' }}
+                  >
+                    <Box>
+                      <strong>Database:</strong> {execution.databaseName || 'N/A'}
+                    </Box>
+                    <Box>
+                      <strong>Server:</strong> {execution.serverName || 'N/A'}
+                    </Box>
+                    <Box>
+                      <strong>Session ID:</strong> {execution.sessionId || 'N/A'}
+                    </Box>
+                    <Box>
+                      <strong>IP Address:</strong> {execution.ipAddress || 'N/A'}
+                    </Box>
+                    <Box>
+                      <strong>User Agent:</strong> {execution.userAgent || 'N/A'}
+                    </Box>
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" gutterBottom>Alert Information</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '0.875rem' }}>
-                    <Box><strong>Should Alert:</strong> {execution.shouldAlert ? 'Yes' : 'No'}</Box>
-                    <Box><strong>Alert Sent:</strong> {execution.alertSent ? 'Yes' : 'No'}</Box>
-                    <Box><strong>Deviation Category:</strong> {execution.deviationCategory}</Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Alert Information
+                  </Typography>
+                  <Box
+                    sx={{ display: 'flex', flexDirection: 'column', gap: 1, fontSize: '0.875rem' }}
+                  >
+                    <Box>
+                      <strong>Should Alert:</strong> {execution.shouldAlert ? 'Yes' : 'No'}
+                    </Box>
+                    <Box>
+                      <strong>Alert Sent:</strong> {execution.alertSent ? 'Yes' : 'No'}
+                    </Box>
+                    <Box>
+                      <strong>Deviation Category:</strong> {execution.deviationCategory}
+                    </Box>
                   </Box>
                 </Grid>
               </Grid>
@@ -517,30 +566,32 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 <Typography variant="h6">SQL Command</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Box 
-                  component="pre" 
-                  sx={{ 
-                    backgroundColor: 'grey.100', 
-                    p: 2, 
-                    borderRadius: 1, 
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
                     overflow: 'auto',
                     fontSize: '0.875rem',
-                    fontFamily: 'monospace'
+                    fontFamily: 'monospace',
                   }}
                 >
                   {execution.sqlCommand}
                 </Box>
                 {execution.sqlParameters && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>Parameters:</Typography>
-                    <Box 
-                      component="pre" 
-                      sx={{ 
-                        backgroundColor: 'grey.50', 
-                        p: 1, 
-                        borderRadius: 1, 
+                    <Typography variant="subtitle2" gutterBottom>
+                      Parameters:
+                    </Typography>
+                    <Box
+                      component="pre"
+                      sx={{
+                        backgroundColor: 'grey.50',
+                        p: 1,
+                        borderRadius: 1,
                         fontSize: '0.8rem',
-                        fontFamily: 'monospace'
+                        fontFamily: 'monospace',
                       }}
                     >
                       {execution.sqlParameters}
@@ -560,16 +611,16 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 <Typography variant="h6">Raw Response Data</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Box 
-                  component="pre" 
-                  sx={{ 
-                    backgroundColor: 'grey.100', 
-                    p: 2, 
-                    borderRadius: 1, 
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
                     overflow: 'auto',
                     fontSize: '0.875rem',
                     fontFamily: 'monospace',
-                    maxHeight: 400
+                    maxHeight: 400,
                   }}
                 >
                   {execution.rawResponse}
@@ -587,16 +638,16 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 <Typography variant="h6">Execution Context</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Box 
-                  component="pre" 
-                  sx={{ 
-                    backgroundColor: 'grey.100', 
-                    p: 2, 
-                    borderRadius: 1, 
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 1,
                     overflow: 'auto',
                     fontSize: '0.875rem',
                     fontFamily: 'monospace',
-                    maxHeight: 300
+                    maxHeight: 300,
                   }}
                 >
                   {execution.executionContext}
@@ -615,9 +666,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                   <ErrorIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                   Error Details
                 </Typography>
-                <Typography variant="body2">
-                  {execution.errorMessage}
-                </Typography>
+                <Typography variant="body2">{execution.errorMessage}</Typography>
               </CardContent>
             </Card>
           </Grid>

@@ -155,7 +155,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="SMTP Server"
                         value={emailSettings.smtpServer}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, smtpServer: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, smtpServer: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -164,7 +166,9 @@ const Settings: React.FC = () => {
                         label="Port"
                         type="number"
                         value={emailSettings.smtpPort}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, smtpPort: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, smtpPort: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -172,7 +176,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="Username"
                         value={emailSettings.username}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, username: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, username: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -181,7 +187,9 @@ const Settings: React.FC = () => {
                         label="Password"
                         type="password"
                         value={emailSettings.password}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, password: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, password: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -189,7 +197,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="From Address"
                         value={emailSettings.fromAddress}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, fromAddress: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, fromAddress: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -197,7 +207,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="From Name"
                         value={emailSettings.fromName}
-                        onChange={(e) => setEmailSettings({ ...emailSettings, fromName: e.target.value })}
+                        onChange={e =>
+                          setEmailSettings({ ...emailSettings, fromName: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -205,7 +217,9 @@ const Settings: React.FC = () => {
                         control={
                           <Switch
                             checked={emailSettings.enableSsl}
-                            onChange={(e) => setEmailSettings({ ...emailSettings, enableSsl: e.target.checked })}
+                            onChange={e =>
+                              setEmailSettings({ ...emailSettings, enableSsl: e.target.checked })
+                            }
                           />
                         }
                         label="Enable SSL/TLS"
@@ -220,10 +234,7 @@ const Settings: React.FC = () => {
                     >
                       Save Settings
                     </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={handleTestEmail}
-                    >
+                    <Button variant="outlined" onClick={handleTestEmail}>
                       Send Test Email
                     </Button>
                   </Box>
@@ -277,7 +288,7 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="Provider"
                         value={smsSettings.provider}
-                        onChange={(e) => setSmsSettings({ ...smsSettings, provider: e.target.value })}
+                        onChange={e => setSmsSettings({ ...smsSettings, provider: e.target.value })}
                         select
                         SelectProps={{ native: true }}
                       >
@@ -291,7 +302,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="Account SID"
                         value={smsSettings.accountSid}
-                        onChange={(e) => setSmsSettings({ ...smsSettings, accountSid: e.target.value })}
+                        onChange={e =>
+                          setSmsSettings({ ...smsSettings, accountSid: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -300,7 +313,9 @@ const Settings: React.FC = () => {
                         label="Auth Token"
                         type="password"
                         value={smsSettings.authToken}
-                        onChange={(e) => setSmsSettings({ ...smsSettings, authToken: e.target.value })}
+                        onChange={e =>
+                          setSmsSettings({ ...smsSettings, authToken: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -308,7 +323,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="From Number"
                         value={smsSettings.fromNumber}
-                        onChange={(e) => setSmsSettings({ ...smsSettings, fromNumber: e.target.value })}
+                        onChange={e =>
+                          setSmsSettings({ ...smsSettings, fromNumber: e.target.value })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -316,7 +333,9 @@ const Settings: React.FC = () => {
                         control={
                           <Switch
                             checked={smsSettings.enabled}
-                            onChange={(e) => setSmsSettings({ ...smsSettings, enabled: e.target.checked })}
+                            onChange={e =>
+                              setSmsSettings({ ...smsSettings, enabled: e.target.checked })
+                            }
                           />
                         }
                         label="Enable SMS Notifications"
@@ -352,7 +371,7 @@ const Settings: React.FC = () => {
                     <ListItem>
                       <ListItemText primary="Service Status" />
                       <ListItemSecondaryAction>
-                        <StatusChip status={smsSettings.enabled ? "success" : "inactive"} />
+                        <StatusChip status={smsSettings.enabled ? 'success' : 'inactive'} />
                       </ListItemSecondaryAction>
                     </ListItem>
                     <ListItem>
@@ -390,10 +409,12 @@ const Settings: React.FC = () => {
                         label="Default Frequency (minutes)"
                         type="number"
                         value={systemSettings.defaultKpiFrequency}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          defaultKpiFrequency: parseInt(e.target.value)
-                        })}
+                        onChange={e =>
+                          setSystemSettings({
+                            ...systemSettings,
+                            defaultKpiFrequency: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -402,10 +423,12 @@ const Settings: React.FC = () => {
                         label="Alert Cooldown (minutes)"
                         type="number"
                         value={systemSettings.alertCooldownMinutes}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          alertCooldownMinutes: parseInt(e.target.value)
-                        })}
+                        onChange={e =>
+                          setSystemSettings({
+                            ...systemSettings,
+                            alertCooldownMinutes: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -414,10 +437,12 @@ const Settings: React.FC = () => {
                         label="Max Retry Attempts"
                         type="number"
                         value={systemSettings.maxRetryAttempts}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          maxRetryAttempts: parseInt(e.target.value)
-                        })}
+                        onChange={e =>
+                          setSystemSettings({
+                            ...systemSettings,
+                            maxRetryAttempts: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </Grid>
                   </Grid>
@@ -437,10 +462,12 @@ const Settings: React.FC = () => {
                         label="Data Retention (days)"
                         type="number"
                         value={systemSettings.dataRetentionDays}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          dataRetentionDays: parseInt(e.target.value)
-                        })}
+                        onChange={e =>
+                          setSystemSettings({
+                            ...systemSettings,
+                            dataRetentionDays: parseInt(e.target.value),
+                          })
+                        }
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -448,7 +475,9 @@ const Settings: React.FC = () => {
                         fullWidth
                         label="Log Level"
                         value={systemSettings.logLevel}
-                        onChange={(e) => setSystemSettings({ ...systemSettings, logLevel: e.target.value })}
+                        onChange={e =>
+                          setSystemSettings({ ...systemSettings, logLevel: e.target.value })
+                        }
                         select
                         SelectProps={{ native: true }}
                       >
@@ -463,10 +492,12 @@ const Settings: React.FC = () => {
                         control={
                           <Switch
                             checked={systemSettings.enableLogging}
-                            onChange={(e) => setSystemSettings({
-                              ...systemSettings,
-                              enableLogging: e.target.checked
-                            })}
+                            onChange={e =>
+                              setSystemSettings({
+                                ...systemSettings,
+                                enableLogging: e.target.checked,
+                              })
+                            }
                           />
                         }
                         label="Enable Detailed Logging"

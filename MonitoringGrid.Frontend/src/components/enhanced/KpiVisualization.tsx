@@ -114,27 +114,38 @@ const KpiCard: React.FC<{
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return theme.palette.success.main;
-      case 'warning': return theme.palette.warning.main;
-      case 'critical': return theme.palette.error.main;
-      default: return theme.palette.text.secondary;
+      case 'healthy':
+        return theme.palette.success.main;
+      case 'warning':
+        return theme.palette.warning.main;
+      case 'critical':
+        return theme.palette.error.main;
+      default:
+        return theme.palette.text.secondary;
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle fontSize="small" />;
-      case 'warning': return <Warning fontSize="small" />;
-      case 'critical': return <Error fontSize="small" />;
-      default: return <Schedule fontSize="small" />;
+      case 'healthy':
+        return <CheckCircle fontSize="small" />;
+      case 'warning':
+        return <Warning fontSize="small" />;
+      case 'critical':
+        return <Error fontSize="small" />;
+      default:
+        return <Schedule fontSize="small" />;
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp fontSize="small" color="success" />;
-      case 'down': return <TrendingDown fontSize="small" color="error" />;
-      default: return <Remove fontSize="small" color="disabled" />;
+      case 'up':
+        return <TrendingUp fontSize="small" color="success" />;
+      case 'down':
+        return <TrendingDown fontSize="small" color="error" />;
+      default:
+        return <Remove fontSize="small" color="disabled" />;
     }
   };
 
@@ -154,7 +165,9 @@ const KpiCard: React.FC<{
     <StyledCard onClick={onClick}>
       <CardContent sx={{ p: 3 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}
+        >
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
               {kpi.name}
@@ -173,11 +186,11 @@ const KpiCard: React.FC<{
               />
             </Box>
           </Box>
-          
+
           <IconButton size="small" onClick={handleMenuClick}>
             <MoreVert />
           </IconButton>
-          
+
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
             <MenuItem onClick={handleMenuClose}>Edit KPI</MenuItem>
@@ -190,21 +203,23 @@ const KpiCard: React.FC<{
           <MetricValue variant="h4" fontWeight={700} sx={{ mb: 1 }}>
             {kpi.value.toLocaleString()} {kpi.unit}
           </MetricValue>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {getTrendIcon(kpi.trend)}
             <Typography
               variant="body2"
               sx={{
-                color: kpi.trend === 'up' 
-                  ? theme.palette.success.main 
-                  : kpi.trend === 'down' 
-                    ? theme.palette.error.main 
-                    : theme.palette.text.secondary,
+                color:
+                  kpi.trend === 'up'
+                    ? theme.palette.success.main
+                    : kpi.trend === 'down'
+                      ? theme.palette.error.main
+                      : theme.palette.text.secondary,
                 fontWeight: 600,
               }}
             >
-              {kpi.change > 0 ? '+' : ''}{kpi.change}%
+              {kpi.change > 0 ? '+' : ''}
+              {kpi.change}%
             </Typography>
             <Typography variant="body2" color="text.secondary">
               vs last period
@@ -252,8 +267,8 @@ const KpiCard: React.FC<{
                   strokeWidth={2}
                 />
                 {showTargets && (
-                  <ReferenceLine 
-                    y={kpi.target} 
+                  <ReferenceLine
+                    y={kpi.target}
                     stroke={theme.palette.text.secondary}
                     strokeDasharray="3 3"
                   />

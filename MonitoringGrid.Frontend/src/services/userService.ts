@@ -43,7 +43,7 @@ class UserService {
     const token = authService.getToken();
     return {
       'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
+      Authorization: token ? `Bearer ${token}` : '',
     };
   }
 

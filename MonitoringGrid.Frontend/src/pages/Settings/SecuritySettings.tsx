@@ -36,7 +36,7 @@ import {
   MenuItem,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
 } from '@mui/material';
 import {
   Security,
@@ -53,14 +53,20 @@ import {
   Settings,
   History,
   ExpandMore,
-  Save
+  Save,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
 import { securityService } from '../../services/securityService';
-import { SecurityConfig, SecurityEvent as AuthSecurityEvent, User, Role, Permission } from '../../types/auth';
+import {
+  SecurityConfig,
+  SecurityEvent as AuthSecurityEvent,
+  User,
+  Role,
+  Permission,
+} from '../../types/auth';
 import { PageHeader } from '../../components/Common';
 
 interface TabPanelProps {
@@ -114,23 +120,23 @@ const securitySchema = yup.object({
     requireSpecialChars: yup.boolean().required(),
     passwordExpirationDays: yup.number().min(1).max(365).required(),
     maxFailedAttempts: yup.number().min(1).max(10).required(),
-    lockoutDurationMinutes: yup.number().min(1).max(1440).required()
+    lockoutDurationMinutes: yup.number().min(1).max(1440).required(),
   }),
   sessionSettings: yup.object({
     sessionTimeoutMinutes: yup.number().min(5).max(1440).required(),
     idleTimeoutMinutes: yup.number().min(5).max(240).required(),
-    allowConcurrentSessions: yup.boolean().required()
+    allowConcurrentSessions: yup.boolean().required(),
   }),
   twoFactorSettings: yup.object({
     enabled: yup.boolean().required(),
     required: yup.boolean().required(),
-    methods: yup.array().of(yup.string().required()).required()
+    methods: yup.array().of(yup.string().required()).required(),
   }),
   rateLimitSettings: yup.object({
     enabled: yup.boolean().required(),
     maxRequestsPerMinute: yup.number().min(1).max(10000).required(),
-    maxRequestsPerHour: yup.number().min(1).max(100000).required()
-  })
+    maxRequestsPerHour: yup.number().min(1).max(100000).required(),
+  }),
 });
 
 export const SecuritySettings: React.FC = () => {
@@ -153,9 +159,9 @@ export const SecuritySettings: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<SecurityConfig>({
-    resolver: yupResolver(securitySchema)
+    resolver: yupResolver(securitySchema),
   });
 
   useEffect(() => {
@@ -182,46 +188,51 @@ export const SecuritySettings: React.FC = () => {
             requireSpecialChars: true,
             passwordExpirationDays: 90,
             maxFailedAttempts: 5,
-            lockoutDurationMinutes: 30
+            lockoutDurationMinutes: 30,
           },
           sessionSettings: {
             sessionTimeoutMinutes: 480,
             idleTimeoutMinutes: 60,
-            allowConcurrentSessions: false
+            allowConcurrentSessions: false,
           },
           twoFactorSettings: {
             enabled: false,
             required: false,
-            methods: ['TOTP', 'SMS', 'Email']
+            methods: ['TOTP', 'SMS', 'Email'],
           },
           rateLimitSettings: {
             enabled: true,
             maxRequestsPerMinute: 100,
-            maxRequestsPerHour: 1000
-          }
+            maxRequestsPerHour: 1000,
+          },
         };
       }
 
       // Load other data with error handling
-      const [apiKeysData, eventsData, usersData, rolesData, permissionsData] = await Promise.allSettled([
-        securityService.getApiKeys(),
-        securityService.getSecurityEvents(),
-        securityService.getUsers(),
-        securityService.getRoles(),
-        securityService.getPermissions()
-      ]);
+      const [apiKeysData, eventsData, usersData, rolesData, permissionsData] =
+        await Promise.allSettled([
+          securityService.getApiKeys(),
+          securityService.getSecurityEvents(),
+          securityService.getUsers(),
+          securityService.getRoles(),
+          securityService.getPermissions(),
+        ]);
 
       setConfig(configData);
       setApiKeys(apiKeysData.status === 'fulfilled' ? apiKeysData.value : []);
-      setSecurityEvents(eventsData.status === 'fulfilled' ? eventsData.value.map((event: any) => ({
-        eventId: event.id || event.eventId,
-        eventType: event.type || event.eventType,
-        userId: event.userId,
-        ipAddress: event.ipAddress,
-        timestamp: event.timestamp,
-        isSuccess: event.isSuccess ?? true,
-        description: event.description || event.details || ''
-      })) : []);
+      setSecurityEvents(
+        eventsData.status === 'fulfilled'
+          ? eventsData.value.map((event: any) => ({
+              eventId: event.id || event.eventId,
+              eventType: event.type || event.eventType,
+              userId: event.userId,
+              ipAddress: event.ipAddress,
+              timestamp: event.timestamp,
+              isSuccess: event.isSuccess ?? true,
+              description: event.description || event.details || '',
+            }))
+          : []
+      );
       setUsers(usersData.status === 'fulfilled' ? usersData.value : []);
       setRoles(rolesData.status === 'fulfilled' ? rolesData.value : []);
       setPermissions(permissionsData.status === 'fulfilled' ? permissionsData.value : []);
@@ -262,14 +273,17 @@ export const SecuritySettings: React.FC = () => {
 
     try {
       const newKey = await securityService.createApiKey(newApiKeyName, ['read:kpis', 'write:kpis']);
-      
-      setApiKeys(prev => [{
-        keyId: newKey.keyId,
-        name: newApiKeyName,
-        scopes: ['read:kpis', 'write:kpis'],
-        isActive: true,
-        createdAt: new Date().toISOString()
-      }, ...prev]);
+
+      setApiKeys(prev => [
+        {
+          keyId: newKey.keyId,
+          name: newApiKeyName,
+          scopes: ['read:kpis', 'write:kpis'],
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
       setApiKeyDialogOpen(false);
       setNewApiKeyName('');
       setSuccess('API key created successfully');
@@ -590,7 +604,14 @@ export const SecuritySettings: React.FC = () => {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="h6">
                     <Key sx={{ mr: 1, verticalAlign: 'middle' }} />
                     API Keys
@@ -616,17 +637,19 @@ export const SecuritySettings: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {apiKeys.map((apiKey) => (
+                      {apiKeys.map(apiKey => (
                         <TableRow key={apiKey.keyId}>
                           <TableCell>{apiKey.name}</TableCell>
                           <TableCell>
-                            {apiKey.scopes.map((scope) => (
+                            {apiKey.scopes.map(scope => (
                               <Chip key={scope} label={scope} size="small" sx={{ mr: 0.5 }} />
                             ))}
                           </TableCell>
                           <TableCell>{new Date(apiKey.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleDateString() : 'Never'}
+                            {apiKey.lastUsed
+                              ? new Date(apiKey.lastUsed).toLocaleDateString()
+                              : 'Never'}
                           </TableCell>
                           <TableCell>
                             <Chip
@@ -681,7 +704,7 @@ export const SecuritySettings: React.FC = () => {
             fullWidth
             variant="outlined"
             value={newApiKeyName}
-            onChange={(e) => setNewApiKeyName(e.target.value)}
+            onChange={e => setNewApiKeyName(e.target.value)}
           />
         </DialogContent>
         <DialogActions>

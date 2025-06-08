@@ -113,7 +113,7 @@ const ApiKeyManagement: React.FC = () => {
       const result = await securityService.createApiKey(newKeyName, newKeyScopes);
       setGeneratedKey(result.key);
       setShowKeyDialog(true);
-      
+
       // Add to local state
       const newKey: ApiKey = {
         keyId: result.keyId,
@@ -123,12 +123,12 @@ const ApiKeyManagement: React.FC = () => {
         isActive: true,
       };
       setApiKeys(prev => [...prev, newKey]);
-      
+
       // Reset form
       setNewKeyName('');
       setNewKeyScopes([]);
       setCreateDialogOpen(false);
-      
+
       toast.success('API key created successfully');
     } catch (error) {
       console.error('Failed to create API key:', error);
@@ -177,7 +177,9 @@ const ApiKeyManagement: React.FC = () => {
 
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}
+          >
             <Typography variant="h6">
               <KeyIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
               Active API Keys
@@ -204,11 +206,11 @@ const ApiKeyManagement: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {apiKeys.map((apiKey) => (
+                {apiKeys.map(apiKey => (
                   <TableRow key={apiKey.keyId}>
                     <TableCell>{apiKey.name}</TableCell>
                     <TableCell>
-                      {apiKey.scopes.map((scope) => (
+                      {apiKey.scopes.map(scope => (
                         <Chip key={scope} label={scope} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
                       ))}
                     </TableCell>
@@ -242,7 +244,12 @@ const ApiKeyManagement: React.FC = () => {
       </Card>
 
       {/* Create API Key Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Create New API Key</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -253,7 +260,7 @@ const ApiKeyManagement: React.FC = () => {
                 label="API Key Name"
                 variant="outlined"
                 value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
+                onChange={e => setNewKeyName(e.target.value)}
                 placeholder="Enter a descriptive name for this API key"
               />
             </Grid>
@@ -263,17 +270,17 @@ const ApiKeyManagement: React.FC = () => {
                 <Select
                   multiple
                   value={newKeyScopes}
-                  onChange={(e) => setNewKeyScopes(e.target.value as string[])}
+                  onChange={e => setNewKeyScopes(e.target.value as string[])}
                   label="Scopes"
-                  renderValue={(selected) => (
+                  renderValue={selected => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
+                      {selected.map(value => (
                         <Chip key={value} label={value} size="small" />
                       ))}
                     </Box>
                   )}
                 >
-                  {availableScopes.map((scope) => (
+                  {availableScopes.map(scope => (
                     <MenuItem key={scope} value={scope}>
                       {scope}
                     </MenuItem>

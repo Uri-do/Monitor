@@ -39,13 +39,18 @@ const KpiList: React.FC = () => {
   }>({ open: false });
 
   // Fetch KPIs
-  const { data: kpis = [], isLoading, refetch } = useQuery({
+  const {
+    data: kpis = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['kpis', filters],
-    queryFn: () => kpiApi.getKpis({
-      isActive: filters.isActive ? filters.isActive === 'true' : undefined,
-      owner: filters.owner || undefined,
-      priority: filters.priority ? parseInt(filters.priority) : undefined,
-    }),
+    queryFn: () =>
+      kpiApi.getKpis({
+        isActive: filters.isActive ? filters.isActive === 'true' : undefined,
+        owner: filters.owner || undefined,
+        priority: filters.priority ? parseInt(filters.priority) : undefined,
+      }),
   });
 
   // Delete KPI mutation
@@ -63,7 +68,7 @@ const KpiList: React.FC = () => {
   // Execute KPI mutation
   const executeMutation = useMutation({
     mutationFn: (request: TestKpiRequest) => kpiApi.executeKpi(request),
-    onSuccess: (result) => {
+    onSuccess: result => {
       // Show detailed execution results
       const executionTime = result.executionTimeMs ? `${result.executionTimeMs}ms` : 'N/A';
       const statusMessage = result.isSuccessful
@@ -71,42 +76,21 @@ const KpiList: React.FC = () => {
         : `❌ Failed (${executionTime})`;
 
       if (result.isSuccessful) {
-        toast.success(`KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`);
+        toast.success(
+          `KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`
+        );
       } else {
-        toast.error(`KPI execution failed: ${result.errorMessage || 'Unknown error'}\nExecution time: ${executionTime}`);
+        toast.error(
+          `KPI execution failed: ${result.errorMessage || 'Unknown error'}\nExecution time: ${executionTime}`
+        );
       }
 
-      // Log detailed execution information to console
-      console.group(`🎯 KPI Execution Results: ${result.indicator}`);
-      console.log('📊 Basic Results:', {
-        indicator: result.indicator,
-        currentValue: result.currentValue,
-        historicalValue: result.historicalValue,
-        deviationPercent: result.deviationPercent,
-        shouldAlert: result.shouldAlert,
-        isSuccessful: result.isSuccessful,
-        executionTime: result.executionTime,
-        executionTimeMs: result.executionTimeMs
-      });
-
-      if (result.executionDetails) {
-        console.log('📋 Execution Details:');
-        console.log(result.executionDetails);
-      }
-
-      if (result.metadata) {
-        console.log('🔍 Metadata:', result.metadata);
-      }
-
-      if (result.errorMessage) {
-        console.error('❌ Error:', result.errorMessage);
-      }
-      console.groupEnd();
+      // Store execution results for potential debugging
+      // Execution details are available in result object for debugging if needed
 
       queryClient.invalidateQueries({ queryKey: ['kpis'] });
     },
     onError: (error: any) => {
-      console.error('🚨 KPI Execution Error:', error);
       toast.error(error.response?.data?.message || 'Failed to execute KPI');
     },
   });
@@ -126,32 +110,7 @@ const KpiList: React.FC = () => {
 
     const result = await kpiApi.executeKpi({ kpiId: progressDialog.kpi.kpiId });
 
-    // Log detailed execution information to console
-    console.group(`🎯 KPI Execution Results: ${result.indicator}`);
-    console.log('📊 Basic Results:', {
-      indicator: result.indicator,
-      currentValue: result.currentValue,
-      historicalValue: result.historicalValue,
-      deviationPercent: result.deviationPercent,
-      shouldAlert: result.shouldAlert,
-      isSuccessful: result.isSuccessful,
-      executionTime: result.executionTime,
-      executionTimeMs: result.executionTimeMs
-    });
-
-    if (result.executionDetails) {
-      console.log('📋 Execution Details:');
-      console.log(result.executionDetails);
-    }
-
-    if (result.metadata) {
-      console.log('🔍 Metadata:', result.metadata);
-    }
-
-    if (result.errorMessage) {
-      console.error('❌ Error:', result.errorMessage);
-    }
-    console.groupEnd();
+    // Execution results are available in result object for debugging if needed
 
     queryClient.invalidateQueries({ queryKey: ['kpis'] });
     return result;
@@ -174,10 +133,11 @@ const KpiList: React.FC = () => {
     if (!filters.search) return kpis;
 
     const searchLower = filters.search.toLowerCase();
-    return kpis.filter(kpi =>
-      kpi.indicator.toLowerCase().includes(searchLower) ||
-      kpi.owner.toLowerCase().includes(searchLower) ||
-      kpi.spName.toLowerCase().includes(searchLower)
+    return kpis.filter(
+      kpi =>
+        kpi.indicator.toLowerCase().includes(searchLower) ||
+        kpi.owner.toLowerCase().includes(searchLower) ||
+        kpi.spName.toLowerCase().includes(searchLower)
     );
   }, [kpis, filters.search]);
 
@@ -191,9 +151,7 @@ const KpiList: React.FC = () => {
       render: (value, row) => (
         <Box>
           <Box sx={{ fontWeight: 'medium', mb: 0.5 }}>{value}</Box>
-          <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-            {row.spName}
-          </Box>
+          <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{row.spName}</Box>
         </Box>
       ),
     },
@@ -208,53 +166,49 @@ const KpiList: React.FC = () => {
       label: 'Priority',
       sortable: true,
       minWidth: 100,
-      render: (value, row) => (
-        <StatusChip status={row.priorityName} />
-      ),
+      render: (value, row) => <StatusChip status={row.priorityName} />,
     },
     {
       id: 'isActive',
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      render: (value, row) => (
-        <StatusChip status={getKpiStatus(row)} />
-      ),
+      render: (value, row) => <StatusChip status={getKpiStatus(row)} />,
     },
     {
       id: 'frequency',
       label: 'Frequency',
       sortable: true,
       minWidth: 100,
-      render: (value) => `${value} min`,
+      render: value => `${value} min`,
     },
     {
       id: 'lastMinutes',
       label: 'Data Window',
       sortable: true,
       minWidth: 120,
-      render: (value) => `${value} min (${Math.round(value / 60)}h)`,
+      render: value => `${value} min (${Math.round(value / 60)}h)`,
     },
     {
       id: 'deviation',
       label: 'Deviation',
       sortable: true,
       minWidth: 100,
-      render: (value) => `${value}%`,
+      render: value => `${value}%`,
     },
     {
       id: 'lastRun',
       label: 'Last Run',
       sortable: true,
       minWidth: 140,
-      render: (value) => value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never',
+      render: value => (value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never'),
     },
     {
       id: 'contacts',
       label: 'Contacts',
       minWidth: 80,
       align: 'center',
-      render: (value) => value.length,
+      render: value => value.length,
     },
   ];
 
@@ -305,9 +259,9 @@ const KpiList: React.FC = () => {
             ],
           },
         ]}
-        onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
+        onFilterChange={newFilters => setFilters({ ...filters, ...newFilters })}
         onClear={() => setFilters({ isActive: '', owner: '', priority: '', search: '' })}
-        onSearch={(searchTerm) => setFilters({ ...filters, search: searchTerm })}
+        onSearch={searchTerm => setFilters({ ...filters, search: searchTerm })}
         searchPlaceholder="Search KPIs by name, owner, or stored procedure..."
         defaultExpanded={false}
       />
@@ -320,8 +274,8 @@ const KpiList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: (kpi) => navigate(`/kpis/${kpi.kpiId}`),
-          edit: (kpi) => navigate(`/kpis/${kpi.kpiId}/edit`),
+          view: kpi => navigate(`/kpis/${kpi.kpiId}`),
+          edit: kpi => navigate(`/kpis/${kpi.kpiId}/edit`),
           delete: handleDelete,
         }}
         actions={[
@@ -330,7 +284,7 @@ const KpiList: React.FC = () => {
             icon: <ExecuteIcon />,
             onClick: handleExecute,
             color: 'primary',
-            disabled: (kpi) => !kpi.isActive,
+            disabled: kpi => !kpi.isActive,
           },
         ]}
         emptyMessage="No KPIs found. Create your first KPI to get started."

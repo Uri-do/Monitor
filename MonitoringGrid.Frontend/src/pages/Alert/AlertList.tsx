@@ -38,27 +38,33 @@ const AlertList: React.FC = () => {
   const [selectedRows, setSelectedRows] = useState<AlertLogDto[]>([]);
 
   // Fetch Alerts (using mock data for now)
-  const { data: alertsData, isLoading, refetch } = useQuery({
+  const {
+    data: alertsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['alerts', filters],
-    queryFn: () => alertApi.getAlerts({
-      isResolved: filters.isResolved ? filters.isResolved === 'true' : undefined,
-      searchText: filters.search || undefined,
-      startDate: filters.startDate || undefined,
-      endDate: filters.endDate || undefined,
-      page: 1,
-      pageSize: 100,
-      sortBy: 'triggerTime',
-      sortDirection: 'desc',
-    }),
+    queryFn: () =>
+      alertApi.getAlerts({
+        isResolved: filters.isResolved ? filters.isResolved === 'true' : undefined,
+        searchText: filters.search || undefined,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+        page: 1,
+        pageSize: 100,
+        sortBy: 'triggerTime',
+        sortDirection: 'desc',
+      }),
   });
 
   // Resolve Alert mutation
   const resolveMutation = useMutation({
-    mutationFn: (alertId: number) => alertApi.resolveAlert({
-      alertId,
-      resolvedBy: 'Current User', // TODO: Get from auth context
-      resolutionNotes: 'Resolved from alert list',
-    }),
+    mutationFn: (alertId: number) =>
+      alertApi.resolveAlert({
+        alertId,
+        resolvedBy: 'Current User', // TODO: Get from auth context
+        resolutionNotes: 'Resolved from alert list',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       toast.success('Alert resolved successfully');
@@ -70,11 +76,12 @@ const AlertList: React.FC = () => {
 
   // Bulk resolve mutation
   const bulkResolveMutation = useMutation({
-    mutationFn: (alertIds: number[]) => alertApi.bulkResolveAlerts({
-      alertIds,
-      resolvedBy: 'Current User',
-      resolutionNotes: 'Bulk resolved from alert list',
-    }),
+    mutationFn: (alertIds: number[]) =>
+      alertApi.bulkResolveAlerts({
+        alertIds,
+        resolvedBy: 'Current User',
+        resolutionNotes: 'Bulk resolved from alert list',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       toast.success(`${selectedRows.length} alerts resolved successfully`);
@@ -108,11 +115,12 @@ const AlertList: React.FC = () => {
     if (!filters.search) return alerts;
 
     const searchLower = filters.search.toLowerCase();
-    return alerts.filter(alert =>
-      alert.kpiIndicator.toLowerCase().includes(searchLower) ||
-      alert.kpiOwner.toLowerCase().includes(searchLower) ||
-      alert.message.toLowerCase().includes(searchLower) ||
-      alert.severity.toLowerCase().includes(searchLower)
+    return alerts.filter(
+      alert =>
+        alert.kpiIndicator.toLowerCase().includes(searchLower) ||
+        alert.kpiOwner.toLowerCase().includes(searchLower) ||
+        alert.message.toLowerCase().includes(searchLower) ||
+        alert.severity.toLowerCase().includes(searchLower)
     );
   }, [alertsData?.alerts, filters.search]);
 
@@ -123,7 +131,7 @@ const AlertList: React.FC = () => {
       label: 'Triggered',
       sortable: true,
       minWidth: 140,
-      render: (value) => (
+      render: value => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
             {format(new Date(value), 'MMM dd, HH:mm')}
@@ -139,7 +147,7 @@ const AlertList: React.FC = () => {
       label: 'Severity',
       sortable: true,
       minWidth: 100,
-      render: (value) => <StatusChip status={value} />,
+      render: value => <StatusChip status={value} />,
     },
     {
       id: 'kpiIndicator',
@@ -269,12 +277,19 @@ const AlertList: React.FC = () => {
             type: 'date',
           },
         ]}
-        onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
-        onClear={() => setFilters({
-          isResolved: '', severity: '', kpiOwner: '', sentVia: '',
-          search: '', startDate: '', endDate: ''
-        })}
-        onSearch={(searchTerm) => setFilters({ ...filters, search: searchTerm })}
+        onFilterChange={newFilters => setFilters({ ...filters, ...newFilters })}
+        onClear={() =>
+          setFilters({
+            isResolved: '',
+            severity: '',
+            kpiOwner: '',
+            sentVia: '',
+            search: '',
+            startDate: '',
+            endDate: '',
+          })
+        }
+        onSearch={searchTerm => setFilters({ ...filters, search: searchTerm })}
         searchPlaceholder="Search alerts by KPI, owner, message, or severity..."
         defaultExpanded={false}
       />
@@ -287,7 +302,7 @@ const AlertList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: (alert) => navigate(`/alerts/${alert.alertId}`),
+          view: alert => navigate(`/alerts/${alert.alertId}`),
         }}
         actions={[
           {
@@ -295,8 +310,8 @@ const AlertList: React.FC = () => {
             icon: <ResolveIcon />,
             onClick: handleResolve,
             color: 'success',
-            disabled: (alert) => alert.isResolved,
-            hidden: (alert) => alert.isResolved,
+            disabled: alert => alert.isResolved,
+            hidden: alert => alert.isResolved,
           },
         ]}
         emptyMessage="No alerts found."

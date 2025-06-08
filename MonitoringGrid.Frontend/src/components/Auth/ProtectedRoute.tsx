@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredPermissions = [],
   requiredRoles = [],
-  fallbackPath = '/login'
+  fallbackPath = '/login',
 }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
@@ -29,7 +29,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          gap: 2
+          gap: 2,
         }}
       >
         <CircularProgress size={40} />
@@ -42,13 +42,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
-    return (
-      <Navigate
-        to={fallbackPath}
-        state={{ from: location }}
-        replace
-      />
-    );
+    return <Navigate to={fallbackPath} state={{ from: location }} replace />;
   }
 
   // Check if user has required permissions
@@ -67,7 +61,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             justifyContent: 'center',
             minHeight: '100vh',
             gap: 2,
-            p: 3
+            p: 3,
           }}
         >
           <Typography variant="h5" color="error">
@@ -100,7 +94,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             justifyContent: 'center',
             minHeight: '100vh',
             gap: 2,
-            p: 3
+            p: 3,
           }}
         >
           <Typography variant="h5" color="error">

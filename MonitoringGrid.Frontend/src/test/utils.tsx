@@ -45,10 +45,8 @@ const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
   );
 };
 
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // Mock user for testing
 export const mockUser = {
@@ -113,8 +111,7 @@ export const mockContact = {
 };
 
 // Helper function to wait for async operations
-export const waitForLoadingToFinish = () =>
-  new Promise(resolve => setTimeout(resolve, 0));
+export const waitForLoadingToFinish = () => new Promise(resolve => setTimeout(resolve, 0));
 
 // Helper function to create mock API responses
 export const createMockApiResponse = <T,>(data: T) => ({
@@ -126,11 +123,7 @@ export const createMockApiResponse = <T,>(data: T) => ({
 });
 
 // Helper function to create mock paginated response
-export const createMockPaginatedResponse = <T,>(
-  items: T[],
-  page = 1,
-  pageSize = 10
-) => ({
+export const createMockPaginatedResponse = <T,>(items: T[], page = 1, pageSize = 10) => ({
   items,
   totalCount: items.length,
   page,

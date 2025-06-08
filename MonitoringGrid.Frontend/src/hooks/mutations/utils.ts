@@ -7,7 +7,7 @@ export const handleMutationError = (error: any): string => {
   if (error?.response?.data?.message) {
     return error.response.data.message;
   }
-  
+
   if (error?.response?.data?.errors) {
     const errors = error.response.data.errors;
     if (Array.isArray(errors)) {
@@ -17,11 +17,11 @@ export const handleMutationError = (error: any): string => {
       return Object.values(errors).flat().join(', ');
     }
   }
-  
+
   if (error?.message) {
     return error.message;
   }
-  
+
   return 'An unexpected error occurred';
 };
 
@@ -32,7 +32,7 @@ export const createMutationHook = <TData, TVariables>(
   return (customOptions?: Partial<CreateMutationOptions<TData, TVariables>>) => {
     const queryClient = useQueryClient();
     const mergedOptions = { ...options, ...customOptions };
-    
+
     const mutation = useMutation({
       mutationFn: mergedOptions.mutationFn,
       mutationKey: mergedOptions.mutationKey,
@@ -41,25 +41,25 @@ export const createMutationHook = <TData, TVariables>(
         if (mergedOptions.showSuccessToast !== false) {
           toast.success(mergedOptions.successMessage || 'Operation completed successfully');
         }
-        
+
         // Invalidate specified queries
         if (mergedOptions.invalidateQueries) {
           mergedOptions.invalidateQueries.forEach(queryKey => {
             queryClient.invalidateQueries({ queryKey });
           });
         }
-        
+
         // Call custom success handler
         mergedOptions.onSuccess?.();
       },
       onError: (error: any) => {
         const errorMessage = handleMutationError(error);
-        
+
         // Show error toast if enabled
         if (mergedOptions.showErrorToast !== false) {
           toast.error(mergedOptions.errorMessage || errorMessage);
         }
-        
+
         // Call custom error handler
         mergedOptions.onError?.(error);
       },
@@ -91,7 +91,7 @@ export const retryConfig = {
     if (error?.response?.status >= 400 && error?.response?.status < 500) {
       return false;
     }
-    
+
     // Retry up to 3 times for server errors
     return failureCount < 3;
   },

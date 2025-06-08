@@ -12,14 +12,7 @@ import {
   Tab,
   useTheme,
 } from '@mui/material';
-import {
-  Dashboard,
-  Timeline,
-  BarChart,
-  PieChart,
-  ShowChart,
-  Speed,
-} from '@mui/icons-material';
+import { Dashboard, Timeline, BarChart, PieChart, ShowChart, Speed } from '@mui/icons-material';
 import PageHeader from '../../components/Common/PageHeader';
 import EnhancedChart from '../../components/enhanced/EnhancedCharts';
 import RealtimeDashboard from '../../components/enhanced/RealtimeDashboard';
@@ -33,9 +26,7 @@ interface TabPanelProps {
 }
 
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
-  <div hidden={value !== index}>
-    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-  </div>
+  <div hidden={value !== index}>{value === index && <Box sx={{ py: 3 }}>{children}</Box>}</div>
 );
 
 const VisualizationShowcase: React.FC = () => {
@@ -90,7 +81,11 @@ const VisualizationShowcase: React.FC = () => {
       trend: 'up' as const,
       change: 25.0,
       status: 'healthy' as const,
-      history: sampleLineData.map(d => ({ timestamp: d.name, value: d.value * 8, target: d.target * 8 })),
+      history: sampleLineData.map(d => ({
+        timestamp: d.name,
+        value: d.value * 8,
+        target: d.target * 8,
+      })),
     },
     {
       id: 'error-rate',
@@ -101,7 +96,11 @@ const VisualizationShowcase: React.FC = () => {
       trend: 'up' as const,
       change: 15.5,
       status: 'warning' as const,
-      history: sampleLineData.map(d => ({ timestamp: d.name, value: d.value * 0.02, target: d.target * 0.02 })),
+      history: sampleLineData.map(d => ({
+        timestamp: d.name,
+        value: d.value * 0.02,
+        target: d.target * 0.02,
+      })),
       threshold: { warning: 1.5, critical: 3.0 },
     },
     {
@@ -113,16 +112,55 @@ const VisualizationShowcase: React.FC = () => {
       trend: 'neutral' as const,
       change: 0.05,
       status: 'healthy' as const,
-      history: sampleLineData.map(d => ({ timestamp: d.name, value: 99.9 + Math.random() * 0.1, target: 99.9 })),
+      history: sampleLineData.map(d => ({
+        timestamp: d.name,
+        value: 99.9 + Math.random() * 0.1,
+        target: 99.9,
+      })),
     },
   ];
 
   const interactiveData = [
-    { timestamp: '2024-01-01', value: 100, category: 'api', performance: 95, errors: 2, users: 1200 },
-    { timestamp: '2024-01-02', value: 120, category: 'database', performance: 88, errors: 5, users: 1350 },
-    { timestamp: '2024-01-03', value: 95, category: 'cache', performance: 92, errors: 1, users: 1100 },
-    { timestamp: '2024-01-04', value: 140, category: 'api', performance: 85, errors: 8, users: 1500 },
-    { timestamp: '2024-01-05', value: 110, category: 'database', performance: 90, errors: 3, users: 1250 },
+    {
+      timestamp: '2024-01-01',
+      value: 100,
+      category: 'api',
+      performance: 95,
+      errors: 2,
+      users: 1200,
+    },
+    {
+      timestamp: '2024-01-02',
+      value: 120,
+      category: 'database',
+      performance: 88,
+      errors: 5,
+      users: 1350,
+    },
+    {
+      timestamp: '2024-01-03',
+      value: 95,
+      category: 'cache',
+      performance: 92,
+      errors: 1,
+      users: 1100,
+    },
+    {
+      timestamp: '2024-01-04',
+      value: 140,
+      category: 'api',
+      performance: 85,
+      errors: 8,
+      users: 1500,
+    },
+    {
+      timestamp: '2024-01-05',
+      value: 110,
+      category: 'database',
+      performance: 90,
+      errors: 3,
+      users: 1250,
+    },
   ];
 
   return (
@@ -153,7 +191,7 @@ const VisualizationShowcase: React.FC = () => {
         <RealtimeDashboard
           refreshInterval={realTimeEnabled ? 3000 : 0}
           autoRefresh={realTimeEnabled}
-          onMetricClick={(metric) => console.log('Metric clicked:', metric)}
+          onMetricClick={metric => console.log('Metric clicked:', metric)}
         />
       </TabPanel>
 
@@ -161,7 +199,7 @@ const VisualizationShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           Enhanced Chart Components
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <EnhancedChart
@@ -177,7 +215,7 @@ const VisualizationShowcase: React.FC = () => {
               color={theme.palette.primary.main}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <EnhancedChart
               data={sampleLineData}
@@ -191,7 +229,7 @@ const VisualizationShowcase: React.FC = () => {
               color={theme.palette.success.main}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <EnhancedChart
               data={sampleBarData}
@@ -205,7 +243,7 @@ const VisualizationShowcase: React.FC = () => {
               color={theme.palette.secondary.main}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <EnhancedChart
               data={samplePieData}
@@ -216,7 +254,7 @@ const VisualizationShowcase: React.FC = () => {
               animated
               showTooltip
               showLegend
-              onDataPointClick={(data) => console.log('Clicked:', data)}
+              onDataPointClick={data => console.log('Clicked:', data)}
             />
           </Grid>
         </Grid>
@@ -226,13 +264,13 @@ const VisualizationShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           KPI Visualization Dashboard
         </Typography>
-        
+
         <KpiVisualization
           kpis={sampleKpiData}
           layout="grid"
           showTrends
           showTargets
-          onKpiClick={(kpi) => console.log('KPI clicked:', kpi)}
+          onKpiClick={kpi => console.log('KPI clicked:', kpi)}
           refreshInterval={realTimeEnabled ? 5000 : 0}
         />
       </TabPanel>
@@ -241,7 +279,7 @@ const VisualizationShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           Interactive Visualizations
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <InteractiveVisualization
@@ -251,10 +289,10 @@ const VisualizationShowcase: React.FC = () => {
               height={400}
               interactive
               filters={['api', 'database', 'cache']}
-              onFilterChange={(filters) => console.log('Filters:', filters)}
+              onFilterChange={filters => console.log('Filters:', filters)}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <InteractiveVisualization
               title="System Health Radar"
@@ -264,7 +302,7 @@ const VisualizationShowcase: React.FC = () => {
               interactive
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <InteractiveVisualization
               title="Resource Usage Treemap"
@@ -274,7 +312,7 @@ const VisualizationShowcase: React.FC = () => {
               interactive
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <InteractiveVisualization
               title="Composed Metrics View"

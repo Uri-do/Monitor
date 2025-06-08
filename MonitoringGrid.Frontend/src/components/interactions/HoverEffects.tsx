@@ -12,14 +12,7 @@ import {
   styled,
   keyframes,
 } from '@mui/material';
-import {
-  TrendingUp,
-  Favorite,
-  Share,
-  MoreVert,
-  Visibility,
-  Star,
-} from '@mui/icons-material';
+import { TrendingUp, Favorite, Share, MoreVert, Visibility, Star } from '@mui/icons-material';
 
 // Advanced hover animations
 const floatUp = keyframes`
@@ -185,22 +178,23 @@ interface RevealCardProps {
   direction?: 'up' | 'down' | 'left' | 'right';
 }
 
-export const RevealCard: React.FC<RevealCardProps> = ({
-  children,
-  overlay,
-  direction = 'up',
-}) => {
+export const RevealCard: React.FC<RevealCardProps> = ({ children, overlay, direction = 'up' }) => {
   const [isHovered, setIsHovered] = useState(false);
   const theme = useTheme();
 
   const getOverlayTransform = () => {
     if (!isHovered) {
       switch (direction) {
-        case 'up': return 'translateY(100%)';
-        case 'down': return 'translateY(-100%)';
-        case 'left': return 'translateX(100%)';
-        case 'right': return 'translateX(-100%)';
-        default: return 'translateY(100%)';
+        case 'up':
+          return 'translateY(100%)';
+        case 'down':
+          return 'translateY(-100%)';
+        case 'left':
+          return 'translateX(100%)';
+        case 'right':
+          return 'translateX(-100%)';
+        default:
+          return 'translateY(100%)';
       }
     }
     return 'translate(0, 0)';
@@ -238,9 +232,7 @@ export const RevealCard: React.FC<RevealCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       {children}
-      <Overlay className="reveal-overlay">
-        {overlay}
-      </Overlay>
+      <Overlay className="reveal-overlay">{overlay}</Overlay>
     </RevealContainer>
   );
 };
@@ -251,33 +243,30 @@ interface ShimmerCardProps {
   loading?: boolean;
 }
 
-export const ShimmerCard: React.FC<ShimmerCardProps> = ({
-  children,
-  loading = false,
-}) => {
+export const ShimmerCard: React.FC<ShimmerCardProps> = ({ children, loading = false }) => {
   const theme = useTheme();
 
   const ShimmerContainer = styled(Card)(({ theme }) => ({
     position: 'relative',
     overflow: 'hidden',
-    '&::before': loading ? {
-      content: '""',
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.common.white, 0.4)}, transparent)`,
-      animation: `${shimmer} 2s infinite`,
-      zIndex: 1,
-    } : {},
+    '&::before': loading
+      ? {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.common.white, 0.4)}, transparent)`,
+          animation: `${shimmer} 2s infinite`,
+          zIndex: 1,
+        }
+      : {},
   }));
 
   return (
     <ShimmerContainer>
-      <Box sx={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.3s ease' }}>
-        {children}
-      </Box>
+      <Box sx={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.3s ease' }}>{children}</Box>
     </ShimmerContainer>
   );
 };
@@ -347,10 +336,7 @@ interface FloatingActionCardProps {
   }>;
 }
 
-export const FloatingActionCard: React.FC<FloatingActionCardProps> = ({
-  children,
-  actions,
-}) => {
+export const FloatingActionCard: React.FC<FloatingActionCardProps> = ({ children, actions }) => {
   const [isHovered, setIsHovered] = useState(false);
   const theme = useTheme();
 
@@ -484,16 +470,8 @@ export const HoverEffectsShowcase: React.FC = () => {
           Morphing Icon Buttons
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <MorphingIconButton
-            icon={<Favorite />}
-            morphIcon={<Star />}
-            color="error"
-          />
-          <MorphingIconButton
-            icon={<Visibility />}
-            morphIcon={<Share />}
-            color="primary"
-          />
+          <MorphingIconButton icon={<Favorite />} morphIcon={<Star />} color="error" />
+          <MorphingIconButton icon={<Visibility />} morphIcon={<Share />} color="primary" />
         </Box>
       </Box>
 

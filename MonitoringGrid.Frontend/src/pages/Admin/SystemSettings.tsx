@@ -26,7 +26,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
 } from '@mui/material';
 import {
   Settings,
@@ -37,7 +37,7 @@ import {
   Monitor,
   Add,
   Delete,
-  Edit
+  Edit,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -87,26 +87,26 @@ const configSchema = yup.object({
     siteName: yup.string().required('Site name is required'),
     siteDescription: yup.string().required('Site description is required'),
     maintenanceMode: yup.boolean().required(),
-    debugMode: yup.boolean().required()
+    debugMode: yup.boolean().required(),
   }),
   security: yup.object({
     sessionTimeout: yup.number().min(5).max(1440).required(),
     maxLoginAttempts: yup.number().min(1).max(10).required(),
     passwordExpiration: yup.number().min(30).max(365).required(),
-    twoFactorRequired: yup.boolean().required()
+    twoFactorRequired: yup.boolean().required(),
   }),
   notifications: yup.object({
     emailEnabled: yup.boolean().required(),
     smsEnabled: yup.boolean().required(),
     slackEnabled: yup.boolean().required(),
-    webhookEnabled: yup.boolean().required()
+    webhookEnabled: yup.boolean().required(),
   }),
   monitoring: yup.object({
     dataRetentionDays: yup.number().min(30).max(2555).required(),
     alertCooldown: yup.number().min(1).max(60).required(),
     maxConcurrentKpis: yup.number().min(10).max(1000).required(),
-    autoArchive: yup.boolean().required()
-  })
+    autoArchive: yup.boolean().required(),
+  }),
 });
 
 const SystemSettings: React.FC = () => {
@@ -120,7 +120,7 @@ const SystemSettings: React.FC = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<SystemConfig>({
     resolver: yupResolver(configSchema),
     defaultValues: {
@@ -128,27 +128,27 @@ const SystemSettings: React.FC = () => {
         siteName: 'MonitoringGrid',
         siteDescription: 'KPI Monitoring and Alerting System',
         maintenanceMode: false,
-        debugMode: false
+        debugMode: false,
       },
       security: {
         sessionTimeout: 60,
         maxLoginAttempts: 5,
         passwordExpiration: 90,
-        twoFactorRequired: false
+        twoFactorRequired: false,
       },
       notifications: {
         emailEnabled: true,
         smsEnabled: false,
         slackEnabled: false,
-        webhookEnabled: false
+        webhookEnabled: false,
       },
       monitoring: {
         dataRetentionDays: 365,
         alertCooldown: 5,
         maxConcurrentKpis: 100,
-        autoArchive: true
-      }
-    }
+        autoArchive: true,
+      },
+    },
   });
 
   const onSubmit = async (data: SystemConfig) => {
@@ -158,7 +158,7 @@ const SystemSettings: React.FC = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast.success('System settings updated successfully');
       setSuccess('System settings updated successfully');
     } catch (err) {
@@ -183,7 +183,7 @@ const SystemSettings: React.FC = () => {
         key: `mgk_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
         permissions: ['read', 'write'],
         createdAt: new Date().toISOString(),
-        isActive: true
+        isActive: true,
       };
 
       setApiKeys(prev => [...prev, newKey]);
@@ -228,11 +228,15 @@ const SystemSettings: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Monitor />
                   General Settings
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Controller
                     name="general.siteName"
@@ -294,11 +298,15 @@ const SystemSettings: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <Security />
                   Security Settings
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Controller
                     name="security.sessionTimeout"
@@ -364,7 +372,14 @@ const SystemSettings: React.FC = () => {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Network />
                     API Keys
@@ -392,7 +407,7 @@ const SystemSettings: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {apiKeys.map((apiKey) => (
+                      {apiKeys.map(apiKey => (
                         <TableRow key={apiKey.id}>
                           <TableCell>{apiKey.name}</TableCell>
                           <TableCell>
@@ -407,11 +422,11 @@ const SystemSettings: React.FC = () => {
                               ))}
                             </Box>
                           </TableCell>
+                          <TableCell>{new Date(apiKey.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            {new Date(apiKey.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleDateString() : 'Never'}
+                            {apiKey.lastUsed
+                              ? new Date(apiKey.lastUsed).toLocaleDateString()
+                              : 'Never'}
                           </TableCell>
                           <TableCell>
                             <Chip
@@ -441,12 +456,7 @@ const SystemSettings: React.FC = () => {
           {/* Save Button */}
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={loading}
-              >
+              <Button type="submit" variant="contained" size="large" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Settings'}
               </Button>
             </Box>
@@ -465,12 +475,14 @@ const SystemSettings: React.FC = () => {
             fullWidth
             variant="outlined"
             value={newApiKeyName}
-            onChange={(e) => setNewApiKeyName(e.target.value)}
+            onChange={e => setNewApiKeyName(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setApiKeyDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateApiKey} variant="contained">Create</Button>
+          <Button onClick={handleCreateApiKey} variant="contained">
+            Create
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -18,7 +18,7 @@ import {
   ListItemIcon,
   Divider,
   Avatar,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -33,7 +33,7 @@ import {
   People,
   Circle,
   SignalWifi4Bar,
-  SignalWifiOff
+  SignalWifiOff,
 } from '@mui/icons-material';
 import { useSignalR } from '../../services/signalRService';
 import { AlertNotification, KpiExecutionResult, SystemStatus } from '../../types/monitoring';
@@ -63,9 +63,9 @@ export const RealTimeDashboard: React.FC = () => {
     healthyKpis: 0,
     criticalKpis: 0,
     systemStatus: 'Healthy',
-    lastUpdate: new Date()
+    lastUpdate: new Date(),
   });
-  
+
   const [realtimeAlerts, setRealtimeAlerts] = useState<AlertNotification[]>([]);
   const [realtimeMetrics, setRealtimeMetrics] = useState<RealtimeMetric[]>([]);
   const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
@@ -88,7 +88,7 @@ export const RealTimeDashboard: React.FC = () => {
         ...prev,
         activeAlerts: prev.activeAlerts + 1,
         systemStatus: alert.severity === 'Critical' ? 'Critical' : prev.systemStatus,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
       }));
     };
 
@@ -97,10 +97,14 @@ export const RealTimeDashboard: React.FC = () => {
         id: result.kpiId.toString(),
         name: `KPI ${result.kpiId}`,
         value: result.currentValue,
-        trend: result.currentValue > result.historicalValue ? 'up' : 
-               result.currentValue < result.historicalValue ? 'down' : 'stable',
+        trend:
+          result.currentValue > result.historicalValue
+            ? 'up'
+            : result.currentValue < result.historicalValue
+              ? 'down'
+              : 'stable',
         status: 'healthy',
-        lastUpdate: new Date(result.executionTime)
+        lastUpdate: new Date(result.executionTime),
       };
 
       setRealtimeMetrics(prev => {
@@ -121,7 +125,7 @@ export const RealTimeDashboard: React.FC = () => {
       setStats(prev => ({
         ...prev,
         systemStatus: status.status as any,
-        lastUpdate: new Date()
+        lastUpdate: new Date(),
       }));
     };
 
@@ -150,27 +154,38 @@ export const RealTimeDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'healthy': return 'success';
-      case 'warning': return 'warning';
-      case 'critical': return 'error';
-      default: return 'default';
+      case 'healthy':
+        return 'success';
+      case 'warning':
+        return 'warning';
+      case 'critical':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'healthy': return <CheckCircle color="success" />;
-      case 'warning': return <Warning color="warning" />;
-      case 'critical': return <Error color="error" />;
-      default: return <TrendingUp />;
+      case 'healthy':
+        return <CheckCircle color="success" />;
+      case 'warning':
+        return <Warning color="warning" />;
+      case 'critical':
+        return <Error color="error" />;
+      default:
+        return <TrendingUp />;
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp color="success" />;
-      case 'down': return <TrendingUp sx={{ transform: 'rotate(180deg)', color: 'error.main' }} />;
-      default: return <Timeline color="info" />;
+      case 'up':
+        return <TrendingUp color="success" />;
+      case 'down':
+        return <TrendingUp sx={{ transform: 'rotate(180deg)', color: 'error.main' }} />;
+      default:
+        return <Timeline color="info" />;
     }
   };
 
@@ -181,9 +196,7 @@ export const RealTimeDashboard: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {isConnected ? <SignalWifi4Bar /> : <SignalWifiOff />}
-            <Typography variant="h6">
-              Real-time Dashboard - {connectionState}
-            </Typography>
+            <Typography variant="h6">Real-time Dashboard - {connectionState}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Tooltip title="Connected Users">
@@ -231,22 +244,27 @@ export const RealTimeDashboard: React.FC = () => {
                 Real-time Metrics
               </Typography>
               <Grid container spacing={2}>
-                {realtimeMetrics.map((metric) => (
+                {realtimeMetrics.map(metric => (
                   <Grid item xs={6} sm={4} md={3} key={metric.id}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 1,
+                        }}
+                      >
                         {getTrendIcon(metric.trend)}
                         <Circle
                           sx={{
                             fontSize: 8,
                             ml: 1,
-                            color: getStatusColor(metric.status) + '.main'
+                            color: `${getStatusColor(metric.status)}.main`,
                           }}
                         />
                       </Box>
-                      <Typography variant="h6">
-                        {metric.value.toFixed(2)}
-                      </Typography>
+                      <Typography variant="h6">{metric.value.toFixed(2)}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {metric.name}
                       </Typography>
@@ -283,7 +301,7 @@ export const RealTimeDashboard: React.FC = () => {
                         <Circle
                           sx={{
                             fontSize: 12,
-                            color: alert.severity === 'Critical' ? 'error.main' : 'warning.main'
+                            color: alert.severity === 'Critical' ? 'error.main' : 'warning.main',
                           }}
                         />
                       </ListItemIcon>
@@ -315,18 +333,14 @@ export const RealTimeDashboard: React.FC = () => {
                 Connected Users ({connectedUsers.length})
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                {connectedUsers.map((userId) => (
+                {connectedUsers.map(userId => (
                   <Tooltip key={userId} title={`User: ${userId}`}>
-                    <Avatar sx={{ width: 32, height: 32 }}>
-                      {userId.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <Avatar sx={{ width: 32, height: 32 }}>{userId.charAt(0).toUpperCase()}</Avatar>
                   </Tooltip>
                 ))}
               </Stack>
               {connectedUsers.length === 0 && (
-                <Typography color="text.secondary">
-                  No other users connected
-                </Typography>
+                <Typography color="text.secondary">No other users connected</Typography>
               )}
             </CardContent>
           </Card>

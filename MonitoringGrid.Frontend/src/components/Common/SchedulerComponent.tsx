@@ -32,7 +32,7 @@ import {
   validateCronExpression,
   calculateNextExecutions,
   getScheduleDescription,
-  COMMON_CRON_PRESETS
+  COMMON_CRON_PRESETS,
 } from '@/utils/schedulerUtils';
 
 interface SchedulerComponentProps {
@@ -132,7 +132,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
               control={
                 <Switch
                   checked={value.isEnabled}
-                  onChange={(e) => onChange({ ...value, isEnabled: e.target.checked })}
+                  onChange={e => onChange({ ...value, isEnabled: e.target.checked })}
                   disabled={disabled}
                 />
               }
@@ -148,7 +148,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                   <InputLabel>Schedule Type</InputLabel>
                   <Select
                     value={value.scheduleType}
-                    onChange={(e) => handleScheduleTypeChange(e.target.value as ScheduleType)}
+                    onChange={e => handleScheduleTypeChange(e.target.value as ScheduleType)}
                     label="Schedule Type"
                   >
                     <MenuItem value={ScheduleType.Interval}>Interval (Every X minutes)</MenuItem>
@@ -167,18 +167,22 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                       label="Interval (minutes)"
                       type="number"
                       value={value.intervalMinutes || ''}
-                      onChange={(e) => onChange({ 
-                        ...value, 
-                        intervalMinutes: parseInt(e.target.value) || undefined 
-                      })}
+                      onChange={e =>
+                        onChange({
+                          ...value,
+                          intervalMinutes: parseInt(e.target.value) || undefined,
+                        })
+                      }
                       disabled={disabled}
                       inputProps={{ min: 1, max: 10080 }} // Max 1 week
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" gutterBottom>Quick Presets:</Typography>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Quick Presets:
+                    </Typography>
                     <Box display="flex" flexWrap="wrap" gap={1}>
-                      {INTERVAL_PRESETS.map((preset) => (
+                      {INTERVAL_PRESETS.map(preset => (
                         <Chip
                           key={preset.value}
                           label={preset.label}
@@ -202,26 +206,32 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                       fullWidth
                       label="Cron Expression"
                       value={value.cronExpression || ''}
-                      onChange={(e) => {
+                      onChange={e => {
                         const expression = e.target.value;
                         validateCron(expression);
                         onChange({ ...value, cronExpression: expression });
                       }}
                       disabled={disabled}
                       error={!!cronError}
-                      helperText={cronError || 'Format: minute hour day month weekday (e.g., */5 * * * *)'}
+                      helperText={
+                        cronError || 'Format: minute hour day month weekday (e.g., */5 * * * *)'
+                      }
                       placeholder="*/5 * * * *"
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" gutterBottom>Common Patterns:</Typography>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Common Patterns:
+                    </Typography>
                     <Box display="flex" flexWrap="wrap" gap={1}>
-                      {CRON_PRESETS.map((preset) => (
+                      {CRON_PRESETS.map(preset => (
                         <Tooltip key={preset.expression} title={preset.description}>
                           <Chip
                             label={preset.name}
                             onClick={() => handleCronPresetSelect(preset)}
-                            variant={value.cronExpression === preset.expression ? 'filled' : 'outlined'}
+                            variant={
+                              value.cronExpression === preset.expression ? 'filled' : 'outlined'
+                            }
                             color="primary"
                             size="small"
                             disabled={disabled}
@@ -241,10 +251,14 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                     label="Execution Date & Time"
                     type="datetime-local"
                     value={value.startDate?.slice(0, 16) || ''}
-                    onChange={(e) => onChange({ 
-                      ...value, 
-                      startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined 
-                    })}
+                    onChange={e =>
+                      onChange({
+                        ...value,
+                        startDate: e.target.value
+                          ? new Date(e.target.value).toISOString()
+                          : undefined,
+                      })
+                    }
                     disabled={disabled}
                     InputLabelProps={{ shrink: true }}
                   />
@@ -266,10 +280,14 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                             label="Start Date"
                             type="datetime-local"
                             value={value.startDate?.slice(0, 16) || ''}
-                            onChange={(e) => onChange({ 
-                              ...value, 
-                              startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined 
-                            })}
+                            onChange={e =>
+                              onChange({
+                                ...value,
+                                startDate: e.target.value
+                                  ? new Date(e.target.value).toISOString()
+                                  : undefined,
+                              })
+                            }
                             disabled={disabled}
                             InputLabelProps={{ shrink: true }}
                             helperText="When to start the schedule (optional)"
@@ -281,10 +299,14 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                             label="End Date"
                             type="datetime-local"
                             value={value.endDate?.slice(0, 16) || ''}
-                            onChange={(e) => onChange({ 
-                              ...value, 
-                              endDate: e.target.value ? new Date(e.target.value).toISOString() : undefined 
-                            })}
+                            onChange={e =>
+                              onChange({
+                                ...value,
+                                endDate: e.target.value
+                                  ? new Date(e.target.value).toISOString()
+                                  : undefined,
+                              })
+                            }
                             disabled={disabled}
                             InputLabelProps={{ shrink: true }}
                             helperText="When to stop the schedule (optional)"
@@ -295,7 +317,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                             fullWidth
                             label="Timezone"
                             value={value.timezone || 'UTC'}
-                            onChange={(e) => onChange({ ...value, timezone: e.target.value })}
+                            onChange={e => onChange({ ...value, timezone: e.target.value })}
                             disabled={disabled}
                             helperText="Timezone for schedule execution"
                           />

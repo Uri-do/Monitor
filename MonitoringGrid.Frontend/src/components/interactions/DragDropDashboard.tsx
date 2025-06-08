@@ -88,8 +88,8 @@ const DropZone = styled(Box)<{ isActive: boolean }>(({ theme, isActive }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: isActive 
-    ? alpha(theme.palette.primary.main, 0.05) 
+  backgroundColor: isActive
+    ? alpha(theme.palette.primary.main, 0.05)
     : alpha(theme.palette.background.paper, 0.5),
   transition: 'all 0.3s ease',
   animation: isActive ? `${dropZoneActive} 1s ease-in-out infinite` : 'none',
@@ -193,84 +193,96 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
   });
 
   // Handle widget drag start
-  const handleDragStart = useCallback((widget: Widget, event: React.MouseEvent) => {
-    if (!editable) return;
-    
-    event.preventDefault();
-    setDraggedWidget(widget);
-    dragRef.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      widget,
-    };
+  const handleDragStart = useCallback(
+    (widget: Widget, event: React.MouseEvent) => {
+      if (!editable) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Update widget position during drag
-      const deltaX = e.clientX - dragRef.current.startX;
-      const deltaY = e.clientY - dragRef.current.startY;
-      
-      // Visual feedback could be added here
-    };
+      event.preventDefault();
+      setDraggedWidget(widget);
+      dragRef.current = {
+        startX: event.clientX,
+        startY: event.clientY,
+        widget,
+      };
 
-    const handleMouseUp = () => {
-      setDraggedWidget(null);
-      setDropZoneActive(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseMove = (e: MouseEvent) => {
+        // Update widget position during drag
+        const deltaX = e.clientX - dragRef.current.startX;
+        const deltaY = e.clientY - dragRef.current.startY;
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [editable]);
+        // Visual feedback could be added here
+      };
+
+      const handleMouseUp = () => {
+        setDraggedWidget(null);
+        setDropZoneActive(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [editable]
+  );
 
   // Handle template drag from library
-  const handleTemplateDragStart = useCallback((template: WidgetTemplate, event: React.MouseEvent) => {
-    event.preventDefault();
-    setDraggedTemplate(template);
+  const handleTemplateDragStart = useCallback(
+    (template: WidgetTemplate, event: React.MouseEvent) => {
+      event.preventDefault();
+      setDraggedTemplate(template);
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Visual feedback for template dragging
-    };
+      const handleMouseMove = (e: MouseEvent) => {
+        // Visual feedback for template dragging
+      };
 
-    const handleMouseUp = (e: MouseEvent) => {
-      // Check if dropped in valid area
-      const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
-      if (dropTarget?.closest('[data-drop-zone]')) {
-        addWidgetFromTemplate(template);
-      }
-      
-      setDraggedTemplate(null);
-      setDropZoneActive(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = (e: MouseEvent) => {
+        // Check if dropped in valid area
+        const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+        if (dropTarget?.closest('[data-drop-zone]')) {
+          addWidgetFromTemplate(template);
+        }
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, []);
+        setDraggedTemplate(null);
+        setDropZoneActive(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    []
+  );
 
   // Add widget from template
-  const addWidgetFromTemplate = useCallback((template: WidgetTemplate) => {
-    const newWidget: Widget = {
-      id: `widget-${Date.now()}`,
-      type: template.type,
-      title: template.title,
-      config: template.defaultConfig,
-      position: { x: 0, y: 0 },
-      size: { width: 4, height: 3 },
-    };
+  const addWidgetFromTemplate = useCallback(
+    (template: WidgetTemplate) => {
+      const newWidget: Widget = {
+        id: `widget-${Date.now()}`,
+        type: template.type,
+        title: template.title,
+        config: template.defaultConfig,
+        position: { x: 0, y: 0 },
+        size: { width: 4, height: 3 },
+      };
 
-    const updatedWidgets = [...widgets, newWidget];
-    setWidgets(updatedWidgets);
-    onWidgetsChange?.(updatedWidgets);
-  }, [widgets, onWidgetsChange]);
+      const updatedWidgets = [...widgets, newWidget];
+      setWidgets(updatedWidgets);
+      onWidgetsChange?.(updatedWidgets);
+    },
+    [widgets, onWidgetsChange]
+  );
 
   // Remove widget
-  const removeWidget = useCallback((widgetId: string) => {
-    const updatedWidgets = widgets.filter(w => w.id !== widgetId);
-    setWidgets(updatedWidgets);
-    onWidgetsChange?.(updatedWidgets);
-  }, [widgets, onWidgetsChange]);
+  const removeWidget = useCallback(
+    (widgetId: string) => {
+      const updatedWidgets = widgets.filter(w => w.id !== widgetId);
+      setWidgets(updatedWidgets);
+      onWidgetsChange?.(updatedWidgets);
+    },
+    [widgets, onWidgetsChange]
+  );
 
   // Handle widget menu
   const handleWidgetMenu = (event: React.MouseEvent<HTMLElement>, widget: Widget) => {
@@ -289,7 +301,15 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
     switch (widget.type) {
       case 'chart':
         return (
-          <Box sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              p: 2,
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Typography variant="h6" color="text.secondary">
               {widget.config.chartType} Chart
             </Typography>
@@ -297,7 +317,15 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
         );
       case 'kpi':
         return (
-          <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              p: 2,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
             <Typography variant="h4" fontWeight={700} color="primary">
               {Math.floor(Math.random() * 1000)}
             </Typography>
@@ -308,7 +336,15 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
         );
       default:
         return (
-          <Box sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              p: 2,
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Typography variant="body1" color="text.secondary">
               {widget.title}
             </Typography>
@@ -321,28 +357,27 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
     <Box sx={{ position: 'relative', minHeight: '100vh', p: 3 }}>
       {/* Dashboard Grid */}
       <Grid container spacing={3}>
-        {widgets.map((widget) => (
+        {widgets.map(widget => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={widget.id}>
             <DraggableWidget
               isDragging={draggedWidget?.id === widget.id}
-              onMouseDown={(e) => handleDragStart(widget, e)}
+              onMouseDown={e => handleDragStart(widget, e)}
               data-widget-id={widget.id}
             >
               {/* Widget Header */}
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                p: 2,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 2,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
+              >
                 <Typography variant="h6" fontWeight={600}>
                   {widget.title}
                 </Typography>
-                <IconButton 
-                  size="small" 
-                  onClick={(e) => handleWidgetMenu(e, widget)}
-                >
+                <IconButton size="small" onClick={e => handleWidgetMenu(e, widget)}>
                   <MoreVert />
                 </IconButton>
               </Box>
@@ -363,10 +398,7 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
         {/* Empty Drop Zone */}
         {widgets.length === 0 && (
           <Grid item xs={12}>
-            <DropZone 
-              isActive={!!draggedTemplate}
-              data-drop-zone="main"
-            >
+            <DropZone isActive={!!draggedTemplate} data-drop-zone="main">
               <Box sx={{ textAlign: 'center' }}>
                 <Dashboard sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
                 <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -401,11 +433,11 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
             </Typography>
           </Box>
           <Box sx={{ p: 2 }}>
-            {widgetTemplates.map((template) => (
+            {widgetTemplates.map(template => (
               <Card
                 key={template.id}
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   cursor: 'grab',
                   transition: 'all 0.2s ease',
                   '&:hover': {
@@ -416,13 +448,11 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
                     cursor: 'grabbing',
                   },
                 }}
-                onMouseDown={(e) => handleTemplateDragStart(template, e)}
+                onMouseDown={e => handleTemplateDragStart(template, e)}
               >
                 <CardContent sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box sx={{ mr: 1, color: 'primary.main' }}>
-                      {template.icon}
-                    </Box>
+                    <Box sx={{ mr: 1, color: 'primary.main' }}>{template.icon}</Box>
                     <Typography variant="subtitle2" fontWeight={600}>
                       {template.title}
                     </Typography>
@@ -438,21 +468,26 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
       )}
 
       {/* Widget Context Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={() => { setConfigDialog(true); handleMenuClose(); }}>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+        <MenuItem
+          onClick={() => {
+            setConfigDialog(true);
+            handleMenuClose();
+          }}
+        >
           <Edit sx={{ mr: 1 }} /> Configure
         </MenuItem>
-        <MenuItem onClick={() => { /* Handle fullscreen */ handleMenuClose(); }}>
+        <MenuItem
+          onClick={() => {
+            /* Handle fullscreen */ handleMenuClose();
+          }}
+        >
           <Fullscreen sx={{ mr: 1 }} /> Fullscreen
         </MenuItem>
-        <MenuItem 
-          onClick={() => { 
-            if (selectedWidget) removeWidget(selectedWidget.id); 
-            handleMenuClose(); 
+        <MenuItem
+          onClick={() => {
+            if (selectedWidget) removeWidget(selectedWidget.id);
+            handleMenuClose();
           }}
           sx={{ color: 'error.main' }}
         >
@@ -470,7 +505,9 @@ export const DragDropDashboard: React.FC<DragDropDashboardProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfigDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => setConfigDialog(false)}>Save</Button>
+          <Button variant="contained" onClick={() => setConfigDialog(false)}>
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

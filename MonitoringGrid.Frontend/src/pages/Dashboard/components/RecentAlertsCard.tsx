@@ -70,7 +70,7 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
             {alertDashboard?.recentAlerts && alertDashboard.recentAlerts.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {alertDashboard.recentAlerts.slice(0, 5).map((alert) => (
+                {alertDashboard.recentAlerts.slice(0, 5).map(alert => (
                   <ListItem
                     key={`${alert.kpiId}-${alert.triggerTime}`}
                     button

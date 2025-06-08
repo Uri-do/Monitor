@@ -156,10 +156,14 @@ const Administration: React.FC = () => {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'active': return 'success';
-      case 'warning': return 'warning';
-      case 'error': return 'error';
-      default: return 'default';
+      case 'active':
+        return 'success';
+      case 'warning':
+        return 'warning';
+      case 'error':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -222,39 +226,31 @@ const Administration: React.FC = () => {
           <Grid container spacing={3}>
             {filteredSections
               .filter(section => ['users', 'roles', 'security', 'api-keys'].includes(section.id))
-              .map((section) => (
+              .map(section => (
                 <Grid item xs={12} md={6} key={section.id}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <ListItemButton
                         onClick={() => handleSectionClick(section.path)}
-                        sx={{ 
+                        sx={{
                           borderRadius: 1,
                           '&:hover': {
                             backgroundColor: 'action.hover',
-                          }
+                          },
                         }}
                       >
-                        <ListItemIcon>
-                          {section.icon}
-                        </ListItemIcon>
+                        <ListItemIcon>{section.icon}</ListItemIcon>
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="h6">
-                                {section.title}
-                              </Typography>
+                              <Typography variant="h6">{section.title}</Typography>
                               {section.count && (
-                                <Chip 
-                                  label={section.count} 
-                                  size="small" 
-                                  color="primary" 
-                                />
+                                <Chip label={section.count} size="small" color="primary" />
                               )}
-                              <Chip 
-                                label={section.status || 'active'} 
-                                size="small" 
-                                color={getStatusColor(section.status)} 
+                              <Chip
+                                label={section.status || 'active'}
+                                size="small"
+                                color={getStatusColor(section.status)}
                               />
                             </Box>
                           }
@@ -273,39 +269,31 @@ const Administration: React.FC = () => {
           <Grid container spacing={3}>
             {filteredSections
               .filter(section => ['system'].includes(section.id))
-              .map((section) => (
+              .map(section => (
                 <Grid item xs={12} md={6} key={section.id}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <ListItemButton
                         onClick={() => handleSectionClick(section.path)}
-                        sx={{ 
+                        sx={{
                           borderRadius: 1,
                           '&:hover': {
                             backgroundColor: 'action.hover',
-                          }
+                          },
                         }}
                       >
-                        <ListItemIcon>
-                          {section.icon}
-                        </ListItemIcon>
+                        <ListItemIcon>{section.icon}</ListItemIcon>
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="h6">
-                                {section.title}
-                              </Typography>
+                              <Typography variant="h6">{section.title}</Typography>
                               {section.count && (
-                                <Chip 
-                                  label={section.count} 
-                                  size="small" 
-                                  color="primary" 
-                                />
+                                <Chip label={section.count} size="small" color="primary" />
                               )}
-                              <Chip 
-                                label={section.status || 'active'} 
-                                size="small" 
-                                color={getStatusColor(section.status)} 
+                              <Chip
+                                label={section.status || 'active'}
+                                size="small"
+                                color={getStatusColor(section.status)}
                               />
                             </Box>
                           }
@@ -324,39 +312,31 @@ const Administration: React.FC = () => {
           <Grid container spacing={3}>
             {filteredSections
               .filter(section => ['audit'].includes(section.id))
-              .map((section) => (
+              .map(section => (
                 <Grid item xs={12} md={6} key={section.id}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <ListItemButton
                         onClick={() => handleSectionClick(section.path)}
-                        sx={{ 
+                        sx={{
                           borderRadius: 1,
                           '&:hover': {
                             backgroundColor: 'action.hover',
-                          }
+                          },
                         }}
                       >
-                        <ListItemIcon>
-                          {section.icon}
-                        </ListItemIcon>
+                        <ListItemIcon>{section.icon}</ListItemIcon>
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="h6">
-                                {section.title}
-                              </Typography>
+                              <Typography variant="h6">{section.title}</Typography>
                               {section.count && (
-                                <Chip 
-                                  label={section.count} 
-                                  size="small" 
-                                  color="primary" 
-                                />
+                                <Chip label={section.count} size="small" color="primary" />
                               )}
-                              <Chip 
-                                label={section.status || 'active'} 
-                                size="small" 
-                                color={getStatusColor(section.status)} 
+                              <Chip
+                                label={section.status || 'active'}
+                                size="small"
+                                color={getStatusColor(section.status)}
                               />
                             </Box>
                           }

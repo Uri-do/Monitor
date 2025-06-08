@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  Skeleton,
-  Card,
-  CardContent,
-} from '@mui/material';
+import { Box, CircularProgress, Typography, Skeleton, Card, CardContent } from '@mui/material';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -26,12 +19,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const renderSkeleton = () => (
     <Box sx={{ width: '100%' }}>
       {Array.from({ length: rows }).map((_, index) => (
-        <Skeleton
-          key={index}
-          variant="rectangular"
-          height={60}
-          sx={{ mb: 1, borderRadius: 1 }}
-        />
+        <Skeleton key={index} variant="rectangular" height={60} sx={{ mb: 1, borderRadius: 1 }} />
       ))}
     </Box>
   );

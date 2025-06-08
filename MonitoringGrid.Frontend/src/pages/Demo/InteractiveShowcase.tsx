@@ -23,10 +23,25 @@ import {
   PlayArrow,
 } from '@mui/icons-material';
 import PageHeader from '../../components/Common/PageHeader';
-import { AnimatedContainer, RippleEffect, MagneticHover, ParallaxScroll, MorphingButton } from '../../components/animations/MicroAnimations';
+import {
+  AnimatedContainer,
+  RippleEffect,
+  MagneticHover,
+  ParallaxScroll,
+  MorphingButton,
+} from '../../components/animations/MicroAnimations';
 import DragDropDashboard from '../../components/interactions/DragDropDashboard';
-import { SwipeableCard, PinchZoom, LongPress, PullToRefresh } from '../../components/interactions/GestureSupport';
-import { InteractiveChart, DataFilterPanel, TimeSeriesPlayer } from '../../components/interactions/DataExploration';
+import {
+  SwipeableCard,
+  PinchZoom,
+  LongPress,
+  PullToRefresh,
+} from '../../components/interactions/GestureSupport';
+import {
+  InteractiveChart,
+  DataFilterPanel,
+  TimeSeriesPlayer,
+} from '../../components/interactions/DataExploration';
 import { HoverEffectsShowcase } from '../../components/interactions/HoverEffects';
 
 interface TabPanelProps {
@@ -36,9 +51,7 @@ interface TabPanelProps {
 }
 
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
-  <div hidden={value !== index}>
-    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-  </div>
+  <div hidden={value !== index}>{value === index && <Box sx={{ py: 3 }}>{children}</Box>}</div>
 );
 
 const InteractiveShowcase: React.FC = () => {
@@ -117,7 +130,7 @@ const InteractiveShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           Touch Gestures & Mobile Interactions
         </Typography>
-        
+
         <Grid container spacing={3}>
           {/* Swipeable Cards */}
           <Grid item xs={12} md={6}>
@@ -125,7 +138,7 @@ const InteractiveShowcase: React.FC = () => {
               Swipeable Cards
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {[1, 2, 3].map((item) => (
+              {[1, 2, 3].map(item => (
                 <SwipeableCard
                   key={item}
                   onSwipeLeft={() => console.log(`Delete item ${item}`)}
@@ -149,7 +162,7 @@ const InteractiveShowcase: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Pinch to Zoom
             </Typography>
-            <PinchZoom onScaleChange={(scale) => console.log('Scale:', scale)}>
+            <PinchZoom onScaleChange={scale => console.log('Scale:', scale)}>
               <Paper sx={{ p: 4, textAlign: 'center', minHeight: 200 }}>
                 <Typography variant="h4" gutterBottom>
                   Zoomable Content
@@ -223,7 +236,7 @@ const InteractiveShowcase: React.FC = () => {
         </Typography>
         <DragDropDashboard
           editable
-          onWidgetsChange={(widgets) => console.log('Widgets updated:', widgets)}
+          onWidgetsChange={widgets => console.log('Widgets updated:', widgets)}
         />
       </TabPanel>
 
@@ -231,7 +244,7 @@ const InteractiveShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           Interactive Data Exploration
         </Typography>
-        
+
         <Grid container spacing={3}>
           {/* Interactive Chart */}
           <Grid item xs={12}>
@@ -241,8 +254,8 @@ const InteractiveShowcase: React.FC = () => {
               </Typography>
               <InteractiveChart
                 data={sampleChartData}
-                onDataPointSelect={(point) => console.log('Selected point:', point)}
-                onRangeSelect={(range) => console.log('Selected range:', range)}
+                onDataPointSelect={point => console.log('Selected point:', point)}
+                onRangeSelect={range => console.log('Selected range:', range)}
                 height={400}
               />
             </Paper>
@@ -270,7 +283,7 @@ const InteractiveShowcase: React.FC = () => {
               </Typography>
               <TimeSeriesPlayer
                 data={sampleTimeSeriesData}
-                onTimeChange={(timestamp) => console.log('Time changed:', new Date(timestamp))}
+                onTimeChange={timestamp => console.log('Time changed:', new Date(timestamp))}
                 autoPlay={false}
                 playbackSpeed={1000}
               />
@@ -283,21 +296,24 @@ const InteractiveShowcase: React.FC = () => {
         <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
           Micro-animations & Advanced Effects
         </Typography>
-        
+
         <Grid container spacing={3}>
           {/* Animated Containers */}
           <Grid item xs={12} md={6}>
             <Typography variant="h6" gutterBottom>
               Scroll-triggered Animations
             </Typography>
-            <Box sx={{ height: 400, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 2 }}>
+            <Box
+              sx={{
+                height: 400,
+                overflow: 'auto',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
               {Array.from({ length: 10 }, (_, i) => (
-                <AnimatedContainer
-                  key={i}
-                  animation="fadeInUp"
-                  delay={i * 0.1}
-                  stagger
-                >
+                <AnimatedContainer key={i} animation="fadeInUp" delay={i * 0.1} stagger>
                   <Paper sx={{ m: 2, p: 2 }}>
                     <Typography variant="h6">Animated Item {i + 1}</Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -356,9 +372,7 @@ const InteractiveShowcase: React.FC = () => {
                 }
                 trigger="hover"
               >
-                <Button variant="contained">
-                  Hover to Morph
-                </Button>
+                <Button variant="contained">Hover to Morph</Button>
               </MorphingButton>
             </Box>
           </Grid>
@@ -368,27 +382,36 @@ const InteractiveShowcase: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Parallax Scroll Effect
             </Typography>
-            <Box sx={{ height: 300, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 2 }}>
+            <Box
+              sx={{
+                height: 300,
+                overflow: 'auto',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
               <Box sx={{ height: 800, position: 'relative' }}>
                 <ParallaxScroll speed={0.5}>
-                  <Paper sx={{ 
-                    position: 'absolute', 
-                    top: 100, 
-                    left: '50%', 
-                    transform: 'translateX(-50%)',
-                    p: 3,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }}>
+                  <Paper
+                    sx={{
+                      position: 'absolute',
+                      top: 100,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      p: 3,
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    }}
+                  >
                     <Typography variant="h6">Parallax Element</Typography>
-                    <Typography variant="body2">
-                      Scrolls at different speed than content
-                    </Typography>
+                    <Typography variant="body2">Scrolls at different speed than content</Typography>
                   </Paper>
                 </ParallaxScroll>
                 <Box sx={{ p: 3 }}>
                   {Array.from({ length: 20 }, (_, i) => (
                     <Typography key={i} variant="body1" sx={{ mb: 2 }}>
-                      Scroll content line {i + 1} - Notice how the parallax element moves differently
+                      Scroll content line {i + 1} - Notice how the parallax element moves
+                      differently
                     </Typography>
                   ))}
                 </Box>

@@ -98,7 +98,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               key={index}
               color={index === breadcrumbs.length - 1 ? 'text.primary' : 'inherit'}
               href="#"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 if (index < breadcrumbs.length - 1) {
                   handleBreadcrumbClick(item);
@@ -138,10 +138,18 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             background: 'rgba(255, 255, 255, 0.1)',
             borderRadius: '50%',
             transform: 'translate(30px, -30px)',
-          }
+          },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
           {/* Left Side - Title and Info */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flex: 1 }}>
             {showBackButton && (
@@ -162,11 +170,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
 
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                {icon && (
-                  <Box sx={{ color: 'white' }}>
-                    {icon}
-                  </Box>
-                )}
+                {icon && <Box sx={{ color: 'white' }}>{icon}</Box>}
                 <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                   {title}
                 </Typography>
@@ -223,13 +227,15 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   },
                 }}
               >
-                <RefreshIcon sx={{
-                  animation: refreshing ? 'spin 1s linear infinite' : 'none',
-                  '@keyframes spin': {
-                    '0%': { transform: 'rotate(0deg)' },
-                    '100%': { transform: 'rotate(360deg)' },
-                  }
-                }} />
+                <RefreshIcon
+                  sx={{
+                    animation: refreshing ? 'spin 1s linear infinite' : 'none',
+                    '@keyframes spin': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' },
+                    },
+                  }}
+                />
               </IconButton>
             )}
 

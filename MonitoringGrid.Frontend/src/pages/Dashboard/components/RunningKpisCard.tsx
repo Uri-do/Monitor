@@ -56,7 +56,7 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
             {kpiDashboard?.runningKpis && kpiDashboard.runningKpis.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {kpiDashboard.runningKpis.map((kpi) => (
+                {kpiDashboard.runningKpis.map(kpi => (
                   <ListItem
                     key={kpi.kpiId}
                     sx={{
@@ -99,7 +99,10 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
                               sx={{
                                 fontSize: '0.7rem',
                                 height: 20,
-                                color: kpi.executionDurationSeconds > 300 ? 'warning.main' : 'text.secondary'
+                                color:
+                                  kpi.executionDurationSeconds > 300
+                                    ? 'warning.main'
+                                    : 'text.secondary',
                               }}
                             />
                           </Tooltip>
@@ -119,7 +122,8 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({ kpiDashboard }) => {
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             Context: {kpi.executionContext || 'Manual'}
-                            {kpi.executionStartTime && ` • Started: ${formatDistanceToNow(new Date(kpi.executionStartTime), { addSuffix: true })}`}
+                            {kpi.executionStartTime &&
+                              ` • Started: ${formatDistanceToNow(new Date(kpi.executionStartTime), { addSuffix: true })}`}
                           </Typography>
                         </Box>
                       }

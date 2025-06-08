@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { kpiApi } from '@/services/api';
-import { KpiDto, CreateKpiRequest, UpdateKpiRequest, TestKpiRequest, KpiExecutionResultDto } from '@/types/api';
+import {
+  KpiDto,
+  CreateKpiRequest,
+  UpdateKpiRequest,
+  TestKpiRequest,
+  KpiExecutionResultDto,
+} from '@/types/api';
 
 export const useKpis = (filters?: { isActive?: boolean; owner?: string; priority?: number }) => {
   const [data, setData] = useState<KpiDto[]>([]);
@@ -39,7 +45,7 @@ export const useKpis = (filters?: { isActive?: boolean; owner?: string; priority
   const updateKpi = useCallback(async (kpi: UpdateKpiRequest) => {
     try {
       const updatedKpi = await kpiApi.updateKpi(kpi);
-      setData(prev => prev.map(k => k.kpiId === kpi.kpiId ? updatedKpi : k));
+      setData(prev => prev.map(k => (k.kpiId === kpi.kpiId ? updatedKpi : k)));
       return updatedKpi;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update KPI';
@@ -59,19 +65,22 @@ export const useKpis = (filters?: { isActive?: boolean; owner?: string; priority
     }
   }, []);
 
-  const executeKpi = useCallback(async (id: number, customFrequency?: number): Promise<KpiExecutionResultDto> => {
-    try {
-      const request: TestKpiRequest = { kpiId: id, customFrequency };
-      const result = await kpiApi.executeKpi(request);
-      // Optionally refresh the KPI list to get updated lastRun time
-      fetchData();
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to execute KPI';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  }, [fetchData]);
+  const executeKpi = useCallback(
+    async (id: number, customFrequency?: number): Promise<KpiExecutionResultDto> => {
+      try {
+        const request: TestKpiRequest = { kpiId: id, customFrequency };
+        const result = await kpiApi.executeKpi(request);
+        // Optionally refresh the KPI list to get updated lastRun time
+        fetchData();
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to execute KPI';
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+    },
+    [fetchData]
+  );
 
   return {
     data,
@@ -81,6 +90,6 @@ export const useKpis = (filters?: { isActive?: boolean; owner?: string; priority
     createKpi,
     updateKpi,
     deleteKpi,
-    executeKpi
+    executeKpi,
   };
 };

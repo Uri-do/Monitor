@@ -34,12 +34,17 @@ const ContactList: React.FC = () => {
   const [selectedRows, setSelectedRows] = useState<ContactDto[]>([]);
 
   // Fetch Contacts
-  const { data: contacts = [], isLoading, refetch } = useQuery({
+  const {
+    data: contacts = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['contacts', filters],
-    queryFn: () => contactApi.getContacts({
-      isActive: filters.isActive ? filters.isActive === 'true' : undefined,
-      search: filters.search || undefined,
-    }),
+    queryFn: () =>
+      contactApi.getContacts({
+        isActive: filters.isActive ? filters.isActive === 'true' : undefined,
+        search: filters.search || undefined,
+      }),
   });
 
   // Delete Contact mutation
@@ -65,10 +70,11 @@ const ContactList: React.FC = () => {
     if (!filters.search) return contacts;
 
     const searchLower = filters.search.toLowerCase();
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(searchLower) ||
-      contact.email?.toLowerCase().includes(searchLower) ||
-      contact.phone?.toLowerCase().includes(searchLower)
+    return contacts.filter(
+      contact =>
+        contact.name.toLowerCase().includes(searchLower) ||
+        contact.email?.toLowerCase().includes(searchLower) ||
+        contact.phone?.toLowerCase().includes(searchLower)
     );
   }, [contacts, filters.search]);
 
@@ -110,21 +116,15 @@ const ContactList: React.FC = () => {
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      render: (value) => (
-        <StatusChip status={value ? 'active' : 'inactive'} />
-      ),
+      render: value => <StatusChip status={value ? 'active' : 'inactive'} />,
     },
     {
       id: 'assignedKpis',
       label: 'Assigned KPIs',
       minWidth: 120,
       align: 'center',
-      render: (value) => (
-        <Chip
-          label={value.length}
-          color={value.length > 0 ? 'primary' : 'default'}
-          size="small"
-        />
+      render: value => (
+        <Chip label={value.length} color={value.length > 0 ? 'primary' : 'default'} size="small" />
       ),
     },
     {
@@ -132,14 +132,14 @@ const ContactList: React.FC = () => {
       label: 'Created',
       sortable: true,
       minWidth: 120,
-      render: (value) => format(new Date(value), 'MMM dd, yyyy'),
+      render: value => format(new Date(value), 'MMM dd, yyyy'),
     },
     {
       id: 'modifiedDate',
       label: 'Last Modified',
       sortable: true,
       minWidth: 140,
-      render: (value) => format(new Date(value), 'MMM dd, HH:mm'),
+      render: value => format(new Date(value), 'MMM dd, HH:mm'),
     },
   ];
 
@@ -185,9 +185,9 @@ const ContactList: React.FC = () => {
             ],
           },
         ]}
-        onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
+        onFilterChange={newFilters => setFilters({ ...filters, ...newFilters })}
         onClear={() => setFilters({ isActive: '', search: '' })}
-        onSearch={(searchTerm) => setFilters({ ...filters, search: searchTerm })}
+        onSearch={searchTerm => setFilters({ ...filters, search: searchTerm })}
         searchPlaceholder="Search contacts by name, email, or phone..."
         defaultExpanded={false}
       />
@@ -200,15 +200,15 @@ const ContactList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: (contact) => navigate(`/contacts/${contact.contactId}`),
-          edit: (contact) => navigate(`/contacts/${contact.contactId}/edit`),
+          view: contact => navigate(`/contacts/${contact.contactId}`),
+          edit: contact => navigate(`/contacts/${contact.contactId}/edit`),
           delete: handleDelete,
         }}
         actions={[
           {
             label: 'Assign KPIs',
             icon: <AssignIcon />,
-            onClick: (contact) => {
+            onClick: contact => {
               // TODO: Implement KPI assignment
               toast('KPI assignment feature coming soon', { icon: 'ℹ️' });
             },

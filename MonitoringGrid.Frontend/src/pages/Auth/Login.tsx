@@ -13,14 +13,9 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  Microsoft,
-  Google
-} from '@mui/icons-material';
+import { Visibility, VisibilityOff, Microsoft, Google } from '@mui/icons-material';
 import mgLogo from '../../assets/images/mglogo.png';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,7 +27,7 @@ const loginSchema = yup.object({
   username: yup.string().required('Username is required'),
   password: yup.string().required('Password is required'),
   rememberMe: yup.boolean().default(false),
-  twoFactorCode: yup.string().optional()
+  twoFactorCode: yup.string().optional(),
 });
 
 interface LoginFormData {
@@ -58,12 +53,12 @@ export const Login: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
     defaultValues: {
-      rememberMe: false
-    }
+      rememberMe: false,
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -75,12 +70,14 @@ export const Login: React.FC = () => {
         username: data.username,
         password: data.password,
         rememberMe: data.rememberMe,
-        twoFactorCode: data.twoFactorCode
+        twoFactorCode: data.twoFactorCode,
       });
 
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
+      setError(
+        err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.'
+      );
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
@@ -107,7 +104,7 @@ export const Login: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: 2
+        padding: 2,
       }}
     >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
@@ -119,7 +116,7 @@ export const Login: React.FC = () => {
               alt="MonitoringGrid Logo"
               sx={{
                 width: '100%',
-                mb: 2
+                mb: 2,
               }}
             />
             <Typography variant="body2" color="text.secondary">
@@ -173,7 +170,7 @@ export const Login: React.FC = () => {
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
             />
 
@@ -192,12 +189,7 @@ export const Login: React.FC = () => {
             )}
 
             <FormControlLabel
-              control={
-                <Checkbox
-                  {...register('rememberMe')}
-                  disabled={isLoading}
-                />
-              }
+              control={<Checkbox {...register('rememberMe')} disabled={isLoading} />}
               label="Remember me"
               sx={{ mt: 1, mb: 2 }}
             />
@@ -210,11 +202,7 @@ export const Login: React.FC = () => {
               disabled={isLoading}
               sx={{ mb: 2 }}
             >
-              {isLoading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Sign In'
-              )}
+              {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
             </Button>
 
             <Box sx={{ textAlign: 'center', mb: 2 }}>

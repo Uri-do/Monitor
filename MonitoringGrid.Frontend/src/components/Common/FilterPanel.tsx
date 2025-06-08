@@ -95,7 +95,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     const value = filters[field.name] || field.defaultValue || '';
 
     const commonTextFieldProps = {
-      size: "small" as const,
+      size: 'small' as const,
       fullWidth: true,
       sx: {
         '& .MuiOutlinedInput-root': {
@@ -127,7 +127,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             label={field.label}
             type={field.type}
             value={value}
-            onChange={(e) => handleFilterChange(field.name, e.target.value)}
+            onChange={e => handleFilterChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             {...commonTextFieldProps}
           />
@@ -140,14 +140,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             select
             label={field.label}
             value={value}
-            onChange={(e) => handleFilterChange(field.name, e.target.value)}
+            onChange={e => handleFilterChange(field.name, e.target.value)}
             SelectProps={{
               native: true,
             }}
             {...commonTextFieldProps}
           >
             <option value="">All</option>
-            {field.options?.map((option) => (
+            {field.options?.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -162,7 +162,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             label={field.label}
             type="date"
             value={value}
-            onChange={(e) => handleFilterChange(field.name, e.target.value)}
+            onChange={e => handleFilterChange(field.name, e.target.value)}
             InputLabelProps={{
               shrink: true,
             }}
@@ -175,7 +175,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     }
   };
 
-  const hasActiveFilters = activeFilters.length > 0 || Object.keys(filters).some(key => filters[key]);
+  const hasActiveFilters =
+    activeFilters.length > 0 || Object.keys(filters).some(key => filters[key]);
 
   return (
     <Card
@@ -197,7 +198,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             mb: 2,
             p: 2,
             borderRadius: 1,
-            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
             border: '1px solid',
             borderColor: 'primary.light',
           }}
@@ -264,7 +266,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               fullWidth
               placeholder={searchPlaceholder}
               value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={e => handleSearch(e.target.value)}
               size="small"
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -293,7 +295,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               Active Filters:
             </Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap">
-              {activeFilters.map((filter) => (
+              {activeFilters.map(filter => (
                 <Chip
                   key={filter.field}
                   label={`${filter.label}: ${filter.displayValue}`}
@@ -331,7 +333,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 }}
               >
                 <Grid container spacing={3}>
-                  {fields.map((field) => (
+                  {fields.map(field => (
                     <Grid item xs={12} sm={6} md={4} key={field.name}>
                       {renderFilterField(field)}
                     </Grid>

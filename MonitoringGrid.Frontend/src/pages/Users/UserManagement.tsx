@@ -15,37 +15,43 @@ import {
   Select,
   MenuItem,
   Chip,
-
   Tooltip,
   Alert,
   Switch,
   FormControlLabel,
   Menu,
   ListItemIcon,
-  ListItemText
+  ListItemText,
 } from '@mui/material';
 import {
-
   Edit,
   Delete,
   Security,
   PersonAdd,
   Block,
   CheckCircle,
-  MoreVert
+  MoreVert,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { PageHeader } from '../../components/Common';
-import { userService, CreateUserRequest, UpdateUserRequest, BulkUserOperation } from '../../services/userService';
+import {
+  userService,
+  CreateUserRequest,
+  UpdateUserRequest,
+  BulkUserOperation,
+} from '../../services/userService';
 import { roleService } from '../../services/roleService';
 import { User, Role } from '../../types/auth';
 import toast from 'react-hot-toast';
 
 const userSchema = yup.object({
-  username: yup.string().required('Username is required').min(3, 'Username must be at least 3 characters'),
+  username: yup
+    .string()
+    .required('Username is required')
+    .min(3, 'Username must be at least 3 characters'),
   email: yup.string().email('Invalid email').required('Email is required'),
   displayName: yup.string().required('Display name is required'),
   firstName: yup.string(),
@@ -53,7 +59,7 @@ const userSchema = yup.object({
   department: yup.string(),
   title: yup.string(),
   roles: yup.array().of(yup.string().required()).required().min(1, 'At least one role is required'),
-  isActive: yup.boolean().required()
+  isActive: yup.boolean().required(),
 });
 
 interface UserFormData {
@@ -83,13 +89,13 @@ export const UserManagement: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<UserFormData>({
     resolver: yupResolver(userSchema),
     defaultValues: {
       isActive: true,
-      roles: []
-    }
+      roles: [],
+    },
   });
 
   useEffect(() => {
@@ -101,7 +107,7 @@ export const UserManagement: React.FC = () => {
       setLoading(true);
       const [usersData, rolesData] = await Promise.all([
         userService.getUsers(),
-        roleService.getRoles()
+        roleService.getRoles(),
       ]);
       setUsers(usersData);
       setRoles(rolesData);
@@ -126,7 +132,7 @@ export const UserManagement: React.FC = () => {
       department: '',
       title: '',
       roles: [],
-      isActive: true
+      isActive: true,
     });
     setDialogOpen(true);
   };
@@ -142,7 +148,7 @@ export const UserManagement: React.FC = () => {
       department: user.department || '',
       title: user.title || '',
       roles: user.roles.map(role => role.roleId),
-      isActive: user.isActive
+      isActive: user.isActive,
     });
     setDialogOpen(true);
   };
@@ -176,7 +182,10 @@ export const UserManagement: React.FC = () => {
       }
       loadData();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : `Failed to ${isActive ? 'activate' : 'deactivate'} user`;
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : `Failed to ${isActive ? 'activate' : 'deactivate'} user`;
       setError(errorMessage);
       toast.error(errorMessage);
       console.error('Error toggling user status:', err);
@@ -193,7 +202,7 @@ export const UserManagement: React.FC = () => {
           department: data.department,
           title: data.title,
           roleIds: data.roles,
-          isActive: data.isActive
+          isActive: data.isActive,
         };
         await userService.updateUser(editingUser.userId, updateRequest);
         toast.success('User updated successfully');
@@ -210,7 +219,7 @@ export const UserManagement: React.FC = () => {
           password: 'TempPassword123!', // Temporary password - should be changed on first login
           roleIds: data.roles,
           isActive: data.isActive,
-          emailConfirmed: false
+          emailConfirmed: false,
         };
         await userService.createUser(createRequest);
         toast.success('User created successfully');
@@ -219,7 +228,8 @@ export const UserManagement: React.FC = () => {
       setDialogOpen(false);
       loadData();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : `Failed to ${editingUser ? 'update' : 'create'} user`;
+      const errorMessage =
+        err instanceof Error ? err.message : `Failed to ${editingUser ? 'update' : 'create'} user`;
       setError(errorMessage);
       toast.error(errorMessage);
       console.error('Error saving user:', err);
@@ -238,7 +248,7 @@ export const UserManagement: React.FC = () => {
     try {
       const bulkOperation: BulkUserOperation = {
         userIds: selectedUsers,
-        operation: operation as any
+        operation: operation as any,
       };
 
       await userService.bulkOperation(bulkOperation);
@@ -258,7 +268,7 @@ export const UserManagement: React.FC = () => {
       field: 'username',
       headerName: 'Username',
       width: 150,
-      renderCell: (params) => (
+      renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body2">{params.value}</Typography>
           {!params.row.isActive && (
@@ -267,28 +277,28 @@ export const UserManagement: React.FC = () => {
             </Tooltip>
           )}
         </Box>
-      )
+      ),
     },
     {
       field: 'displayName',
       headerName: 'Display Name',
-      width: 200
+      width: 200,
     },
     {
       field: 'email',
       headerName: 'Email',
-      width: 250
+      width: 250,
     },
     {
       field: 'department',
       headerName: 'Department',
-      width: 150
+      width: 150,
     },
     {
       field: 'roles',
       headerName: 'Roles',
       width: 200,
-      renderCell: (params) => (
+      renderCell: params => (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
           {params.value.map((role: Role) => (
             <Chip
@@ -300,36 +310,36 @@ export const UserManagement: React.FC = () => {
             />
           ))}
         </Box>
-      )
+      ),
     },
     {
       field: 'lastLogin',
       headerName: 'Last Login',
       width: 180,
-      renderCell: (params) => (
+      renderCell: params => (
         <Typography variant="body2">
           {params.value ? new Date(params.value).toLocaleString() : 'Never'}
         </Typography>
-      )
+      ),
     },
     {
       field: 'isActive',
       headerName: 'Status',
       width: 100,
-      renderCell: (params) => (
+      renderCell: params => (
         <Chip
           label={params.value ? 'Active' : 'Inactive'}
           color={params.value ? 'success' : 'error'}
           size="small"
         />
-      )
+      ),
     },
     {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
       width: 150,
-      getActions: (params) => [
+      getActions: params => [
         <GridActionsCellItem
           icon={<Edit />}
           label="Edit"
@@ -345,9 +355,9 @@ export const UserManagement: React.FC = () => {
           label="Delete"
           onClick={() => handleDeleteUser(params.row.userId)}
           showInMenu
-        />
-      ]
-    }
+        />,
+      ],
+    },
   ];
 
   return (
@@ -361,8 +371,8 @@ export const UserManagement: React.FC = () => {
             label: 'Add User',
             icon: <PersonAdd />,
             onClick: handleCreateUser,
-            variant: 'contained' as const
-          }
+            variant: 'contained' as const,
+          },
         ]}
       />
 
@@ -382,13 +392,11 @@ export const UserManagement: React.FC = () => {
         <Card sx={{ mb: 2 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6">
-                {selectedUsers.length} user(s) selected
-              </Typography>
+              <Typography variant="h6">{selectedUsers.length} user(s) selected</Typography>
               <Button
                 variant="outlined"
                 startIcon={<MoreVert />}
-                onClick={(e) => setBulkMenuAnchor(e.currentTarget)}
+                onClick={e => setBulkMenuAnchor(e.currentTarget)}
               >
                 Bulk Actions
               </Button>
@@ -403,14 +411,14 @@ export const UserManagement: React.FC = () => {
             rows={users}
             columns={columns}
             loading={loading}
-            getRowId={(row) => row.userId}
+            getRowId={row => row.userId}
             pageSizeOptions={[10, 25, 50]}
             initialState={{
-              pagination: { paginationModel: { pageSize: 25 } }
+              pagination: { paginationModel: { pageSize: 25 } },
             }}
             checkboxSelection
             rowSelectionModel={selectedUsers}
-            onRowSelectionModelChange={(newSelection) => {
+            onRowSelectionModelChange={newSelection => {
               setSelectedUsers(newSelection as string[]);
             }}
             sx={{ height: 600 }}
@@ -418,16 +426,9 @@ export const UserManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit(onSubmit as any)}>
-          <DialogTitle>
-            {editingUser ? 'Edit User' : 'Create New User'}
-          </DialogTitle>
+          <DialogTitle>{editingUser ? 'Edit User' : 'Create New User'}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
               <Controller
@@ -540,15 +541,15 @@ export const UserManagement: React.FC = () => {
                       {...field}
                       multiple
                       label="Roles"
-                      renderValue={(selected) => (
+                      renderValue={selected => (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {(selected as string[]).map((value) => (
+                          {(selected as string[]).map(value => (
                             <Chip key={value} label={value} size="small" />
                           ))}
                         </Box>
                       )}
                     >
-                      {roles.map((role) => (
+                      {roles.map(role => (
                         <MenuItem key={role.roleId} value={role.name}>
                           {role.name}
                         </MenuItem>

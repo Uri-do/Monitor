@@ -36,11 +36,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
 
 const AlertDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,11 +56,12 @@ const AlertDetail: React.FC = () => {
 
   // Resolve alert mutation
   const resolveMutation = useMutation({
-    mutationFn: () => alertApi.resolveAlert({
-      alertId,
-      resolvedBy: 'Current User', // TODO: Get from auth context
-      resolutionNotes: resolutionNotes || undefined,
-    }),
+    mutationFn: () =>
+      alertApi.resolveAlert({
+        alertId,
+        resolvedBy: 'Current User', // TODO: Get from auth context
+        resolutionNotes: resolutionNotes || undefined,
+      }),
     onSuccess: () => {
       toast.success('Alert resolved successfully');
       setResolveDialogOpen(false);
@@ -114,9 +111,7 @@ const AlertDetail: React.FC = () => {
   if (!alert) {
     return (
       <Box>
-        <Alert severity="error">
-          Alert not found or you don't have permission to view it.
-        </Alert>
+        <Alert severity="error">Alert not found or you don't have permission to view it.</Alert>
       </Box>
     );
   }
@@ -128,16 +123,17 @@ const AlertDetail: React.FC = () => {
       <PageHeader
         title={`Alert #${alert.alertId}`}
         subtitle={`${alert.kpiIndicator} • ${alert.severity} severity`}
-        breadcrumbs={[
-          { label: 'Alerts', href: '/alerts' },
-          { label: `Alert #${alert.alertId}` },
-        ]}
-        primaryAction={!alert.isResolved ? {
-          label: 'Resolve Alert',
-          icon: <ResolveIcon />,
-          onClick: () => setResolveDialogOpen(true),
-          color: 'success',
-        } : undefined}
+        breadcrumbs={[{ label: 'Alerts', href: '/alerts' }, { label: `Alert #${alert.alertId}` }]}
+        primaryAction={
+          !alert.isResolved
+            ? {
+                label: 'Resolve Alert',
+                icon: <ResolveIcon />,
+                onClick: () => setResolveDialogOpen(true),
+                color: 'success',
+              }
+            : undefined
+        }
         actions={[
           {
             label: 'View KPI',
@@ -155,12 +151,8 @@ const AlertDetail: React.FC = () => {
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                 {getSeverityIcon(alert.severity)}
-                <Typography variant="h6">
-                  Alert Information
-                </Typography>
-                <StatusChip
-                  status={alert.isResolved ? 'resolved' : 'unresolved'}
-                />
+                <Typography variant="h6">Alert Information</Typography>
+                <StatusChip status={alert.isResolved ? 'resolved' : 'unresolved'} />
               </Stack>
 
               <Grid container spacing={2}>
@@ -169,9 +161,7 @@ const AlertDetail: React.FC = () => {
                     Message
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, mt: 0.5, bgcolor: 'grey.50' }}>
-                    <Typography variant="body1">
-                      {alert.message}
-                    </Typography>
+                    <Typography variant="body1">{alert.message}</Typography>
                   </Paper>
                 </Grid>
 
@@ -192,9 +182,7 @@ const AlertDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     KPI
                   </Typography>
-                  <Typography variant="body1">
-                    {alert.kpiIndicator}
-                  </Typography>
+                  <Typography variant="body1">{alert.kpiIndicator}</Typography>
                   <Typography variant="caption" color="textSecondary">
                     Owner: {alert.kpiOwner}
                   </Typography>
@@ -208,9 +196,13 @@ const AlertDetail: React.FC = () => {
                     icon={getSeverityIcon(alert.severity)}
                     label={alert.severity}
                     color={
-                      alert.severity.toLowerCase() === 'critical' ? 'error' :
-                      alert.severity.toLowerCase() === 'high' ? 'warning' :
-                      alert.severity.toLowerCase() === 'medium' ? 'info' : 'success'
+                      alert.severity.toLowerCase() === 'critical'
+                        ? 'error'
+                        : alert.severity.toLowerCase() === 'high'
+                          ? 'warning'
+                          : alert.severity.toLowerCase() === 'medium'
+                            ? 'info'
+                            : 'success'
                     }
                     sx={{ mt: 0.5 }}
                   />
@@ -283,10 +275,11 @@ const AlertDetail: React.FC = () => {
                           Deviation
                         </Typography>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          {deviationTrend === 'up' ?
-                            <TrendingUpIcon color="error" /> :
+                          {deviationTrend === 'up' ? (
+                            <TrendingUpIcon color="error" />
+                          ) : (
                             <TrendingDownIcon color="success" />
-                          }
+                          )}
                           <Typography
                             variant="h6"
                             color={deviationTrend === 'up' ? 'error' : 'success'}
@@ -316,9 +309,7 @@ const AlertDetail: React.FC = () => {
                       </Typography>
                     )}
                     {alert.resolvedBy && (
-                      <Typography variant="body2">
-                        By: {alert.resolvedBy}
-                      </Typography>
+                      <Typography variant="body2">By: {alert.resolvedBy}</Typography>
                     )}
                   </Stack>
                 ) : (
@@ -342,7 +333,12 @@ const AlertDetail: React.FC = () => {
       </Grid>
 
       {/* Resolve Dialog */}
-      <Dialog open={resolveDialogOpen} onClose={() => setResolveDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={resolveDialogOpen}
+        onClose={() => setResolveDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Resolve Alert</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -357,15 +353,13 @@ const AlertDetail: React.FC = () => {
             fullWidth
             variant="outlined"
             value={resolutionNotes}
-            onChange={(e) => setResolutionNotes(e.target.value)}
+            onChange={e => setResolutionNotes(e.target.value)}
             placeholder="Describe how the issue was resolved..."
             sx={{ mt: 2 }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResolveDialogOpen(false)}>
-            Cancel
-          </Button>
+          <Button onClick={() => setResolveDialogOpen(false)}>Cancel</Button>
           <Button
             onClick={handleResolve}
             variant="contained"

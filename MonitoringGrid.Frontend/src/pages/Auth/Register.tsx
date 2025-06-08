@@ -14,14 +14,9 @@ import {
   CircularProgress,
   Stepper,
   Step,
-  StepLabel
+  StepLabel,
 } from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  PersonAdd,
-  ArrowBack
-} from '@mui/icons-material';
+import { Visibility, VisibilityOff, PersonAdd, ArrowBack } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -35,27 +30,16 @@ const registerSchema = yup.object({
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be less than 50 characters')
     .matches(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  email: yup
-    .string()
-    .required('Email is required')
-    .email('Please enter a valid email address'),
+  email: yup.string().required('Email is required').email('Please enter a valid email address'),
   displayName: yup
     .string()
     .required('Display name is required')
     .min(2, 'Display name must be at least 2 characters')
     .max(100, 'Display name must be less than 100 characters'),
-  firstName: yup
-    .string()
-    .max(50, 'First name must be less than 50 characters'),
-  lastName: yup
-    .string()
-    .max(50, 'Last name must be less than 50 characters'),
-  department: yup
-    .string()
-    .max(100, 'Department must be less than 100 characters'),
-  title: yup
-    .string()
-    .max(100, 'Title must be less than 100 characters'),
+  firstName: yup.string().max(50, 'First name must be less than 50 characters'),
+  lastName: yup.string().max(50, 'Last name must be less than 50 characters'),
+  department: yup.string().max(100, 'Department must be less than 100 characters'),
+  title: yup.string().max(100, 'Title must be less than 100 characters'),
   password: yup
     .string()
     .required('Password is required')
@@ -67,7 +51,7 @@ const registerSchema = yup.object({
   confirmPassword: yup
     .string()
     .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match')
+    .oneOf([yup.ref('password')], 'Passwords must match'),
 });
 
 interface RegisterFormData {
@@ -95,10 +79,10 @@ const Register: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-    watch
+    watch,
   } = useForm<RegisterFormData>({
     resolver: yupResolver(registerSchema),
-    mode: 'onBlur'
+    mode: 'onBlur',
   });
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -115,15 +99,15 @@ const Register: React.FC = () => {
         department: data.department,
         title: data.title,
         password: data.password,
-        confirmPassword: data.confirmPassword
+        confirmPassword: data.confirmPassword,
       });
 
       setSuccess(true);
       setTimeout(() => {
-        navigate('/login', { 
-          state: { 
-            message: 'Registration successful! Please log in with your new account.' 
-          }
+        navigate('/login', {
+          state: {
+            message: 'Registration successful! Please log in with your new account.',
+          },
         });
       }, 2000);
     } catch (err) {
@@ -147,7 +131,7 @@ const Register: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          p: 2
+          p: 2,
         }}
       >
         <Card sx={{ maxWidth: 400, width: '100%' }}>
@@ -157,7 +141,8 @@ const Register: React.FC = () => {
               Registration Successful!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Your account has been created successfully. You will be redirected to the login page shortly.
+              Your account has been created successfully. You will be redirected to the login page
+              shortly.
             </Typography>
             <CircularProgress size={24} />
           </CardContent>
@@ -174,7 +159,7 @@ const Register: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        p: 2
+        p: 2,
       }}
     >
       <Card sx={{ maxWidth: 600, width: '100%' }}>
@@ -294,10 +279,7 @@ const Register: React.FC = () => {
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
@@ -354,11 +336,7 @@ const Register: React.FC = () => {
 
           {/* Back to Login */}
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Button
-              startIcon={<ArrowBack />}
-              onClick={handleBackToLogin}
-              disabled={isLoading}
-            >
+            <Button startIcon={<ArrowBack />} onClick={handleBackToLogin} disabled={isLoading}>
               Back to Login
             </Button>
           </Box>

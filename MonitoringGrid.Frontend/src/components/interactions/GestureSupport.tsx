@@ -1,13 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  useTheme,
-  alpha,
-  styled,
-  keyframes,
-} from '@mui/material';
+import { Box, Paper, Typography, useTheme, alpha, styled, keyframes } from '@mui/material';
 
 // Gesture animations
 const swipeLeft = keyframes`
@@ -110,7 +102,7 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (disabled) return;
-    
+
     const touch = e.touches[0];
     setSwipeState({
       isDragging: true,
@@ -122,10 +114,10 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!swipeState.isDragging || disabled) return;
-    
+
     const touch = e.touches[0];
     const deltaX = touch.clientX - swipeState.startX;
-    
+
     setSwipeState(prev => ({
       ...prev,
       currentX: touch.clientX,
@@ -135,10 +127,10 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 
   const handleTouchEnd = () => {
     if (!swipeState.isDragging || disabled) return;
-    
+
     const deltaX = swipeState.currentX - swipeState.startX;
     const absDistance = Math.abs(deltaX);
-    
+
     if (absDistance > swipeThreshold) {
       if (deltaX > 0 && onSwipeRight) {
         onSwipeRight();
@@ -146,7 +138,7 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
         onSwipeLeft();
       }
     }
-    
+
     setSwipeState({
       isDragging: false,
       startX: 0,
@@ -155,7 +147,7 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
     });
   };
 
-  const translateX = swipeState.isDragging 
+  const translateX = swipeState.isDragging
     ? Math.max(-swipeThreshold, Math.min(swipeThreshold, swipeState.currentX - swipeState.startX))
     : 0;
 
@@ -179,15 +171,16 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: swipeState.direction === 'left' 
-          ? alpha(theme.palette.error.main, 0.1)
-          : swipeState.direction === 'right'
-            ? alpha(theme.palette.success.main, 0.1)
-            : 'background.paper',
+        backgroundColor:
+          swipeState.direction === 'left'
+            ? alpha(theme.palette.error.main, 0.1)
+            : swipeState.direction === 'right'
+              ? alpha(theme.palette.success.main, 0.1)
+              : 'background.paper',
       }}
     >
       {children}
-      
+
       {/* Swipe indicators */}
       {swipeState.isDragging && (
         <>
@@ -260,8 +253,7 @@ export const PinchZoom: React.FC<PinchZoomProps> = ({
     const touch2 = touches[1];
 
     return Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
+      Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2)
     );
   };
 
@@ -279,13 +271,13 @@ export const PinchZoom: React.FC<PinchZoomProps> = ({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && gestureState.isGesturing) {
       e.preventDefault();
-      
+
       const distance = getDistance(e.touches);
       const scale = Math.max(
         minScale,
         Math.min(maxScale, gestureState.initialScale * (distance / gestureState.initialDistance))
       );
-      
+
       setTransform(prev => ({ ...prev, scale }));
       onScaleChange?.(scale);
     }
@@ -336,10 +328,10 @@ export const LongPress: React.FC<LongPressProps> = ({
 
   const startPress = useCallback(() => {
     if (disabled) return;
-    
+
     setIsPressed(true);
     setShowRipple(true);
-    
+
     timeoutRef.current = setTimeout(() => {
       onLongPress();
       setIsPressed(false);
@@ -350,7 +342,7 @@ export const LongPress: React.FC<LongPressProps> = ({
   const endPress = useCallback(() => {
     setIsPressed(false);
     setShowRipple(false);
-    
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -368,18 +360,20 @@ export const LongPress: React.FC<LongPressProps> = ({
     position: 'relative',
     cursor: disabled ? 'default' : 'pointer',
     userSelect: 'none',
-    '&::after': showRipple ? {
-      content: '""',
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      width: '20px',
-      height: '20px',
-      borderRadius: '50%',
-      backgroundColor: alpha(theme.palette.primary.main, 0.3),
-      transform: 'translate(-50%, -50%)',
-      animation: `${longPressRipple} ${delay}ms ease-out`,
-    } : {},
+    '&::after': showRipple
+      ? {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          backgroundColor: alpha(theme.palette.primary.main, 0.3),
+          transform: 'translate(-50%, -50%)',
+          animation: `${longPressRipple} ${delay}ms ease-out`,
+        }
+      : {},
   }));
 
   return (
@@ -422,7 +416,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (disabled || window.scrollY > 0) return;
-    
+
     setPullState(prev => ({
       ...prev,
       startY: e.touches[0].clientY,
@@ -432,10 +426,10 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!pullState.isPulling || disabled) return;
-    
+
     const currentY = e.touches[0].clientY;
     const pullDistance = Math.max(0, currentY - pullState.startY);
-    
+
     if (pullDistance > 0) {
       e.preventDefault();
       setPullState(prev => ({ ...prev, pullDistance }));
@@ -444,13 +438,13 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
 
   const handleTouchEnd = async () => {
     if (!pullState.isPulling || disabled) return;
-    
+
     if (pullState.pullDistance > threshold) {
       setPullState(prev => ({ ...prev, isRefreshing: true }));
       await onRefresh();
       setPullState(prev => ({ ...prev, isRefreshing: false }));
     }
-    
+
     setPullState(prev => ({
       ...prev,
       isPulling: false,
@@ -496,7 +490,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
           </Typography>
         </Box>
       )}
-      
+
       {/* Content */}
       <Box
         sx={{

@@ -55,7 +55,7 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
             {kpiDashboard?.dueKpis && kpiDashboard.dueKpis.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {kpiDashboard.dueKpis.map((kpi) => (
+                {kpiDashboard.dueKpis.map(kpi => (
                   <ListItem
                     key={kpi.kpiId}
                     sx={{
@@ -113,7 +113,8 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             Frequency: {kpi.frequency} minutes
-                            {kpi.lastRun && ` • Last run: ${format(new Date(kpi.lastRun), 'MMM dd, HH:mm')}`}
+                            {kpi.lastRun &&
+                              ` • Last run: ${format(new Date(kpi.lastRun), 'MMM dd, HH:mm')}`}
                           </Typography>
                         </Box>
                       }

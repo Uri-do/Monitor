@@ -36,11 +36,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactApi, kpiApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
 
 const ContactDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,9 +67,7 @@ const ContactDetail: React.FC = () => {
   if (!contact) {
     return (
       <Box>
-        <Alert severity="error">
-          Contact not found or you don't have permission to view it.
-        </Alert>
+        <Alert severity="error">Contact not found or you don't have permission to view it.</Alert>
       </Box>
     );
   }
@@ -97,10 +91,7 @@ const ContactDetail: React.FC = () => {
       <PageHeader
         title={contact.name}
         subtitle={`Contact Information and KPI Assignments`}
-        breadcrumbs={[
-          { label: 'Contacts', href: '/contacts' },
-          { label: contact.name },
-        ]}
+        breadcrumbs={[{ label: 'Contacts', href: '/contacts' }, { label: contact.name }]}
         primaryAction={{
           label: 'Edit Contact',
           icon: <EditIcon />,
@@ -129,10 +120,7 @@ const ContactDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     Status
                   </Typography>
-                  <StatusChip
-                    status={contact.isActive ? 'active' : 'inactive'}
-                    sx={{ mt: 0.5 }}
-                  />
+                  <StatusChip status={contact.isActive ? 'active' : 'inactive'} sx={{ mt: 0.5 }} />
                 </Box>
 
                 {contact.email && (
@@ -142,9 +130,7 @@ const ContactDetail: React.FC = () => {
                       <Typography variant="body2" color="textSecondary">
                         Email
                       </Typography>
-                      <Typography variant="body1">
-                        {contact.email}
-                      </Typography>
+                      <Typography variant="body1">{contact.email}</Typography>
                     </Box>
                   </Box>
                 )}
@@ -156,9 +142,7 @@ const ContactDetail: React.FC = () => {
                       <Typography variant="body2" color="textSecondary">
                         Phone
                       </Typography>
-                      <Typography variant="body1">
-                        {contact.phone}
-                      </Typography>
+                      <Typography variant="body1">{contact.phone}</Typography>
                     </Box>
                   </Box>
                 )}
@@ -199,9 +183,7 @@ const ContactDetail: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
-                  Assigned KPIs ({contact.assignedKpis.length})
-                </Typography>
+                <Typography variant="h6">Assigned KPIs ({contact.assignedKpis.length})</Typography>
                 <Button
                   variant="outlined"
                   startIcon={<AssignIcon />}
@@ -225,7 +207,7 @@ const ContactDetail: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {contact.assignedKpis.map((kpi) => (
+                      {contact.assignedKpis.map(kpi => (
                         <TableRow key={kpi.kpiId}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
@@ -233,32 +215,28 @@ const ContactDetail: React.FC = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2">
-                              {kpi.owner}
-                            </Typography>
+                            <Typography variant="body2">{kpi.owner}</Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
                               label={`Priority ${kpi.priority}`}
                               color={
-                                kpi.priority <= 2 ? 'error' :
-                                kpi.priority === 3 ? 'warning' : 'success'
+                                kpi.priority <= 2
+                                  ? 'error'
+                                  : kpi.priority === 3
+                                    ? 'warning'
+                                    : 'success'
                               }
                               size="small"
                             />
                           </TableCell>
                           <TableCell>
-                            <StatusChip
-                              status={kpi.isActive ? 'active' : 'inactive'}
-                            />
+                            <StatusChip status={kpi.isActive ? 'active' : 'inactive'} />
                           </TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1}>
                               <Tooltip title="View KPI">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleKpiView(kpi.kpiId)}
-                                >
+                                <IconButton size="small" onClick={() => handleKpiView(kpi.kpiId)}>
                                   <ViewIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
@@ -302,13 +280,12 @@ const ContactDetail: React.FC = () => {
           </Typography>
           {/* TODO: Implement KPI assignment interface */}
           <Alert severity="info" sx={{ mt: 2 }}>
-            KPI assignment interface is under development. For now, you can manage assignments through the KPI edit page.
+            KPI assignment interface is under development. For now, you can manage assignments
+            through the KPI edit page.
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAssignDialogOpen(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setAssignDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

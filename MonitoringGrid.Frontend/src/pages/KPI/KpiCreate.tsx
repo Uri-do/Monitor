@@ -19,18 +19,21 @@ import {
   Stack,
   Divider,
 } from '@mui/material';
-import {
-  Save as SaveIcon,
-  Cancel as CancelIcon,
-  PlayArrow as TestIcon,
-} from '@mui/icons-material';
+import { Save as SaveIcon, Cancel as CancelIcon, PlayArrow as TestIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { kpiApi, contactApi } from '@/services/api';
-import { CreateKpiRequest, UpdateKpiRequest, ContactDto, KpiType, ScheduleConfiguration, ScheduleType } from '@/types/api';
+import {
+  CreateKpiRequest,
+  UpdateKpiRequest,
+  ContactDto,
+  KpiType,
+  ScheduleConfiguration,
+  ScheduleType,
+} from '@/types/api';
 import toast from 'react-hot-toast';
 import {
   PageHeader,
@@ -41,16 +44,47 @@ import {
 
 // Validation schema
 const kpiSchema = yup.object({
-  indicator: yup.string().required('Indicator is required').max(255, 'Indicator must be less than 255 characters'),
-  owner: yup.string().required('Owner is required').max(100, 'Owner must be less than 100 characters'),
-  priority: yup.number().required('Priority is required').min(1, 'Priority must be between 1-4').max(4, 'Priority must be between 1-4'),
-  frequency: yup.number().required('Frequency is required').min(1, 'Frequency must be at least 1 minute'),
-  lastMinutes: yup.number().required('Data window is required').min(1, 'Data window must be at least 1 minute'),
-  deviation: yup.number().required('Deviation threshold is required').min(0, 'Deviation must be positive'),
-  spName: yup.string().required('Stored procedure name is required').max(255, 'SP name must be less than 255 characters'),
-  subjectTemplate: yup.string().required('Subject template is required').max(500, 'Subject template must be less than 500 characters'),
-  descriptionTemplate: yup.string().required('Description template is required').max(2000, 'Description template must be less than 2000 characters'),
-  cooldownMinutes: yup.number().required('Cooldown period is required').min(0, 'Cooldown must be positive'),
+  indicator: yup
+    .string()
+    .required('Indicator is required')
+    .max(255, 'Indicator must be less than 255 characters'),
+  owner: yup
+    .string()
+    .required('Owner is required')
+    .max(100, 'Owner must be less than 100 characters'),
+  priority: yup
+    .number()
+    .required('Priority is required')
+    .min(1, 'Priority must be between 1-4')
+    .max(4, 'Priority must be between 1-4'),
+  frequency: yup
+    .number()
+    .required('Frequency is required')
+    .min(1, 'Frequency must be at least 1 minute'),
+  lastMinutes: yup
+    .number()
+    .required('Data window is required')
+    .min(1, 'Data window must be at least 1 minute'),
+  deviation: yup
+    .number()
+    .required('Deviation threshold is required')
+    .min(0, 'Deviation must be positive'),
+  spName: yup
+    .string()
+    .required('Stored procedure name is required')
+    .max(255, 'SP name must be less than 255 characters'),
+  subjectTemplate: yup
+    .string()
+    .required('Subject template is required')
+    .max(500, 'Subject template must be less than 500 characters'),
+  descriptionTemplate: yup
+    .string()
+    .required('Description template is required')
+    .max(2000, 'Description template must be less than 2000 characters'),
+  cooldownMinutes: yup
+    .number()
+    .required('Cooldown period is required')
+    .min(0, 'Cooldown must be positive'),
   minimumThreshold: yup.number().nullable().min(0, 'Minimum threshold must be positive'),
   isActive: yup.boolean(),
   contactIds: yup.array().of(yup.number()),
@@ -84,7 +118,9 @@ const KpiCreate: React.FC = () => {
     timezone: 'UTC',
   });
   const [thresholdValue, setThresholdValue] = useState<number | undefined>();
-  const [comparisonOperator, setComparisonOperator] = useState<'gt' | 'lt' | 'eq' | 'gte' | 'lte'>('gt');
+  const [comparisonOperator, setComparisonOperator] = useState<'gt' | 'lt' | 'eq' | 'gte' | 'lte'>(
+    'gt'
+  );
 
   // Fetch KPI for editing
   const { data: kpi, isLoading: kpiLoading } = useQuery({
@@ -157,12 +193,14 @@ const KpiCreate: React.FC = () => {
       });
       setSelectedContacts(kpi.contacts);
       setKpiType(kpi.kpiType || KpiType.SuccessRate);
-      setScheduleConfig(kpi.scheduleConfiguration || {
-        scheduleType: ScheduleType.Interval,
-        intervalMinutes: kpi.frequency,
-        isEnabled: false,
-        timezone: 'UTC',
-      });
+      setScheduleConfig(
+        kpi.scheduleConfiguration || {
+          scheduleType: ScheduleType.Interval,
+          intervalMinutes: kpi.frequency,
+          isEnabled: false,
+          timezone: 'UTC',
+        }
+      );
       setThresholdValue(kpi.thresholdValue);
       setComparisonOperator(kpi.comparisonOperator || 'gt');
     }
@@ -197,7 +235,7 @@ const KpiCreate: React.FC = () => {
   // Test KPI mutation
   const testMutation = useMutation({
     mutationFn: () => kpiApi.executeKpi({ kpiId }),
-    onSuccess: (result) => {
+    onSuccess: result => {
       if (result.isSuccessful) {
         toast.success('KPI test completed successfully');
       } else {
@@ -224,13 +262,13 @@ const KpiCreate: React.FC = () => {
         ...formData,
         kpiId,
         isActive: formData.isActive ?? true,
-        minimumThreshold: formData.minimumThreshold ?? undefined
+        minimumThreshold: formData.minimumThreshold ?? undefined,
       });
     } else {
       createMutation.mutate({
         ...formData,
         isActive: formData.isActive ?? true,
-        minimumThreshold: formData.minimumThreshold ?? undefined
+        minimumThreshold: formData.minimumThreshold ?? undefined,
       });
     }
   };
@@ -244,21 +282,27 @@ const KpiCreate: React.FC = () => {
     setScheduleConfig(newScheduleConfig);
 
     // Sync the frequency field with the schedule configuration
-    if (newScheduleConfig.scheduleType === ScheduleType.Interval && newScheduleConfig.intervalMinutes) {
+    if (
+      newScheduleConfig.scheduleType === ScheduleType.Interval &&
+      newScheduleConfig.intervalMinutes
+    ) {
       // Update the form's frequency field to match the schedule interval
       reset({
         ...watch(),
-        frequency: newScheduleConfig.intervalMinutes
+        frequency: newScheduleConfig.intervalMinutes,
       });
     }
   };
 
   // Sync frequency field changes back to schedule configuration
   React.useEffect(() => {
-    if (scheduleConfig.scheduleType === ScheduleType.Interval && watchedFrequency !== scheduleConfig.intervalMinutes) {
+    if (
+      scheduleConfig.scheduleType === ScheduleType.Interval &&
+      watchedFrequency !== scheduleConfig.intervalMinutes
+    ) {
       setScheduleConfig(prev => ({
         ...prev,
-        intervalMinutes: watchedFrequency
+        intervalMinutes: watchedFrequency,
       }));
     }
   }, [watchedFrequency, scheduleConfig.scheduleType, scheduleConfig.intervalMinutes]);
@@ -282,19 +326,20 @@ const KpiCreate: React.FC = () => {
       <PageHeader
         title={isEdit ? 'Edit KPI' : 'Create KPI'}
         subtitle={isEdit ? `Editing: ${kpi?.indicator}` : 'Create a new Key Performance Indicator'}
-        breadcrumbs={[
-          { label: 'KPIs', href: '/kpis' },
-          { label: isEdit ? 'Edit' : 'Create' },
-        ]}
-        actions={isEdit ? [
-          {
-            label: 'Test KPI',
-            icon: <TestIcon />,
-            onClick: handleTest,
-            disabled: testMutation.isPending,
-            variant: 'outlined',
-          },
-        ] : []}
+        breadcrumbs={[{ label: 'KPIs', href: '/kpis' }, { label: isEdit ? 'Edit' : 'Create' }]}
+        actions={
+          isEdit
+            ? [
+                {
+                  label: 'Test KPI',
+                  icon: <TestIcon />,
+                  onClick: handleTest,
+                  disabled: testMutation.isPending,
+                  variant: 'outlined',
+                },
+              ]
+            : []
+        }
       />
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -347,14 +392,10 @@ const KpiCreate: React.FC = () => {
                         <FormControl fullWidth error={!!errors.priority}>
                           <InputLabel>Priority</InputLabel>
                           <Select {...field} label="Priority">
-                            {priorityOptions.map((option) => (
+                            {priorityOptions.map(option => (
                               <MenuItem key={option.value} value={option.value}>
                                 <Box display="flex" alignItems="center" gap={1}>
-                                  <Chip
-                                    label={option.label}
-                                    color={option.color}
-                                    size="small"
-                                  />
+                                  <Chip label={option.label} color={option.color} size="small" />
                                 </Box>
                               </MenuItem>
                             ))}
@@ -426,7 +467,10 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.frequency}
-                          helperText={errors.frequency?.message || 'How often to check this KPI. Uses whole time scheduling (e.g., 5min = xx:00, xx:05, xx:10...)'}
+                          helperText={
+                            errors.frequency?.message ||
+                            'How often to check this KPI. Uses whole time scheduling (e.g., 5min = xx:00, xx:05, xx:10...)'
+                          }
                           inputProps={{ min: 1 }}
                         />
                       )}
@@ -443,7 +487,10 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.lastMinutes}
-                          helperText={errors.lastMinutes?.message || 'How far back to look for data (e.g., 1440 = 24 hours)'}
+                          helperText={
+                            errors.lastMinutes?.message ||
+                            'How far back to look for data (e.g., 1440 = 24 hours)'
+                          }
                           inputProps={{ min: 1 }}
                         />
                       )}
@@ -460,7 +507,10 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.deviation}
-                          helperText={errors.deviation?.message || 'Alert when deviation exceeds this percentage'}
+                          helperText={
+                            errors.deviation?.message ||
+                            'Alert when deviation exceeds this percentage'
+                          }
                           inputProps={{ min: 0, step: 0.1 }}
                         />
                       )}
@@ -477,7 +527,9 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.cooldownMinutes}
-                          helperText={errors.cooldownMinutes?.message || 'Minimum time between alerts'}
+                          helperText={
+                            errors.cooldownMinutes?.message || 'Minimum time between alerts'
+                          }
                           inputProps={{ min: 0 }}
                         />
                       )}
@@ -493,7 +545,9 @@ const KpiCreate: React.FC = () => {
                           label="Stored Procedure Name"
                           fullWidth
                           error={!!errors.spName}
-                          helperText={errors.spName?.message || 'Database stored procedure to execute'}
+                          helperText={
+                            errors.spName?.message || 'Database stored procedure to execute'
+                          }
                           placeholder="e.g., sp_CheckDailySales"
                         />
                       )}
@@ -510,10 +564,15 @@ const KpiCreate: React.FC = () => {
                           type="number"
                           fullWidth
                           error={!!errors.minimumThreshold}
-                          helperText={errors.minimumThreshold?.message || 'Minimum value to consider for alerts'}
+                          helperText={
+                            errors.minimumThreshold?.message ||
+                            'Minimum value to consider for alerts'
+                          }
                           inputProps={{ min: 0, step: 0.01 }}
                           value={field.value || ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseFloat(e.target.value) : null)
+                          }
                         />
                       )}
                     />
@@ -541,7 +600,9 @@ const KpiCreate: React.FC = () => {
                           label="Subject Template"
                           fullWidth
                           error={!!errors.subjectTemplate}
-                          helperText={errors.subjectTemplate?.message || 'Email subject template for alerts'}
+                          helperText={
+                            errors.subjectTemplate?.message || 'Email subject template for alerts'
+                          }
                           placeholder="e.g., Alert: {indicator} deviation detected"
                         />
                       )}
@@ -559,7 +620,9 @@ const KpiCreate: React.FC = () => {
                           multiline
                           rows={4}
                           error={!!errors.descriptionTemplate}
-                          helperText={errors.descriptionTemplate?.message || 'Email body template for alerts'}
+                          helperText={
+                            errors.descriptionTemplate?.message || 'Email body template for alerts'
+                          }
                           placeholder="e.g., The KPI {indicator} has deviated by {deviation}% from the expected value..."
                         />
                       )}
@@ -580,11 +643,11 @@ const KpiCreate: React.FC = () => {
                 <Autocomplete
                   multiple
                   options={contacts}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={option => option.name}
                   value={selectedContacts}
                   onChange={handleContactChange}
                   isOptionEqualToValue={(option, value) => option.contactId === value.contactId}
-                  renderInput={(params) => (
+                  renderInput={params => (
                     <TextField
                       {...params}
                       label="Assigned Contacts"
@@ -636,7 +699,7 @@ const KpiCreate: React.FC = () => {
                     startIcon={<SaveIcon />}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Saving...' : (isEdit ? 'Update KPI' : 'Create KPI')}
+                    {isSubmitting ? 'Saving...' : isEdit ? 'Update KPI' : 'Create KPI'}
                   </Button>
                 </Stack>
               </CardContent>

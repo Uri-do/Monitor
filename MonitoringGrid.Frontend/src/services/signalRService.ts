@@ -32,21 +32,21 @@ class SignalRService {
 
   private initializeConnection(): void {
     const baseUrl = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:7001';
-    
+
     this.connection = new HubConnectionBuilder()
       .withUrl(`${baseUrl}/hubs/monitoring`, {
         withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
       })
       .withAutomaticReconnect({
-        nextRetryDelayInMilliseconds: (retryContext) => {
+        nextRetryDelayInMilliseconds: retryContext => {
           if (retryContext.previousRetryCount < this.maxReconnectAttempts) {
             return this.reconnectDelay * Math.pow(2, retryContext.previousRetryCount);
           }
           return null; // Stop retrying
-        }
+        },
       })
       .configureLogging(LogLevel.Information)
       .build();
@@ -139,17 +139,17 @@ class SignalRService {
   private setupConnectionEvents(): void {
     if (!this.connection) return;
 
-    this.connection.onclose((error) => {
+    this.connection.onclose(error => {
       console.log('SignalR connection closed:', error);
       this.eventHandlers.onConnectionStateChanged?.('Disconnected');
     });
 
-    this.connection.onreconnecting((error) => {
+    this.connection.onreconnecting(error => {
       console.log('SignalR reconnecting:', error);
       this.eventHandlers.onConnectionStateChanged?.('Reconnecting');
     });
 
-    this.connection.onreconnected((connectionId) => {
+    this.connection.onreconnected(connectionId => {
       console.log('SignalR reconnected:', connectionId);
       this.eventHandlers.onConnectionStateChanged?.('Connected');
       this.reconnectAttempts = 0;
@@ -169,7 +169,7 @@ class SignalRService {
     } catch (error) {
       console.error('Error starting SignalR connection:', error);
       this.eventHandlers.onConnectionStateChanged?.('Failed');
-      
+
       // Retry connection
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
@@ -237,7 +237,7 @@ class SignalRService {
   public updateAuthToken(token: string): void {
     // Store new token
     localStorage.setItem('accessToken', token);
-    
+
     // Restart connection with new token
     if (this.connection) {
       this.stop().then(() => {
@@ -279,7 +279,7 @@ export const useSignalR = () => {
     leaveGroup: signalRService.leaveGroup.bind(signalRService),
     sendMessage: signalRService.sendMessage.bind(signalRService),
     on: signalRService.on.bind(signalRService),
-    off: signalRService.off.bind(signalRService)
+    off: signalRService.off.bind(signalRService),
   };
 };
 

@@ -81,8 +81,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
 }) => {
   const theme = useTheme();
   const [zoomDomain, setZoomDomain] = useState<{ left: number; right: number } | null>(null);
-  const [brushDomain, setBrushDomain] = useState<{ startIndex: number; endIndex: number } | null>(null);
-  const [selectedArea, setSelectedArea] = useState<{ x1: number; x2: number; y1: number; y2: number } | null>(null);
+  const [brushDomain, setBrushDomain] = useState<{ startIndex: number; endIndex: number } | null>(
+    null
+  );
+  const [selectedArea, setSelectedArea] = useState<{
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+  } | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState<any>(null);
 
@@ -100,11 +107,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
 
   const handleMouseMove = (e: any) => {
     if (isSelecting && selectedArea && e && e.activeLabel) {
-      setSelectedArea(prev => prev ? {
-        ...prev,
-        x2: e.activeLabel,
-        y2: e.activePayload?.[0]?.value || prev.y2,
-      } : null);
+      setSelectedArea(prev =>
+        prev
+          ? {
+              ...prev,
+              x2: e.activeLabel,
+              y2: e.activePayload?.[0]?.value || prev.y2,
+            }
+          : null
+      );
     }
   };
 
@@ -143,21 +154,23 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
     }
   };
 
-  const filteredData = brushDomain 
+  const filteredData = brushDomain
     ? data.slice(brushDomain.startIndex, brushDomain.endIndex + 1)
     : data;
 
   return (
     <Box sx={{ position: 'relative' }}>
       {/* Chart Controls */}
-      <Box sx={{ 
-        position: 'absolute', 
-        top: 8, 
-        right: 8, 
-        zIndex: 10,
-        display: 'flex',
-        gap: 1,
-      }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          zIndex: 10,
+          display: 'flex',
+          gap: 1,
+        }}
+      >
         <ButtonGroup size="small" variant="outlined">
           <Tooltip title="Zoom In">
             <IconButton onClick={zoomIn} size="small">
@@ -187,18 +200,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
           margin={{ top: 20, right: 80, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
-          <XAxis 
-            dataKey="name"
-            tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
-          />
-          <YAxis 
-            tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
-          />
+          <XAxis dataKey="name" tick={{ fontSize: 12, fill: theme.palette.text.secondary }} />
+          <YAxis tick={{ fontSize: 12, fill: theme.palette.text.secondary }} />
           <RechartsTooltip
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
                 return (
-                  <Paper sx={{ p: 2, backgroundColor: alpha(theme.palette.background.paper, 0.95) }}>
+                  <Paper
+                    sx={{ p: 2, backgroundColor: alpha(theme.palette.background.paper, 0.95) }}
+                  >
                     <Typography variant="subtitle2">{label}</Typography>
                     <Typography variant="body2" color="primary">
                       Value: {payload[0].value}
@@ -209,7 +219,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
               return null;
             }}
           />
-          
+
           {/* Selection Area */}
           {selectedArea && (
             <ReferenceArea
@@ -219,21 +229,21 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({
               stroke={theme.palette.primary.main}
             />
           )}
-          
+
           <Line
             type="monotone"
             dataKey="value"
             stroke={theme.palette.primary.main}
             strokeWidth={2}
             dot={{ fill: theme.palette.primary.main, strokeWidth: 2, r: 4 }}
-            activeDot={{ 
-              r: 6, 
-              stroke: theme.palette.primary.main, 
+            activeDot={{
+              r: 6,
+              stroke: theme.palette.primary.main,
               strokeWidth: 2,
               onClick: onDataPointSelect,
             }}
           />
-          
+
           {/* Brush for range selection */}
           <RechartsBrush
             dataKey="name"
@@ -307,7 +317,7 @@ export const DataFilterPanel: React.FC<DataFilterPanelProps> = ({
             />
           </Box>
         );
-      
+
       case 'multiselect':
         return (
           <Box sx={{ px: 2, py: 1 }}>
@@ -333,7 +343,7 @@ export const DataFilterPanel: React.FC<DataFilterPanelProps> = ({
             </Box>
           </Box>
         );
-      
+
       default:
         return null;
     }
@@ -343,7 +353,7 @@ export const DataFilterPanel: React.FC<DataFilterPanelProps> = ({
     <Box sx={{ position: 'relative' }}>
       <Button
         startIcon={<FilterList />}
-        onClick={(e) => {
+        onClick={e => {
           setAnchorEl(e.currentTarget);
           setIsOpen(!isOpen);
         }}
@@ -352,7 +362,7 @@ export const DataFilterPanel: React.FC<DataFilterPanelProps> = ({
       >
         Filters ({filters.filter(f => f.value !== null && f.value !== '').length})
       </Button>
-      
+
       <Popover
         open={isOpen}
         anchorEl={anchorEl}
@@ -360,13 +370,15 @@ export const DataFilterPanel: React.FC<DataFilterPanelProps> = ({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 2, minWidth: 300 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+          >
             <Typography variant="h6">Filters</Typography>
             <Button size="small" onClick={onResetFilters}>
               Reset All
             </Button>
           </Box>
-          
+
           {filters.map(filter => (
             <Box key={filter.id} sx={{ mb: 2 }}>
               {renderFilter(filter)}
@@ -440,21 +452,18 @@ export const TimeSeriesPlayer: React.FC<TimeSeriesPlayerProps> = ({
       >
         <SkipPrevious />
       </IconButton>
-      
-      <IconButton
-        onClick={() => setIsPlaying(!isPlaying)}
-        color="primary"
-      >
+
+      <IconButton onClick={() => setIsPlaying(!isPlaying)} color="primary">
         {isPlaying ? <Pause /> : <PlayArrow />}
       </IconButton>
-      
+
       <IconButton
         onClick={() => setCurrentIndex(Math.min(data.length - 1, currentIndex + 1))}
         disabled={currentIndex === data.length - 1}
       >
         <SkipNext />
       </IconButton>
-      
+
       <Box sx={{ flex: 1, mx: 2 }}>
         <Slider
           value={currentIndex}
@@ -463,16 +472,14 @@ export const TimeSeriesPlayer: React.FC<TimeSeriesPlayerProps> = ({
           max={data.length - 1}
           step={1}
           valueLabelDisplay="auto"
-          valueLabelFormat={(value) => 
-            new Date(data[value]?.timestamp || 0).toLocaleTimeString()
-          }
+          valueLabelFormat={value => new Date(data[value]?.timestamp || 0).toLocaleTimeString()}
         />
       </Box>
-      
+
       <Typography variant="body2" sx={{ minWidth: 100 }}>
         {currentIndex + 1} / {data.length}
       </Typography>
-      
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography variant="caption">Speed:</Typography>
         <Slider
@@ -482,7 +489,7 @@ export const TimeSeriesPlayer: React.FC<TimeSeriesPlayerProps> = ({
           max={1900}
           step={100}
           sx={{ width: 80 }}
-          valueLabelFormat={(value) => `${((2000 - value) / 1000).toFixed(1)}x`}
+          valueLabelFormat={value => `${((2000 - value) / 1000).toFixed(1)}x`}
           valueLabelDisplay="auto"
         />
       </Box>

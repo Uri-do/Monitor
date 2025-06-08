@@ -12,26 +12,16 @@ const mockData = [
 const mockColumns: DataTableColumn[] = [
   { id: 'name', label: 'Name', sortable: true },
   { id: 'email', label: 'Email', sortable: true },
-  { 
-    id: 'status', 
-    label: 'Status', 
-    render: (value) => (
-      <span style={{ color: value === 'active' ? 'green' : 'red' }}>
-        {value}
-      </span>
-    )
+  {
+    id: 'status',
+    label: 'Status',
+    render: value => <span style={{ color: value === 'active' ? 'green' : 'red' }}>{value}</span>,
   },
 ];
 
 describe('DataTable', () => {
   it('renders table with data', () => {
-    render(
-      <DataTable
-        columns={mockColumns}
-        data={mockData}
-        rowKey="id"
-      />
-    );
+    render(<DataTable columns={mockColumns} data={mockData} rowKey="id" />);
 
     // Check if headers are rendered
     expect(screen.getByText('Name')).toBeInTheDocument();
@@ -45,49 +35,28 @@ describe('DataTable', () => {
   });
 
   it('shows loading state', () => {
-    render(
-      <DataTable
-        columns={mockColumns}
-        data={[]}
-        loading={true}
-        rowKey="id"
-      />
-    );
+    render(<DataTable columns={mockColumns} data={[]} loading={true} rowKey="id" />);
 
     expect(screen.getByText('Loading data...')).toBeInTheDocument();
   });
 
   it('shows error state', () => {
     const errorMessage = 'Failed to load data';
-    render(
-      <DataTable
-        columns={mockColumns}
-        data={[]}
-        error={errorMessage}
-        rowKey="id"
-      />
-    );
+    render(<DataTable columns={mockColumns} data={[]} error={errorMessage} rowKey="id" />);
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
   it('shows empty message when no data', () => {
     const emptyMessage = 'No data available';
-    render(
-      <DataTable
-        columns={mockColumns}
-        data={[]}
-        emptyMessage={emptyMessage}
-        rowKey="id"
-      />
-    );
+    render(<DataTable columns={mockColumns} data={[]} emptyMessage={emptyMessage} rowKey="id" />);
 
     expect(screen.getByText(emptyMessage)).toBeInTheDocument();
   });
 
   it('handles row selection', async () => {
     const onSelectionChange = vi.fn();
-    
+
     render(
       <DataTable
         columns={mockColumns}
@@ -141,7 +110,7 @@ describe('DataTable', () => {
             label: 'Edit',
             icon: <span>Edit</span>,
             onClick: mockAction,
-          }
+          },
         ]}
         rowKey="id"
       />
@@ -156,7 +125,7 @@ describe('DataTable', () => {
     const mockView = vi.fn();
     const mockEdit = vi.fn();
     const mockDelete = vi.fn();
-    
+
     render(
       <DataTable
         columns={mockColumns}
@@ -179,7 +148,7 @@ describe('DataTable', () => {
   it('handles pagination', () => {
     const mockPageChange = vi.fn();
     const mockRowsPerPageChange = vi.fn();
-    
+
     render(
       <DataTable
         columns={mockColumns}
@@ -200,15 +169,10 @@ describe('DataTable', () => {
   });
 
   it('applies custom row className', () => {
-    const rowClassName = (row: any) => row.status === 'active' ? 'active-row' : 'inactive-row';
-    
+    const rowClassName = (row: any) => (row.status === 'active' ? 'active-row' : 'inactive-row');
+
     const { container } = render(
-      <DataTable
-        columns={mockColumns}
-        data={mockData}
-        rowClassName={rowClassName}
-        rowKey="id"
-      />
+      <DataTable columns={mockColumns} data={mockData} rowClassName={rowClassName} rowKey="id" />
     );
 
     // Check if custom classes are applied

@@ -22,10 +22,7 @@ interface NextKpiExecutionCardProps {
   countdown?: number | null;
 }
 
-const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
-  kpiDashboard,
-  countdown,
-}) => {
+const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({ kpiDashboard, countdown }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -102,9 +99,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                 sx={{
                   p: 3,
                   borderRadius: 2,
-                  background: theme.palette.mode === 'light'
-                    ? 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
-                    : 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.2) 100%)',
+                  background:
+                    theme.palette.mode === 'light'
+                      ? 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
+                      : 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.2) 100%)',
                   border: '1px solid',
                   borderColor: 'primary.light',
                   position: 'relative',
@@ -113,14 +111,15 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
               >
                 <Box display="flex" alignItems="center" gap={2} mb={2}>
                   <Badge
-                    badgeContent={
-                      <Timer sx={{ fontSize: 12, color: 'white' }} />
-                    }
+                    badgeContent={<Timer sx={{ fontSize: 12, color: 'white' }} />}
                     sx={{
                       '& .MuiBadge-badge': {
-                        backgroundColor: kpiDashboard.nextKpiDue.status === 'Due Soon' ? 'warning.main' : 'primary.main',
+                        backgroundColor:
+                          kpiDashboard.nextKpiDue.status === 'Due Soon'
+                            ? 'warning.main'
+                            : 'primary.main',
                         color: 'white',
-                      }
+                      },
                     }}
                   >
                     <PlayCircle sx={{ fontSize: 32, color: 'primary.main' }} />
@@ -143,7 +142,9 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       Next Run
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {kpiDashboard.nextKpiDue.nextRun ? format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss') : 'N/A'}
+                      {kpiDashboard.nextKpiDue.nextRun
+                        ? format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss')
+                        : 'N/A'}
                     </Typography>
                   </Box>
                   <Box textAlign="center" sx={{ minWidth: 120 }}>
@@ -151,23 +152,42 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       Countdown
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AccessTime sx={{
-                        fontSize: 16,
-                        color: countdown !== null && countdown !== undefined && countdown <= 60 ? 'warning.main' : 'primary.main',
-                        animation: countdown !== null && countdown !== undefined && countdown <= 60 ? 'pulse 1s infinite' : 'none',
-                        '@keyframes pulse': {
-                          '0%': { opacity: 1 },
-                          '50%': { opacity: 0.7 },
-                          '100%': { opacity: 1 },
-                        },
-                      }} />
+                      <AccessTime
+                        sx={{
+                          fontSize: 16,
+                          color:
+                            countdown !== null && countdown !== undefined && countdown <= 60
+                              ? 'warning.main'
+                              : 'primary.main',
+                          animation:
+                            countdown !== null && countdown !== undefined && countdown <= 60
+                              ? 'pulse 1s infinite'
+                              : 'none',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                            '100%': { opacity: 1 },
+                          },
+                        }}
+                      />
                       <Chip
-                        label={countdown !== null && countdown !== undefined && countdown > 0 ? formatCountdown(countdown) : 'Due Now!'}
-                        color={countdown !== null && countdown !== undefined && countdown <= 300 ? 'warning' : 'primary'} // Warning if less than 5 minutes
+                        label={
+                          countdown !== null && countdown !== undefined && countdown > 0
+                            ? formatCountdown(countdown)
+                            : 'Due Now!'
+                        }
+                        color={
+                          countdown !== null && countdown !== undefined && countdown <= 300
+                            ? 'warning'
+                            : 'primary'
+                        } // Warning if less than 5 minutes
                         sx={{
                           fontWeight: 600,
                           fontSize: '0.9rem',
-                          animation: countdown !== null && countdown !== undefined && countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                          animation:
+                            countdown !== null && countdown !== undefined && countdown <= 60
+                              ? 'pulse 1s infinite'
+                              : 'none',
                           '@keyframes pulse': {
                             '0%': { opacity: 1 },
                             '50%': { opacity: 0.7 },
@@ -187,19 +207,31 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                         Progress to next execution
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {countdown !== null && countdown !== undefined ? Math.round(getCountdownProgress(countdown, kpiDashboard.nextKpiDue.frequency)) : 0}%
+                        {countdown !== null && countdown !== undefined
+                          ? Math.round(
+                              getCountdownProgress(countdown, kpiDashboard.nextKpiDue.frequency)
+                            )
+                          : 0}
+                        %
                       </Typography>
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={countdown !== null && countdown !== undefined ? getCountdownProgress(countdown, kpiDashboard.nextKpiDue.frequency) : 0}
+                      value={
+                        countdown !== null && countdown !== undefined
+                          ? getCountdownProgress(countdown, kpiDashboard.nextKpiDue.frequency)
+                          : 0
+                      }
                       sx={{
                         height: 6,
                         borderRadius: 3,
                         backgroundColor: theme.palette.mode === 'light' ? 'grey.200' : 'grey.700',
                         '& .MuiLinearProgress-bar': {
                           borderRadius: 3,
-                          backgroundColor: countdown !== null && countdown !== undefined && countdown <= 300 ? 'warning.main' : 'primary.main',
+                          backgroundColor:
+                            countdown !== null && countdown !== undefined && countdown <= 300
+                              ? 'warning.main'
+                              : 'primary.main',
                         },
                       }}
                     />
@@ -214,8 +246,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                     sx={{ fontWeight: 600 }}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    {(kpiDashboard.nextKpiDue.minutesUntilDue ?? 0) <= 5 ? 'Executing soon...' : 'Scheduled'} •
-                    Whole time scheduling ({kpiDashboard.nextKpiDue.frequency} min intervals)
+                    {(kpiDashboard.nextKpiDue.minutesUntilDue ?? 0) <= 5
+                      ? 'Executing soon...'
+                      : 'Scheduled'}{' '}
+                    • Whole time scheduling ({kpiDashboard.nextKpiDue.frequency} min intervals)
                   </Typography>
                 </Box>
               </Box>

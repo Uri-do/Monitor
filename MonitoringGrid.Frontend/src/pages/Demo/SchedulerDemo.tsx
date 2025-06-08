@@ -16,24 +16,13 @@ import {
   Assessment as KpiIcon,
   Preview as PreviewIcon,
 } from '@mui/icons-material';
-import { 
-  SchedulerComponent, 
-  KpiTypeSelector,
-  PageHeader 
-} from '@/components/Common';
-import { 
-  ScheduleConfiguration, 
-  ScheduleType, 
-  KpiType 
-} from '@/types/api';
-import { 
-  getScheduleDescription, 
-  isValidScheduleConfiguration 
-} from '@/utils/schedulerUtils';
-import { 
-  validateKpiConfiguration, 
+import { SchedulerComponent, KpiTypeSelector, PageHeader } from '@/components/Common';
+import { ScheduleConfiguration, ScheduleType, KpiType } from '@/types/api';
+import { getScheduleDescription, isValidScheduleConfiguration } from '@/utils/schedulerUtils';
+import {
+  validateKpiConfiguration,
   getRecommendedConfiguration,
-  getKpiTypeExamples 
+  getKpiTypeExamples,
 } from '@/utils/kpiTypeUtils';
 
 const SchedulerDemo: React.FC = () => {
@@ -46,7 +35,9 @@ const SchedulerDemo: React.FC = () => {
 
   const [kpiType, setKpiType] = useState<KpiType>(KpiType.SuccessRate);
   const [thresholdValue, setThresholdValue] = useState<number | undefined>(100);
-  const [comparisonOperator, setComparisonOperator] = useState<'gt' | 'lt' | 'eq' | 'gte' | 'lte'>('gt');
+  const [comparisonOperator, setComparisonOperator] = useState<'gt' | 'lt' | 'eq' | 'gte' | 'lte'>(
+    'gt'
+  );
 
   // Validate configurations
   const scheduleValidation = isValidScheduleConfiguration(scheduleConfig);
@@ -75,10 +66,7 @@ const SchedulerDemo: React.FC = () => {
       <PageHeader
         title="Scheduler & KPI Type Demo"
         subtitle="Interactive demonstration of the new scheduler and KPI type components"
-        breadcrumbs={[
-          { label: 'Demo', href: '/demo' },
-          { label: 'Scheduler & KPI Types' },
-        ]}
+        breadcrumbs={[{ label: 'Demo', href: '/demo' }, { label: 'Scheduler & KPI Types' }]}
       />
 
       <Grid container spacing={3}>
@@ -90,7 +78,7 @@ const SchedulerDemo: React.FC = () => {
                 <ScheduleIcon color="primary" />
                 <Typography variant="h6">Scheduler Component</Typography>
               </Box>
-              
+
               <SchedulerComponent
                 value={scheduleConfig}
                 onChange={setScheduleConfig}
@@ -114,7 +102,8 @@ const SchedulerDemo: React.FC = () => {
                 </Typography>
                 {scheduleConfig.startDate && (
                   <Typography variant="body2" sx={{ mt: 1 }}>
-                    <strong>Start Date:</strong> {new Date(scheduleConfig.startDate).toLocaleString()}
+                    <strong>Start Date:</strong>{' '}
+                    {new Date(scheduleConfig.startDate).toLocaleString()}
                   </Typography>
                 )}
                 {scheduleConfig.endDate && (
@@ -156,7 +145,7 @@ const SchedulerDemo: React.FC = () => {
                 <KpiIcon color="primary" />
                 <Typography variant="h6">KPI Type Selector</Typography>
               </Box>
-              
+
               <KpiTypeSelector
                 selectedType={kpiType}
                 onTypeChange={setKpiType}
@@ -231,7 +220,7 @@ const SchedulerDemo: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Combined Configuration Preview
               </Typography>
-              
+
               <Paper sx={{ p: 3, bgcolor: 'grey.50' }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
@@ -245,7 +234,7 @@ const SchedulerDemo: React.FC = () => {
                       Status: {scheduleValidation.isValid ? '✅ Valid' : '❌ Invalid'}
                     </Typography>
                   </Grid>
-                  
+
                   <Grid item xs={12} md={6}>
                     <Typography variant="subtitle2" gutterBottom>
                       KPI Type Configuration:
@@ -267,7 +256,8 @@ const SchedulerDemo: React.FC = () => {
                 {scheduleValidation.isValid && kpiValidation.isValid && (
                   <Alert severity="info" sx={{ mt: 2 }}>
                     <Typography variant="body2">
-                      🎉 Both configurations are valid! This KPI would run {getScheduleDescription(scheduleConfig).toLowerCase()} 
+                      🎉 Both configurations are valid! This KPI would run{' '}
+                      {getScheduleDescription(scheduleConfig).toLowerCase()}
                       and monitor {kpiType.replace('_', ' ')} metrics.
                     </Typography>
                   </Alert>

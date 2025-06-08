@@ -69,7 +69,7 @@ interface InteractiveVisualizationProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   const theme = useTheme();
-  
+
   if (active && payload && payload.length) {
     return (
       <Paper
@@ -97,7 +97,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               }}
             />
             <Typography variant="body2" color="text.secondary">
-              {entry.name}: 
+              {entry.name}:
             </Typography>
             <Typography variant="body2" fontWeight={600}>
               {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
@@ -154,7 +154,7 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
     const newFilters = activeFilters.includes(filter)
       ? activeFilters.filter(f => f !== filter)
       : [...activeFilters, filter];
-    
+
     setActiveFilters(newFilters);
     onFilterChange?.(newFilters);
   };
@@ -170,25 +170,21 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
         return (
           <ScatterChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
-            <XAxis 
-              dataKey="value" 
+            <XAxis
+              dataKey="value"
               type="number"
               domain={['dataMin', 'dataMax']}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <YAxis 
-              dataKey="performance" 
+            <YAxis
+              dataKey="performance"
               type="number"
               domain={['dataMin', 'dataMax']}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
             <ZAxis dataKey="size" range={[50, 400]} />
             <Tooltip content={<CustomTooltip />} />
-            <Scatter 
-              dataKey="performance" 
-              fill={theme.palette.primary.main}
-              fillOpacity={0.7}
-            />
+            <Scatter dataKey="performance" fill={theme.palette.primary.main} fillOpacity={0.7} />
           </ScatterChart>
         );
 
@@ -205,12 +201,12 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
         return (
           <RadarChart data={radarData} margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
             <PolarGrid stroke={alpha(theme.palette.divider, 0.3)} />
-            <PolarAngleAxis 
-              dataKey="subject" 
+            <PolarAngleAxis
+              dataKey="subject"
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <PolarRadiusAxis 
-              angle={90} 
+            <PolarRadiusAxis
+              angle={90}
               domain={[0, 150]}
               tick={{ fontSize: 10, fill: theme.palette.text.secondary }}
             />
@@ -262,16 +258,13 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
         return (
           <ComposedChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
-            <XAxis 
-              dataKey="timestamp" 
+            <XAxis
+              dataKey="timestamp"
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
-            <YAxis 
-              yAxisId="left"
-              tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
-            />
-            <YAxis 
-              yAxisId="right" 
+            <YAxis yAxisId="left" tick={{ fontSize: 12, fill: theme.palette.text.secondary }} />
+            <YAxis
+              yAxisId="right"
               orientation="right"
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
             />
@@ -285,9 +278,9 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
               stroke={theme.palette.info.main}
               strokeWidth={2}
             />
-            <Bar 
+            <Bar
               yAxisId="left"
-              dataKey="value" 
+              dataKey="value"
               fill={theme.palette.primary.main}
               fillOpacity={0.8}
             />
@@ -336,7 +329,7 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
               <InputLabel>Category</InputLabel>
               <Select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={e => setSelectedCategory(e.target.value)}
                 label="Category"
               >
                 <MenuItem value="all">All</MenuItem>
@@ -371,7 +364,7 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
                 max={1500}
                 step={100}
                 size="small"
-                valueLabelFormat={(value) => `${((2000 - value) / 1000).toFixed(1)}x`}
+                valueLabelFormat={value => `${((2000 - value) / 1000).toFixed(1)}x`}
                 valueLabelDisplay="auto"
               />
             </Box>
@@ -381,7 +374,7 @@ export const InteractiveVisualization: React.FC<InteractiveVisualizationProps> =
           {filters.length > 0 && (
             <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <FilterList fontSize="small" color="action" />
-              {filters.map((filter) => (
+              {filters.map(filter => (
                 <Chip
                   key={filter}
                   label={filter}

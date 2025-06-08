@@ -94,7 +94,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const handleNavigation = (path: string) => {
-    console.log('Navigating to:', path); // Debug log
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);
@@ -157,8 +156,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
   ];
 
-  const navItems = allNavItems.filter(item =>
-    !item.requiredPermissions || hasPermission(item.requiredPermissions)
+  const navItems = allNavItems.filter(
+    item => !item.requiredPermissions || hasPermission(item.requiredPermissions)
   );
 
   const currentDrawerWidth = sidebarCollapsed ? collapsedDrawerWidth : drawerWidth;
@@ -187,7 +186,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             background: 'rgba(255, 255, 255, 0.1)',
             borderRadius: '50%',
             transform: 'translate(20px, -20px)',
-          }
+          },
         }}
       >
         {/* Logo */}
@@ -259,22 +258,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Divider />
 
       <List sx={{ pt: 1 }}>
-        {navItems.map((item) => (
+        {navItems.map(item => (
           <ListItem key={item.text} disablePadding>
-            <Tooltip
-              title={sidebarCollapsed ? item.text : ""}
-              placement="right"
-              arrow
-            >
+            <Tooltip title={sidebarCollapsed ? item.text : ''} placement="right" arrow>
               <ListItemButton
-                selected={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
+                selected={
+                  location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+                }
                 onClick={() => handleNavigation(item.path)}
                 sx={{
                   minHeight: 48,
                   justifyContent: sidebarCollapsed ? 'center' : 'initial',
                   px: sidebarCollapsed ? 1.5 : 2.5,
                   '&.Mui-selected': {
-                    backgroundColor: theme.palette.primary.main + '20',
+                    backgroundColor: `${theme.palette.primary.main}20`,
                     borderRight: `3px solid ${theme.palette.primary.main}`,
                     '& .MuiListItemIcon-root': {
                       color: theme.palette.primary.main,
@@ -326,7 +323,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      
+
       {/* App Bar */}
       <AppBar
         position="fixed"
@@ -366,9 +363,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 textShadow: '0 2px 4px rgba(0,0,0,0.1)',
               }}
             >
-              {navItems.find(item =>
-                location.pathname === item.path ||
-                location.pathname.startsWith(item.path + '/')
+              {navItems.find(
+                item =>
+                  location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
               )?.text || 'Monitoring Grid'}
             </Typography>
             <Typography
@@ -453,10 +450,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </AppBar>
 
       {/* Navigation Drawer */}
-      <Box
-        component="nav"
-        sx={{ width: { md: currentDrawerWidth }, flexShrink: { md: 0 } }}
-      >
+      <Box component="nav" sx={{ width: { md: currentDrawerWidth }, flexShrink: { md: 0 } }}>
         {/* Mobile drawer */}
         <Drawer
           variant="temporary"
@@ -514,9 +508,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
-          {children}
-        </Box>
+        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>{children}</Box>
       </Box>
     </Box>
   );

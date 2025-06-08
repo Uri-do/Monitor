@@ -98,12 +98,42 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
   // Simulate real-time data generation
   const generateMetrics = useCallback((): RealtimeMetric[] => {
     const baseMetrics = [
-      { id: 'response-time', name: 'Avg Response Time', baseValue: 150, unit: 'ms', status: 'healthy' as const },
-      { id: 'throughput', name: 'Requests/sec', baseValue: 1250, unit: 'req/s', status: 'healthy' as const },
-      { id: 'error-rate', name: 'Error Rate', baseValue: 0.5, unit: '%', status: 'healthy' as const },
+      {
+        id: 'response-time',
+        name: 'Avg Response Time',
+        baseValue: 150,
+        unit: 'ms',
+        status: 'healthy' as const,
+      },
+      {
+        id: 'throughput',
+        name: 'Requests/sec',
+        baseValue: 1250,
+        unit: 'req/s',
+        status: 'healthy' as const,
+      },
+      {
+        id: 'error-rate',
+        name: 'Error Rate',
+        baseValue: 0.5,
+        unit: '%',
+        status: 'healthy' as const,
+      },
       { id: 'cpu-usage', name: 'CPU Usage', baseValue: 65, unit: '%', status: 'warning' as const },
-      { id: 'memory-usage', name: 'Memory Usage', baseValue: 78, unit: '%', status: 'warning' as const },
-      { id: 'active-users', name: 'Active Users', baseValue: 2340, unit: 'users', status: 'healthy' as const },
+      {
+        id: 'memory-usage',
+        name: 'Memory Usage',
+        baseValue: 78,
+        unit: '%',
+        status: 'warning' as const,
+      },
+      {
+        id: 'active-users',
+        name: 'Active Users',
+        baseValue: 2340,
+        unit: 'users',
+        status: 'healthy' as const,
+      },
     ];
 
     return baseMetrics.map(metric => {
@@ -111,19 +141,21 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
       const newValue = Math.max(0, metric.baseValue * (1 + variation));
       const previousValue = metric.baseValue;
       const change = ((newValue - previousValue) / previousValue) * 100;
-      
+
       let status: 'healthy' | 'warning' | 'critical' = 'healthy';
       if (metric.id === 'error-rate' && newValue > 2) status = 'critical';
       else if (metric.id === 'error-rate' && newValue > 1) status = 'warning';
-      else if ((metric.id === 'cpu-usage' || metric.id === 'memory-usage') && newValue > 85) status = 'critical';
-      else if ((metric.id === 'cpu-usage' || metric.id === 'memory-usage') && newValue > 70) status = 'warning';
+      else if ((metric.id === 'cpu-usage' || metric.id === 'memory-usage') && newValue > 85)
+        status = 'critical';
+      else if ((metric.id === 'cpu-usage' || metric.id === 'memory-usage') && newValue > 70)
+        status = 'warning';
 
       return {
         ...metric,
         value: Math.round(newValue * 100) / 100,
         previousValue,
         change: Math.round(change * 100) / 100,
-        trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral' as const,
+        trend: change > 0 ? 'up' : change < 0 ? 'down' : ('neutral' as const),
         status,
       };
     });
@@ -179,30 +211,39 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return theme.palette.success.main;
-      case 'warning': return theme.palette.warning.main;
-      case 'critical': return theme.palette.error.main;
-      default: return theme.palette.text.secondary;
+      case 'healthy':
+        return theme.palette.success.main;
+      case 'warning':
+        return theme.palette.warning.main;
+      case 'critical':
+        return theme.palette.error.main;
+      default:
+        return theme.palette.text.secondary;
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp fontSize="small" color="success" />;
-      case 'down': return <TrendingDown fontSize="small" color="error" />;
-      default: return null;
+      case 'up':
+        return <TrendingUp fontSize="small" color="success" />;
+      case 'down':
+        return <TrendingDown fontSize="small" color="error" />;
+      default:
+        return null;
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        mb: 4 
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 4,
+        }}
+      >
         <Box>
           <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
             Real-time Dashboard
@@ -211,7 +252,7 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
             Live monitoring with interactive visualizations
           </Typography>
         </Box>
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <LiveIndicator>
             <Box className="live-dot" />
@@ -219,12 +260,12 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
               {isLive ? 'LIVE' : 'PAUSED'}
             </Typography>
           </LiveIndicator>
-          
+
           <FormControlLabel
             control={
               <Switch
                 checked={isLive}
-                onChange={(e) => setIsLive(e.target.checked)}
+                onChange={e => setIsLive(e.target.checked)}
                 color="primary"
               />
             }
@@ -235,9 +276,9 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
 
       {/* Metrics Grid */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {metrics.map((metric) => (
+        {metrics.map(metric => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={metric.id}>
-            <MetricCard 
+            <MetricCard
               onClick={() => onMetricClick?.(metric)}
               sx={{ cursor: onMetricClick ? 'pointer' : 'default' }}
             >
@@ -257,25 +298,27 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
                   }}
                 />
               </Box>
-              
+
               <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
                 {metric.value.toLocaleString()} {metric.unit}
               </Typography>
-              
+
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 {getTrendIcon(metric.trend)}
                 <Typography
                   variant="body2"
                   sx={{
-                    color: metric.trend === 'up' 
-                      ? theme.palette.success.main 
-                      : metric.trend === 'down' 
-                        ? theme.palette.error.main 
-                        : theme.palette.text.secondary,
+                    color:
+                      metric.trend === 'up'
+                        ? theme.palette.success.main
+                        : metric.trend === 'down'
+                          ? theme.palette.error.main
+                          : theme.palette.text.secondary,
                     fontWeight: 600,
                   }}
                 >
-                  {metric.change > 0 ? '+' : ''}{metric.change}%
+                  {metric.change > 0 ? '+' : ''}
+                  {metric.change}%
                 </Typography>
               </Box>
             </MetricCard>
@@ -301,7 +344,7 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
             refreshInterval={refreshInterval}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <EnhancedChart
             data={chartData.transactions}
@@ -318,7 +361,7 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
             refreshInterval={refreshInterval}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <EnhancedChart
             data={chartData.errors}
@@ -335,7 +378,7 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
             refreshInterval={refreshInterval}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <EnhancedChart
             data={chartData.distribution}
@@ -346,7 +389,7 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
             animated
             showTooltip
             showLegend
-            onDataPointClick={(data) => console.log('Clicked:', data)}
+            onDataPointClick={data => console.log('Clicked:', data)}
           />
         </Grid>
       </Grid>

@@ -18,7 +18,7 @@ import {
   ListItemText,
   ListItemIcon,
   ListItemSecondaryAction,
-  Checkbox
+  Checkbox,
 } from '@mui/material';
 import {
   Warning as AlertTriangle,
@@ -28,13 +28,13 @@ import {
   NotificationsActive,
   Warning,
   Error,
-  Info
+  Info,
 } from '@mui/icons-material';
-import { 
-  useCriticalAlerts, 
-  useUnresolvedAlerts, 
+import {
+  useCriticalAlerts,
+  useUnresolvedAlerts,
   useEnhancedAlertStatistics,
-  useManualAlert 
+  useManualAlert,
 } from '@/hooks/useEnhancedApi';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useSignalR } from '@/services/signalRService';
@@ -47,37 +47,45 @@ interface EnhancedAlertManagementProps {
 export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = ({ className }) => {
   const [selectedAlerts, setSelectedAlerts] = useState<number[]>([]);
   const [statisticsPeriod] = useState(30);
-  
+
   // Filters
   const [filters] = useState<AlertFilterDto>({
     page: 1,
     pageSize: 20,
-    sortDirection: 'desc'
+    sortDirection: 'desc',
   });
 
-  const { data: criticalAlerts, loading: criticalLoading, refetch: refetchCritical } = useCriticalAlerts(true, 15000);
-  const { data: unresolvedAlerts, loading: unresolvedLoading, refetch: refetchUnresolved } = useUnresolvedAlerts(true, 20000);
+  const {
+    data: criticalAlerts,
+    loading: criticalLoading,
+    refetch: refetchCritical,
+  } = useCriticalAlerts(true, 15000);
+  const {
+    data: unresolvedAlerts,
+    loading: unresolvedLoading,
+    refetch: refetchUnresolved,
+  } = useUnresolvedAlerts(true, 20000);
   const { data: alertStatistics } = useEnhancedAlertStatistics(statisticsPeriod);
   const { sendAlert: sendManualAlert, loading: sendingAlert } = useManualAlert();
-  
-  const { 
-    data: alertsData, 
+
+  const {
+    data: alertsData,
     loading: alertsLoading,
     refetch: refetchAlerts,
     resolveAlert,
-    bulkResolveAlerts
+    bulkResolveAlerts,
   } = useAlerts(filters);
 
   const { isConnected } = useSignalR();
 
   const handleBulkResolve = async () => {
     if (selectedAlerts.length === 0) return;
-    
+
     try {
       await bulkResolveAlerts({
         alertIds: selectedAlerts,
         resolvedBy: 'Current User',
-        resolutionNotes: 'Bulk resolved from alert management interface'
+        resolutionNotes: 'Bulk resolved from alert management interface',
       });
       setSelectedAlerts([]);
       refetchAlerts();
@@ -110,7 +118,7 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
       await resolveAlert(alertId, {
         alertId,
         resolvedBy: 'Current User',
-        resolutionNotes: 'Resolved from enhanced alert management'
+        resolutionNotes: 'Resolved from enhanced alert management',
       });
       refetchAlerts();
       refetchCritical();
@@ -138,8 +146,8 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
         <Box display="flex" alignItems="center" gap={2}>
           <Chip
             icon={isConnected ? <NotificationsActive /> : <Notifications />}
-            label={isConnected ? "Live Updates" : "Offline"}
-            color={isConnected ? "success" : "error"}
+            label={isConnected ? 'Live Updates' : 'Offline'}
+            color={isConnected ? 'success' : 'error'}
             variant="outlined"
           />
           <Button
@@ -151,11 +159,13 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
             {sendingAlert ? 'Sending...' : 'Send Test Alert'}
           </Button>
           <Tooltip title="Refresh All Data">
-            <IconButton onClick={() => {
-              refetchAlerts();
-              refetchCritical();
-              refetchUnresolved();
-            }}>
+            <IconButton
+              onClick={() => {
+                refetchAlerts();
+                refetchCritical();
+                refetchUnresolved();
+              }}
+            >
               <Refresh />
             </IconButton>
           </Tooltip>
@@ -240,8 +250,13 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
                     Resolution Rate
                   </Typography>
                   <Typography variant="h4" component="div" color="success.main">
-                    {alertStatistics ? 
-                      ((alertStatistics.resolvedAlerts / alertStatistics.totalAlerts) * 100).toFixed(1) : 0}%
+                    {alertStatistics
+                      ? (
+                          (alertStatistics.resolvedAlerts / alertStatistics.totalAlerts) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    %
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Last {statisticsPeriod} days
@@ -267,22 +282,17 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="body1">
-                {selectedAlerts.length} alert(s) selected
-              </Typography>
+              <Typography variant="body1">{selectedAlerts.length} alert(s) selected</Typography>
               <Box display="flex" gap={2}>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="success"
                   onClick={handleBulkResolve}
                   startIcon={<CheckCircle />}
                 >
                   Bulk Resolve
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setSelectedAlerts([])}
-                >
+                <Button variant="outlined" onClick={() => setSelectedAlerts([])}>
                   Clear Selection
                 </Button>
               </Box>
@@ -300,7 +310,7 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
             </Typography>
             <List>
               {criticalAlerts.map((alert, index) => (
-                <ListItem 
+                <ListItem
                   key={index}
                   sx={{
                     border: 1,
@@ -308,13 +318,13 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
                     borderRadius: 1,
                     mb: 1,
                     backgroundColor: 'error.light',
-                    opacity: 0.9
+                    opacity: 0.9,
                   }}
                 >
                   <ListItemIcon>
                     <Checkbox
                       checked={selectedAlerts.includes(alert.alertId)}
-                      onChange={(e) => {
+                      onChange={e => {
                         if (e.target.checked) {
                           setSelectedAlerts(prev => [...prev, alert.alertId]);
                         } else {
@@ -357,7 +367,7 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
             </Typography>
             <List>
               {unresolvedAlerts.slice(0, 10).map((alert, index) => (
-                <ListItem 
+                <ListItem
                   key={index}
                   sx={{
                     border: 1,
@@ -365,13 +375,13 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
                     borderRadius: 1,
                     mb: 1,
                     backgroundColor: 'warning.light',
-                    opacity: 0.9
+                    opacity: 0.9,
                   }}
                 >
                   <ListItemIcon>
                     <Checkbox
                       checked={selectedAlerts.includes(alert.alertId)}
-                      onChange={(e) => {
+                      onChange={e => {
                         if (e.target.checked) {
                           setSelectedAlerts(prev => [...prev, alert.alertId]);
                         } else {
@@ -406,22 +416,22 @@ export const EnhancedAlertManagement: React.FC<EnhancedAlertManagementProps> = (
       )}
 
       {/* No Alerts */}
-      {(!criticalAlerts || criticalAlerts.length === 0) && 
-       (!unresolvedAlerts || unresolvedAlerts.length === 0) && (
-        <Card>
-          <CardContent>
-            <Box textAlign="center" py={4}>
-              <CheckCircle sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-              <Typography variant="h5" color="success.main" gutterBottom>
-                ✅ All Clear!
-              </Typography>
-              <Typography color="text.secondary">
-                No critical or unresolved alerts at this time.
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
+      {(!criticalAlerts || criticalAlerts.length === 0) &&
+        (!unresolvedAlerts || unresolvedAlerts.length === 0) && (
+          <Card>
+            <CardContent>
+              <Box textAlign="center" py={4}>
+                <CheckCircle sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
+                <Typography variant="h5" color="success.main" gutterBottom>
+                  ✅ All Clear!
+                </Typography>
+                <Typography color="text.secondary">
+                  No critical or unresolved alerts at this time.
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        )}
     </Box>
   );
 };

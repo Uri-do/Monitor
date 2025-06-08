@@ -84,7 +84,7 @@ const WorkerManagement: React.FC = () => {
       });
 
       const result: WorkerActionResult = await response.json();
-      
+
       if (result.success) {
         toast.success(result.message);
         await fetchStatus(); // Refresh status
@@ -101,14 +101,14 @@ const WorkerManagement: React.FC = () => {
 
   const formatUptime = (startTime?: string) => {
     if (!startTime) return 'N/A';
-    
+
     const start = new Date(startTime);
     const now = new Date();
     const diff = now.getTime() - start.getTime();
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${hours}h ${minutes}m`;
   };
 
@@ -119,7 +119,7 @@ const WorkerManagement: React.FC = () => {
 
   useEffect(() => {
     fetchStatus();
-    
+
     if (autoRefresh) {
       const interval = setInterval(fetchStatus, 5000); // Refresh every 5 seconds
       return () => clearInterval(interval);
@@ -131,7 +131,11 @@ const WorkerManagement: React.FC = () => {
       <Box sx={{ p: 3 }}>
         <Card>
           <CardHeader>
-            <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+            >
               <Build />
               Worker Management
             </Typography>
@@ -155,7 +159,11 @@ const WorkerManagement: React.FC = () => {
         <CardHeader>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
-              <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
                 <Build />
                 Worker Management
               </Typography>
@@ -168,17 +176,13 @@ const WorkerManagement: React.FC = () => {
                 control={
                   <Switch
                     checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
+                    onChange={e => setAutoRefresh(e.target.checked)}
                     color="primary"
                   />
                 }
                 label="Auto Refresh"
               />
-              <IconButton
-                onClick={fetchStatus}
-                disabled={loading}
-                color="primary"
-              >
+              <IconButton onClick={fetchStatus} disabled={loading} color="primary">
                 {loading ? <CircularProgress size={20} /> : <Refresh />}
               </IconButton>
             </Box>
@@ -214,7 +218,15 @@ const WorkerManagement: React.FC = () => {
 
               <Grid item xs={12} md={6}>
                 <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' }, mb: 0.5 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      mb: 0.5,
+                    }}
+                  >
                     <Schedule fontSize="small" />
                     <Typography variant="body2">
                       Uptime: {formatUptime(status.startTime)}
@@ -234,7 +246,9 @@ const WorkerManagement: React.FC = () => {
               variant="contained"
               color="success"
               onClick={() => performAction('start')}
-              disabled={status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'}
+              disabled={
+                status.isRunning || actionLoading === 'start' || status.mode === 'Integrated'
+              }
               startIcon={actionLoading === 'start' ? <CircularProgress size={16} /> : <PlayArrow />}
             >
               {actionLoading === 'start' ? 'Starting...' : 'Start Worker'}
@@ -244,7 +258,9 @@ const WorkerManagement: React.FC = () => {
               variant="contained"
               color="error"
               onClick={() => performAction('stop')}
-              disabled={!status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'}
+              disabled={
+                !status.isRunning || actionLoading === 'stop' || status.mode === 'Integrated'
+              }
               startIcon={actionLoading === 'stop' ? <CircularProgress size={16} /> : <Stop />}
             >
               {actionLoading === 'stop' ? 'Stopping...' : 'Stop Worker'}
@@ -253,8 +269,12 @@ const WorkerManagement: React.FC = () => {
             <Button
               variant="outlined"
               onClick={() => performAction('restart')}
-              disabled={!status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'}
-              startIcon={actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />}
+              disabled={
+                !status.isRunning || actionLoading === 'restart' || status.mode === 'Integrated'
+              }
+              startIcon={
+                actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />
+              }
             >
               {actionLoading === 'restart' ? 'Restarting...' : 'Restart Worker'}
             </Button>
@@ -263,8 +283,9 @@ const WorkerManagement: React.FC = () => {
           {/* Integration Mode Alert */}
           {status.mode === 'Integrated' && (
             <Alert severity="info" sx={{ mb: 3 }}>
-              Worker services are running in integrated mode. To control them separately,
-              set <code>EnableWorkerServices</code> to <code>false</code> in configuration and restart the API.
+              Worker services are running in integrated mode. To control them separately, set{' '}
+              <code>EnableWorkerServices</code> to <code>false</code> in configuration and restart
+              the API.
             </Alert>
           )}
 
@@ -280,10 +301,7 @@ const WorkerManagement: React.FC = () => {
             {status.services.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {status.services.map((service, index) => (
-                  <Paper
-                    key={index}
-                    sx={{ p: 2, border: 1, borderColor: 'divider' }}
-                  >
+                  <Paper key={index} sx={{ p: 2, border: 1, borderColor: 'divider' }}>
                     <Grid container spacing={2} alignItems="center">
                       <Grid item xs={12} md={8}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -292,7 +310,7 @@ const WorkerManagement: React.FC = () => {
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              bgcolor: service.status === 'Running' ? 'success.main' : 'error.main'
+                              bgcolor: service.status === 'Running' ? 'success.main' : 'error.main',
                             }}
                           />
                           <Box>

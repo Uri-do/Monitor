@@ -39,11 +39,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, executionHistoryApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
 import { PaginatedExecutionHistoryDto } from '@/types/api';
 import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 import { getScheduleDescription } from '@/utils/schedulerUtils';
@@ -80,15 +76,14 @@ const KpiDetail: React.FC = () => {
   // Fetch execution history
   const { data: executionHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['execution-history', kpiId],
-    queryFn: () => executionHistoryApi.getExecutionHistory({
-      kpiId,
-      pageSize: 10,
-      pageNumber: 1,
-    }),
+    queryFn: () =>
+      executionHistoryApi.getExecutionHistory({
+        kpiId,
+        pageSize: 10,
+        pageNumber: 1,
+      }),
     enabled: !!kpiId,
   });
-
-
 
   const handleExecute = async () => {
     const result = await kpiApi.executeKpi({
@@ -110,9 +105,7 @@ const KpiDetail: React.FC = () => {
   if (!kpi) {
     return (
       <Box>
-        <Alert severity="error">
-          KPI not found or you don't have permission to view it.
-        </Alert>
+        <Alert severity="error">KPI not found or you don't have permission to view it.</Alert>
       </Box>
     );
   }
@@ -138,10 +131,7 @@ const KpiDetail: React.FC = () => {
       <PageHeader
         title={kpi.indicator}
         subtitle={`Owner: ${kpi.owner} • Priority: ${kpi.priorityName}`}
-        breadcrumbs={[
-          { label: 'KPIs', href: '/kpis' },
-          { label: kpi.indicator },
-        ]}
+        breadcrumbs={[{ label: 'KPIs', href: '/kpis' }, { label: kpi.indicator }]}
         primaryAction={{
           label: 'Execute Now',
           icon: <ExecuteIcon />,
@@ -170,10 +160,7 @@ const KpiDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     Status
                   </Typography>
-                  <StatusChip
-                    status={kpi.isActive ? 'active' : 'inactive'}
-                    sx={{ mt: 0.5 }}
-                  />
+                  <StatusChip status={kpi.isActive ? 'active' : 'inactive'} sx={{ mt: 0.5 }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
@@ -190,9 +177,7 @@ const KpiDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     Frequency
                   </Typography>
-                  <Typography variant="body1">
-                    Every {kpi.frequency} minutes
-                  </Typography>
+                  <Typography variant="body1">Every {kpi.frequency} minutes</Typography>
                 </Grid>
                 {kpi.scheduleConfiguration && (
                   <Grid item xs={12}>
@@ -235,25 +220,19 @@ const KpiDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     Deviation Threshold
                   </Typography>
-                  <Typography variant="body1">
-                    {kpi.deviation}%
-                  </Typography>
+                  <Typography variant="body1">{kpi.deviation}%</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
                     Cooldown Period
                   </Typography>
-                  <Typography variant="body1">
-                    {kpi.cooldownMinutes} minutes
-                  </Typography>
+                  <Typography variant="body1">{kpi.cooldownMinutes} minutes</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
                     Minimum Threshold
                   </Typography>
-                  <Typography variant="body1">
-                    {kpi.minimumThreshold || 'Not set'}
-                  </Typography>
+                  <Typography variant="body1">{kpi.minimumThreshold || 'Not set'}</Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body2" color="textSecondary">
@@ -291,25 +270,19 @@ const KpiDetail: React.FC = () => {
                         <Typography variant="body2" color="textSecondary">
                           Success Rate
                         </Typography>
-                        <Typography variant="body2">
-                          {metrics.successRate.toFixed(1)}%
-                        </Typography>
+                        <Typography variant="body2">{metrics.successRate.toFixed(1)}%</Typography>
                       </Box>
                       <Box display="flex" justifyContent="space-between">
                         <Typography variant="body2" color="textSecondary">
                           Total Executions
                         </Typography>
-                        <Typography variant="body2">
-                          {metrics.totalExecutions}
-                        </Typography>
+                        <Typography variant="body2">{metrics.totalExecutions}</Typography>
                       </Box>
                       <Box display="flex" justifyContent="space-between">
                         <Typography variant="body2" color="textSecondary">
                           Total Alerts
                         </Typography>
-                        <Typography variant="body2">
-                          {metrics.totalAlerts}
-                        </Typography>
+                        <Typography variant="body2">{metrics.totalAlerts}</Typography>
                       </Box>
                     </>
                   )}
@@ -324,12 +297,10 @@ const KpiDetail: React.FC = () => {
                 </Typography>
                 {kpi.contacts.length > 0 ? (
                   <Stack spacing={1}>
-                    {kpi.contacts.map((contact) => (
+                    {kpi.contacts.map(contact => (
                       <Box key={contact.contactId} display="flex" alignItems="center" gap={1}>
                         <ContactsIcon fontSize="small" color="action" />
-                        <Typography variant="body2">
-                          {contact.name}
-                        </Typography>
+                        <Typography variant="body2">{contact.name}</Typography>
                         <StatusChip
                           status={contact.isActive ? 'active' : 'inactive'}
                           size="small"
@@ -478,7 +449,7 @@ const KpiDetail: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {executionHistory.executions.map((execution) => (
+                      {executionHistory.executions.map(execution => (
                         <TableRow key={execution.historicalId} hover>
                           <TableCell>
                             <Typography variant="body2">
@@ -502,9 +473,14 @@ const KpiDetail: React.FC = () => {
                             {execution.deviationPercent != null ? (
                               <Typography
                                 variant="body2"
-                                color={Math.abs(execution.deviationPercent) > 10 ? 'error' : 'textSecondary'}
+                                color={
+                                  Math.abs(execution.deviationPercent) > 10
+                                    ? 'error'
+                                    : 'textSecondary'
+                                }
                               >
-                                {execution.deviationPercent > 0 ? '+' : ''}{execution.deviationPercent.toFixed(1)}%
+                                {execution.deviationPercent > 0 ? '+' : ''}
+                                {execution.deviationPercent.toFixed(1)}%
                               </Typography>
                             ) : (
                               <Typography variant="body2" color="textSecondary">
@@ -526,9 +502,11 @@ const KpiDetail: React.FC = () => {
                             <Tooltip title="View Details">
                               <IconButton
                                 size="small"
-                                onClick={() => navigate(`/execution-history/${execution.historicalId}`, {
-                                  state: { fromKpiDetails: true, kpiId: kpiId }
-                                })}
+                                onClick={() =>
+                                  navigate(`/execution-history/${execution.historicalId}`, {
+                                    state: { fromKpiDetails: true, kpiId },
+                                  })
+                                }
                               >
                                 <ViewIcon fontSize="small" />
                               </IconButton>
@@ -540,9 +518,7 @@ const KpiDetail: React.FC = () => {
                   </Table>
                 </TableContainer>
               ) : (
-                <Alert severity="info">
-                  No execution history found for this KPI.
-                </Alert>
+                <Alert severity="info">No execution history found for this KPI.</Alert>
               )}
             </CardContent>
           </Card>

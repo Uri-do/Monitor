@@ -10,7 +10,7 @@ class SecurityService {
     const token = authService.getToken();
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
   }
 
@@ -91,7 +91,9 @@ class SecurityService {
     return response.json();
   }
 
-  async checkAccountLockout(username: string): Promise<{ isLocked: boolean; lockoutExpiresAt?: Date }> {
+  async checkAccountLockout(
+    username: string
+  ): Promise<{ isLocked: boolean; lockoutExpiresAt?: Date }> {
     const response = await fetch(`${this.baseUrl}/lockout-status/${username}`, {
       headers: this.getAuthHeaders(),
     });
@@ -204,8 +206,6 @@ class SecurityService {
 
     return response.json();
   }
-
-
 }
 
 export const securityService = new SecurityService();

@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Box,
-  styled,
-  keyframes,
-  useTheme,
-  alpha,
-} from '@mui/material';
+import { Box, styled, keyframes, useTheme, alpha } from '@mui/material';
 
 // Advanced keyframe animations
 export const microAnimations = {
@@ -20,7 +14,7 @@ export const microAnimations = {
       transform: translateY(0);
     }
   `,
-  
+
   fadeInScale: keyframes`
     from {
       opacity: 0;
@@ -31,7 +25,7 @@ export const microAnimations = {
       transform: scale(1);
     }
   `,
-  
+
   slideInLeft: keyframes`
     from {
       opacity: 0;
@@ -42,33 +36,33 @@ export const microAnimations = {
       transform: translateX(0);
     }
   `,
-  
+
   // Attention animations
   pulse: keyframes`
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
   `,
-  
+
   shake: keyframes`
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
     20%, 40%, 60%, 80% { transform: translateX(5px); }
   `,
-  
+
   bounce: keyframes`
     0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
     40%, 43% { transform: translateY(-15px); }
     70% { transform: translateY(-7px); }
     90% { transform: translateY(-3px); }
   `,
-  
+
   // Loading animations
   spin: keyframes`
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   `,
-  
+
   ripple: keyframes`
     0% {
       transform: scale(0);
@@ -79,30 +73,30 @@ export const microAnimations = {
       opacity: 0;
     }
   `,
-  
+
   // Hover animations
   float: keyframes`
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
   `,
-  
+
   glow: keyframes`
     0%, 100% { box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
     50% { box-shadow: 0 0 20px rgba(0, 123, 255, 0.8), 0 0 30px rgba(0, 123, 255, 0.6); }
   `,
-  
+
   // Progress animations
   progressFill: keyframes`
     0% { width: 0%; }
     100% { width: var(--progress-width); }
   `,
-  
+
   // Morphing animations
   morphCircleToSquare: keyframes`
     0% { border-radius: 50%; }
     100% { border-radius: 8px; }
   `,
-  
+
   // Stagger animations
   staggerFadeIn: keyframes`
     0% { opacity: 0; transform: translateY(20px); }
@@ -157,12 +151,12 @@ export const AnimatedContainer: React.FC<AnimatedContainerProps> = ({
   }, [threshold, triggerOnce, hasTriggered]);
 
   const StyledContainer = styled(Box)(({ theme }) => ({
-    animation: isVisible 
+    animation: isVisible
       ? `${microAnimations[animation]} ${duration}s ease-out ${delay}s both`
       : 'none',
     ...(stagger && {
       '& > *': {
-        animation: isVisible 
+        animation: isVisible
           ? `${microAnimations.staggerFadeIn} ${duration}s ease-out both`
           : 'none',
       },
@@ -258,7 +252,7 @@ export const MagneticHover: React.FC<MagneticHoverProps> = ({
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
+
     const deltaX = event.clientX - centerX;
     const deltaY = event.clientY - centerY;
     const distanceFromCenter = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -282,11 +276,7 @@ export const MagneticHover: React.FC<MagneticHoverProps> = ({
   });
 
   return (
-    <MagneticContainer
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
+    <MagneticContainer ref={ref} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
       {children}
     </MagneticContainer>
   );
@@ -310,11 +300,11 @@ export const ParallaxScroll: React.FC<ParallaxScrollProps> = ({
   useEffect(() => {
     const handleScroll = () => {
       if (!ref.current) return;
-      
+
       const rect = ref.current.getBoundingClientRect();
       const scrolled = window.pageYOffset;
       const rate = scrolled * -speed;
-      
+
       setOffset(rate);
     };
 
@@ -342,11 +332,7 @@ export const ParallaxScroll: React.FC<ParallaxScrollProps> = ({
     transition: 'transform 0.1s ease-out',
   });
 
-  return (
-    <ParallaxContainer ref={ref}>
-      {children}
-    </ParallaxContainer>
-  );
+  return <ParallaxContainer ref={ref}>{children}</ParallaxContainer>;
 };
 
 // Morphing button component
@@ -388,9 +374,12 @@ export const MorphingButton: React.FC<MorphingButtonProps> = ({
     overflow: 'hidden',
     cursor: 'pointer',
     transition: `all ${duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
-    '&:hover': trigger === 'hover' ? {
-      transform: 'scale(1.05)',
-    } : {},
+    '&:hover':
+      trigger === 'hover'
+        ? {
+            transform: 'scale(1.05)',
+          }
+        : {},
   }));
 
   const ContentWrapper = styled(Box)({

@@ -3,14 +3,19 @@ import { ScheduleConfiguration, ScheduleType, CronPreset } from '@/types/api';
 /**
  * Validates a cron expression format
  */
-export const validateCronExpression = (expression: string): { isValid: boolean; error?: string } => {
+export const validateCronExpression = (
+  expression: string
+): { isValid: boolean; error?: string } => {
   if (!expression.trim()) {
     return { isValid: false, error: 'Cron expression cannot be empty' };
   }
 
   const parts = expression.trim().split(/\s+/);
   if (parts.length !== 5) {
-    return { isValid: false, error: 'Cron expression must have exactly 5 parts (minute hour day month weekday)' };
+    return {
+      isValid: false,
+      error: 'Cron expression must have exactly 5 parts (minute hour day month weekday)',
+    };
   }
 
   // Basic validation for each part
@@ -133,7 +138,7 @@ export const getScheduleDescription = (config: ScheduleConfiguration): string =>
 const getCronDescription = (expression: string): string => {
   // This is a simplified cron description generator
   // In a real application, you might want to use a library like cronstrue
-  
+
   const commonPatterns: Record<string, string> = {
     '* * * * *': 'Every minute',
     '*/5 * * * *': 'Every 5 minutes',
@@ -155,7 +160,10 @@ const getCronDescription = (expression: string): string => {
 /**
  * Calculates the next few execution times for a schedule
  */
-export const calculateNextExecutions = (config: ScheduleConfiguration, count: number = 3): Date[] => {
+export const calculateNextExecutions = (
+  config: ScheduleConfiguration,
+  count: number = 3
+): Date[] => {
   const executions: Date[] = [];
   const now = new Date();
 
@@ -167,7 +175,7 @@ export const calculateNextExecutions = (config: ScheduleConfiguration, count: nu
     case ScheduleType.Interval:
       if (config.intervalMinutes) {
         for (let i = 1; i <= count; i++) {
-          const nextExecution = new Date(now.getTime() + (config.intervalMinutes * i * 60000));
+          const nextExecution = new Date(now.getTime() + config.intervalMinutes * i * 60000);
           executions.push(nextExecution);
         }
       }
@@ -195,7 +203,9 @@ export const calculateNextExecutions = (config: ScheduleConfiguration, count: nu
 /**
  * Checks if a schedule configuration is valid
  */
-export const isValidScheduleConfiguration = (config: ScheduleConfiguration): { isValid: boolean; errors: string[] } => {
+export const isValidScheduleConfiguration = (
+  config: ScheduleConfiguration
+): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!config.isEnabled) {
@@ -207,7 +217,8 @@ export const isValidScheduleConfiguration = (config: ScheduleConfiguration): { i
       if (!config.intervalMinutes || config.intervalMinutes < 1) {
         errors.push('Interval must be at least 1 minute');
       }
-      if (config.intervalMinutes && config.intervalMinutes > 10080) { // 1 week
+      if (config.intervalMinutes && config.intervalMinutes > 10080) {
+        // 1 week
         errors.push('Interval cannot exceed 1 week (10080 minutes)');
       }
       break;
@@ -266,8 +277,16 @@ export const COMMON_CRON_PRESETS: CronPreset[] = [
   { name: 'Daily at 6 AM', expression: '0 6 * * *', description: 'Runs daily at 06:00' },
   { name: 'Daily at 9 AM', expression: '0 9 * * *', description: 'Runs daily at 09:00' },
   { name: 'Daily at 6 PM', expression: '0 18 * * *', description: 'Runs daily at 18:00' },
-  { name: 'Weekly (Monday)', expression: '0 0 * * 1', description: 'Runs every Monday at midnight' },
-  { name: 'Weekly (Friday)', expression: '0 0 * * 5', description: 'Runs every Friday at midnight' },
+  {
+    name: 'Weekly (Monday)',
+    expression: '0 0 * * 1',
+    description: 'Runs every Monday at midnight',
+  },
+  {
+    name: 'Weekly (Friday)',
+    expression: '0 0 * * 5',
+    description: 'Runs every Friday at midnight',
+  },
   { name: 'Monthly', expression: '0 0 1 * *', description: 'Runs on the 1st of every month' },
   { name: 'Quarterly', expression: '0 0 1 */3 *', description: 'Runs on the 1st of every quarter' },
 ];

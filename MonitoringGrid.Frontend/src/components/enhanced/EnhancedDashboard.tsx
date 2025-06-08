@@ -15,7 +15,7 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
-  LinearProgress
+  LinearProgress,
 } from '@mui/material';
 import {
   Timeline as Activity,
@@ -25,17 +25,28 @@ import {
   TrendingDown,
   Refresh,
   Wifi,
-  WifiOff
+  WifiOff,
 } from '@mui/icons-material';
-import { 
-  useSystemAnalytics, 
-  useSystemHealth, 
+import {
+  useSystemAnalytics,
+  useSystemHealth,
   useLiveDashboard,
   useRealtimeStatus,
-  useCriticalAlerts 
+  useCriticalAlerts,
 } from '@/hooks/useEnhancedApi';
 import { useSignalR } from '@/services/signalRService';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 const COLORS = ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'];
 
@@ -67,13 +78,21 @@ interface EnhancedDashboardProps {
 export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className }) => {
   const [selectedPeriod, setSelectedPeriod] = useState(30);
   const [tabValue, setTabValue] = useState(0);
-  
-  const { data: systemAnalytics, loading: analyticsLoading, refetch: refetchAnalytics } = useSystemAnalytics(selectedPeriod);
-  const { data: systemHealth, loading: healthLoading, refetch: refetchHealth } = useSystemHealth(true, 30000);
+
+  const {
+    data: systemAnalytics,
+    loading: analyticsLoading,
+    refetch: refetchAnalytics,
+  } = useSystemAnalytics(selectedPeriod);
+  const {
+    data: systemHealth,
+    loading: healthLoading,
+    refetch: refetchHealth,
+  } = useSystemHealth(true, 30000);
   const { data: liveDashboard, loading: dashboardLoading } = useLiveDashboard(true, 10000);
   const { data: realtimeStatus, loading: statusLoading } = useRealtimeStatus(true, 5000);
   const { data: criticalAlerts, loading: alertsLoading } = useCriticalAlerts(true, 15000);
-  
+
   const { isConnected, connectionState } = useSignalR();
 
   const getHealthColor = (score: number) => {
@@ -89,10 +108,12 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
   };
 
   const formatTrendData = (trends: any[]) => {
-    return trends?.map(trend => ({
-      date: new Date(trend.date).toLocaleDateString(),
-      value: trend.value
-    })) || [];
+    return (
+      trends?.map(trend => ({
+        date: new Date(trend.date).toLocaleDateString(),
+        value: trend.value,
+      })) || []
+    );
   };
 
   const formatHealthDistribution = (distribution: any) => {
@@ -101,7 +122,7 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
       { name: 'Healthy', value: distribution.healthy, color: COLORS[0] },
       { name: 'Warning', value: distribution.warning, color: COLORS[1] },
       { name: 'Critical', value: distribution.critical, color: COLORS[2] },
-      { name: 'Inactive', value: distribution.inactive, color: COLORS[3] }
+      { name: 'Inactive', value: distribution.inactive, color: COLORS[3] },
     ];
   };
 
@@ -128,8 +149,8 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
         <Box display="flex" alignItems="center" gap={2}>
           <Chip
             icon={isConnected ? <Wifi /> : <WifiOff />}
-            label={isConnected ? "Live" : "Offline"}
-            color={isConnected ? "success" : "error"}
+            label={isConnected ? 'Live' : 'Offline'}
+            color={isConnected ? 'success' : 'error'}
             variant="outlined"
           />
           <Typography variant="body2" color="text.secondary">
@@ -148,7 +169,7 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
         {[7, 30, 90].map(days => (
           <Button
             key={days}
-            variant={selectedPeriod === days ? "contained" : "outlined"}
+            variant={selectedPeriod === days ? 'contained' : 'outlined'}
             size="small"
             onClick={() => setSelectedPeriod(days)}
             sx={{ mr: 1 }}
@@ -191,9 +212,9 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                   <Typography color="text.secondary" gutterBottom variant="body2">
                     System Health
                   </Typography>
-                  <Typography 
-                    variant="h4" 
-                    component="div" 
+                  <Typography
+                    variant="h4"
+                    component="div"
                     color={`${getHealthColor(systemHealth?.overallHealthScore || 0)}.main`}
                   >
                     {systemHealth?.overallHealthScore?.toFixed(1) || 0}%
@@ -204,9 +225,9 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                 </Box>
                 {getHealthIcon(systemHealth?.overallHealthScore || 0)}
               </Box>
-              <LinearProgress 
-                variant="determinate" 
-                value={systemHealth?.overallHealthScore || 0} 
+              <LinearProgress
+                variant="determinate"
+                value={systemHealth?.overallHealthScore || 0}
                 color={getHealthColor(systemHealth?.overallHealthScore || 0)}
                 sx={{ mt: 1 }}
               />
@@ -273,10 +294,12 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                 </Box>
                 <Activity color="primary" />
               </Box>
-              <LinearProgress 
-                variant="determinate" 
-                value={realtimeStatus?.systemLoad || 0} 
-                color={realtimeStatus?.systemLoad && realtimeStatus.systemLoad > 80 ? "error" : "primary"}
+              <LinearProgress
+                variant="determinate"
+                value={realtimeStatus?.systemLoad || 0}
+                color={
+                  realtimeStatus?.systemLoad && realtimeStatus.systemLoad > 80 ? 'error' : 'primary'
+                }
                 sx={{ mt: 1 }}
               />
             </CardContent>
@@ -314,9 +337,11 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                           dataKey="value"
                           label={({ name, value }) => `${name}: ${value}`}
                         >
-                          {formatHealthDistribution(systemAnalytics?.kpiHealthDistribution).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                          {formatHealthDistribution(systemAnalytics?.kpiHealthDistribution).map(
+                            (entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            )
+                          )}
                         </Pie>
                         <RechartsTooltip />
                       </PieChart>
@@ -335,19 +360,19 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                   </Typography>
                   <Box>
                     {liveDashboard?.recentExecutions?.slice(0, 5).map((execution, index) => (
-                      <Box 
-                        key={index} 
-                        display="flex" 
-                        justifyContent="space-between" 
-                        alignItems="center" 
-                        p={2} 
-                        border={1} 
-                        borderColor="grey.300" 
-                        borderRadius={1} 
+                      <Box
+                        key={index}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        p={2}
+                        border={1}
+                        borderColor="grey.300"
+                        borderRadius={1}
                         mb={1}
                         sx={{
                           backgroundColor: execution.isSuccessful ? 'success.light' : 'error.light',
-                          opacity: 0.8
+                          opacity: 0.8,
                         }}
                       >
                         <Box>
@@ -371,11 +396,10 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                         </Box>
                       </Box>
                     ))}
-                    {(!liveDashboard?.recentExecutions || liveDashboard.recentExecutions.length === 0) && (
+                    {(!liveDashboard?.recentExecutions ||
+                      liveDashboard.recentExecutions.length === 0) && (
                       <Box textAlign="center" py={4}>
-                        <Typography color="text.secondary">
-                          No recent executions
-                        </Typography>
+                        <Typography color="text.secondary">No recent executions</Typography>
                       </Box>
                     )}
                   </Box>
@@ -429,8 +453,13 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                     {systemAnalytics?.resolvedAlerts || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {systemAnalytics?.totalAlerts ? 
-                      ((systemAnalytics.resolvedAlerts / systemAnalytics.totalAlerts) * 100).toFixed(1) : 0}% resolution rate
+                    {systemAnalytics?.totalAlerts
+                      ? (
+                          (systemAnalytics.resolvedAlerts / systemAnalytics.totalAlerts) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    % resolution rate
                   </Typography>
                 </CardContent>
               </Card>
@@ -517,7 +546,8 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                         {recommendation}
                       </Alert>
                     ))}
-                    {(!systemHealth?.recommendations || systemHealth.recommendations.length === 0) && (
+                    {(!systemHealth?.recommendations ||
+                      systemHealth.recommendations.length === 0) && (
                       <Box textAlign="center" py={4}>
                         <CheckCircle sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
                         <Typography color="text.secondary">
@@ -539,15 +569,15 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                   </Typography>
                   <Box>
                     {systemAnalytics?.topPerformingKpis?.map((kpi, index) => (
-                      <Box 
-                        key={index} 
-                        display="flex" 
-                        justifyContent="space-between" 
-                        alignItems="center" 
-                        p={2} 
-                        border={1} 
-                        borderColor="grey.300" 
-                        borderRadius={1} 
+                      <Box
+                        key={index}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        p={2}
+                        border={1}
+                        borderColor="grey.300"
+                        borderRadius={1}
                         mb={1}
                         sx={{ backgroundColor: 'success.light', opacity: 0.8 }}
                       >
@@ -569,7 +599,8 @@ export const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ className 
                         </Box>
                       </Box>
                     ))}
-                    {(!systemAnalytics?.topPerformingKpis || systemAnalytics.topPerformingKpis.length === 0) && (
+                    {(!systemAnalytics?.topPerformingKpis ||
+                      systemAnalytics.topPerformingKpis.length === 0) && (
                       <Box textAlign="center" py={4}>
                         <Typography color="text.secondary">
                           No performance data available

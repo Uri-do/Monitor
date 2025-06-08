@@ -7,31 +7,35 @@ export const KPI_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
   {
     type: KpiType.SuccessRate,
     name: 'Success Rate Monitoring',
-    description: 'Monitors success percentages and compares them against historical averages. Ideal for tracking transaction success rates, API response rates, login success rates, and other percentage-based metrics.',
+    description:
+      'Monitors success percentages and compares them against historical averages. Ideal for tracking transaction success rates, API response rates, login success rates, and other percentage-based metrics.',
     requiredFields: ['deviation', 'lastMinutes'],
-    defaultStoredProcedure: 'monitoring.usp_MonitorTransactions'
+    defaultStoredProcedure: 'monitoring.usp_MonitorTransactions',
   },
   {
     type: KpiType.TransactionVolume,
     name: 'Transaction Volume Monitoring',
-    description: 'Tracks transaction counts and compares them to historical patterns. Perfect for detecting unusual spikes or drops in activity, monitoring daily transactions, API calls, user registrations, and other count-based metrics.',
+    description:
+      'Tracks transaction counts and compares them to historical patterns. Perfect for detecting unusual spikes or drops in activity, monitoring daily transactions, API calls, user registrations, and other count-based metrics.',
     requiredFields: ['deviation', 'minimumThreshold', 'lastMinutes'],
-    defaultStoredProcedure: 'monitoring.usp_MonitorTransactionVolume'
+    defaultStoredProcedure: 'monitoring.usp_MonitorTransactionVolume',
   },
   {
     type: KpiType.Threshold,
     name: 'Threshold Monitoring',
-    description: 'Simple threshold-based monitoring that triggers alerts when values cross specified limits. Useful for monitoring system resources, queue lengths, error counts, response times, and other absolute value metrics.',
+    description:
+      'Simple threshold-based monitoring that triggers alerts when values cross specified limits. Useful for monitoring system resources, queue lengths, error counts, response times, and other absolute value metrics.',
     requiredFields: ['thresholdValue', 'comparisonOperator'],
-    defaultStoredProcedure: 'monitoring.usp_MonitorThreshold'
+    defaultStoredProcedure: 'monitoring.usp_MonitorThreshold',
   },
   {
     type: KpiType.TrendAnalysis,
     name: 'Trend Analysis',
-    description: 'Analyzes trends over time to detect gradual changes or patterns. Excellent for capacity planning, performance degradation detection, user behavior analysis, and early warning systems for emerging issues.',
+    description:
+      'Analyzes trends over time to detect gradual changes or patterns. Excellent for capacity planning, performance degradation detection, user behavior analysis, and early warning systems for emerging issues.',
     requiredFields: ['deviation', 'lastMinutes'],
-    defaultStoredProcedure: 'monitoring.usp_MonitorTrends'
-  }
+    defaultStoredProcedure: 'monitoring.usp_MonitorTrends',
+  },
 ];
 
 /**
@@ -130,7 +134,11 @@ export const validateKpiConfiguration = (
       break;
 
     case KpiType.Threshold:
-      if (config.thresholdValue !== undefined && config.thresholdValue === 0 && config.comparisonOperator === 'gt') {
+      if (
+        config.thresholdValue !== undefined &&
+        config.thresholdValue === 0 &&
+        config.comparisonOperator === 'gt'
+      ) {
         errors.push('Threshold value of 0 with "greater than" operator may cause frequent alerts');
       }
       break;
@@ -155,7 +163,7 @@ export const getRecommendedConfiguration = (type: KpiType) => {
         deviation: 10,
         lastMinutes: 1440, // 24 hours
         minimumThreshold: 10,
-        description: 'Monitor success rates with 10% deviation tolerance over 24 hours'
+        description: 'Monitor success rates with 10% deviation tolerance over 24 hours',
       };
 
     case KpiType.TransactionVolume:
@@ -163,26 +171,27 @@ export const getRecommendedConfiguration = (type: KpiType) => {
         deviation: 20,
         lastMinutes: 1440, // 24 hours
         minimumThreshold: 100,
-        description: 'Monitor transaction volume with 20% deviation tolerance, minimum 100 transactions'
+        description:
+          'Monitor transaction volume with 20% deviation tolerance, minimum 100 transactions',
       };
 
     case KpiType.Threshold:
       return {
         thresholdValue: 100,
         comparisonOperator: 'gt' as const,
-        description: 'Alert when value exceeds 100'
+        description: 'Alert when value exceeds 100',
       };
 
     case KpiType.TrendAnalysis:
       return {
         deviation: 15,
         lastMinutes: 2880, // 48 hours
-        description: 'Analyze trends over 48 hours with 15% deviation tolerance'
+        description: 'Analyze trends over 48 hours with 15% deviation tolerance',
       };
 
     default:
       return {
-        description: 'Default configuration'
+        description: 'Default configuration',
       };
   }
 };
@@ -198,7 +207,7 @@ export const getKpiTypeExamples = (type: KpiType): string[] => {
         'API response success rate',
         'User login success rate',
         'Email delivery success rate',
-        'Database query success rate'
+        'Database query success rate',
       ];
 
     case KpiType.TransactionVolume:
@@ -207,7 +216,7 @@ export const getKpiTypeExamples = (type: KpiType): string[] => {
         'Hourly API calls',
         'User registrations per day',
         'Order volume monitoring',
-        'File upload counts'
+        'File upload counts',
       ];
 
     case KpiType.Threshold:
@@ -216,7 +225,7 @@ export const getKpiTypeExamples = (type: KpiType): string[] => {
         'Memory usage above 90%',
         'Queue length above 1000',
         'Response time above 5 seconds',
-        'Error count above 10'
+        'Error count above 10',
       ];
 
     case KpiType.TrendAnalysis:
@@ -225,7 +234,7 @@ export const getKpiTypeExamples = (type: KpiType): string[] => {
         'Increasing error rates over time',
         'User engagement trends',
         'Resource usage growth',
-        'Capacity planning metrics'
+        'Capacity planning metrics',
       ];
 
     default:
@@ -254,7 +263,9 @@ export const getKpiTypeIcon = (type: KpiType): string => {
 /**
  * Gets the color scheme for a KPI type
  */
-export const getKpiTypeColor = (type: KpiType): 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' => {
+export const getKpiTypeColor = (
+  type: KpiType
+): 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' => {
   switch (type) {
     case KpiType.SuccessRate:
       return 'success';
@@ -273,35 +284,35 @@ export const getKpiTypeColor = (type: KpiType): 'primary' | 'secondary' | 'succe
  * Comparison operators with human-readable labels
  */
 export const COMPARISON_OPERATORS = [
-  { 
-    value: 'gt', 
-    label: 'Greater than (>)', 
+  {
+    value: 'gt',
+    label: 'Greater than (>)',
     description: 'Alert when value exceeds threshold',
-    symbol: '>'
+    symbol: '>',
   },
-  { 
-    value: 'gte', 
-    label: 'Greater than or equal (≥)', 
+  {
+    value: 'gte',
+    label: 'Greater than or equal (≥)',
     description: 'Alert when value meets or exceeds threshold',
-    symbol: '≥'
+    symbol: '≥',
   },
-  { 
-    value: 'lt', 
-    label: 'Less than (<)', 
+  {
+    value: 'lt',
+    label: 'Less than (<)',
     description: 'Alert when value falls below threshold',
-    symbol: '<'
+    symbol: '<',
   },
-  { 
-    value: 'lte', 
-    label: 'Less than or equal (≤)', 
+  {
+    value: 'lte',
+    label: 'Less than or equal (≤)',
     description: 'Alert when value meets or falls below threshold',
-    symbol: '≤'
+    symbol: '≤',
   },
-  { 
-    value: 'eq', 
-    label: 'Equal to (=)', 
+  {
+    value: 'eq',
+    label: 'Equal to (=)',
     description: 'Alert when value exactly matches threshold',
-    symbol: '='
+    symbol: '=',
   },
 ];
 

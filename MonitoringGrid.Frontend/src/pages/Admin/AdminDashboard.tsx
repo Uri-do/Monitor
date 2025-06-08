@@ -20,7 +20,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
 } from '@mui/material';
 import {
   People,
@@ -31,7 +31,7 @@ import {
   CheckCircle,
   Block,
   Refresh,
-  AdminPanelSettings
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '../../components/Common';
@@ -59,17 +59,25 @@ const AdminDashboard: React.FC = () => {
     systemRoles: 0,
     customRoles: 0,
     unverifiedUsers: 0,
-    recentLogins: 0
+    recentLogins: 0,
   });
 
-  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery({
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    refetch: refetchUsers,
+  } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => userService.getUsers()
+    queryFn: () => userService.getUsers(),
   });
 
-  const { data: roles = [], isLoading: rolesLoading, refetch: refetchRoles } = useQuery({
+  const {
+    data: roles = [],
+    isLoading: rolesLoading,
+    refetch: refetchRoles,
+  } = useQuery({
     queryKey: ['admin-roles'],
-    queryFn: () => roleService.getRoles()
+    queryFn: () => roleService.getRoles(),
   });
 
   useEffect(() => {
@@ -98,7 +106,7 @@ const AdminDashboard: React.FC = () => {
       systemRoles,
       customRoles: roles.length - systemRoles,
       unverifiedUsers,
-      recentLogins
+      recentLogins,
     });
   };
 
@@ -133,8 +141,8 @@ const AdminDashboard: React.FC = () => {
             label: 'Refresh',
             icon: <Refresh />,
             onClick: handleRefresh,
-            variant: 'outlined' as const
-          }
+            variant: 'outlined' as const,
+          },
         ]}
       />
 
@@ -250,7 +258,7 @@ const AdminDashboard: React.FC = () => {
                 <LinearProgress />
               ) : (
                 <List>
-                  {recentUsers.map((user) => (
+                  {recentUsers.map(user => (
                     <ListItem key={user.userId}>
                       <ListItemAvatar>
                         <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -291,7 +299,7 @@ const AdminDashboard: React.FC = () => {
                 <LinearProgress />
               ) : (
                 <List>
-                  {inactiveUsers.map((user) => (
+                  {inactiveUsers.map(user => (
                     <ListItem key={user.userId}>
                       <ListItemAvatar>
                         <Avatar sx={{ bgcolor: 'error.main' }}>
@@ -339,7 +347,7 @@ const AdminDashboard: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {roles.map((role) => (
+                      {roles.map(role => (
                         <TableRow key={role.roleId}>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

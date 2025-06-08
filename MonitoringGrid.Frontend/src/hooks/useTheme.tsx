@@ -149,17 +149,20 @@ const createCustomTheme = (mode: PaletteMode): Theme => {
         styleOverrides: {
           root: {
             borderRadius: 16,
-            boxShadow: mode === 'light'
-              ? '0px 2px 8px rgba(0, 0, 0, 0.08)'
-              : '0px 2px 8px rgba(0, 0, 0, 0.3)',
-            border: mode === 'light'
-              ? '1px solid rgba(0, 0, 0, 0.04)'
-              : '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow:
+              mode === 'light'
+                ? '0px 2px 8px rgba(0, 0, 0, 0.08)'
+                : '0px 2px 8px rgba(0, 0, 0, 0.3)',
+            border:
+              mode === 'light'
+                ? '1px solid rgba(0, 0, 0, 0.04)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
             transition: 'all 0.2s ease-in-out',
             '&:hover': {
-              boxShadow: mode === 'light'
-                ? '0px 4px 16px rgba(0, 0, 0, 0.12)'
-                : '0px 4px 16px rgba(0, 0, 0, 0.4)',
+              boxShadow:
+                mode === 'light'
+                  ? '0px 4px 16px rgba(0, 0, 0, 0.12)'
+                  : '0px 4px 16px rgba(0, 0, 0, 0.4)',
               transform: 'translateY(-2px)',
             },
           },
@@ -195,9 +198,10 @@ const createCustomTheme = (mode: PaletteMode): Theme => {
             fontWeight: 600,
             boxShadow: 'none',
             '&:hover': {
-              boxShadow: mode === 'light'
-                ? '0px 2px 8px rgba(0, 0, 0, 0.15)'
-                : '0px 2px 8px rgba(0, 0, 0, 0.3)',
+              boxShadow:
+                mode === 'light'
+                  ? '0px 2px 8px rgba(0, 0, 0, 0.15)'
+                  : '0px 2px 8px rgba(0, 0, 0, 0.3)',
             },
           },
         },
@@ -215,9 +219,8 @@ const createCustomTheme = (mode: PaletteMode): Theme => {
             borderRadius: 8,
             marginBottom: 4,
             '&:hover': {
-              backgroundColor: mode === 'light'
-                ? 'rgba(0, 0, 0, 0.02)'
-                : 'rgba(255, 255, 255, 0.05)',
+              backgroundColor:
+                mode === 'light' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.05)',
             },
           },
         },
@@ -265,9 +268,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 
   return (
     <ThemeContext.Provider value={value}>
-      <MuiThemeProvider theme={theme}>
-        {children}
-      </MuiThemeProvider>
+      <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
     </ThemeContext.Provider>
   );
 }
