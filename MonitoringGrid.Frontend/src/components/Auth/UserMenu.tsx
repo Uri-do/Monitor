@@ -18,13 +18,17 @@ import {
   Person,
   Security,
   Notifications,
-  Help
+  Help,
+  DarkMode,
+  LightMode
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 import { useNavigate } from 'react-router-dom';
 
 const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
+  const { mode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -230,6 +234,17 @@ const UserMenu: React.FC = () => {
           </ListItemIcon>
           <ListItemText>
             <Typography variant="body2">Help & Support</Typography>
+          </ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={toggleTheme}>
+          <ListItemIcon>
+            {mode === 'light' ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
+          </ListItemIcon>
+          <ListItemText>
+            <Typography variant="body2">
+              {mode === 'light' ? 'Dark Mode' : 'Light Mode'}
+            </Typography>
           </ListItemText>
         </MenuItem>
 

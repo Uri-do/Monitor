@@ -35,11 +35,14 @@ import {
   History as HistoryIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  DarkMode,
+  LightMode,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi, alertApi } from '@/services/api';
 import UserMenu from '@/components/Auth/UserMenu';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme as useCustomTheme } from '@/hooks/useTheme';
 import mgLogo from '@/assets/images/mglogo.png';
 
 const drawerWidth = 240;
@@ -59,6 +62,7 @@ interface NavItem {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
+  const { mode, toggleTheme } = useCustomTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -417,6 +421,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 }}
               >
                 <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title={mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}>
+              <IconButton
+                color="inherit"
+                onClick={toggleTheme}
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                }}
+              >
+                {mode === 'light' ? <DarkMode /> : <LightMode />}
               </IconButton>
             </Tooltip>
 
