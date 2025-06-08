@@ -14,7 +14,7 @@ import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingKpisCard from './components/TopAlertingKpisCard';
 
 const Dashboard: React.FC = () => {
-  const theme = useTheme();
+  // const theme = useTheme(); // Available for future theming
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Fetch dashboard data with more frequent refresh for real-time updates

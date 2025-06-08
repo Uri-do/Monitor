@@ -4,11 +4,6 @@ import {
   AlertLogDto,
   KpiDashboardDto,
   AlertDashboardDto,
-  KpiExecutionResultDto,
-  KpiMetricsDto,
-  AlertStatisticsDto,
-  PaginatedAlertsDto,
-  AlertFilterDto,
   HealthCheckResponse,
 } from '@/types/api';
 

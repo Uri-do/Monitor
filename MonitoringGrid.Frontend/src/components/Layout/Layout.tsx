@@ -30,8 +30,7 @@ import {
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
   AdminPanelSettings,
-  Group,
-  Security,
+
   History as HistoryIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,

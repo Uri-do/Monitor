@@ -22,8 +22,8 @@ import {
   Assessment as AssessmentIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
-import { KpiType, KpiTypeDefinition } from '@/types/api';
-import { KPI_TYPE_DEFINITIONS, COMPARISON_OPERATORS, getKpiTypeColor } from '@/utils/kpiTypeUtils';
+import { KpiType } from '@/types/api';
+import { KPI_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/kpiTypeUtils';
 
 interface KpiTypeSelectorProps {
   selectedType: KpiType;
