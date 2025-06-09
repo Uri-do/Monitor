@@ -145,9 +145,9 @@ public class QueryOptimizationHints
 }
 
 /// <summary>
-/// Bulk operation result
+/// Projection bulk operation result
 /// </summary>
-public class BulkOperationResult
+public class ProjectionBulkOperationResult
 {
     public int AffectedRows { get; set; }
     public TimeSpan ExecutionTime { get; set; }

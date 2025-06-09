@@ -315,3 +315,574 @@ public class SecurityAuditSummary
     /// </summary>
     public Dictionary<string, int> TopUsers { get; set; } = new();
 }
+
+/// <summary>
+/// Data validation result for integrity checks
+/// </summary>
+public class DataValidationResult
+{
+    /// <summary>
+    /// Overall validation status
+    /// </summary>
+    public bool IsValid { get; set; }
+
+    /// <summary>
+    /// Time when validation was performed
+    /// </summary>
+    public DateTime ValidationTime { get; set; }
+
+    /// <summary>
+    /// List of validation issues found
+    /// </summary>
+    public List<ValidationIssue> Issues { get; set; } = new();
+
+    /// <summary>
+    /// Number of records validated
+    /// </summary>
+    public int RecordsValidated { get; set; }
+
+    /// <summary>
+    /// Validation execution time in milliseconds
+    /// </summary>
+    public int ExecutionTimeMs { get; set; }
+
+    /// <summary>
+    /// Validation summary by category
+    /// </summary>
+    public Dictionary<string, int> IssuesByCategory { get; set; } = new();
+}
+
+/// <summary>
+/// Individual validation issue
+/// </summary>
+public class ValidationIssue
+{
+    /// <summary>
+    /// Issue category (e.g., "ForeignKey", "DataType", "Constraint")
+    /// </summary>
+    public string Category { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Issue severity level
+    /// </summary>
+    public ValidationSeverity Severity { get; set; }
+
+    /// <summary>
+    /// Description of the issue
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Table name where issue was found
+    /// </summary>
+    public string TableName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Column name where issue was found (if applicable)
+    /// </summary>
+    public string? ColumnName { get; set; }
+
+    /// <summary>
+    /// Record identifier where issue was found (if applicable)
+    /// </summary>
+    public string? RecordId { get; set; }
+
+    /// <summary>
+    /// Suggested fix for the issue
+    /// </summary>
+    public string? SuggestedFix { get; set; }
+
+    /// <summary>
+    /// Whether this issue can be automatically fixed
+    /// </summary>
+    public bool CanAutoFix { get; set; }
+}
+
+/// <summary>
+/// Validation severity levels
+/// </summary>
+public enum ValidationSeverity
+{
+    Info = 0,
+    Warning = 1,
+    Error = 2,
+    Critical = 3
+}
+
+/// <summary>
+/// Export request for data export operations
+/// </summary>
+public class ExportRequest
+{
+    /// <summary>
+    /// Export format (CSV, JSON, XML, Excel)
+    /// </summary>
+    public string Format { get; set; } = "CSV";
+
+    /// <summary>
+    /// Tables or entities to export
+    /// </summary>
+    public List<string> Tables { get; set; } = new();
+
+    /// <summary>
+    /// Date range for export (optional)
+    /// </summary>
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+
+    /// <summary>
+    /// Export filters (optional)
+    /// </summary>
+    public Dictionary<string, object> Filters { get; set; } = new();
+
+    /// <summary>
+    /// Output file path
+    /// </summary>
+    public string OutputPath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether to include related data
+    /// </summary>
+    public bool IncludeRelatedData { get; set; } = true;
+
+    /// <summary>
+    /// Compression settings
+    /// </summary>
+    public bool CompressOutput { get; set; } = false;
+}
+
+/// <summary>
+/// Export operation result
+/// </summary>
+public class ExportResult
+{
+    /// <summary>
+    /// Whether export was successful
+    /// </summary>
+    public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// Export file path
+    /// </summary>
+    public string FilePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Number of records exported
+    /// </summary>
+    public int RecordsExported { get; set; }
+
+    /// <summary>
+    /// File size in bytes
+    /// </summary>
+    public long FileSizeBytes { get; set; }
+
+    /// <summary>
+    /// Export execution time in milliseconds
+    /// </summary>
+    public int ExecutionTimeMs { get; set; }
+
+    /// <summary>
+    /// Export format used
+    /// </summary>
+    public string Format { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Error message if export failed
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// Export summary by table
+    /// </summary>
+    public Dictionary<string, int> RecordsByTable { get; set; } = new();
+}
+
+/// <summary>
+/// Import request for data import operations
+/// </summary>
+public class ImportRequest
+{
+    /// <summary>
+    /// Import file path
+    /// </summary>
+    public string FilePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Import format (CSV, JSON, XML, Excel)
+    /// </summary>
+    public string Format { get; set; } = "CSV";
+
+    /// <summary>
+    /// Target table or entity
+    /// </summary>
+    public string TargetTable { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Import mode (Insert, Update, Upsert, Replace)
+    /// </summary>
+    public ImportMode Mode { get; set; } = ImportMode.Insert;
+
+    /// <summary>
+    /// Column mappings (source -> target)
+    /// </summary>
+    public Dictionary<string, string> ColumnMappings { get; set; } = new();
+
+    /// <summary>
+    /// Whether to validate data before import
+    /// </summary>
+    public bool ValidateBeforeImport { get; set; } = true;
+
+    /// <summary>
+    /// Batch size for processing
+    /// </summary>
+    public int BatchSize { get; set; } = 1000;
+
+    /// <summary>
+    /// Whether to skip invalid records
+    /// </summary>
+    public bool SkipInvalidRecords { get; set; } = false;
+}
+
+/// <summary>
+/// Import modes
+/// </summary>
+public enum ImportMode
+{
+    Insert,
+    Update,
+    Upsert,
+    Replace
+}
+
+/// <summary>
+/// Import operation result
+/// </summary>
+public class ImportResult
+{
+    /// <summary>
+    /// Whether import was successful
+    /// </summary>
+    public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// Number of records processed
+    /// </summary>
+    public int RecordsProcessed { get; set; }
+
+    /// <summary>
+    /// Number of records successfully imported
+    /// </summary>
+    public int RecordsImported { get; set; }
+
+    /// <summary>
+    /// Number of records skipped
+    /// </summary>
+    public int RecordsSkipped { get; set; }
+
+    /// <summary>
+    /// Number of records with errors
+    /// </summary>
+    public int RecordsWithErrors { get; set; }
+
+    /// <summary>
+    /// Import execution time in milliseconds
+    /// </summary>
+    public int ExecutionTimeMs { get; set; }
+
+    /// <summary>
+    /// Import errors
+    /// </summary>
+    public List<ImportError> Errors { get; set; } = new();
+
+    /// <summary>
+    /// Error message if import failed
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+}
+
+/// <summary>
+/// Import validation result
+/// </summary>
+public class ImportValidationResult
+{
+    /// <summary>
+    /// Whether validation passed
+    /// </summary>
+    public bool IsValid { get; set; }
+
+    /// <summary>
+    /// Number of records validated
+    /// </summary>
+    public int RecordsValidated { get; set; }
+
+    /// <summary>
+    /// Validation errors
+    /// </summary>
+    public List<ImportError> Errors { get; set; } = new();
+
+    /// <summary>
+    /// Validation warnings
+    /// </summary>
+    public List<ImportError> Warnings { get; set; } = new();
+
+    /// <summary>
+    /// Validation execution time in milliseconds
+    /// </summary>
+    public int ExecutionTimeMs { get; set; }
+}
+
+/// <summary>
+/// Import error information
+/// </summary>
+public class ImportError
+{
+    /// <summary>
+    /// Row number where error occurred
+    /// </summary>
+    public int RowNumber { get; set; }
+
+    /// <summary>
+    /// Column name where error occurred
+    /// </summary>
+    public string? ColumnName { get; set; }
+
+    /// <summary>
+    /// Error message
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Error severity
+    /// </summary>
+    public ImportErrorSeverity Severity { get; set; }
+
+    /// <summary>
+    /// Raw value that caused the error
+    /// </summary>
+    public string? RawValue { get; set; }
+}
+
+/// <summary>
+/// Import error severity levels
+/// </summary>
+public enum ImportErrorSeverity
+{
+    Warning,
+    Error,
+    Critical
+}
+
+/// <summary>
+/// Request model for creating KPIs
+/// </summary>
+public class CreateKpiRequest
+{
+    /// <summary>
+    /// KPI name
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// KPI description
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Stored procedure name for KPI execution
+    /// </summary>
+    public string StoredProcedureName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// KPI owner
+    /// </summary>
+    public string Owner { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether the KPI is active
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Last minutes parameter for KPI execution
+    /// </summary>
+    public int LastMinutes { get; set; } = 60;
+}
+
+/// <summary>
+/// Request model for updating KPIs
+/// </summary>
+public class UpdateKpiRequest
+{
+    /// <summary>
+    /// KPI ID to update
+    /// </summary>
+    public int KpiId { get; set; }
+
+    /// <summary>
+    /// KPI name (optional)
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// KPI description (optional)
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Stored procedure name for KPI execution (optional)
+    /// </summary>
+    public string? StoredProcedureName { get; set; }
+
+    /// <summary>
+    /// KPI owner (optional)
+    /// </summary>
+    public string? Owner { get; set; }
+
+    /// <summary>
+    /// Whether the KPI is active (optional)
+    /// </summary>
+    public bool? IsActive { get; set; }
+
+    /// <summary>
+    /// Last minutes parameter for KPI execution (optional)
+    /// </summary>
+    public int? LastMinutes { get; set; }
+}
+
+/// <summary>
+/// Request model for creating contacts
+/// </summary>
+public class CreateContactRequest
+{
+    /// <summary>
+    /// Contact name
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Contact email
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Contact phone number
+    /// </summary>
+    public string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// Slack user ID
+    /// </summary>
+    public string? SlackUserId { get; set; }
+
+    /// <summary>
+    /// Teams user ID
+    /// </summary>
+    public string? TeamsUserId { get; set; }
+
+    /// <summary>
+    /// Whether the contact is active
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
+/// Request model for updating contacts
+/// </summary>
+public class UpdateContactRequest
+{
+    /// <summary>
+    /// Contact ID to update
+    /// </summary>
+    public int ContactId { get; set; }
+
+    /// <summary>
+    /// Contact name (optional)
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// Contact email (optional)
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// Contact phone number (optional)
+    /// </summary>
+    public string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// Slack user ID (optional)
+    /// </summary>
+    public string? SlackUserId { get; set; }
+
+    /// <summary>
+    /// Teams user ID (optional)
+    /// </summary>
+    public string? TeamsUserId { get; set; }
+
+    /// <summary>
+    /// Whether the contact is active (optional)
+    /// </summary>
+    public bool? IsActive { get; set; }
+}
+
+/// <summary>
+/// Result of bulk operations
+/// </summary>
+public class BulkOperationResult
+{
+    /// <summary>
+    /// Whether the bulk operation was successful
+    /// </summary>
+    public bool IsSuccess { get; set; }
+
+    /// <summary>
+    /// Total number of items requested for processing
+    /// </summary>
+    public int TotalRequested { get; set; }
+
+    /// <summary>
+    /// Number of items successfully processed
+    /// </summary>
+    public int SuccessCount { get; set; }
+
+    /// <summary>
+    /// Number of items that failed processing
+    /// </summary>
+    public int FailureCount => TotalRequested - SuccessCount;
+
+    /// <summary>
+    /// Success rate as a percentage
+    /// </summary>
+    public double SuccessRate => TotalRequested > 0 ? (double)SuccessCount / TotalRequested * 100 : 0;
+
+    /// <summary>
+    /// List of error messages for failed operations
+    /// </summary>
+    public List<string> Errors { get; set; } = new();
+
+    /// <summary>
+    /// Execution time in milliseconds
+    /// </summary>
+    public int ExecutionTimeMs { get; set; }
+
+    /// <summary>
+    /// Additional metadata about the operation
+    /// </summary>
+    public Dictionary<string, object> Metadata { get; set; } = new();
+
+    /// <summary>
+    /// Operation start time
+    /// </summary>
+    public DateTime StartTime { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Operation end time
+    /// </summary>
+    public DateTime? EndTime { get; set; }
+
+    /// <summary>
+    /// Operation type or description
+    /// </summary>
+    public string? OperationType { get; set; }
+}

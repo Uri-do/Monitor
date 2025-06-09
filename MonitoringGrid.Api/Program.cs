@@ -472,14 +472,23 @@ else
 // Add real-time update service (always enabled for SignalR updates)
 builder.Services.AddHostedService<RealtimeUpdateService>();
 
-// Add graceful shutdown service for proper process cleanup
-builder.Services.AddHostedService<MonitoringGrid.Api.Services.GracefulShutdownService>();
+// Graceful shutdown is now handled by LifecycleManagementService (Phase 3)
 
 // Configure security headers
 builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
-// Add bulk operations service
-builder.Services.AddScoped<MonitoringGrid.Api.Services.IBulkOperationsService, MonitoringGrid.Api.Services.BulkOperationsService>();
+// Phase 3: Unified API services (consolidating 4 services into 2)
+// Replaces: BulkOperationsService, DbSeeder, GracefulShutdownService, WorkerCleanupService
+builder.Services.AddScoped<IDataManagementService, SimpleDataManagementService>();
+builder.Services.AddScoped<ILifecycleManagementService, LifecycleManagementService>();
+
+// Add hosted service for lifecycle management
+builder.Services.AddHostedService<LifecycleManagementService>();
+
+// Phase 4A: Enhanced middleware and services
+builder.Services.AddCorrelationId();
+builder.Services.AddScoped<MonitoringGrid.Api.Middleware.IInputSanitizationService, MonitoringGrid.Api.Middleware.InputSanitizationService>();
+builder.Services.AddScoped<MonitoringGrid.Api.Middleware.IExceptionHandlingService, MonitoringGrid.Api.Middleware.ExceptionHandlingService>();
 
 // Add OpenTelemetry
 builder.Services.AddOpenTelemetry()
@@ -529,6 +538,10 @@ var app = builder.Build();
 // }
 
 // Configure the HTTP request pipeline
+
+// Phase 4A: Enhanced middleware pipeline
+app.UseCorrelationId();
+app.UseEnhancedExceptionHandling();
 
 // Add security headers early in the pipeline
 if (app.Environment.IsProduction())
@@ -593,6 +606,9 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add validation middleware after authentication
+app.UseValidation();
 
 app.MapControllers();
 

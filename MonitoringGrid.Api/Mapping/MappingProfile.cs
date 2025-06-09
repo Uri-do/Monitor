@@ -19,7 +19,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.Contact)))
             .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => DeserializeScheduleConfiguration(src.ScheduleConfiguration)));
 
-        CreateMap<CreateKpiRequest, KPI>()
+        CreateMap<MonitoringGrid.Api.DTOs.CreateKpiRequest, KPI>()
             .ForMember(dest => dest.KpiId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
@@ -28,7 +28,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
             .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
 
-        CreateMap<UpdateKpiRequest, KPI>()
+        CreateMap<MonitoringGrid.Api.DTOs.UpdateKpiRequest, KPI>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
@@ -76,13 +76,13 @@ public class MappingProfile : Profile
         CreateMap<Contact, ContactDto>()
             .ForMember(dest => dest.AssignedKpis, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.KPI)));
 
-        CreateMap<CreateContactRequest, Contact>()
+        CreateMap<MonitoringGrid.Api.DTOs.CreateContactRequest, Contact>()
             .ForMember(dest => dest.ContactId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore());
 
-        CreateMap<UpdateContactRequest, Contact>()
+        CreateMap<MonitoringGrid.Api.DTOs.UpdateContactRequest, Contact>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.KpiContacts, opt => opt.Ignore());

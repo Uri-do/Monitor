@@ -64,6 +64,11 @@ public interface IRepository<T> where T : class
     Task<T?> GetByIdWithThenIncludesAsync(object id, Func<IQueryable<T>, IQueryable<T>>? includeFunc = null);
 
     /// <summary>
+    /// Gets multiple entities by their IDs
+    /// </summary>
+    Task<IEnumerable<T>> GetByIdsAsync<TKey>(IEnumerable<TKey> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the first entity matching the predicate
     /// </summary>
     Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);

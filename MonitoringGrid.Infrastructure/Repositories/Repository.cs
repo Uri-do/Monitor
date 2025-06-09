@@ -154,6 +154,37 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync(lambda);
     }
 
+    public virtual async Task<IEnumerable<T>> GetByIdsAsync<TKey>(IEnumerable<TKey> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        if (!idList.Any())
+            return Enumerable.Empty<T>();
+
+        // Get the primary key property for the entity
+        var keyProperty = _context.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.FirstOrDefault();
+        if (keyProperty == null)
+            throw new InvalidOperationException($"No primary key found for entity type {typeof(T).Name}");
+
+        // Build the expression dynamically: entity => ids.Contains(entity.Id)
+        var parameter = Expression.Parameter(typeof(T), "e");
+        var property = Expression.Property(parameter, keyProperty.Name);
+
+        // Convert property to TKey type if needed
+        Expression convertedProperty = keyProperty.ClrType != typeof(TKey)
+            ? Expression.Convert(property, typeof(TKey))
+            : property;
+
+        var containsMethod = typeof(Enumerable).GetMethods()
+            .First(m => m.Name == "Contains" && m.GetParameters().Length == 2)
+            .MakeGenericMethod(typeof(TKey));
+
+        var idsConstant = Expression.Constant(idList);
+        var containsCall = Expression.Call(containsMethod, idsConstant, convertedProperty);
+        var lambda = Expression.Lambda<Func<T, bool>>(containsCall, parameter);
+
+        return await _dbSet.Where(lambda).ToListAsync(cancellationToken);
+    }
+
     public virtual async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
