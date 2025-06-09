@@ -25,21 +25,36 @@ public class EscalationRule
 /// </summary>
 public class AdvancedAlertConfiguration
 {
+    /// <summary>
+    /// Master switch to enable/disable all enhanced alert features
+    /// </summary>
+    public bool EnableEnhancedFeatures { get; set; } = false;
+
     public bool EnableEscalation { get; set; } = true;
     public bool EnableAutoResolution { get; set; } = true;
     public int AutoResolutionMinutes { get; set; } = 60;
     public bool EnableAlertSuppression { get; set; } = true;
     public int SuppressionMinutes { get; set; } = 30;
     public bool EnableBusinessHoursOnly { get; set; } = false;
+    public bool EnableHolidaySupport { get; set; } = false;
     public TimeSpan BusinessHoursStart { get; set; } = new(9, 0, 0);
     public TimeSpan BusinessHoursEnd { get; set; } = new(17, 0, 0);
-    public List<DayOfWeek> BusinessDays { get; set; } = new() 
-    { 
-        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, 
-        DayOfWeek.Thursday, DayOfWeek.Friday 
+    public List<DayOfWeek> BusinessDays { get; set; } = new()
+    {
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+        DayOfWeek.Thursday, DayOfWeek.Friday
     };
-    public bool EnableHolidaySupport { get; set; } = false;
-    public List<DateTime> Holidays { get; set; } = new();
+    public List<Holiday> Holidays { get; set; } = new();
+}
+
+/// <summary>
+/// Represents a holiday for business hours calculation
+/// </summary>
+public class Holiday
+{
+    public DateTime Date { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsRecurring { get; set; } = false;
 }
 
 // Enums moved to MonitoringGrid.Core.Enums.CoreEnums

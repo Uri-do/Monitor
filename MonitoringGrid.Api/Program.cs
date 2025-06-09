@@ -196,15 +196,24 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Add authentication services
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IEncryptionService, EncryptionService>();
-
-// Add security services
-builder.Services.AddScoped<ISecurityAuditService, SecurityAuditService>();
-builder.Services.AddScoped<IThreatDetectionService, ThreatDetectionService>();
-builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
+
+// Add unified security service (replaces 6 separate services)
+builder.Services.AddScoped<ISecurityService, SecurityService>();
+
+// Maintain backward compatibility with adapters for existing controllers
+builder.Services.AddScoped<IAuthenticationService>(provider =>
+    new AuthenticationServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+builder.Services.AddScoped<IJwtTokenService>(provider =>
+    new JwtTokenServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+builder.Services.AddScoped<IEncryptionService>(provider =>
+    new EncryptionServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+builder.Services.AddScoped<ISecurityAuditService>(provider =>
+    new SecurityAuditServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+builder.Services.AddScoped<IThreatDetectionService>(provider =>
+    new ThreatDetectionServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+builder.Services.AddScoped<ITwoFactorService>(provider =>
+    new TwoFactorServiceAdapter(provider.GetRequiredService<ISecurityService>()));
 
 // Add SignalR
 builder.Services.AddSignalR(options =>

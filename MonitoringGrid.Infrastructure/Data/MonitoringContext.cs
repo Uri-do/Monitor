@@ -32,6 +32,7 @@ public class MonitoringContext : DbContext
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
     public DbSet<UserPassword> UserPasswords { get; set; }
     public DbSet<Core.Security.SecurityAuditEvent> SecurityAuditEvents { get; set; }
 
@@ -57,6 +58,7 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
         modelBuilder.ApplyConfiguration(new RolePermissionConfiguration());
         modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new BlacklistedTokenConfiguration());
         modelBuilder.ApplyConfiguration(new UserPasswordConfiguration());
         modelBuilder.ApplyConfiguration(new SecurityAuditEventConfiguration());
     }

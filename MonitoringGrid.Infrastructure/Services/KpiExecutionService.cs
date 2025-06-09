@@ -15,7 +15,8 @@ using System.Text.Json;
 namespace MonitoringGrid.Infrastructure.Services;
 
 /// <summary>
-/// Service responsible for executing KPI stored procedures and calculating deviations
+/// Consolidated KPI execution service supporting both result-set and type-based execution
+/// Handles multiple KPI types: success_rate, transaction_volume, threshold, trend_analysis
 /// </summary>
 public class KpiExecutionService : IKpiExecutionService
 {
@@ -402,35 +403,7 @@ public class KpiExecutionService : IKpiExecutionService
         return Math.Abs((current - historical) / historical) * 100;
     }
 
-    public bool ShouldTriggerAlert(KPI kpi, KpiExecutionResult result)
-    {
-        if (!result.IsSuccessful)
-            return false;
 
-        // Check absolute threshold if configured
-        if (_config.EnableAbsoluteThresholds && kpi.MinimumThreshold.HasValue)
-        {
-            if (result.CurrentValue < kpi.MinimumThreshold.Value)
-            {
-                _logger.LogDebug("KPI {Indicator} below minimum threshold: {Current} < {Threshold}",
-                    kpi.Indicator, result.CurrentValue, kpi.MinimumThreshold.Value);
-                return true;
-            }
-        }
-
-        // Check percentage deviation if historical comparison is enabled
-        if (_config.EnableHistoricalComparison)
-        {
-            if (result.DeviationPercent > kpi.Deviation)
-            {
-                _logger.LogDebug("KPI {Indicator} exceeds deviation threshold: {Deviation}% > {Threshold}%",
-                    kpi.Indicator, result.DeviationPercent, kpi.Deviation);
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     private string GetConnectionStringForStoredProcedure(string spName)
     {
@@ -661,34 +634,93 @@ public class KpiExecutionService : IKpiExecutionService
         }
     }
 
+    #region Enhanced Type-Based Execution Methods
 
+    /// <summary>
+    /// Evaluates threshold conditions for threshold-based KPIs
+    /// </summary>
+    public bool EvaluateThreshold(decimal value, decimal threshold, string comparisonOperator)
+    {
+        return comparisonOperator.ToLower() switch
+        {
+            "gt" => value > threshold,
+            "gte" => value >= threshold,
+            "lt" => value < threshold,
+            "lte" => value <= threshold,
+            "eq" => Math.Abs(value - threshold) < 0.01m, // Small tolerance for decimal comparison
+            _ => false
+        };
+    }
 
+    /// <summary>
+    /// Validates that a KPI stored procedure exists in the database
+    /// </summary>
     public async Task<bool> ValidateKpiStoredProcedureAsync(string spName, CancellationToken cancellationToken = default)
     {
         try
         {
-            var connectionString = _context.Database.GetConnectionString();
+            var connectionString = GetConnectionStringForStoredProcedure(spName);
             using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            var sql = @"
-                SELECT COUNT(*) 
-                FROM INFORMATION_SCHEMA.ROUTINES 
-                WHERE ROUTINE_TYPE = 'PROCEDURE' 
-                AND ROUTINE_NAME = @SpName";
+            // Check if stored procedure exists
+            using var command = new SqlCommand(@"
+                SELECT COUNT(*)
+                FROM sys.procedures
+                WHERE name = @SpName", connection);
 
-            using var command = new SqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@SpName", spName);
+            command.Parameters.AddWithValue("@SpName", spName.Split('.').Last()); // Get procedure name without schema
 
             var count = (int)await command.ExecuteScalarAsync(cancellationToken);
             return count > 0;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to validate stored procedure {SpName}: {Message}", spName, ex.Message);
+            _logger.LogError(ex, "Error validating stored procedure {SpName}", spName);
             return false;
         }
     }
+
+    /// <summary>
+    /// Enhanced ShouldTriggerAlert that supports type-based evaluation
+    /// </summary>
+    public bool ShouldTriggerAlert(KPI kpi, KpiExecutionResult result)
+    {
+        if (!result.IsSuccessful)
+            return false;
+
+        // For threshold-based KPIs, use threshold evaluation
+        if (!string.IsNullOrEmpty(kpi.KpiType) && kpi.KpiType.ToLower() == "threshold")
+        {
+            return EvaluateThreshold(result.CurrentValue, kpi.ThresholdValue ?? 0, kpi.ComparisonOperator ?? "gt");
+        }
+
+        // Check absolute threshold if configured
+        if (_config.EnableAbsoluteThresholds && kpi.MinimumThreshold.HasValue)
+        {
+            if (result.CurrentValue < kpi.MinimumThreshold.Value)
+            {
+                _logger.LogDebug("KPI {Indicator} below minimum threshold: {Current} < {Threshold}",
+                    kpi.Indicator, result.CurrentValue, kpi.MinimumThreshold.Value);
+                return true;
+            }
+        }
+
+        // Check percentage deviation if historical comparison is enabled
+        if (_config.EnableHistoricalComparison)
+        {
+            if (result.DeviationPercent > kpi.Deviation)
+            {
+                _logger.LogDebug("KPI {Indicator} exceeds deviation threshold: {Deviation}% > {Threshold}%",
+                    kpi.Indicator, result.DeviationPercent, kpi.Deviation);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -714,6 +746,8 @@ internal class TransactionTypeDetail
     public int SuccessfulCount { get; set; }
     public decimal SuccessRate { get; set; }
 }
+
+
 
 /// <summary>
 /// Result from processing generic result set
