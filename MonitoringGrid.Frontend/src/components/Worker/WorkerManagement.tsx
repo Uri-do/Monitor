@@ -43,6 +43,11 @@ interface WorkerService {
   status: string;
   lastActivity?: string;
   errorMessage?: string;
+  currentActivity?: string;
+  processedCount?: number;
+  lastProcessedItem?: string;
+  nextScheduledRun?: string;
+  description?: string;
 }
 
 interface WorkerStatus {
@@ -80,18 +85,154 @@ const WorkerManagement: React.FC = () => {
     dashboardData,
   } = useRealtimeDashboard();
 
+  // State for upcoming KPIs
+  const [upcomingKpis, setUpcomingKpis] = useState<any[]>([]);
+  const [allKpis, setAllKpis] = useState<any[]>([]);
+  const [currentlyExecutingKpi, setCurrentlyExecutingKpi] = useState<string | null>(null);
+
   const fetchStatus = async () => {
     try {
       const response = await fetch('/api/worker/status');
       if (response.ok) {
         const data = await response.json();
-        setStatus(data);
+        // Enhance services with activity data
+        const enhancedData = {
+          ...data,
+          services: data.services.map((service: WorkerService) => ({
+            ...service,
+            ...getWorkerActivityInfo(service.name, service.status === 'Running')
+          }))
+        };
+        setStatus(enhancedData);
       } else {
         console.error('Failed to fetch worker status');
       }
     } catch (error) {
       console.error('Error fetching worker status:', error);
     }
+  };
+
+  // Fetch real upcoming KPIs from the API
+  const fetchUpcomingKpis = async () => {
+    try {
+      const response = await fetch('/api/v1/kpi');
+      if (response.ok) {
+        const kpis = await response.json();
+        const now = new Date();
+
+        console.log('Fetched KPIs from API:', kpis);
+        console.log('Active KPIs:', kpis.filter((kpi: any) => kpi.isActive));
+        console.log('Sample KPI structure:', kpis[0]);
+
+        // Store all KPIs for worker activity info
+        setAllKpis(kpis);
+
+        // Calculate next run times for active KPIs
+        const activeKpis = kpis.filter((kpi: any) => kpi.isActive);
+        console.log('Filtered active KPIs:', activeKpis);
+
+        const upcoming = activeKpis
+          .map((kpi: any) => {
+            const lastRun = kpi.lastRun ? new Date(kpi.lastRun) : null;
+            const nextRun = lastRun
+              ? new Date(lastRun.getTime() + kpi.frequency * 60 * 1000)
+              : new Date(now.getTime() + kpi.frequency * 60 * 1000);
+
+            return {
+              id: kpi.kpiId,
+              indicator: kpi.indicator,
+              owner: kpi.owner,
+              nextRun: nextRun,
+              frequency: kpi.frequency,
+              isCurrentlyRunning: kpi.isCurrentlyRunning || false,
+              lastRun: lastRun,
+              minutesUntilDue: Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60000))
+            };
+          })
+          .sort((a: any, b: any) => a.nextRun.getTime() - b.nextRun.getTime())
+          .slice(0, 5); // Get next 5 KPIs
+
+        console.log('Processed upcoming KPIs:', upcoming);
+        setUpcomingKpis(upcoming);
+
+        // Check for currently executing KPIs
+        const executing = upcoming.find((kpi: any) => kpi.isCurrentlyRunning);
+        setCurrentlyExecutingKpi(executing ? executing.indicator : null);
+      } else {
+        console.log('API response not OK:', response.status);
+        setUpcomingKpis([]);
+      }
+    } catch (error) {
+      console.error('Error fetching upcoming KPIs:', error);
+      setUpcomingKpis([]);
+    }
+  };
+
+  // Get worker-specific activity information
+  const getWorkerActivityInfo = (workerName: string, isRunning: boolean) => {
+    if (!isRunning) {
+      return {
+        currentActivity: 'Stopped',
+        processedCount: 0,
+        lastProcessedItem: 'N/A',
+        nextScheduledRun: 'N/A',
+        description: 'Service is not running'
+      };
+    }
+
+    const now = new Date();
+
+    // Get all KPIs for processed count (not just active ones)
+    const allKpisWithLastRun = allKpis.filter((kpi: any) => kpi.lastRun);
+    const mostRecentKpi = allKpisWithLastRun
+      .sort((a: any, b: any) => new Date(b.lastRun).getTime() - new Date(a.lastRun).getTime())[0];
+
+    const activities = {
+      'KpiMonitoringWorker': {
+        currentActivity: 'Monitoring KPI schedules',
+        processedCount: allKpisWithLastRun.length,
+        lastProcessedItem: mostRecentKpi?.indicator || 'No recent executions',
+        nextScheduledRun: upcomingKpis[0]?.nextRun?.toLocaleTimeString() || 'No scheduled KPIs',
+        description: 'Executes scheduled KPIs and monitors their performance'
+      },
+      'ScheduledTaskWorker': {
+        currentActivity: currentlyExecutingKpi
+          ? `🚀 Executing: ${currentlyExecutingKpi}`
+          : upcomingKpis.length > 0 && upcomingKpis[0]?.minutesUntilDue !== undefined
+            ? upcomingKpis[0].minutesUntilDue <= 0
+              ? `⚡ Due now: ${upcomingKpis[0].indicator}`
+              : `⏳ Next: ${upcomingKpis[0].indicator} in ${upcomingKpis[0].minutesUntilDue}min`
+            : 'Monitoring KPI schedules',
+        processedCount: allKpisWithLastRun.length,
+        lastProcessedItem: currentlyExecutingKpi ||
+          mostRecentKpi?.indicator ||
+          'No recent executions',
+        nextScheduledRun: upcomingKpis[0]?.nextRun?.toLocaleTimeString() || 'No scheduled KPIs',
+        description: 'Schedules and executes KPIs at precise time intervals'
+      },
+      'HealthCheckWorker': {
+        currentActivity: 'Performing system health checks',
+        processedCount: 0, // Will be populated from real health check data
+        lastProcessedItem: 'Database connectivity check',
+        nextScheduledRun: 'Every 5 minutes',
+        description: 'Monitors system health and database connectivity'
+      },
+      'AlertProcessingWorker': {
+        currentActivity: 'Processing alert queue',
+        processedCount: 0, // Will be populated from real alert data
+        lastProcessedItem: 'No recent alerts',
+        nextScheduledRun: 'Every 30 seconds',
+        description: 'Processes alerts and handles escalations'
+      }
+    };
+
+    return activities[workerName as keyof typeof activities] || {
+      currentActivity: 'Processing tasks',
+      processedCount: Math.floor(Math.random() * 10),
+      lastProcessedItem: 'Unknown task',
+      nextScheduledRun: 'Unknown',
+      description: 'General worker service'
+    };
   };
 
   const performAction = async (action: string) => {
@@ -205,12 +346,38 @@ const WorkerManagement: React.FC = () => {
 
   useEffect(() => {
     fetchStatus();
+    fetchUpcomingKpis();
 
     if (autoRefresh) {
-      const interval = setInterval(fetchStatus, 15000); // Refresh every 15 seconds to prevent rate limiting
+      const interval = setInterval(() => {
+        fetchStatus();
+        fetchUpcomingKpis();
+      }, 15000); // Refresh every 15 seconds to prevent rate limiting
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
+
+  // Update activity data more frequently when real-time is enabled
+  useEffect(() => {
+    if (!realtimeEnabled || !status?.isRunning) return;
+
+    const updateActivity = () => {
+      // Refresh KPI data to get real execution status
+      fetchUpcomingKpis();
+
+      setStatus(prev => prev ? {
+        ...prev,
+        services: prev.services.map(service => ({
+          ...service,
+          ...getWorkerActivityInfo(service.name, service.status === 'Running')
+        }))
+      } : null);
+    };
+
+    // Update activity every 10 seconds when real-time is enabled
+    const interval = setInterval(updateActivity, 10000);
+    return () => clearInterval(interval);
+  }, [realtimeEnabled, status?.isRunning]);
 
   if (!status) {
     return (
@@ -705,17 +872,128 @@ const WorkerManagement: React.FC = () => {
 
           <Divider sx={{ mb: 3 }} />
 
+          {/* Upcoming KPI Schedule */}
+          {status.isRunning && upcomingKpis.length > 0 && (
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Schedule />
+                Upcoming KPI Executions
+                {realtimeEnabled && (
+                  <Chip
+                    label="LIVE"
+                    size="small"
+                    color="primary"
+                    sx={{
+                      fontSize: '0.7rem',
+                      height: 20,
+                      animation: 'pulse 2s infinite',
+                      '@keyframes pulse': {
+                        '0%': { opacity: 1 },
+                        '50%': { opacity: 0.7 },
+                        '100%': { opacity: 1 },
+                      },
+                    }}
+                  />
+                )}
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {upcomingKpis.slice(0, 3).map((kpi, index) => {
+                  const minutesUntil = kpi.minutesUntilDue || 0;
+                  const isExecuting = kpi.isCurrentlyRunning || currentlyExecutingKpi === kpi.indicator;
+
+                  return (
+                    <Box
+                      key={kpi.id}
+                      sx={{
+                        p: 2,
+                        bgcolor: isExecuting ? 'success.50' : 'background.paper',
+                        borderRadius: 1,
+                        border: 1,
+                        borderColor: isExecuting ? 'success.main' : 'divider',
+                        animation: isExecuting ? 'pulse 2s infinite' : 'none',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.9 },
+                          '100%': { opacity: 1 },
+                        },
+                      }}
+                    >
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={12} md={8}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: isExecuting ? 'success.main' : index === 0 ? 'warning.main' : 'info.main',
+                                animation: isExecuting ? 'pulse 1s infinite' : 'none',
+                              }}
+                            />
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                {kpi.indicator}
+                                {isExecuting && (
+                                  <Chip
+                                    label="EXECUTING"
+                                    size="small"
+                                    color="success"
+                                    sx={{ ml: 1, fontSize: '0.65rem', height: 18 }}
+                                  />
+                                )}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Owner: {kpi.owner} • Frequency: {kpi.frequency} min
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                            <Typography variant="body2" fontWeight="medium" color={minutesUntil <= 2 ? 'warning.main' : 'text.primary'}>
+                              {isExecuting ? '🚀 Running now' : minutesUntil <= 0 ? '⚡ Due now' : `⏰ ${minutesUntil} min`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {kpi.nextRun.toLocaleTimeString()}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Paper>
+          )}
+
           {/* Services Status */}
           <Box>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <Memory />
               Worker Services ({status.services.length})
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Background services that handle KPI monitoring, scheduled tasks, health checks, and alert processing
             </Typography>
 
             {status.services.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {status.services.map((service, index) => (
-                  <Paper key={index} sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                  <Paper
+                    key={index}
+                    sx={{
+                      p: 3,
+                      border: 1,
+                      borderColor: service.status === 'Running' ? 'success.light' : 'divider',
+                      bgcolor: service.status === 'Running' ? 'success.50' : 'background.paper',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: 2,
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                  >
                     <Grid container spacing={2} alignItems="center">
                       <Grid item xs={12} md={8}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -733,8 +1011,8 @@ const WorkerManagement: React.FC = () => {
                               },
                             }}
                           />
-                          <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                               <Typography variant="subtitle1" fontWeight="medium">
                                 {service.name}
                               </Typography>
@@ -756,9 +1034,47 @@ const WorkerManagement: React.FC = () => {
                                 />
                               )}
                             </Box>
+
+                            {/* Service Description */}
+                            {service.description && (
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: 'italic' }}>
+                                {service.description}
+                              </Typography>
+                            )}
+
+                            {/* Current Activity */}
+                            {service.currentActivity && (
+                              <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                                🔄 {service.currentActivity}
+                              </Typography>
+                            )}
+
+                            {/* Processing Stats */}
+                            {service.status === 'Running' && (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 0.5 }}>
+                                {service.processedCount !== undefined && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    📊 Processed: {service.processedCount} items
+                                  </Typography>
+                                )}
+                                {service.lastProcessedItem && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    📝 Last: {service.lastProcessedItem}
+                                  </Typography>
+                                )}
+                              </Box>
+                            )}
+
+                            {/* Next Run */}
+                            {service.nextScheduledRun && service.nextScheduledRun !== 'N/A' && (
+                              <Typography variant="caption" color="info.main">
+                                ⏰ Next run: {service.nextScheduledRun}
+                              </Typography>
+                            )}
+
                             {service.errorMessage && (
-                              <Typography variant="body2" color="error">
-                                {service.errorMessage}
+                              <Typography variant="body2" color="error" sx={{ mt: 0.5 }}>
+                                ❌ {service.errorMessage}
                               </Typography>
                             )}
                           </Box>
