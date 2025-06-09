@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using MonitoringGrid.Api.Middleware;
 using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;

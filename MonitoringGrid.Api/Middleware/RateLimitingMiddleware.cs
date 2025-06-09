@@ -1,234 +1,238 @@
-using Microsoft.Extensions.Caching.Memory;
-using MonitoringGrid.Api.Observability;
-using System.Net;
+using MonitoringGrid.Api.Common;
+using MonitoringGrid.Api.Services;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace MonitoringGrid.Api.Middleware;
 
 /// <summary>
-/// Advanced rate limiting middleware with different limits for different endpoints
+/// Enhanced rate limiting middleware with intelligent throttling and security integration
 /// </summary>
 public class RateLimitingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IMemoryCache _cache;
     private readonly ILogger<RateLimitingMiddleware> _logger;
-    private readonly RateLimitOptions _options;
-    private readonly MetricsService _metricsService;
+    private readonly ICorrelationIdService _correlationIdService;
+    private readonly IAdvancedRateLimitingService _rateLimitingService;
 
     public RateLimitingMiddleware(
         RequestDelegate next,
-        IMemoryCache cache,
         ILogger<RateLimitingMiddleware> logger,
-        RateLimitOptions options,
-        MetricsService metricsService)
+        ICorrelationIdService correlationIdService,
+        IAdvancedRateLimitingService rateLimitingService)
     {
         _next = next;
-        _cache = cache;
         _logger = logger;
-        _options = options;
-        _metricsService = metricsService;
+        _correlationIdService = correlationIdService;
+        _rateLimitingService = rateLimitingService;
     }
 
+    /// <summary>
+    /// Process HTTP request with enhanced rate limiting checks
+    /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
-        // Skip rate limiting for health checks and internal endpoints
+        var correlationId = _correlationIdService.GetCorrelationId();
+
+        // Skip rate limiting for certain paths
         if (ShouldSkipRateLimit(context.Request.Path))
         {
             await _next(context);
             return;
         }
 
-        var clientKey = GenerateClientKey(context);
-        var endpoint = GetEndpointCategory(context.Request.Path);
-        var limit = GetRateLimitForEndpoint(endpoint);
-
-        var requestCount = await GetRequestCountAsync(clientKey, endpoint);
-
-        if (requestCount >= limit.RequestsPerWindow)
+        try
         {
-            // Record rate limit exceeded metric
-            var clientType = clientKey.StartsWith("user:") ? "authenticated" : "anonymous";
-            _metricsService.RecordRateLimitExceeded(endpoint.ToString(), clientType);
+            var rateLimitRequest = CreateRateLimitRequest(context);
+            var result = await _rateLimitingService.CheckRateLimitAsync(rateLimitRequest);
 
-            await HandleRateLimitExceeded(context, clientKey, endpoint, requestCount, limit);
-            return;
+            if (!result.IsAllowed)
+            {
+                await HandleRateLimitExceededAsync(context, result, correlationId);
+                return;
+            }
+
+            // Record the request for tracking
+            await _rateLimitingService.RecordRequestAsync(rateLimitRequest);
+
+            // Add rate limit headers to response
+            AddRateLimitHeaders(context.Response, result);
+
+            await _next(context);
         }
-
-        // Increment request count
-        await IncrementRequestCountAsync(clientKey, endpoint, limit.WindowSizeMinutes);
-
-        // Add rate limit headers
-        AddRateLimitHeaders(context, requestCount + 1, limit);
-
-        await _next(context);
-    }
-
-    private static bool ShouldSkipRateLimit(PathString path)
-    {
-        var pathValue = path.Value?.ToLower() ?? "";
-        return pathValue.StartsWith("/health") ||
-               pathValue.StartsWith("/api/info") ||
-               pathValue.StartsWith("/swagger") ||
-               pathValue.StartsWith("/monitoring-hub");
-    }
-
-    private string GenerateClientKey(HttpContext context)
-    {
-        // Use multiple factors to identify clients
-        var userAgent = context.Request.Headers["User-Agent"].ToString();
-        var forwarded = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        var remoteIp = forwarded ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        
-        // If user is authenticated, use user ID
-        var userId = context.User?.Identity?.Name;
-        if (!string.IsNullOrEmpty(userId))
+        catch (Exception ex)
         {
-            return $"user:{userId}";
+            _logger.LogError(ex, "Error in rate limiting middleware [{CorrelationId}]", correlationId);
+            // Fail open - continue processing if rate limiting fails
+            await _next(context);
         }
-
-        // For anonymous users, use IP + User Agent hash
-        var userAgentHash = userAgent.GetHashCode().ToString();
-        return $"ip:{remoteIp}:ua:{userAgentHash}";
     }
 
-    private static EndpointCategory GetEndpointCategory(PathString path)
+    /// <summary>
+    /// Determines if rate limiting should be skipped for certain paths
+    /// </summary>
+    private bool ShouldSkipRateLimit(PathString path)
     {
-        var pathValue = path.Value?.ToLower() ?? "";
-
-        if (pathValue.Contains("/auth/"))
-            return EndpointCategory.Authentication;
-        
-        if (pathValue.Contains("/kpi/") && pathValue.Contains("/execute"))
-            return EndpointCategory.KpiExecution;
-        
-        if (pathValue.Contains("/kpi/"))
-            return EndpointCategory.KpiManagement;
-        
-        if (pathValue.Contains("/alert/"))
-            return EndpointCategory.AlertManagement;
-        
-        if (pathValue.Contains("/analytics/"))
-            return EndpointCategory.Analytics;
-
-        return EndpointCategory.General;
-    }
-
-    private RateLimit GetRateLimitForEndpoint(EndpointCategory category)
-    {
-        return category switch
+        var skipPaths = new[]
         {
-            EndpointCategory.Authentication => _options.AuthenticationLimit,
-            EndpointCategory.KpiExecution => _options.KpiExecutionLimit,
-            EndpointCategory.KpiManagement => _options.KpiManagementLimit,
-            EndpointCategory.AlertManagement => _options.AlertManagementLimit,
-            EndpointCategory.Analytics => _options.AnalyticsLimit,
-            EndpointCategory.General => _options.GeneralLimit,
-            _ => _options.GeneralLimit
+            "/health",
+            "/metrics",
+            "/swagger",
+            "/favicon.ico"
+        };
+
+        return skipPaths.Any(skipPath => path.StartsWithSegments(skipPath, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Creates rate limit request from HTTP context
+    /// </summary>
+    private RateLimitRequest CreateRateLimitRequest(HttpContext context)
+    {
+        var ipAddress = GetClientIpAddress(context);
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var endpoint = GetNormalizedEndpoint(context.Request.Path);
+        var method = context.Request.Method;
+        var userAgent = context.Request.Headers.UserAgent.ToString();
+
+        return new RateLimitRequest
+        {
+            IpAddress = ipAddress,
+            UserId = userId,
+            Endpoint = endpoint,
+            Method = method,
+            UserAgent = userAgent
         };
     }
 
-    private Task<int> GetRequestCountAsync(string clientKey, EndpointCategory endpoint)
+    /// <summary>
+    /// Gets client IP address with proxy support
+    /// </summary>
+    private string GetClientIpAddress(HttpContext context)
     {
-        var cacheKey = $"rate_limit:{clientKey}:{endpoint}";
-
-        if (_cache.TryGetValue(cacheKey, out int count))
+        // Check for forwarded IP (behind proxy/load balancer)
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
         {
-            return Task.FromResult(count);
+            var ips = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (ips.Length > 0)
+            {
+                return ips[0].Trim();
+            }
         }
 
-        return Task.FromResult(0);
+        // Check for real IP header
+        var realIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(realIp))
+        {
+            return realIp;
+        }
+
+        // Fall back to connection remote IP
+        return context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
     }
 
-    private Task IncrementRequestCountAsync(string clientKey, EndpointCategory endpoint, int windowMinutes)
+    /// <summary>
+    /// Normalizes endpoint path for rate limiting
+    /// </summary>
+    private string GetNormalizedEndpoint(PathString path)
     {
-        var cacheKey = $"rate_limit:{clientKey}:{endpoint}";
+        var pathValue = path.Value ?? "/";
 
-        var count = _cache.GetOrCreate(cacheKey, entry =>
+        // Normalize API versioning paths
+        if (pathValue.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase))
         {
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(windowMinutes);
-            entry.Size = 1; // Required when SizeLimit is set
-            return 0;
-        });
+            var segments = pathValue.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length >= 3)
+            {
+                // Return /api/v{version}/{controller} format
+                return $"/{segments[0]}/{segments[1]}/{segments[2]}";
+            }
+        }
 
-        var options = new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(windowMinutes),
-            Size = 1 // Required when SizeLimit is set
-        };
+        // Normalize paths with IDs (replace with placeholder)
+        var normalizedPath = System.Text.RegularExpressions.Regex.Replace(
+            pathValue,
+            @"/\d+(/|$)",
+            "/{id}$1",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        _cache.Set(cacheKey, count + 1, options);
-        return Task.CompletedTask;
+        return normalizedPath;
     }
 
-    private async Task HandleRateLimitExceeded(
-        HttpContext context, 
-        string clientKey, 
-        EndpointCategory endpoint, 
-        int currentCount, 
-        RateLimit limit)
+    /// <summary>
+    /// Handles rate limit exceeded scenarios
+    /// </summary>
+    private async Task HandleRateLimitExceededAsync(HttpContext context, RateLimitResult result, string correlationId)
     {
-        _logger.LogWarning("Rate limit exceeded for client {ClientKey} on endpoint {Endpoint}. " +
-                          "Current count: {CurrentCount}, Limit: {Limit}",
-            clientKey, endpoint, currentCount, limit.RequestsPerWindow);
-
-        context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+        context.Response.StatusCode = 429; // Too Many Requests
         context.Response.ContentType = "application/json";
 
-        // Add retry-after header
-        var retryAfter = TimeSpan.FromMinutes(limit.WindowSizeMinutes).TotalSeconds;
-        context.Response.Headers["Retry-After"] = retryAfter.ToString();
-
-        AddRateLimitHeaders(context, currentCount, limit);
-
-        var response = new
+        // Add rate limit headers
+        if (result.RetryAfter.HasValue)
         {
-            error = "Rate limit exceeded",
-            message = $"Too many requests for {endpoint} endpoint. Try again later.",
-            retryAfter = retryAfter
+            context.Response.Headers["Retry-After"] = ((int)result.RetryAfter.Value.TotalSeconds).ToString();
+        }
+
+        if (result.ResetTime.HasValue)
+        {
+            var resetTimeUnix = ((DateTimeOffset)result.ResetTime.Value).ToUnixTimeSeconds();
+            context.Response.Headers["X-RateLimit-Reset"] = resetTimeUnix.ToString();
+        }
+
+        context.Response.Headers["X-RateLimit-Remaining"] = "0";
+
+        // Create error response
+        var errorResponse = ApiResponse.Failure(
+            result.Reason ?? "Rate limit exceeded",
+            new Dictionary<string, object>
+            {
+                ["CorrelationId"] = correlationId,
+                ["RetryAfter"] = result.RetryAfter?.TotalSeconds ?? 0,
+                ["ResetTime"] = result.ResetTime?.ToString("O") ?? "",
+                ["RemainingRequests"] = result.RemainingRequests
+            });
+
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
         };
 
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+        var jsonResponse = JsonSerializer.Serialize(errorResponse, jsonOptions);
+        await context.Response.WriteAsync(jsonResponse);
+
+        _logger.LogWarning("Rate limit exceeded: {Reason} [{CorrelationId}]", result.Reason, correlationId);
     }
 
-    private static void AddRateLimitHeaders(HttpContext context, int currentCount, RateLimit limit)
+    /// <summary>
+    /// Adds rate limit headers to response
+    /// </summary>
+    private void AddRateLimitHeaders(HttpResponse response, RateLimitResult result)
     {
-        context.Response.Headers["X-RateLimit-Limit"] = limit.RequestsPerWindow.ToString();
-        context.Response.Headers["X-RateLimit-Remaining"] = Math.Max(0, limit.RequestsPerWindow - currentCount).ToString();
-        context.Response.Headers["X-RateLimit-Window"] = $"{limit.WindowSizeMinutes}m";
+        if (result.IsAllowed)
+        {
+            response.Headers["X-RateLimit-Remaining"] = result.RemainingRequests.ToString();
+
+            if (result.ResetTime.HasValue)
+            {
+                var resetTimeUnix = ((DateTimeOffset)result.ResetTime.Value).ToUnixTimeSeconds();
+                response.Headers["X-RateLimit-Reset"] = resetTimeUnix.ToString();
+            }
+        }
     }
 }
 
 /// <summary>
-/// Rate limiting configuration options
+/// Extension methods for rate limiting middleware registration
 /// </summary>
-public class RateLimitOptions
+public static class RateLimitingMiddlewareExtensions
 {
-    public RateLimit GeneralLimit { get; set; } = new() { RequestsPerWindow = 100, WindowSizeMinutes = 1 };
-    public RateLimit AuthenticationLimit { get; set; } = new() { RequestsPerWindow = 10, WindowSizeMinutes = 1 };
-    public RateLimit KpiExecutionLimit { get; set; } = new() { RequestsPerWindow = 20, WindowSizeMinutes = 1 };
-    public RateLimit KpiManagementLimit { get; set; } = new() { RequestsPerWindow = 50, WindowSizeMinutes = 1 };
-    public RateLimit AlertManagementLimit { get; set; } = new() { RequestsPerWindow = 30, WindowSizeMinutes = 1 };
-    public RateLimit AnalyticsLimit { get; set; } = new() { RequestsPerWindow = 25, WindowSizeMinutes = 1 };
-}
-
-/// <summary>
-/// Rate limit configuration for a specific endpoint category
-/// </summary>
-public class RateLimit
-{
-    public int RequestsPerWindow { get; set; }
-    public int WindowSizeMinutes { get; set; }
-}
-
-/// <summary>
-/// Categories of endpoints for different rate limiting rules
-/// </summary>
-public enum EndpointCategory
-{
-    General,
-    Authentication,
-    KpiExecution,
-    KpiManagement,
-    AlertManagement,
-    Analytics
+    /// <summary>
+    /// Adds enhanced rate limiting middleware to the application pipeline
+    /// </summary>
+    public static IApplicationBuilder UseAdvancedRateLimit(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<RateLimitingMiddleware>();
+    }
 }

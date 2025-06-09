@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Infrastructure.Data;
+using MonitoringGrid.Api.Middleware;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Diagnostics;

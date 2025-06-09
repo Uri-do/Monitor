@@ -36,8 +36,10 @@ using Serilog;
 using Serilog.Events;
 using System.Text.Json.Serialization;
 using System.Text;
+using System.IO.Compression;
 using FluentValidation.AspNetCore;
 using MonitoringGrid.Api.Extensions;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -399,26 +401,45 @@ builder.Services.AddResponseCaching(options =>
     options.UseCaseSensitivePaths = false;
 });
 
-// Add memory cache for custom caching scenarios
+// Phase 4B: Add response compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<GzipCompressionProvider>();
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.MimeTypes = new[]
+    {
+        "application/json",
+        "application/javascript",
+        "text/css",
+        "text/html",
+        "text/plain",
+        "text/xml"
+    };
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+// Add enhanced memory cache for Phase 4B advanced caching
 builder.Services.AddMemoryCache(options =>
 {
-    options.SizeLimit = 100 * 1024 * 1024; // 100MB
+    options.SizeLimit = 200 * 1024 * 1024; // 200MB for advanced caching
+    options.CompactionPercentage = 0.25; // Compact when 25% over limit
+    options.ExpirationScanFrequency = TimeSpan.FromMinutes(2); // Scan every 2 minutes
 });
 
-// Add rate limiting configuration
-builder.Services.Configure<RateLimitOptions>(options =>
-{
-    // Configure different limits for different endpoint categories
-    options.GeneralLimit = new RateLimit { RequestsPerWindow = 100, WindowSizeMinutes = 1 };
-    options.AuthenticationLimit = new RateLimit { RequestsPerWindow = 10, WindowSizeMinutes = 1 };
-    options.KpiExecutionLimit = new RateLimit { RequestsPerWindow = 20, WindowSizeMinutes = 1 };
-    options.KpiManagementLimit = new RateLimit { RequestsPerWindow = 50, WindowSizeMinutes = 1 };
-    options.AlertManagementLimit = new RateLimit { RequestsPerWindow = 30, WindowSizeMinutes = 1 };
-    options.AnalyticsLimit = new RateLimit { RequestsPerWindow = 25, WindowSizeMinutes = 1 };
-});
+// Add distributed cache (in-memory for Phase 4B - can be upgraded to Redis later)
+builder.Services.AddDistributedMemoryCache();
 
-builder.Services.AddSingleton(provider =>
-    provider.GetRequiredService<IOptions<RateLimitOptions>>().Value);
+// Phase 4C: Advanced rate limiting configuration is handled by AdvancedRateLimitingService
 
 // Add observability services
 builder.Services.AddSingleton<MetricsService>();
@@ -490,6 +511,18 @@ builder.Services.AddCorrelationId();
 builder.Services.AddScoped<MonitoringGrid.Api.Middleware.IInputSanitizationService, MonitoringGrid.Api.Middleware.InputSanitizationService>();
 builder.Services.AddScoped<MonitoringGrid.Api.Middleware.IExceptionHandlingService, MonitoringGrid.Api.Middleware.ExceptionHandlingService>();
 
+// Phase 4B: Performance optimization services
+builder.Services.AddScoped<IAdvancedCachingService, AdvancedCachingService>();
+builder.Services.AddScoped<IDatabaseOptimizationService, DatabaseOptimizationService>();
+builder.Services.AddScoped<IResponseOptimizationService, ResponseOptimizationService>();
+
+// Phase 4C: Security hardening services
+builder.Services.AddScoped<MonitoringGrid.Api.Security.ISecurityEventService, SecurityEventService>();
+builder.Services.AddScoped<IAdvancedRateLimitingService, AdvancedRateLimitingService>();
+
+// Phase 4D: Documentation and testing services
+builder.Services.AddScoped<MonitoringGrid.Api.Documentation.IApiDocumentationService, MonitoringGrid.Api.Documentation.ApiDocumentationService>();
+
 // Add OpenTelemetry
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
@@ -543,6 +576,12 @@ var app = builder.Build();
 app.UseCorrelationId();
 app.UseEnhancedExceptionHandling();
 
+// Phase 4B: Performance optimization middleware
+app.UseResponseCompression();
+
+// Phase 4C: Security hardening middleware
+app.UseAdvancedRateLimit();
+
 // Add security headers early in the pipeline
 if (app.Environment.IsProduction())
 {
@@ -589,20 +628,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
-// Add performance optimization middleware
-app.UseMiddleware<ResponseCachingMiddleware>();
-
-// Add advanced rate limiting middleware
-app.UseMiddleware<AdvancedRateLimitingMiddleware>();
-
 // Add response caching middleware
 app.UseResponseCaching();
-
-// Add rate limiting middleware (fallback)
-app.UseMiddleware<RateLimitingMiddleware>();
-
-// Add global exception handling middleware
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
