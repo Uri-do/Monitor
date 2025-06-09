@@ -283,12 +283,62 @@ public class RealtimeController : ControllerBase
             SupportedEvents = new List<string>
             {
                 "StatusUpdate",
-                "KpiExecuted", 
+                "KpiExecuted",
                 "AlertTriggered",
                 "DashboardUpdate",
                 "SystemHealthUpdate"
             }
         });
+    }
+
+    /// <summary>
+    /// Test SignalR connection by sending a test message
+    /// </summary>
+    [HttpPost("test-connection")]
+    public async Task<IActionResult> TestConnection()
+    {
+        try
+        {
+            await _hubContext.Clients.All.SendAsync("TestMessage", new
+            {
+                Message = "SignalR connection test successful!",
+                Timestamp = DateTime.UtcNow,
+                Server = Environment.MachineName
+            });
+
+            _logger.LogInformation("SignalR test message sent successfully");
+            return Ok(new { success = true, message = "Test message sent to all connected clients" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send SignalR test message");
+            return StatusCode(500, new { success = false, message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Send test message to specific group
+    /// </summary>
+    [HttpPost("test-group/{groupName}")]
+    public async Task<IActionResult> TestGroup(string groupName)
+    {
+        try
+        {
+            await _hubContext.Clients.Group(groupName).SendAsync("GroupTestMessage", new
+            {
+                Group = groupName,
+                Message = $"Test message for group: {groupName}",
+                Timestamp = DateTime.UtcNow
+            });
+
+            _logger.LogInformation("Test message sent to group {GroupName}", groupName);
+            return Ok(new { success = true, message = $"Test message sent to group: {groupName}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send test message to group {GroupName}", groupName);
+            return StatusCode(500, new { success = false, message = ex.Message });
+        }
     }
 
     #region Helper Methods

@@ -37,6 +37,7 @@ using Serilog.Events;
 using System.Text.Json.Serialization;
 using System.Text;
 using FluentValidation.AspNetCore;
+using MonitoringGrid.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -462,7 +463,8 @@ else
 // Add real-time update service (always enabled for SignalR updates)
 builder.Services.AddHostedService<RealtimeUpdateService>();
 
-
+// Add graceful shutdown service for proper process cleanup
+builder.Services.AddHostedService<MonitoringGrid.Api.Services.GracefulShutdownService>();
 
 // Configure security headers
 builder.Services.ConfigureSecurityHeaders(builder.Configuration);
@@ -588,6 +590,9 @@ app.MapControllers();
 // Map SignalR hubs
 app.MapHub<MonitoringHub>("/monitoring-hub");
 
+// Configure worker cleanup on application shutdown
+app.ConfigureWorkerCleanup();
+
 // Map Prometheus metrics endpoint
 app.MapMetrics();
 
@@ -686,3 +691,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Make Program class accessible for testing
+public partial class Program { }

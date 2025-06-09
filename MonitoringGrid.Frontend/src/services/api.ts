@@ -1,3 +1,30 @@
+/**
+ * API Service Layer - Updated for Consolidated Controller Architecture
+ *
+ * This file has been updated to work with the new consolidated controller structure:
+ *
+ * 🎯 KpiController (/api/v{version}/kpi/*):
+ *   - Core KPI operations (CRUD, execute, metrics, dashboard)
+ *   - Alert management (KPI-related alerts)
+ *   - Contact management (notification contacts)
+ *   - Execution history and analytics
+ *
+ * 🔐 SecurityController (/api/v{version}/security/*):
+ *   - Authentication (login, register, refresh tokens)
+ *   - User and role management
+ *   - Security configuration and monitoring
+ *   - Audit trail and security events
+ *
+ * 🔄 RealtimeController (/api/v{version}/realtime/*):
+ *   - Real-time status and monitoring
+ *   - SignalR operations
+ *   - Live dashboard data
+ *
+ * ⚙️ WorkerController (/api/v{version}/worker/*):
+ *   - Background worker management
+ *   - Worker status and control
+ */
+
 import axios, { AxiosResponse } from 'axios';
 import {
   KpiDto,
@@ -50,7 +77,7 @@ const USE_MOCK_DATA = false;
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api/v1', // Use versioned API endpoints (v1 not v1.0)
+  baseURL: '/api/v2.0', // Use versioned API endpoints (v2.0 for CQRS)
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -190,7 +217,7 @@ export const kpiApi = {
   },
 };
 
-// Contact API endpoints
+// Contact API endpoints (now consolidated under KPI controller)
 export const contactApi = {
   // Get all contacts
   getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
@@ -211,7 +238,8 @@ export const contactApi = {
       }
       return filteredContacts;
     }
-    const response: AxiosResponse<ContactDto[]> = await api.get('/contact', { params });
+    // Updated to use KPI controller's contact endpoints
+    const response: AxiosResponse<ContactDto[]> = await api.get('/kpi/contacts', { params });
     return response.data;
   },
 
@@ -223,20 +251,23 @@ export const contactApi = {
       if (!contact) throw new Error(`Contact with ID ${id} not found`);
       return contact;
     }
-    const response: AxiosResponse<ContactDto> = await api.get(`/contact/${id}`);
+    // Updated to use KPI controller's contact endpoints
+    const response: AxiosResponse<ContactDto> = await api.get(`/kpi/contacts/${id}`);
     return response.data;
   },
 
   // Create new contact
   createContact: async (contact: CreateContactRequest): Promise<ContactDto> => {
-    const response: AxiosResponse<ContactDto> = await api.post('/contact', contact);
+    // Updated to use KPI controller's contact endpoints
+    const response: AxiosResponse<ContactDto> = await api.post('/kpi/contacts', contact);
     return response.data;
   },
 
   // Update contact
   updateContact: async (contact: UpdateContactRequest): Promise<ContactDto> => {
+    // Updated to use KPI controller's contact endpoints
     const response: AxiosResponse<ContactDto> = await api.put(
-      `/contact/${contact.contactId}`,
+      `/kpi/contacts/${contact.contactId}`,
       contact
     );
     return response.data;
@@ -244,12 +275,14 @@ export const contactApi = {
 
   // Delete contact
   deleteContact: async (id: number): Promise<void> => {
-    await api.delete(`/contact/${id}`);
+    // Updated to use KPI controller's contact endpoints
+    await api.delete(`/kpi/contacts/${id}`);
   },
 
   // Assign contact to KPIs
   assignToKpis: async (id: number, kpiIds: number[]): Promise<{ message: string }> => {
-    const response: AxiosResponse<{ message: string }> = await api.post(`/contact/${id}/assign`, {
+    // Updated to use KPI controller's contact endpoints
+    const response: AxiosResponse<{ message: string }> = await api.post(`/kpi/contacts/${id}/assign`, {
       contactId: id,
       kpiIds,
     });
@@ -258,12 +291,13 @@ export const contactApi = {
 
   // Bulk operations
   bulkOperation: async (request: BulkContactOperationRequest): Promise<{ message: string }> => {
-    const response: AxiosResponse<{ message: string }> = await api.post('/contact/bulk', request);
+    // Updated to use KPI controller's contact endpoints
+    const response: AxiosResponse<{ message: string }> = await api.post('/kpi/contacts/bulk', request);
     return response.data;
   },
 };
 
-// Alert API endpoints
+// Alert API endpoints (now consolidated under KPI controller)
 export const alertApi = {
   // Get alerts with filtering and pagination
   getAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
@@ -295,7 +329,8 @@ export const alertApi = {
         hasPreviousPage: false,
       };
     }
-    const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
+    // Updated to use KPI controller's alert endpoints
+    const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/kpi/alerts', {
       params: filter,
     });
     return response.data;
@@ -309,7 +344,8 @@ export const alertApi = {
       if (!alert) throw new Error(`Alert with ID ${id} not found`);
       return alert;
     }
-    const response: AxiosResponse<AlertLogDto> = await api.get(`/alert/${id}`);
+    // Updated to use KPI controller's alert endpoints
+    const response: AxiosResponse<AlertLogDto> = await api.get(`/kpi/alerts/${id}`);
     return response.data;
   },
 
@@ -328,8 +364,9 @@ export const alertApi = {
       }
       return { message: 'Alert resolved successfully' };
     }
+    // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
-      `/alert/${request.alertId}/resolve`,
+      `/kpi/alerts/${request.alertId}/resolve`,
       request
     );
     return response.data;
@@ -352,8 +389,9 @@ export const alertApi = {
       });
       return { message: `${request.alertIds.length} alerts resolved successfully` };
     }
+    // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
-      '/alert/resolve-bulk',
+      '/kpi/alerts/resolve-bulk',
       request
     );
     return response.data;
@@ -361,7 +399,8 @@ export const alertApi = {
 
   // Get alert statistics
   getStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
-    const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
+    // Updated to use KPI controller's alert endpoints
+    const response: AxiosResponse<AlertStatisticsDto> = await api.get('/kpi/alerts/statistics', {
       params: { days },
     });
     return response.data;
@@ -373,7 +412,8 @@ export const alertApi = {
       await mockDelay();
       return mockAlertDashboard;
     }
-    const response: AxiosResponse<AlertDashboardDto> = await api.get('/alert/dashboard');
+    // Updated to use KPI controller's alert endpoints
+    const response: AxiosResponse<AlertDashboardDto> = await api.get('/kpi/alerts/dashboard');
     return response.data;
   },
 };
@@ -403,7 +443,7 @@ export const systemApi = {
   },
 };
 
-// Execution History API endpoints
+// Execution History API endpoints (now consolidated under KPI controller)
 export const executionHistoryApi = {
   // Get execution history with pagination and filters
   getExecutionHistory: async (params: {
@@ -417,8 +457,9 @@ export const executionHistoryApi = {
     pageNumber?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
     console.log('🔍 Fetching execution history with params:', params);
+    // Updated to use KPI controller's execution history endpoints
     const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get(
-      '/executionhistory',
+      '/kpi/execution-history',
       { params }
     );
     console.log('📊 Execution history response:', response.data);
@@ -430,7 +471,8 @@ export const executionHistoryApi = {
     kpiId?: number;
     days?: number;
   }): Promise<ExecutionStatsDto[]> => {
-    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/executionhistory/stats', {
+    // Updated to use KPI controller's execution history endpoints
+    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/kpi/execution-stats', {
       params,
     });
     return response.data;
@@ -438,8 +480,9 @@ export const executionHistoryApi = {
 
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
+    // Updated to use KPI controller's execution history endpoints
     const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(
-      `/executionhistory/${historicalId}`
+      `/kpi/execution-history/${historicalId}`
     );
     return response.data;
   },
@@ -447,17 +490,19 @@ export const executionHistoryApi = {
   // Test database connection and recent records
   testDatabaseConnection: async (): Promise<any> => {
     console.log('🔍 Testing database connection and recent records...');
-    const response = await api.get('/executionhistory/test');
+    // Updated to use KPI controller's execution history endpoints
+    const response = await api.get('/kpi/execution-history/test');
     console.log('📊 Database test response:', response.data);
     return response.data;
   },
 };
 
-// Enhanced Analytics API endpoints
+// Enhanced Analytics API endpoints (now consolidated under KPI controller)
 export const analyticsApi = {
   // Get system-wide analytics
   getSystemAnalytics: async (days: number = 30): Promise<SystemAnalyticsDto> => {
-    const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/analytics/system', {
+    // Updated to use KPI controller's analytics endpoints
+    const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/kpi/analytics/system', {
       params: { days },
     });
     return response.data;
@@ -468,8 +513,9 @@ export const analyticsApi = {
     id: number,
     days: number = 30
   ): Promise<KpiPerformanceAnalyticsDto> => {
+    // Updated to use KPI controller's analytics endpoints
     const response: AxiosResponse<KpiPerformanceAnalyticsDto> = await api.get(
-      `/analytics/kpi/${id}/performance`,
+      `/kpi/${id}/analytics`,
       {
         params: { days },
       }
@@ -479,7 +525,8 @@ export const analyticsApi = {
 
   // Get owner-based analytics
   getOwnerAnalytics: async (days: number = 30): Promise<OwnerAnalyticsDto[]> => {
-    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/analytics/owners', {
+    // Updated to use KPI controller's analytics endpoints
+    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/kpi/analytics/owners', {
       params: { days },
     });
     return response.data;
@@ -487,7 +534,8 @@ export const analyticsApi = {
 
   // Get real-time system health
   getSystemHealth: async (): Promise<SystemHealthDto> => {
-    const response: AxiosResponse<SystemHealthDto> = await api.get('/analytics/health');
+    // Updated to use KPI controller's analytics endpoints
+    const response: AxiosResponse<SystemHealthDto> = await api.get('/kpi/health');
     return response.data;
   },
 };
@@ -570,6 +618,94 @@ export const enhancedAlertApi = {
     const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
       params: { days },
     });
+    return response.data;
+  },
+};
+
+// Security API endpoints (consolidated authentication, authorization, and security management)
+export const securityApi = {
+  // Authentication endpoints
+  login: async (credentials: { username: string; password: string }): Promise<{
+    isSuccess: boolean;
+    token?: any;
+    user?: any;
+    errorMessage?: string;
+    requiresTwoFactor?: boolean;
+    requiresPasswordChange?: boolean;
+  }> => {
+    const response = await api.post('/security/auth/login', credentials);
+    return response.data;
+  },
+
+  register: async (userData: {
+    username: string;
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }): Promise<{
+    isSuccess: boolean;
+    message: string;
+    data?: any;
+    errors?: string[];
+  }> => {
+    const response = await api.post('/security/auth/register', userData);
+    return response.data;
+  },
+
+  refreshToken: async (refreshToken: string): Promise<any> => {
+    const response = await api.post('/security/auth/refresh', { refreshToken });
+    return response.data;
+  },
+
+  // Security configuration endpoints
+  getSecurityConfig: async (): Promise<any> => {
+    const response = await api.get('/security/config');
+    return response.data;
+  },
+
+  updateSecurityConfig: async (config: any): Promise<any> => {
+    const response = await api.put('/security/config', config);
+    return response.data;
+  },
+
+  // User management endpoints
+  getUsers: async (): Promise<any[]> => {
+    const response = await api.get('/security/users');
+    return response.data;
+  },
+
+  updateUserRoles: async (userId: string, roles: string[]): Promise<{ message: string }> => {
+    const response = await api.put(`/security/users/${userId}/roles`, { roles });
+    return response.data;
+  },
+
+  // Role and permission management
+  getRoles: async (): Promise<any[]> => {
+    const response = await api.get('/security/roles');
+    return response.data;
+  },
+
+  getPermissions: async (): Promise<any[]> => {
+    const response = await api.get('/security/permissions');
+    return response.data;
+  },
+
+  // Security events and audit
+  getSecurityEvents: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    userId?: string;
+  }): Promise<any[]> => {
+    const response = await api.get('/security/events', { params });
+    return response.data;
+  },
+
+  getUserSecurityEvents: async (userId: string, params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any[]> => {
+    const response = await api.get(`/security/events/user/${userId}`, { params });
     return response.data;
   },
 };

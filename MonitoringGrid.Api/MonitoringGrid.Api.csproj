@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.4" />
+    <PackageReference Include="System.Management" Version="9.0.5" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <PackageReference Include="Quartz" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />

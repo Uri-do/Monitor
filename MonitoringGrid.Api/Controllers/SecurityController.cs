@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MonitoringGrid.Api.DTOs;
+using ApiKeyService = MonitoringGrid.Api.Authentication.IApiKeyService;
+using MonitoringGrid.Api.Filters;
+using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Security;
 using System.Security.Claims;
@@ -10,17 +13,22 @@ using System.Security.Claims;
 namespace MonitoringGrid.Api.Controllers;
 
 /// <summary>
-/// Security management controller for configuration and monitoring
+/// Comprehensive security management controller for authentication, authorization, API keys, and security monitoring
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("2.0")]
+[ApiVersion("3.0")]
+[Route("api/v{version:apiVersion}/security")]
 [Authorize]
 [Produces("application/json")]
+[PerformanceMonitor(slowThresholdMs: 2000)]
 public class SecurityController : ControllerBase
 {
     private readonly ISecurityAuditService _securityAuditService;
     private readonly IUserService _userService;
     private readonly IRoleManagementService _roleService;
+    private readonly ApiKeyService _apiKeyService;
+    private readonly IAuthenticationService _authenticationService;
     private readonly IMapper _mapper;
     private readonly ILogger<SecurityController> _logger;
     private readonly SecurityConfiguration _securityConfig;
@@ -29,6 +37,8 @@ public class SecurityController : ControllerBase
         ISecurityAuditService securityAuditService,
         IUserService userService,
         IRoleManagementService roleService,
+        ApiKeyService apiKeyService,
+        IAuthenticationService authenticationService,
         IMapper mapper,
         ILogger<SecurityController> logger,
         IOptions<SecurityConfiguration> securityConfig)
@@ -36,6 +46,8 @@ public class SecurityController : ControllerBase
         _securityAuditService = securityAuditService;
         _userService = userService;
         _roleService = roleService;
+        _apiKeyService = apiKeyService;
+        _authenticationService = authenticationService;
         _mapper = mapper;
         _logger = logger;
         _securityConfig = securityConfig.Value;
@@ -287,124 +299,140 @@ public class SecurityController : ControllerBase
         }
     }
 
+
+
+
+
+
+
+
+
     /// <summary>
-    /// Create API key
+    /// Authenticate user and return JWT token
     /// </summary>
-    [HttpPost("api-keys")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<CreateApiKeyResponseDto>> CreateApiKey([FromBody] CreateApiKeyRequestDto request)
+    [HttpPost("auth/login")]
+    [MapToApiVersion("2.0")]
+    [MapToApiVersion("3.0")]
+    [AllowAnonymous]
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Generate a new API key
-            var keyId = Guid.NewGuid().ToString();
-            var apiKey = GenerateApiKey();
+            var ipAddress = GetClientIpAddress();
+            var loginRequest = _mapper.Map<LoginRequest>(request);
 
-            // In a real implementation, you would store this in the database
-            // For now, we'll just return the generated key
-            var response = new CreateApiKeyResponseDto
+            var response = await _authenticationService.AuthenticateAsync(loginRequest, ipAddress);
+
+            var loginResponse = new LoginResponseDto
             {
-                KeyId = keyId,
-                Key = apiKey
+                IsSuccess = response.IsSuccess,
+                ErrorMessage = response.ErrorMessage,
+                RequiresTwoFactor = response.RequiresTwoFactor,
+                RequiresPasswordChange = response.RequiresPasswordChange
             };
 
-            // Log the API key creation
-            var userId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
+            if (response.IsSuccess && response.Token != null)
             {
-                EventId = Guid.NewGuid().ToString(),
-                UserId = userId,
-                EventType = "ApiKeyCreated",
-                Action = "CREATE",
-                Resource = "ApiKey",
-                IpAddress = GetClientIpAddress(),
-                UserAgent = Request.Headers.UserAgent.ToString(),
-                IsSuccess = true,
-                Timestamp = DateTime.UtcNow,
-                AdditionalData = new Dictionary<string, object>
-                {
-                    ["Description"] = $"API key '{request.Name}' created",
-                    ["KeyName"] = request.Name,
-                    ["KeyId"] = keyId
-                }
-            });
+                loginResponse.Token = _mapper.Map<JwtTokenDto>(response.Token);
+                loginResponse.User = _mapper.Map<UserDto>(response.User);
+            }
 
-            _logger.LogInformation("API key created: {KeyName} by user {UserId}", request.Name, userId);
-
-            return Ok(response);
+            return Ok(loginResponse);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating API key");
-            return StatusCode(500, new { message = "Failed to create API key" });
+            _logger.LogError(ex, "Error during authentication for user {Username}: {Message}", request.Username, ex.Message);
+            return StatusCode(500, new LoginResponseDto
+            {
+                IsSuccess = false,
+                ErrorMessage = "An error occurred during authentication. Please try again."
+            });
         }
     }
 
     /// <summary>
-    /// Get API keys
+    /// Register a new user
     /// </summary>
-    [HttpGet("api-keys")]
-    [Authorize(Roles = "Admin")]
-    public ActionResult<List<ApiKeyDto>> GetApiKeys()
+    [HttpPost("auth/register")]
+    [MapToApiVersion("2.0")]
+    [MapToApiVersion("3.0")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponseDto<UserDto>>> Register([FromBody] RegisterRequestDto request)
     {
         try
         {
-            // In a real implementation, you would retrieve from database
-            // For now, return empty list
-            var apiKeys = new List<ApiKeyDto>();
-            return Ok(apiKeys);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var createUserRequest = new CreateUserRequest
+            {
+                Username = request.Username,
+                Email = request.Email,
+                Password = request.Password,
+                FirstName = request.FirstName,
+                LastName = request.LastName
+            };
+
+            var user = await _userService.CreateUserAsync(createUserRequest);
+            var userDto = _mapper.Map<UserDto>(user);
+
+            _logger.LogInformation("New user registered: {Username} ({Email})", request.Username, request.Email);
+
+            return Ok(new ApiResponseDto<UserDto>
+            {
+                IsSuccess = true,
+                Message = "User registered successfully",
+                Data = userDto
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving API keys");
-            return StatusCode(500, new { message = "Failed to retrieve API keys" });
+            _logger.LogError(ex, "Error during registration for user {Username}: {Message}", request.Username, ex.Message);
+            return StatusCode(500, new ApiResponseDto<UserDto>
+            {
+                IsSuccess = false,
+                Message = "An error occurred during registration. Please try again.",
+                Errors = new List<string> { ex.Message }
+            });
         }
     }
 
     /// <summary>
-    /// Revoke API key
+    /// Refresh JWT token using refresh token
     /// </summary>
-    [HttpDelete("api-keys/{keyId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> RevokeApiKey(string keyId)
+    [HttpPost("auth/refresh")]
+    [MapToApiVersion("2.0")]
+    [MapToApiVersion("3.0")]
+    [AllowAnonymous]
+    public async Task<ActionResult<JwtTokenDto>> RefreshToken([FromBody] RefreshTokenRequestDto request)
     {
         try
         {
-            // In a real implementation, you would mark the key as revoked in the database
-            
-            // Log the API key revocation
-            var userId = GetCurrentUserId();
-            await _securityAuditService.LogSecurityEventAsync(new SecurityAuditEvent
-            {
-                EventId = Guid.NewGuid().ToString(),
-                UserId = userId,
-                EventType = "ApiKeyRevoked",
-                Action = "DELETE",
-                Resource = $"ApiKey/{keyId}",
-                IpAddress = GetClientIpAddress(),
-                UserAgent = Request.Headers.UserAgent.ToString(),
-                IsSuccess = true,
-                Timestamp = DateTime.UtcNow,
-                AdditionalData = new Dictionary<string, object>
-                {
-                    ["Description"] = $"API key {keyId} revoked",
-                    ["KeyId"] = keyId
-                }
-            });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            _logger.LogInformation("API key revoked: {KeyId} by user {UserId}", keyId, userId);
+            var newToken = await _authenticationService.RefreshTokenAsync(request.RefreshToken);
+            var tokenDto = _mapper.Map<JwtTokenDto>(newToken);
 
-            return Ok(new { message = "API key revoked successfully" });
+            return Ok(tokenDto);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized(new { message = "Invalid or expired refresh token" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error revoking API key {KeyId}", keyId);
-            return StatusCode(500, new { message = "Failed to revoke API key" });
+            _logger.LogError(ex, "Error refreshing token");
+            return StatusCode(500, new { message = "An error occurred while refreshing the token" });
         }
     }
+
+
+
+
 
     private string GetCurrentUserId()
     {
@@ -414,13 +442,5 @@ public class SecurityController : ControllerBase
     private string GetClientIpAddress()
     {
         return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-    }
-
-    private static string GenerateApiKey()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var random = new Random();
-        return new string(Enumerable.Repeat(chars, 64)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }

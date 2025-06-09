@@ -182,8 +182,12 @@ public class ResponseCachingMiddleware
             }
         }
 
+        // Set cache entry size for memory management
+        cacheOptions.Size = cachedResponse.Content.Length;
+
         _cache.Set(cacheKey, cachedResponse, cacheOptions);
-        _logger.LogDebug("Response cached with key: {CacheKey}, Duration: {Duration}", cacheKey, config.Duration);
+        _logger.LogDebug("Response cached with key: {CacheKey}, Duration: {Duration}, Size: {Size} bytes",
+            cacheKey, config.Duration, cachedResponse.Content.Length);
 
         return cachedResponse;
     }

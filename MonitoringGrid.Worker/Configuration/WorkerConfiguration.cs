@@ -33,6 +33,11 @@ public class WorkerConfiguration
     /// Logging configuration
     /// </summary>
     public LoggingConfiguration Logging { get; set; } = new();
+
+    /// <summary>
+    /// API base URL for SignalR connection
+    /// </summary>
+    public string? ApiBaseUrl { get; set; } = "https://localhost:7001";
 }
 
 /// <summary>

@@ -37,6 +37,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '../../contexts/RealtimeContext';
 import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
+import { RunningKpisDisplay, RunningKpi } from '../Common';
 
 interface WorkerService {
   name: string;
@@ -758,85 +759,26 @@ const WorkerManagement: React.FC = () => {
               )}
 
               {/* Running KPIs */}
-              {runningKpis.length > 0 && (
-                <Paper sx={{ p: 3, mb: 3, bgcolor: 'success.50', border: 1, borderColor: 'success.200' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <TrendingUp sx={{ color: 'success.main' }} />
-                    <Typography variant="h6" color="success.main">
-                      Currently Executing KPIs ({runningKpis.length})
+              {runningKpis.length > 0 ? (
+                <RunningKpisDisplay
+                  runningKpis={runningKpis as RunningKpi[]}
+                  variant="section"
+                  title="Currently Executing KPIs"
+                  showProgress={true}
+                />
+              ) : (
+                <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <TrendingUp sx={{ color: 'info.main' }} />
+                    <Typography variant="h6" color="info.main">
+                      No KPIs Currently Executing
                     </Typography>
-                    <Chip
-                      label="LIVE"
-                      size="small"
-                      color="success"
-                      sx={{
-                        animation: 'pulse 2s infinite',
-                        '@keyframes pulse': {
-                          '0%': { opacity: 1 },
-                          '50%': { opacity: 0.7 },
-                          '100%': { opacity: 1 },
-                        },
-                      }}
-                    />
                   </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {runningKpis.map((kpi, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          p: 2,
-                          bgcolor: 'background.paper',
-                          borderRadius: 1,
-                          border: 1,
-                          borderColor: 'divider',
-                        }}
-                      >
-                        <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} md={8}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Box
-                                sx={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: '50%',
-                                  bgcolor: 'success.main',
-                                  animation: 'pulse 1s infinite',
-                                }}
-                              />
-                              <Box>
-                                <Typography variant="subtitle1" fontWeight="medium">
-                                  {kpi.indicator}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Owner: {kpi.owner}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </Grid>
-                          <Grid item xs={12} md={4}>
-                            <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Started: {formatDateTime(kpi.startTime)}
-                              </Typography>
-                              {kpi.progress !== undefined && (
-                                <Box sx={{ mt: 1 }}>
-                                  <LinearProgress
-                                    variant="determinate"
-                                    value={kpi.progress}
-                                    sx={{ height: 4, borderRadius: 2 }}
-                                  />
-                                  <Typography variant="caption" color="text.secondary">
-                                    {kpi.progress}% complete
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    ))}
-                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Real-time running KPIs: {runningKpis.length} |
+                    Real-time enabled: {realtimeEnabled ? 'Yes' : 'No'} |
+                    Connected: {realtimeConnected ? 'Yes' : 'No'}
+                  </Typography>
                 </Paper>
               )}
 

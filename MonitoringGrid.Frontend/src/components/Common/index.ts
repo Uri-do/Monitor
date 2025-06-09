@@ -27,3 +27,6 @@ export type { FilterField, ActiveFilter } from './FilterPanel';
 
 export { default as SchedulerComponent } from './SchedulerComponent';
 export { default as KpiTypeSelector } from './KpiTypeSelector';
+
+export { default as RunningKpisDisplay } from './RunningKpisDisplay';
+export type { RunningKpi } from './RunningKpisDisplay';

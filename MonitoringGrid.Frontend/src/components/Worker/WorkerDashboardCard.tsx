@@ -11,6 +11,8 @@ import {
   Grid,
   Tooltip,
   Alert,
+  LinearProgress,
+  Divider,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -22,10 +24,15 @@ import {
   Schedule,
   Memory,
   AutorenewOutlined,
+  Timer,
+  PlayCircle,
+  AccessTime,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { WorkerStatusUpdate } from '../../services/signalRService';
+import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
+import { RunningKpi } from '../Common';
 
 interface WorkerService {
   name: string;
@@ -63,6 +70,9 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Use real-time dashboard data
+  const realtimeDashboard = useRealtimeDashboard();
 
   const fetchStatus = async () => {
     setLoading(true);
@@ -139,6 +149,26 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
       console.error('Error formatting uptime:', error);
       return 'Error';
     }
+  };
+
+  const formatCountdown = (seconds: number | null) => {
+    if (seconds === null || seconds <= 0) return null;
+
+    // Show seconds in the last 2 minutes (120 seconds)
+    if (seconds <= 120) {
+      return `${seconds}s`;
+    }
+
+    // Show minutes for longer durations
+    const minutes = Math.ceil(seconds / 60);
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+
+    // Show hours for very long durations
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   };
 
   // Merge real-time status with fetched status
@@ -369,7 +399,7 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
               )}
 
               {/* Services Summary */}
-              <Box>
+              <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Memory fontSize="small" />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -404,6 +434,148 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                   </Typography>
                 )}
               </Box>
+
+              {/* Countdown Timer */}
+              {currentStatus.isRunning && realtimeDashboard.countdown !== null && realtimeDashboard.nextKpiDue && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Timer fontSize="small" color="primary" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        Next KPI Execution
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{
+                      p: 2,
+                      backgroundColor: 'primary.main',
+                      borderRadius: 2,
+                      color: 'white',
+                      textAlign: 'center'
+                    }}>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        {formatCountdown(realtimeDashboard.countdown)}
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        {realtimeDashboard.nextKpiDue.indicator}
+                      </Typography>
+                      <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                        by {realtimeDashboard.nextKpiDue.owner}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </>
+              )}
+
+              {/* Worker Executing KPIs */}
+              {currentStatus.isRunning && realtimeDashboard.runningKpis.length > 0 && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <PlayCircle fontSize="small" color="warning" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.main' }}>
+                        Worker Executing ({realtimeDashboard.runningKpis.length})
+                      </Typography>
+                      <Chip
+                        label="LIVE"
+                        size="small"
+                        color="warning"
+                        sx={{ fontSize: '0.7rem', height: 18 }}
+                      />
+                    </Box>
+
+                    <Box>
+                      {realtimeDashboard.runningKpis.slice(0, 2).map((kpi) => {
+                        const runningKpi: RunningKpi = {
+                          kpiId: kpi.kpiId,
+                          indicator: kpi.indicator,
+                          owner: kpi.owner,
+                          startTime: kpi.startTime,
+                          progress: kpi.progress,
+                          currentStep: kpi.currentStep,
+                          elapsedTime: kpi.elapsedTime
+                        };
+
+                        return (
+                          <Box key={kpi.kpiId} sx={{
+                            mb: 1.5,
+                            p: 1.5,
+                            border: 1,
+                            borderColor: 'warning.main',
+                            borderRadius: 1,
+                            backgroundColor: 'warning.50',
+                            position: 'relative',
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: 3,
+                              bgcolor: 'warning.main',
+                              borderRadius: '3px 0 0 3px',
+                            }
+                          }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+                                ⚡ {runningKpi.indicator}
+                              </Typography>
+                              <Chip
+                                label="EXECUTING"
+                                size="small"
+                                color="warning"
+                                sx={{ fontSize: '0.65rem', height: 18 }}
+                              />
+                            </Box>
+
+                            <Typography variant="caption" color="text.secondary">
+                              {runningKpi.owner} • Started: {new Date(runningKpi.startTime).toLocaleTimeString()}
+                            </Typography>
+
+                            {runningKpi.progress !== undefined && (
+                              <Box sx={{ mt: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Worker Progress
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+                                    {runningKpi.progress}%
+                                  </Typography>
+                                </Box>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={runningKpi.progress}
+                                  sx={{
+                                    height: 4,
+                                    borderRadius: 2,
+                                    backgroundColor: 'warning.100',
+                                    '& .MuiLinearProgress-bar': {
+                                      backgroundColor: 'warning.main'
+                                    }
+                                  }}
+                                />
+                                {runningKpi.currentStep && (
+                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                    {runningKpi.currentStep}
+                                  </Typography>
+                                )}
+                              </Box>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {realtimeDashboard.runningKpis.length > 2 && (
+                      <Typography variant="caption" color="text.secondary">
+                        +{realtimeDashboard.runningKpis.length - 2} more executing...
+                      </Typography>
+                    )}
+                  </Box>
+                </>
+              )}
             </>
           ) : (
             <Box

@@ -10,6 +10,32 @@ The solution consists of three main components:
 2. **Web API** (`MonitoringGrid.Api`) - RESTful API for management and data access
 3. **React Frontend** (`MonitoringGrid.Frontend`) - Modern web interface
 
+## 🏗️ Architectural Transformation
+
+The MonitoringGrid API has undergone a major architectural transformation, consolidating from **18 fragmented controllers** to **4 domain-driven controllers**:
+
+### Before: Fragmented Architecture (18 Controllers)
+- Multiple overlapping controllers (KpiV2, KpiV3, OptimizedKpi, etc.)
+- Scattered functionality across many files
+- Inconsistent patterns and versioning
+- High maintenance overhead
+
+### After: Clean Domain-Driven Architecture (4 Controllers)
+
+| Controller | Domain | Responsibilities |
+|------------|--------|------------------|
+| **🎯 KpiController** | KPI Management | Core KPI operations, alerts, contacts, execution history, analytics |
+| **🔐 SecurityController** | Security & Auth | Authentication, authorization, user management, audit trails |
+| **🔄 RealtimeController** | Real-time Ops | Live monitoring, SignalR operations, real-time dashboard |
+| **⚙️ WorkerController** | Background Tasks | Worker service management, scheduling, background operations |
+
+### Benefits Achieved:
+- ✅ **78% reduction** in controller count (18 → 4)
+- ✅ **Domain-driven design** with clear boundaries
+- ✅ **Consistent API patterns** across all endpoints
+- ✅ **Easier maintenance** and testing
+- ✅ **Better developer experience** with logical grouping
+
 ## Project Structure
 
 ```
@@ -36,39 +62,82 @@ MonitoringGrid/
     └── vite.config.ts              # Build configuration
 ```
 
-## API Endpoints
+## API Endpoints - Consolidated Architecture
 
-### KPI Management
-- `GET /api/kpi` - Get all KPIs with filtering
-- `GET /api/kpi/{id}` - Get KPI by ID
-- `POST /api/kpi` - Create new KPI
-- `PUT /api/kpi/{id}` - Update KPI
-- `DELETE /api/kpi/{id}` - Delete KPI
-- `POST /api/kpi/{id}/execute` - Execute KPI manually
-- `GET /api/kpi/dashboard` - Get KPI dashboard data
-- `GET /api/kpi/{id}/metrics` - Get KPI metrics and trends
-- `POST /api/kpi/bulk` - Bulk operations on KPIs
+> **Note**: The API has been restructured into a clean, domain-driven architecture with 4 consolidated controllers.
 
-### Contact Management
-- `GET /api/contact` - Get all contacts
-- `GET /api/contact/{id}` - Get contact by ID
-- `POST /api/contact` - Create new contact
-- `PUT /api/contact/{id}` - Update contact
-- `DELETE /api/contact/{id}` - Delete contact
-- `POST /api/contact/{id}/assign` - Assign contact to KPIs
-- `POST /api/contact/bulk` - Bulk operations on contacts
+### 🎯 KPI Management Hub (`/api/v{version}/kpi/*`)
+**Core KPI Operations:**
+- `GET /api/v{version}/kpi` - Get all KPIs with filtering
+- `GET /api/v{version}/kpi/{id}` - Get KPI by ID
+- `POST /api/v{version}/kpi` - Create new KPI
+- `PUT /api/v{version}/kpi/{id}` - Update KPI
+- `DELETE /api/v{version}/kpi/{id}` - Delete KPI
+- `POST /api/v{version}/kpi/{id}/execute` - Execute KPI manually
+- `GET /api/v{version}/kpi/dashboard` - Get KPI dashboard data
+- `GET /api/v{version}/kpi/{id}/metrics` - Get KPI metrics and trends
+- `POST /api/v{version}/kpi/bulk` - Bulk operations on KPIs
 
-### Alert Management
-- `GET /api/alert` - Get alerts with filtering and pagination
-- `GET /api/alert/{id}` - Get alert by ID
-- `POST /api/alert/{id}/resolve` - Resolve alert
-- `POST /api/alert/resolve-bulk` - Bulk resolve alerts
-- `GET /api/alert/statistics` - Get alert statistics
-- `GET /api/alert/dashboard` - Get alert dashboard
-- `POST /api/alert/manual` - Send manual alert
+**Alert Management (KPI-related):**
+- `GET /api/v{version}/kpi/alerts` - Get KPI alerts with filtering
+- `GET /api/v{version}/kpi/alerts/{id}` - Get specific alert
+- `POST /api/v{version}/kpi/alerts/{id}/resolve` - Resolve alert
+- `POST /api/v{version}/kpi/alerts/resolve-bulk` - Bulk resolve alerts
+- `GET /api/v{version}/kpi/alerts/statistics` - Get alert statistics
+- `GET /api/v{version}/kpi/alerts/dashboard` - Get alert dashboard
+
+**Contact Management (Notification contacts):**
+- `GET /api/v{version}/kpi/contacts` - Get notification contacts
+- `GET /api/v{version}/kpi/contacts/{id}` - Get contact by ID
+- `POST /api/v{version}/kpi/contacts` - Create new contact
+- `PUT /api/v{version}/kpi/contacts/{id}` - Update contact
+- `DELETE /api/v{version}/kpi/contacts/{id}` - Delete contact
+- `POST /api/v{version}/kpi/contacts/{id}/assign` - Assign contact to KPIs
+- `POST /api/v{version}/kpi/contacts/bulk` - Bulk contact operations
+
+**Execution History & Analytics:**
+- `GET /api/v{version}/kpi/execution-history` - Get execution history
+- `GET /api/v{version}/kpi/execution-stats` - Get execution statistics
+- `GET /api/v{version}/kpi/{id}/analytics` - Get KPI performance analytics
+- `GET /api/v{version}/kpi/analytics/system` - Get system analytics
+- `GET /api/v{version}/kpi/health` - Get system health
+
+### 🔐 Security Management Hub (`/api/v{version}/security/*`)
+**Authentication:**
+- `POST /api/v{version}/security/auth/login` - User authentication
+- `POST /api/v{version}/security/auth/register` - User registration
+- `POST /api/v{version}/security/auth/refresh` - Refresh JWT token
+
+**User & Role Management:**
+- `GET /api/v{version}/security/users` - Get all users
+- `PUT /api/v{version}/security/users/{id}/roles` - Update user roles
+- `GET /api/v{version}/security/roles` - Get all roles
+- `GET /api/v{version}/security/permissions` - Get all permissions
+
+**Security Configuration:**
+- `GET /api/v{version}/security/config` - Get security configuration
+- `PUT /api/v{version}/security/config` - Update security configuration
+
+**Security Events & Audit:**
+- `GET /api/v{version}/security/events` - Get security events
+- `GET /api/v{version}/security/events/user/{id}` - Get user security events
+
+### 🔄 Real-time Operations Hub (`/api/v{version}/realtime/*`)
+- `GET /api/v{version}/realtime/status` - Get real-time system status
+- `POST /api/v{version}/realtime/execute/{id}` - Execute KPI in real-time
+- `GET /api/v{version}/realtime/dashboard` - Get live dashboard data
+- `GET /api/v{version}/realtime/connection-info` - Get SignalR connection info
+- `POST /api/v{version}/realtime/test-connection` - Test SignalR connection
+
+### ⚙️ Worker Management Hub (`/api/v{version}/worker/*`)
+- `GET /api/v{version}/worker/status` - Get worker service status
+- `POST /api/v{version}/worker/start` - Start worker service
+- `POST /api/v{version}/worker/stop` - Stop worker service
+- `POST /api/v{version}/worker/restart` - Restart worker service
+- `GET /api/v{version}/worker/logs` - Get worker logs
 
 ### System
-- `GET /health` - Health check endpoint
+- `GET /health` - Health check endpoint (unversioned)
 - `GET /api/info` - API information
 
 ## Setup Instructions

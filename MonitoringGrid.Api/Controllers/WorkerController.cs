@@ -249,6 +249,9 @@ public class WorkerController : ControllerBase
                 }
 
                 var processId = _workerProcess.Id;
+
+                // Worker cleanup will be handled automatically by the application shutdown handler
+
                 _workerProcess.Kill();
                 _workerProcess.WaitForExit(5000); // Wait up to 5 seconds
                 _workerProcess.Dispose();
@@ -311,151 +314,39 @@ public class WorkerController : ControllerBase
     }
 
     /// <summary>
-    /// Get Worker logs (last 100 lines)
+    /// Execute a specific KPI manually
     /// </summary>
-    [HttpGet("logs")]
-    public ActionResult<WorkerLogsDto> GetLogs([FromQuery] int lines = 100)
-    {
-        try
-        {
-            var logs = new List<string>();
-            
-            lock (_processLock)
-            {
-                if (_workerProcess != null && !_workerProcess.HasExited)
-                {
-                    // In a real implementation, you would read from log files
-                    // For now, return a placeholder
-                    logs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Worker process running (PID: {_workerProcess.Id})");
-                    logs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Started at: {_workerProcess.StartTime}");
-                    logs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Memory usage: {_workerProcess.WorkingSet64 / 1024 / 1024} MB");
-                }
-                else
-                {
-                    logs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Worker is not running");
-                }
-            }
-
-            return Ok(new WorkerLogsDto
-            {
-                Lines = logs,
-                TotalLines = logs.Count,
-                Timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting Worker logs");
-            return StatusCode(500, "Error getting Worker logs");
-        }
-    }
-
-    /// <summary>
-    /// Get Worker configuration
-    /// </summary>
-    [HttpGet("config")]
-    public ActionResult<object> GetConfiguration()
-    {
-        try
-        {
-            var config = new
-            {
-                IsIntegrated = _configuration.GetValue<bool>("Monitoring:EnableWorkerServices", false),
-                WorkerConfig = _configuration.GetSection("Worker").Get<object>(),
-                MonitoringConfig = _configuration.GetSection("Monitoring").Get<object>()
-            };
-
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting Worker configuration");
-            return StatusCode(500, "Error getting Worker configuration");
-        }
-    }
-
-    /// <summary>
-    /// Get KPI status for debugging
-    /// </summary>
-    [HttpGet("kpi-status")]
-    public async Task<IActionResult> GetKpiStatus()
+    [HttpPost("execute-kpi/{kpiId}")]
+    public async Task<IActionResult> ExecuteKpi(int kpiId)
     {
         try
         {
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
 
-            var kpis = await context.KPIs
-                .Select(k => new
-                {
-                    k.KpiId,
-                    k.Indicator,
-                    k.Owner,
-                    k.IsActive,
-                    k.Frequency,
-                    k.LastRun,
-                    k.ScheduleConfiguration,
-                    k.IsCurrentlyRunning,
-                    NextDue = k.LastRun.HasValue ? k.LastRun.Value.AddMinutes(k.Frequency) : (DateTime?)null,
-                    MinutesUntilDue = k.LastRun.HasValue ?
-                        (int)Math.Max(0, (k.LastRun.Value.AddMinutes(k.Frequency) - DateTime.UtcNow).TotalMinutes) : 0,
-                    IsDue = !k.LastRun.HasValue || DateTime.UtcNow >= k.LastRun.Value.AddMinutes(k.Frequency)
-                })
-                .ToListAsync();
-
-            var summary = new
+            var kpi = await context.KPIs.FindAsync(kpiId);
+            if (kpi == null)
             {
-                TotalKpis = kpis.Count,
-                ActiveKpis = kpis.Count(k => k.IsActive),
-                KpisWithScheduleConfig = kpis.Count(k => !string.IsNullOrEmpty(k.ScheduleConfiguration)),
-                KpisNeverRun = kpis.Count(k => !k.LastRun.HasValue),
-                KpisDue = kpis.Count(k => k.IsDue && k.IsActive),
-                KpisRunning = kpis.Count(k => k.IsCurrentlyRunning),
-                KpiDetails = kpis
-            };
-
-            return Ok(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving KPI status");
-            return StatusCode(500, new { success = false, message = "Failed to retrieve KPI status" });
-        }
-    }
-
-    /// <summary>
-    /// Reset KPI LastRun times to make them due for execution (for testing)
-    /// </summary>
-    [HttpPost("reset-kpi-times")]
-    public async Task<IActionResult> ResetKpiTimes()
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
-
-            var kpis = await context.KPIs.Where(k => k.IsActive).ToListAsync();
-
-            foreach (var kpi in kpis)
-            {
-                kpi.LastRun = null; // Reset to make them due for execution
-                kpi.IsCurrentlyRunning = false; // Ensure they're not marked as running
+                return NotFound(new { success = false, message = "KPI not found" });
             }
 
+            // Mark as currently running
+            kpi.IsCurrentlyRunning = true;
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("Reset LastRun times for {Count} active KPIs", kpis.Count);
+            _logger.LogInformation("Manual execution requested for KPI {KpiId}: {Indicator}", kpiId, kpi.Indicator);
 
             return Ok(new {
                 success = true,
-                message = $"Reset {kpis.Count} KPIs to be due for execution",
-                resetKpis = kpis.Select(k => new { k.KpiId, k.Indicator }).ToList()
+                message = $"KPI execution started: {kpi.Indicator}",
+                kpiId = kpiId,
+                indicator = kpi.Indicator
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error resetting KPI times");
-            return StatusCode(500, new { success = false, message = "Failed to reset KPI times" });
+            _logger.LogError(ex, "Error executing KPI {KpiId}", kpiId);
+            return StatusCode(500, new { success = false, message = "Failed to execute KPI" });
         }
     }
 
@@ -493,6 +384,79 @@ public class WorkerController : ControllerBase
         {
             _logger.LogError(ex, "Error activating KPIs");
             return StatusCode(500, new { success = false, message = "Failed to activate KPIs" });
+        }
+    }
+
+    /// <summary>
+    /// Get worker cleanup status
+    /// </summary>
+    [HttpGet("cleanup-status")]
+    public IActionResult GetCleanupStatus()
+    {
+        try
+        {
+            // Check for running MonitoringGrid processes
+            var monitoringProcesses = System.Diagnostics.Process.GetProcesses()
+                .Where(p =>
+                {
+                    try
+                    {
+                        return p.ProcessName.Contains("MonitoringGrid", StringComparison.OrdinalIgnoreCase) ||
+                               (p.MainModule?.FileName?.Contains("MonitoringGrid", StringComparison.OrdinalIgnoreCase) == true);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                })
+                .Where(p => p.Id != Environment.ProcessId)
+                .ToList();
+
+            return Ok(new
+            {
+                success = true,
+                totalProcesses = monitoringProcesses.Count,
+                processes = monitoringProcesses.Select(p => new
+                {
+                    processId = p.Id,
+                    processName = p.ProcessName,
+                    startTime = p.StartTime,
+                    isResponding = p.Responding
+                }).ToList(),
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving cleanup status");
+            return StatusCode(500, new { success = false, message = "Failed to retrieve cleanup status" });
+        }
+    }
+
+    /// <summary>
+    /// Manually trigger worker cleanup (for testing)
+    /// </summary>
+    [HttpPost("cleanup-workers")]
+    public IActionResult CleanupWorkers()
+    {
+        try
+        {
+            _logger.LogInformation("Manual worker cleanup requested");
+
+            // Use the same cleanup logic as the application shutdown handler
+            MonitoringGrid.Api.Extensions.ApplicationLifetimeExtensions.TriggerManualCleanup(_logger);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Worker cleanup completed",
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during manual worker cleanup");
+            return StatusCode(500, new { success = false, message = "Failed to cleanup workers" });
         }
     }
 }
