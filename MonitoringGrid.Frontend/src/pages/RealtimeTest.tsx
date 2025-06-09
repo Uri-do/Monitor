@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useRealtimeDashboard } from '../hooks/useRealtimeDashboard';
 import { format } from 'date-fns';
+import { formatCountdown } from '../utils/countdown';
 import { signalRService } from '../services/signalRService';
 
 const RealtimeTest: React.FC = () => {
@@ -156,21 +157,7 @@ const RealtimeTest: React.FC = () => {
     setEvents([]);
   };
 
-  const formatCountdown = (seconds: number | null): string => {
-    if (seconds === null || seconds <= 0) return 'N/A';
-    
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${secs}s`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${secs}s`;
-    } else {
-      return `${secs}s`;
-    }
-  };
+
 
   return (
     <Box sx={{ p: 3 }}>

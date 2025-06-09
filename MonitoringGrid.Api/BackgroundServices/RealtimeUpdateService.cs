@@ -15,18 +15,15 @@ public class RealtimeUpdateService : BackgroundService
 {
     private readonly ILogger<RealtimeUpdateService> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IRealtimeNotificationService _realtimeNotificationService;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(5); // Update every 5 seconds
     private readonly TimeSpan _countdownInterval = TimeSpan.FromSeconds(1); // Countdown every second
 
     public RealtimeUpdateService(
         ILogger<RealtimeUpdateService> logger,
-        IServiceProvider serviceProvider,
-        IRealtimeNotificationService realtimeNotificationService)
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _realtimeNotificationService = realtimeNotificationService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -102,15 +99,15 @@ public class RealtimeUpdateService : BackgroundService
     private async Task SendPeriodicUpdatesAsync()
     {
         using var scope = _serviceProvider.CreateScope();
-        
+
         try
         {
             // Send worker status update
-            await SendWorkerStatusUpdateAsync();
-            
+            await SendWorkerStatusUpdateAsync(scope);
+
             // Send running KPIs update
             await SendRunningKpisUpdateAsync(scope);
-            
+
             // Send next KPI schedule update
             await SendNextKpiScheduleUpdateAsync(scope);
         }
@@ -120,10 +117,11 @@ public class RealtimeUpdateService : BackgroundService
         }
     }
 
-    private async Task SendWorkerStatusUpdateAsync()
+    private async Task SendWorkerStatusUpdateAsync(IServiceScope scope)
     {
         try
         {
+            var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var process = Process.GetCurrentProcess();
             var workerStatus = new WorkerStatusUpdateDto
             {
@@ -140,7 +138,7 @@ public class RealtimeUpdateService : BackgroundService
                 Uptime = (DateTime.UtcNow - process.StartTime).ToString(@"hh\:mm\:ss")
             };
 
-            await _realtimeNotificationService.SendWorkerStatusUpdateAsync(workerStatus);
+            await realtimeNotificationService.SendWorkerStatusUpdateAsync(workerStatus);
         }
         catch (Exception ex)
         {
@@ -152,9 +150,10 @@ public class RealtimeUpdateService : BackgroundService
     {
         try
         {
+            var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
             var kpis = await kpiService.GetAllKpisAsync();
-            
+
             // For demo purposes, simulate some running KPIs
             // In a real implementation, this would come from actual execution tracking
             var runningKpis = kpis
@@ -175,7 +174,7 @@ public class RealtimeUpdateService : BackgroundService
                 RunningKpis = runningKpis
             };
 
-            await _realtimeNotificationService.SendRunningKpisUpdateAsync(runningKpisUpdate);
+            await realtimeNotificationService.SendRunningKpisUpdateAsync(runningKpisUpdate);
         }
         catch (Exception ex)
         {
@@ -187,9 +186,10 @@ public class RealtimeUpdateService : BackgroundService
     {
         try
         {
+            var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
             var kpis = await kpiService.GetAllKpisAsync();
-            
+
             var nextKpis = kpis
                 .Where(k => k.IsActive)
                 .Select(k => new { Kpi = k, NextRun = k.GetNextRunTime() })
@@ -211,7 +211,7 @@ public class RealtimeUpdateService : BackgroundService
                 NextKpis = nextKpis
             };
 
-            await _realtimeNotificationService.SendNextKpiScheduleUpdateAsync(scheduleUpdate);
+            await realtimeNotificationService.SendNextKpiScheduleUpdateAsync(scheduleUpdate);
         }
         catch (Exception ex)
         {
@@ -222,12 +222,13 @@ public class RealtimeUpdateService : BackgroundService
     private async Task SendCountdownUpdateAsync()
     {
         using var scope = _serviceProvider.CreateScope();
-        
+
         try
         {
+            var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
             var kpis = await kpiService.GetAllKpisAsync();
-            
+
             var nextKpiData = kpis
                 .Where(k => k.IsActive)
                 .Select(k => new { Kpi = k, NextRun = k.GetNextRunTime() })
@@ -250,7 +251,7 @@ public class RealtimeUpdateService : BackgroundService
                         ScheduledTime = nextKpiData.NextRun.Value.ToString("O")
                     };
 
-                    await _realtimeNotificationService.SendCountdownUpdateAsync(countdownUpdate);
+                    await realtimeNotificationService.SendCountdownUpdateAsync(countdownUpdate);
                 }
             }
         }

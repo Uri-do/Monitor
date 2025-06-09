@@ -163,10 +163,11 @@ const DataTable = <T extends Record<string, any>>({
     // Apply search if enabled
     if (searchable && searchValue && onSearchChange) {
       const searchableColumns = columns.filter(col => col.searchable !== false);
+      const searchLower = searchValue?.toLowerCase() || '';
       result = result.filter(row =>
         searchableColumns.some(col => {
           const value = row[col.id];
-          return value?.toString().toLowerCase().includes(searchValue.toLowerCase());
+          return value?.toString().toLowerCase().includes(searchLower);
         })
       );
     }

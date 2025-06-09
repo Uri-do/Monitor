@@ -72,14 +72,19 @@ namespace MonitoringGrid.Core.Utilities
         public static bool IsKpiDueForWholeTimeExecution(DateTime? lastRun, int frequencyMinutes, DateTime? currentTime = null)
         {
             var now = currentTime ?? DateTime.UtcNow;
-            
+
             // If never run, it's due
             if (!lastRun.HasValue)
                 return true;
-            
-            // Calculate the next whole time execution from the last run
+
+            // Simple check: if more than one frequency interval has passed, it's definitely due
+            var timeSinceLastRun = now - lastRun.Value;
+            if (timeSinceLastRun.TotalMinutes >= frequencyMinutes)
+                return true;
+
+            // For recent executions, use whole time scheduling
             var nextExecution = GetNextWholeTimeExecution(frequencyMinutes, lastRun.Value);
-            
+
             // Check if current time has passed the next execution time
             return now >= nextExecution;
         }

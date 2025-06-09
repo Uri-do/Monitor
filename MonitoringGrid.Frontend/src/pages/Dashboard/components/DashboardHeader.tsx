@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Chip, IconButton, Tooltip } from '@mui/material';
 import { Refresh, Timer } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import { formatCountdownWithContext, getCountdownSeverity, shouldCountdownPulse } from '../../../utils/countdown';
 
 interface DashboardHeaderProps {
   lastUpdate?: string;
@@ -10,24 +11,6 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown, onRefresh }) => {
-  const formatCountdown = (seconds: number): string => {
-    if (seconds <= 0) return 'Due Now!';
-
-    const days = Math.floor(seconds / (24 * 60 * 60));
-    const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
-    const mins = Math.floor((seconds % (60 * 60)) / 60);
-    const secs = seconds % 60;
-
-    if (days > 0) {
-      return `${days}d ${hours}h ${mins}m`;
-    } else if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else if (mins > 0) {
-      return `${mins}m ${secs}s`;
-    } else {
-      return `${secs}s`;
-    }
-  };
 
   return (
     <Box
@@ -81,18 +64,23 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown
                 <Timer
                   sx={{
                     fontSize: '16px !important',
-                    animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                    animation: shouldCountdownPulse(countdown) ? 'pulse 1s infinite' : 'none',
                   }}
                 />
               }
-              label={formatCountdown(countdown)}
+              label={formatCountdownWithContext(countdown).display}
               size="small"
+              aria-label={formatCountdownWithContext(countdown).ariaLabel}
               sx={{
                 backgroundColor:
-                  countdown <= 300 ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                  getCountdownSeverity(countdown) === 'warning'
+                    ? 'rgba(255, 152, 0, 0.3)'
+                    : getCountdownSeverity(countdown) === 'error'
+                    ? 'rgba(244, 67, 54, 0.3)'
+                    : 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
                 fontWeight: 600,
-                animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                animation: shouldCountdownPulse(countdown) ? 'pulse 1s infinite' : 'none',
                 '@keyframes pulse': {
                   '0%': { opacity: 1 },
                   '50%': { opacity: 0.7 },

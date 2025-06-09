@@ -5,6 +5,7 @@ using MonitoringGrid.Api.CQRS.Commands.Kpi;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Kpi;
@@ -70,15 +71,15 @@ public class ExecuteKpiCommandHandler : ICommandHandler<ExecuteKpiCommand, KpiEx
             var result = await _kpiExecutionService.ExecuteKpiAsync(kpi, cancellationToken);
             var duration = DateTime.UtcNow - startTime;
 
-            // Mark KPI as executed (this will raise domain events)
-            kpi.MarkAsExecuted(
-                result.IsSuccessful,
-                result.CurrentValue,
-                result.HistoricalValue,
-                result.IsSuccessful ? null : result.ErrorMessage);
-
-            // Save changes to persist domain events
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // The KpiExecutionService should have updated LastRun, but let's ensure it's saved
+            // by refreshing the entity from the database and updating it again
+            var refreshedKpi = await kpiRepository.GetByIdAsync(request.KpiId, cancellationToken);
+            if (refreshedKpi != null)
+            {
+                refreshedKpi.UpdateLastRun();
+                await kpiRepository.UpdateAsync(refreshedKpi, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
 
             // Record metrics
             _metricsService.RecordKpiExecution(kpi.Indicator, kpi.Owner, duration.TotalSeconds, result.IsSuccessful);

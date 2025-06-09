@@ -106,12 +106,44 @@ public class MonitoringHub : Hub
     public async Task UnsubscribeFromDashboard()
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Dashboard");
-        
+
         _logger.LogDebug("Client {ConnectionId} unsubscribed from dashboard updates", Context.ConnectionId);
-        
+
         await Clients.Caller.SendAsync("UnsubscribedFromDashboard", new
         {
             Message = "Unsubscribed from dashboard updates"
+        });
+    }
+
+    /// <summary>
+    /// Join a specific group (generic method for frontend compatibility)
+    /// </summary>
+    public async Task JoinGroup(string groupName)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} joined group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("JoinedGroup", new
+        {
+            GroupName = groupName,
+            Message = $"Joined group {groupName}"
+        });
+    }
+
+    /// <summary>
+    /// Leave a specific group (generic method for frontend compatibility)
+    /// </summary>
+    public async Task LeaveGroup(string groupName)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} left group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("LeftGroup", new
+        {
+            GroupName = groupName,
+            Message = $"Left group {groupName}"
         });
     }
 }

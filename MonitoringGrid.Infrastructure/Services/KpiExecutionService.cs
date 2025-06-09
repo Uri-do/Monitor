@@ -60,9 +60,15 @@ public class KpiExecutionService : IKpiExecutionService
                 return await ExecuteStoredProcedureAsync(kpi, cancellationToken);
             });
 
-            // Mark KPI execution as completed
+            // Mark KPI execution as completed and update last run time
             kpi.CompleteExecution();
+            kpi.UpdateLastRun();
+
+            // Ensure the entity is tracked and marked as modified
+            _context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Updated KPI {KpiId} LastRun to {LastRun}", kpi.KpiId, kpi.LastRun);
 
             return result;
         }
@@ -70,9 +76,15 @@ public class KpiExecutionService : IKpiExecutionService
         {
             _logger.LogError(ex, "Failed to execute KPI {Indicator}: {Message}", kpi.Indicator, ex.Message);
 
-            // Mark KPI execution as completed even on error
+            // Mark KPI execution as completed even on error and update last run time
             kpi.CompleteExecution();
+            kpi.UpdateLastRun();
+
+            // Ensure the entity is tracked and marked as modified
+            _context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogWarning("Updated KPI {KpiId} LastRun to {LastRun} after error", kpi.KpiId, kpi.LastRun);
 
             return new KpiExecutionResult
             {

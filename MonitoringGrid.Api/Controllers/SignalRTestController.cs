@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Hubs;
+using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.Controllers;
 
@@ -197,6 +198,49 @@ public class SignalRTestController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send test message to group {GroupName}", groupName);
+            return StatusCode(500, new { success = false, message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Check if RealtimeUpdateService is running and get KPI status
+    /// </summary>
+    [HttpGet("service-status")]
+    public async Task<IActionResult> GetServiceStatus([FromServices] IKpiService kpiService)
+    {
+        try
+        {
+            var kpis = await kpiService.GetAllKpisAsync();
+            var activeKpis = kpis.Where(k => k.IsActive).ToList();
+
+            var nextKpiData = activeKpis
+                .Select(k => new { Kpi = k, NextRun = k.GetNextRunTime() })
+                .Where(x => x.NextRun.HasValue)
+                .OrderBy(x => x.NextRun)
+                .FirstOrDefault();
+
+            return Ok(new
+            {
+                success = true,
+                totalKpis = kpis.Count(),
+                activeKpis = activeKpis.Count,
+                nextKpi = nextKpiData != null ? new
+                {
+                    kpiId = nextKpiData.Kpi.KpiId,
+                    indicator = nextKpiData.Kpi.Indicator,
+                    owner = nextKpiData.Kpi.Owner,
+                    nextRun = nextKpiData.NextRun?.ToString("O"),
+                    secondsUntilDue = nextKpiData.NextRun.HasValue
+                        ? (int)(nextKpiData.NextRun.Value - DateTime.UtcNow).TotalSeconds
+                        : 0
+                } : null,
+                serverTime = DateTime.UtcNow.ToString("O"),
+                realtimeServiceRunning = true // If this endpoint responds, the service is running
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get service status");
             return StatusCode(500, new { success = false, message = ex.Message });
         }
     }

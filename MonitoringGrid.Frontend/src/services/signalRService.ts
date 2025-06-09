@@ -223,7 +223,7 @@ class SignalRService {
 
     // Worker service real-time events
     this.connection.on('WorkerStatusUpdate', (status: WorkerStatusUpdate) => {
-      console.log('Worker status update:', status);
+      console.log('🔧 Worker status update received:', status);
       this.eventHandlers.onWorkerStatusUpdate?.(status);
     });
 
@@ -243,7 +243,7 @@ class SignalRService {
     });
 
     this.connection.on('CountdownUpdate', (data: CountdownUpdate) => {
-      console.log('Countdown update:', data);
+      console.log('🕒 Countdown update received:', data);
       this.eventHandlers.onCountdownUpdate?.(data);
     });
 
@@ -261,6 +261,15 @@ class SignalRService {
     this.connection.on('systemstatus', (data: any) => {
       console.log('System status update:', data);
       // Handle system status if needed
+    });
+
+    // Group join/leave events
+    this.connection.on('JoinedGroup', (data: any) => {
+      console.log('Joined group:', data);
+    });
+
+    this.connection.on('LeftGroup', (data: any) => {
+      console.log('Left group:', data);
     });
   }
 

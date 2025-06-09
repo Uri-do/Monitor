@@ -39,9 +39,17 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
         sqlOptions.CommandTimeout(120);
     }));
 
+// Configuration sections
+builder.Services.Configure<MonitoringGrid.Core.Models.EmailConfiguration>(
+    builder.Configuration.GetSection("Email"));
+builder.Services.Configure<MonitoringGrid.Core.Models.MonitoringConfiguration>(
+    builder.Configuration.GetSection("Monitoring"));
+
 // Core Services
 builder.Services.AddScoped<IKpiService, MonitoringGrid.Infrastructure.Services.KpiService>();
 builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
+builder.Services.AddScoped<IEmailService, MonitoringGrid.Infrastructure.Services.EmailService>();
+builder.Services.AddScoped<ISmsService, MonitoringGrid.Infrastructure.Services.SmsService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IRepository<MonitoringGrid.Core.Entities.KPI>, MonitoringGrid.Infrastructure.Repositories.Repository<MonitoringGrid.Core.Entities.KPI>>();
 
