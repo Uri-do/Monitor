@@ -356,7 +356,7 @@ public class KpiController : ControllerBase
     /// Get KPI status dashboard
     /// </summary>
     [HttpGet("dashboard")]
-    [ResponseCache(Duration = 60, VaryByQueryKeys = new string[] { })]
+    [ResponseCache(Duration = 30, VaryByQueryKeys = new string[] { })]
     [DatabasePerformanceMonitor]
     public async Task<ActionResult<KpiDashboardDto>> GetDashboard()
     {
@@ -456,6 +456,7 @@ public class KpiController : ControllerBase
                     KpiId = nextKpiDue.Kpi.KpiId,
                     Indicator = nextKpiDue.Kpi.Indicator,
                     Owner = nextKpiDue.Kpi.Owner,
+                    IsActive = nextKpiDue.Kpi.IsActive,
                     NextRun = nextKpiDue.NextRun,
                     MinutesUntilDue = (int)Math.Max(0, nextKpiDue.MinutesUntilDue),
                     Status = nextKpiDue.MinutesUntilDue <= 0 ? "Due Now" :

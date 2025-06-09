@@ -143,7 +143,7 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
                 MinutesUntilDue = (int)Math.Ceiling(Math.Max(0, nextKpiDue.MinutesUntilDue)),
                 Status = nextKpiDue.MinutesUntilDue <= 0 ? "Due Now" :
                          nextKpiDue.MinutesUntilDue <= 5 ? "Due Soon" : "Scheduled",
-                IsActive = true,
+                IsActive = nextKpiDue.Kpi.IsActive,
                 Frequency = nextKpiDue.Kpi.Frequency,
                 LastRun = nextKpiDue.Kpi.LastRun
             } : null,

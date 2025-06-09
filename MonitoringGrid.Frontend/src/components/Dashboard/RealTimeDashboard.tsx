@@ -152,7 +152,8 @@ export const RealTimeDashboard: React.FC = () => {
     };
   }, [on, off]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
+    if (!status) return 'secondary';
     switch (status.toLowerCase()) {
       case 'healthy':
         return 'success';
@@ -165,7 +166,8 @@ export const RealTimeDashboard: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | undefined) => {
+    if (!status) return <CheckCircle color="secondary" />;
     switch (status.toLowerCase()) {
       case 'healthy':
         return <CheckCircle color="success" />;

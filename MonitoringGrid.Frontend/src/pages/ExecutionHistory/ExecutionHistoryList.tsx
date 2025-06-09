@@ -113,7 +113,8 @@ const ExecutionHistoryList: React.FC = () => {
   };
 
   // Get performance category color
-  const getPerformanceColor = (category: string) => {
+  const getPerformanceColor = (category: string | undefined) => {
+    if (!category) return 'secondary';
     switch (category.toLowerCase()) {
       case 'fast':
         return 'success';

@@ -42,7 +42,8 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
     return Math.min((elapsed / totalInterval) * 100, 100);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
+    if (!status) return 'secondary';
     switch (status.toLowerCase()) {
       case 'running':
         return 'success';
@@ -238,7 +239,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
 
                 <Box display="flex" alignItems="center" gap={1}>
                   <Chip
-                    label={kpiDashboard.nextKpiDue?.status}
+                    label={kpiDashboard.nextKpiDue?.status || 'Unknown'}
                     color={getStatusColor(kpiDashboard.nextKpiDue?.status)}
                     size="small"
                     sx={{ fontWeight: 600 }}

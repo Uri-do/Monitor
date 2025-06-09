@@ -40,7 +40,7 @@ interface StatusChipProps extends Omit<ChipProps, 'color'> {
 const StatusChip: React.FC<StatusChipProps> = ({ status, customColors = {}, ...chipProps }) => {
   const getStatusConfig = (status: string) => {
     // Check custom colors first
-    if (customColors[status.toLowerCase()]) {
+    if (status && customColors[status.toLowerCase()]) {
       return customColors[status.toLowerCase()];
     }
 
@@ -79,7 +79,7 @@ const StatusChip: React.FC<StatusChipProps> = ({ status, customColors = {}, ...c
         '4': { color: 'success', icon: <SuccessIcon /> },
       };
 
-    return statusConfigs[status.toLowerCase()] || { color: 'secondary' as ChipProps['color'] };
+    return statusConfigs[status?.toLowerCase() || ''] || { color: 'secondary' as ChipProps['color'] };
   };
 
   const config = getStatusConfig(status);

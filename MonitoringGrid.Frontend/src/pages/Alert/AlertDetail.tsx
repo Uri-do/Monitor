@@ -78,7 +78,8 @@ const AlertDetail: React.FC = () => {
     resolveMutation.mutate();
   };
 
-  const getSeverityIcon = (severity: string) => {
+  const getSeverityIcon = (severity: string | undefined) => {
+    if (!severity) return <InfoIcon />;
     switch (severity.toLowerCase()) {
       case 'critical':
         return <ErrorIcon color="error" />;

@@ -26,7 +26,8 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | undefined) => {
+    if (!severity) return 'secondary';
     switch (severity.toLowerCase()) {
       case 'critical':
         return 'error';
