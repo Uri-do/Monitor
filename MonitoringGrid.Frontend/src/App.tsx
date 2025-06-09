@@ -26,7 +26,7 @@ const Settings = React.lazy(() => import('@/pages/Settings/Settings'));
 const UserProfile = React.lazy(() => import('@/pages/User/UserProfile'));
 const UserManagement = React.lazy(() => import('@/pages/Users/UserManagement'));
 const RoleManagement = React.lazy(() => import('@/pages/Admin/RoleManagement'));
-const AdminDashboard = React.lazy(() => import('@/pages/Admin/AdminDashboard'));
+
 const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
 const Administration = React.lazy(() => import('@/pages/Administration/Administration'));
 const ExecutionHistoryList = React.lazy(
@@ -37,10 +37,6 @@ const ExecutionHistoryDetail = React.lazy(
 );
 const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
 const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
-const ComponentShowcase = React.lazy(() => import('@/pages/Demo/ComponentShowcase'));
-const VisualizationShowcase = React.lazy(() => import('@/pages/Demo/VisualizationShowcase'));
-const InteractiveShowcase = React.lazy(() => import('@/pages/Demo/InteractiveShowcase'));
-const RealtimeTest = React.lazy(() => import('@/pages/RealtimeTest'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -396,14 +392,10 @@ function App() {
                   }
                 />
 
-                {/* Admin Routes */}
+                {/* Admin Routes - Redirect to Administration */}
                 <Route
                   path="/admin"
-                  element={
-                    <LazyRoute requiredPermissions={['System:Admin']}>
-                      <AdminDashboard />
-                    </LazyRoute>
-                  }
+                  element={<Navigate to="/administration" replace />}
                 />
 
                 <Route
@@ -443,45 +435,7 @@ function App() {
                   }
                 />
 
-                {/* Component Showcase (Development/Demo) */}
-                <Route
-                  path="/showcase"
-                  element={
-                    <LazyRoute>
-                      <ComponentShowcase />
-                    </LazyRoute>
-                  }
-                />
 
-                {/* Visualization Showcase (Development/Demo) */}
-                <Route
-                  path="/visualizations"
-                  element={
-                    <LazyRoute>
-                      <VisualizationShowcase />
-                    </LazyRoute>
-                  }
-                />
-
-                {/* Interactive Showcase (Development/Demo) */}
-                <Route
-                  path="/interactions"
-                  element={
-                    <LazyRoute>
-                      <InteractiveShowcase />
-                    </LazyRoute>
-                  }
-                />
-
-                {/* Real-time Test (Development/Demo) */}
-                <Route
-                  path="/realtime-test"
-                  element={
-                    <LazyRoute>
-                      <RealtimeTest />
-                    </LazyRoute>
-                  }
-                />
 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

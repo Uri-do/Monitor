@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '@/components/Common';
-import { SecuritySettingsNew as SecuritySettings } from '../Settings/SecuritySettingsNew';
+import { SecuritySettings } from '../Settings/SecuritySettings';
 import ApiKeyManagement from './ApiKeyManagement';
 import { useAuth } from '@/hooks/useAuth';
 

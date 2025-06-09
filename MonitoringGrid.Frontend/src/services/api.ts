@@ -61,19 +61,7 @@ import {
   ExecutionStatsDto,
   ExecutionHistoryDetailDto,
 } from '@/types/api';
-import {
-  mockKpis,
-  mockContacts,
-  mockAlerts,
-  mockKpiDashboard,
-  mockAlertDashboard,
-  mockHealthCheck,
-} from './mockData';
-
-// Enable mock mode for development (set to false when backend is ready)
-const USE_MOCK_DATA = false;
-
-// Force API calls - no mock data
+// Production API - no mock data
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -84,8 +72,7 @@ const api = axios.create({
   },
 });
 
-// Mock delay function to simulate API calls
-const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 // Request interceptor for authentication
 api.interceptors.request.use(
@@ -125,34 +112,12 @@ export const kpiApi = {
     owner?: string;
     priority?: number;
   }): Promise<KpiDto[]> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      let filteredKpis = [...mockKpis];
-      if (params?.isActive !== undefined) {
-        filteredKpis = filteredKpis.filter(kpi => kpi.isActive === params.isActive);
-      }
-      if (params?.owner) {
-        filteredKpis = filteredKpis.filter(kpi =>
-          kpi.owner.toLowerCase().includes(params.owner!.toLowerCase())
-        );
-      }
-      if (params?.priority) {
-        filteredKpis = filteredKpis.filter(kpi => kpi.priority === params.priority);
-      }
-      return filteredKpis;
-    }
     const response: AxiosResponse<KpiDto[]> = await api.get('/kpi', { params });
     return response.data;
   },
 
   // Get KPI by ID
   getKpi: async (id: number): Promise<KpiDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      const kpi = mockKpis.find(k => k.kpiId === id);
-      if (!kpi) throw new Error(`KPI with ID ${id} not found`);
-      return kpi;
-    }
     const response: AxiosResponse<KpiDto> = await api.get(`/kpi/${id}`);
     return response.data;
   },
@@ -202,10 +167,6 @@ export const kpiApi = {
 
   // Get KPI dashboard
   getDashboard: async (): Promise<KpiDashboardDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      return mockKpiDashboard;
-    }
     const response: AxiosResponse<KpiDashboardDto> = await api.get('/kpi/dashboard');
     return response.data;
   },
@@ -221,23 +182,6 @@ export const kpiApi = {
 export const contactApi = {
   // Get all contacts
   getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      let filteredContacts = [...mockContacts];
-      if (params?.isActive !== undefined) {
-        filteredContacts = filteredContacts.filter(contact => contact.isActive === params.isActive);
-      }
-      if (params?.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredContacts = filteredContacts.filter(
-          contact =>
-            contact.name.toLowerCase().includes(searchLower) ||
-            contact.email?.toLowerCase().includes(searchLower) ||
-            contact.phone?.toLowerCase().includes(searchLower)
-        );
-      }
-      return filteredContacts;
-    }
     // Updated to use KPI controller's contact endpoints
     const response: AxiosResponse<ContactDto[]> = await api.get('/kpi/contacts', { params });
     return response.data;
@@ -245,12 +189,6 @@ export const contactApi = {
 
   // Get contact by ID
   getContact: async (id: number): Promise<ContactDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      const contact = mockContacts.find(c => c.contactId === id);
-      if (!contact) throw new Error(`Contact with ID ${id} not found`);
-      return contact;
-    }
     // Updated to use KPI controller's contact endpoints
     const response: AxiosResponse<ContactDto> = await api.get(`/kpi/contacts/${id}`);
     return response.data;
@@ -301,34 +239,6 @@ export const contactApi = {
 export const alertApi = {
   // Get alerts with filtering and pagination
   getAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      let filteredAlerts = [...mockAlerts];
-
-      if (filter.isResolved !== undefined) {
-        filteredAlerts = filteredAlerts.filter(alert => alert.isResolved === filter.isResolved);
-      }
-
-      if (filter.searchText) {
-        const searchLower = filter.searchText.toLowerCase();
-        filteredAlerts = filteredAlerts.filter(
-          alert =>
-            alert.kpiIndicator.toLowerCase().includes(searchLower) ||
-            alert.message.toLowerCase().includes(searchLower) ||
-            alert.severity.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return {
-        alerts: filteredAlerts,
-        totalCount: filteredAlerts.length,
-        page: filter.page,
-        pageSize: filter.pageSize,
-        totalPages: Math.ceil(filteredAlerts.length / filter.pageSize),
-        hasNextPage: false,
-        hasPreviousPage: false,
-      };
-    }
     // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/kpi/alerts', {
       params: filter,
@@ -338,12 +248,6 @@ export const alertApi = {
 
   // Get alert by ID
   getAlert: async (id: number): Promise<AlertLogDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      const alert = mockAlerts.find(a => a.alertId === id);
-      if (!alert) throw new Error(`Alert with ID ${id} not found`);
-      return alert;
-    }
     // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<AlertLogDto> = await api.get(`/kpi/alerts/${id}`);
     return response.data;
@@ -351,19 +255,6 @@ export const alertApi = {
 
   // Resolve alert
   resolveAlert: async (request: ResolveAlertRequest): Promise<{ message: string }> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      const alertIndex = mockAlerts.findIndex(a => a.alertId === request.alertId);
-      if (alertIndex !== -1) {
-        mockAlerts[alertIndex] = {
-          ...mockAlerts[alertIndex],
-          isResolved: true,
-          resolvedTime: new Date().toISOString(),
-          resolvedBy: request.resolvedBy,
-        };
-      }
-      return { message: 'Alert resolved successfully' };
-    }
     // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
       `/kpi/alerts/${request.alertId}/resolve`,
@@ -374,21 +265,6 @@ export const alertApi = {
 
   // Bulk resolve alerts
   bulkResolveAlerts: async (request: BulkResolveAlertsRequest): Promise<{ message: string }> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      request.alertIds.forEach(alertId => {
-        const alertIndex = mockAlerts.findIndex(a => a.alertId === alertId);
-        if (alertIndex !== -1) {
-          mockAlerts[alertIndex] = {
-            ...mockAlerts[alertIndex],
-            isResolved: true,
-            resolvedTime: new Date().toISOString(),
-            resolvedBy: request.resolvedBy,
-          };
-        }
-      });
-      return { message: `${request.alertIds.length} alerts resolved successfully` };
-    }
     // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
       '/kpi/alerts/resolve-bulk',
@@ -408,10 +284,6 @@ export const alertApi = {
 
   // Get alert dashboard
   getDashboard: async (): Promise<AlertDashboardDto> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      return mockAlertDashboard;
-    }
     // Updated to use KPI controller's alert endpoints
     const response: AxiosResponse<AlertDashboardDto> = await api.get('/kpi/alerts/dashboard');
     return response.data;
@@ -422,10 +294,6 @@ export const alertApi = {
 export const systemApi = {
   // Get health check
   getHealth: async (): Promise<HealthCheckResponse> => {
-    if (USE_MOCK_DATA) {
-      await mockDelay();
-      return mockHealthCheck;
-    }
     // Health endpoint is not versioned, so use absolute path
     const response: AxiosResponse<HealthCheckResponse> = await axios.get('/health');
     return response.data;

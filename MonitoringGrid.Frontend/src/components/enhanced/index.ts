@@ -1,15 +1,3 @@
-// Enhanced Components - Production-Ready Material-UI Implementation
-// These components provide advanced monitoring capabilities with real-time data integration
-
-// Page-level enhanced components
-export { EnhancedDashboard } from './EnhancedDashboard';
-export { RealtimeMonitoring } from './RealtimeMonitoring';
-export { EnhancedAlertManagement } from './EnhancedAlertManagement';
-export { EnhancedKpiManagement } from './EnhancedKpiManagement';
-
-// UI Component Library - Enhanced versions with better styling and UX
-// Enhanced components are showcased in ComponentShowcase with inline styled components
-
 // Re-export enhanced hooks for convenience
 export {
   useSystemAnalytics,
@@ -28,9 +16,6 @@ export {
 export { useKpis } from '@/hooks/useKpis';
 export { useAlerts } from '@/hooks/useAlerts';
 export { useSignalR } from '@/services/signalRService';
-
-// Core visualization components - actively used
-export { default as EnhancedChart } from './EnhancedCharts';
 
 // Design tokens for consistent styling
 export { designTokens, statusColors } from '../../theme/designTokens';

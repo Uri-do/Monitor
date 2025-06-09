@@ -265,28 +265,6 @@ const ExecutionHistoryList: React.FC = () => {
         refreshing={isLoading}
         actions={[
           {
-            label: 'Debug Info',
-            onClick: () => {
-              console.log('🐛 Debug info:');
-              console.log('- Filters:', filters);
-              console.log('- Page:', pageNumber, 'Size:', pageSize);
-              console.log('- History data:', historyData);
-              console.log('- Executions:', executions);
-              toast.success(`Debug info logged to console. Total: ${historyData?.totalCount || 0}`);
-            },
-            variant: 'outlined' as const,
-          },
-          {
-            label: 'Force Refresh',
-            onClick: () => {
-              console.log('🔄 Force refresh - clearing cache');
-              // Clear React Query cache for execution history
-              window.location.reload();
-            },
-            variant: 'contained' as const,
-            color: 'secondary' as const,
-          },
-          {
             label: 'Test DB',
             onClick: async () => {
               try {

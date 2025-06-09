@@ -62,16 +62,35 @@ Make sure the Monitoring Grid API is running at: https://localhost:7000
 ```
 src/
 ├── components/          # Reusable UI components
-│   └── Layout/         # Layout components
-├── pages/              # Page components
-│   ├── Dashboard/      # Dashboard page
-│   ├── KPI/           # KPI management pages
-│   ├── Contact/       # Contact management pages
+│   ├── Auth/           # Authentication components
+│   ├── Charts/         # Chart components
+│   ├── Common/         # Common reusable components
+│   ├── Dashboard/      # Dashboard-specific components
+│   ├── KPI/           # KPI-specific components
+│   ├── Layout/        # Layout components
+│   ├── Worker/        # Worker management components
+│   └── enhanced/      # Enhanced hooks and utilities
+├── contexts/          # React contexts
+├── hooks/             # Custom React hooks
+├── pages/             # Page components
+│   ├── Admin/         # Admin pages (role management, system settings)
+│   ├── Administration/ # Unified administration hub
 │   ├── Alert/         # Alert management pages
 │   ├── Analytics/     # Analytics page
-│   └── Settings/      # Settings page
+│   ├── Auth/          # Authentication pages
+│   ├── Contact/       # Contact management pages
+│   ├── Dashboard/     # Main dashboard page
+│   ├── Debug/         # Debug and monitoring tools
+│   ├── ExecutionHistory/ # Execution history pages
+│   ├── KPI/           # KPI management pages
+│   ├── Settings/      # Application settings
+│   ├── User/          # User profile pages
+│   └── Users/         # User management pages
 ├── services/          # API service functions
+├── test/              # Test utilities and setup
+├── theme/             # Theme configuration
 ├── types/             # TypeScript type definitions
+├── utils/             # Utility functions
 ├── App.tsx            # Main application component
 └── main.tsx           # Application entry point
 ```
