@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Entities;
 using System.Diagnostics;
 
 namespace MonitoringGrid.Api.BackgroundServices;
@@ -151,8 +152,8 @@ public class RealtimeUpdateService : BackgroundService
         try
         {
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
-            var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
-            var kpis = await kpiService.GetAllKpisAsync();
+            var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
+            var kpis = await kpiRepository.GetAllAsync();
 
             // For demo purposes, simulate some running KPIs
             // In a real implementation, this would come from actual execution tracking
@@ -187,8 +188,8 @@ public class RealtimeUpdateService : BackgroundService
         try
         {
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
-            var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
-            var kpis = await kpiService.GetAllKpisAsync();
+            var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
+            var kpis = await kpiRepository.GetAllAsync();
 
             var nextKpis = kpis
                 .Where(k => k.IsActive)
@@ -226,8 +227,8 @@ public class RealtimeUpdateService : BackgroundService
         try
         {
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
-            var kpiService = scope.ServiceProvider.GetRequiredService<IKpiService>();
-            var kpis = await kpiService.GetAllKpisAsync();
+            var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
+            var kpis = await kpiRepository.GetAllAsync();
 
             var nextKpiData = kpis
                 .Where(k => k.IsActive)

@@ -439,9 +439,6 @@ if (enableWorkerServices)
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Worker>();
 
-    // Add real-time update service
-    builder.Services.AddHostedService<RealtimeUpdateService>();
-
     // Add Quartz for Worker services
     builder.Services.AddQuartz(q =>
     {
@@ -461,6 +458,9 @@ else
     // Use legacy enhanced scheduler (deprecated - use Worker service instead)
     // builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
 }
+
+// Add real-time update service (always enabled for SignalR updates)
+builder.Services.AddHostedService<RealtimeUpdateService>();
 
 
 

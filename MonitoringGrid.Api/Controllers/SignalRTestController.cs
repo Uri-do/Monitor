@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Entities;
 
 namespace MonitoringGrid.Api.Controllers;
 
@@ -206,11 +207,11 @@ public class SignalRTestController : ControllerBase
     /// Check if RealtimeUpdateService is running and get KPI status
     /// </summary>
     [HttpGet("service-status")]
-    public async Task<IActionResult> GetServiceStatus([FromServices] IKpiService kpiService)
+    public async Task<IActionResult> GetServiceStatus([FromServices] IRepository<KPI> kpiRepository)
     {
         try
         {
-            var kpis = await kpiService.GetAllKpisAsync();
+            var kpis = await kpiRepository.GetAllAsync();
             var activeKpis = kpis.Where(k => k.IsActive).ToList();
 
             var nextKpiData = activeKpis
