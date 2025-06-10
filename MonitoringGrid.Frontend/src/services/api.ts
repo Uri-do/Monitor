@@ -288,6 +288,29 @@ export const alertApi = {
     const response: AxiosResponse<AlertDashboardDto> = await api.get('/kpi/alerts/dashboard');
     return response.data;
   },
+
+  // Get critical alerts requiring immediate attention
+  getCriticalAlerts: async (): Promise<EnhancedAlertDto[]> => {
+    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/kpi/alerts/critical');
+    return response.data;
+  },
+
+  // Get unresolved alerts
+  getUnresolvedAlerts: async (): Promise<EnhancedAlertDto[]> => {
+    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/kpi/alerts/unresolved');
+    return response.data;
+  },
+
+  // Send manual alert
+  sendManualAlert: async (
+    request: ManualAlertRequest
+  ): Promise<{ message: string; alertId: number }> => {
+    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post(
+      '/kpi/alerts/manual',
+      request
+    );
+    return response.data;
+  },
 };
 
 // System API endpoints
@@ -324,13 +347,11 @@ export const executionHistoryApi = {
     pageSize?: number;
     pageNumber?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
-    console.log('🔍 Fetching execution history with params:', params);
     // Updated to use KPI controller's execution history endpoints
     const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get(
       '/kpi/execution-history',
       { params }
     );
-    console.log('📊 Execution history response:', response.data);
     return response.data;
   },
 
@@ -357,10 +378,8 @@ export const executionHistoryApi = {
 
   // Test database connection and recent records
   testDatabaseConnection: async (): Promise<any> => {
-    console.log('🔍 Testing database connection and recent records...');
     // Updated to use KPI controller's execution history endpoints
     const response = await api.get('/kpi/execution-history/test');
-    console.log('📊 Database test response:', response.data);
     return response.data;
   },
 };
@@ -446,49 +465,7 @@ export const realtimeApi = {
   },
 };
 
-// Enhanced Alert API endpoints (extending existing alertApi)
-export const enhancedAlertApi = {
-  ...alertApi, // Include all existing alert API methods
 
-  // Get enhanced alerts with additional insights
-  getEnhancedAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
-    const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
-      params: filter,
-    });
-    return response.data;
-  },
-
-  // Get critical alerts requiring immediate attention
-  getCriticalAlerts: async (): Promise<EnhancedAlertDto[]> => {
-    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/alert/critical');
-    return response.data;
-  },
-
-  // Get unresolved alerts
-  getUnresolvedAlerts: async (): Promise<EnhancedAlertDto[]> => {
-    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/alert/unresolved');
-    return response.data;
-  },
-
-  // Send manual alert
-  sendManualAlert: async (
-    request: ManualAlertRequest
-  ): Promise<{ message: string; alertId: number }> => {
-    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post(
-      '/alert/manual',
-      request
-    );
-    return response.data;
-  },
-
-  // Get enhanced alert statistics with value object insights
-  getEnhancedStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
-    const response: AxiosResponse<AlertStatisticsDto> = await api.get('/alert/statistics', {
-      params: { days },
-    });
-    return response.data;
-  },
-};
 
 // Security API endpoints (consolidated authentication, authorization, and security management)
 export const securityApi = {

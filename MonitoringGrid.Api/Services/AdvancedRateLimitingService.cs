@@ -46,7 +46,6 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
 {
     private readonly IMemoryCache _cache;
     private readonly ILogger<AdvancedRateLimitingService> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
     private readonly ISecurityEventService _securityEventService;
     private readonly RateLimitStatistics _statistics;
 
@@ -62,13 +61,11 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     public AdvancedRateLimitingService(
         IMemoryCache cache,
         ILogger<AdvancedRateLimitingService> logger,
-        ICorrelationIdService correlationIdService,
         ISecurityEventService securityEventService,
         IConfiguration configuration)
     {
         _cache = cache;
         _logger = logger;
-        _correlationIdService = correlationIdService;
         _securityEventService = securityEventService;
         _statistics = new RateLimitStatistics();
 
@@ -84,7 +81,7 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// </summary>
     public async Task<RateLimitResult> CheckRateLimitAsync(RateLimitRequest request)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = request.CorrelationId ?? Guid.NewGuid().ToString();
 
         try
         {
@@ -144,7 +141,7 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// </summary>
     public async Task RecordRequestAsync(RateLimitRequest request)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = request.CorrelationId ?? Guid.NewGuid().ToString();
 
         try
         {
@@ -190,7 +187,7 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// </summary>
     public async Task BlockIpAddressAsync(string ipAddress, TimeSpan duration, string reason)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = Guid.NewGuid().ToString();
         var unblockTime = DateTime.UtcNow.Add(duration);
 
         _blockedIps.AddOrUpdate(ipAddress, unblockTime, (key, existing) => unblockTime);
@@ -382,6 +379,7 @@ public class RateLimitRequest
     public string Endpoint { get; set; } = string.Empty;
     public string Method { get; set; } = string.Empty;
     public string? UserAgent { get; set; }
+    public string? CorrelationId { get; set; }
 }
 
 /// <summary>

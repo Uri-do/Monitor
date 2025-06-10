@@ -63,23 +63,7 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Add API Versioning
-builder.Services.AddApiVersioning(options =>
-{
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ApiVersionReader = ApiVersionReader.Combine(
-        new UrlSegmentApiVersionReader(),
-        new QueryStringApiVersionReader("version"),
-        new HeaderApiVersionReader("X-Version"),
-        new MediaTypeApiVersionReader("ver")
-    );
-})
-.AddVersionedApiExplorer(setup =>
-{
-    setup.GroupNameFormat = "'v'VVV";
-    setup.SubstituteApiVersionInUrl = true;
-});
+// API Versioning removed - all endpoints now at root level
 
 // Add configuration sections
 builder.Services.Configure<MonitoringConfiguration>(
@@ -200,6 +184,11 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
 
+// Configure security settings
+builder.Services.Configure<SecurityConfiguration>(builder.Configuration.GetSection("Security"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Security:Jwt"));
+builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("Security:Encryption"));
+
 // Add unified security service (replaces 6 separate services)
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 
@@ -246,11 +235,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    // Single API version for now to avoid conflicts
+    // Single API without versioning
     c.SwaggerDoc("v1", new()
     {
         Title = "Monitoring Grid API",
-        Version = "v1.0",
+        Version = "1.0",
         Description = "API for managing KPI monitoring and alerting system with enhanced performance and reliability",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {

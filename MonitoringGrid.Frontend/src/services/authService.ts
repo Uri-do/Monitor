@@ -9,10 +9,10 @@ import {
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 
 class AuthService {
-  private baseUrl = `${API_BASE_URL}/api/auth`;
+  private baseUrl = `${API_BASE_URL}/api/v2/security`;
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${this.baseUrl}/login`, {
+    const response = await fetch(`${this.baseUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ class AuthService {
   }
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    const response = await fetch(`${this.baseUrl}/register`, {
+    const response = await fetch(`${this.baseUrl}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ class AuthService {
     const token = this.getToken();
     if (token) {
       try {
-        await fetch(`${this.baseUrl}/logout`, {
+        await fetch(`${this.baseUrl}/auth/logout`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,7 +79,7 @@ class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch(`${this.baseUrl}/refresh`, {
+    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ class AuthService {
       throw new Error('No authentication token');
     }
 
-    const response = await fetch(`${this.baseUrl}/profile`, {
+    const response = await fetch(`${this.baseUrl}/auth/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

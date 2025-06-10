@@ -35,6 +35,8 @@ public class MonitoringContext : DbContext
     public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
     public DbSet<UserPassword> UserPasswords { get; set; }
     public DbSet<Core.Security.SecurityAuditEvent> SecurityAuditEvents { get; set; }
+    public DbSet<Core.Security.SecurityThreat> SecurityThreats { get; set; }
+    public DbSet<Core.Security.UserTwoFactorSettings> UserTwoFactorSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,5 +63,7 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new BlacklistedTokenConfiguration());
         modelBuilder.ApplyConfiguration(new UserPasswordConfiguration());
         modelBuilder.ApplyConfiguration(new SecurityAuditEventConfiguration());
+        modelBuilder.ApplyConfiguration(new SecurityThreatConfiguration());
+        modelBuilder.ApplyConfiguration(new UserTwoFactorSettingsConfiguration());
     }
 }

@@ -12,12 +12,10 @@ namespace MonitoringGrid.Api.Controllers;
 
 /// <summary>
 /// Main API controller for managing KPIs using CQRS pattern with MediatR
-/// Supports multiple API versions with clean architecture principles
+/// Clean architecture principles with root-level API endpoints
 /// </summary>
 [ApiController]
-[ApiVersion("2.0")]
-[ApiVersion("3.0")]
-[Route("api/v{version:apiVersion}/kpi")]
+[Route("api/kpi")]
 [Produces("application/json")]
 [PerformanceMonitor(slowThresholdMs: 2000)]
 public class KpiController : ControllerBase

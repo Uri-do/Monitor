@@ -14,18 +14,18 @@ namespace MonitoringGrid.Infrastructure.Services;
 public class UserService : IUserService
 {
     private readonly MonitoringContext _context;
-    private readonly IEncryptionService _encryptionService;
+    private readonly ISecurityService _securityService;
     private readonly SecurityConfiguration _securityConfig;
     private readonly ILogger<UserService> _logger;
 
     public UserService(
         MonitoringContext context,
-        IEncryptionService encryptionService,
+        ISecurityService securityService,
         IOptions<SecurityConfiguration> securityConfig,
         ILogger<UserService> logger)
     {
         _context = context;
-        _encryptionService = encryptionService;
+        _securityService = securityService;
         _securityConfig = securityConfig.Value;
         _logger = logger;
     }
@@ -105,7 +105,7 @@ public class UserService : IUserService
                 LastName = request.LastName,
                 Department = request.Department,
                 Title = request.Title,
-                PasswordHash = _encryptionService.Hash(request.Password),
+                PasswordHash = _securityService.HashPassword(request.Password),
                 IsActive = request.IsActive,
                 EmailConfirmed = request.EmailConfirmed,
                 CreatedDate = DateTime.UtcNow,

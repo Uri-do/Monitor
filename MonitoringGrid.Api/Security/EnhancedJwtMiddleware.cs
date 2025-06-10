@@ -14,7 +14,6 @@ public class EnhancedJwtMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<EnhancedJwtMiddleware> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
     private readonly ISecurityEventService _securityEventService;
     private readonly JwtSecurityTokenHandler _tokenHandler;
     private readonly TokenValidationParameters _validationParameters;
@@ -22,13 +21,11 @@ public class EnhancedJwtMiddleware
     public EnhancedJwtMiddleware(
         RequestDelegate next,
         ILogger<EnhancedJwtMiddleware> logger,
-        ICorrelationIdService correlationIdService,
         ISecurityEventService securityEventService,
         IConfiguration configuration)
     {
         _next = next;
         _logger = logger;
-        _correlationIdService = correlationIdService;
         _securityEventService = securityEventService;
         _tokenHandler = new JwtSecurityTokenHandler();
 
@@ -56,7 +53,9 @@ public class EnhancedJwtMiddleware
     /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
         var token = ExtractToken(context);
 
         if (!string.IsNullOrEmpty(token))

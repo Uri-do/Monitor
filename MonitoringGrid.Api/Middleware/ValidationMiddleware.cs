@@ -11,16 +11,13 @@ public class ValidationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ValidationMiddleware> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
 
     public ValidationMiddleware(
-        RequestDelegate next, 
-        ILogger<ValidationMiddleware> logger,
-        ICorrelationIdService correlationIdService)
+        RequestDelegate next,
+        ILogger<ValidationMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _correlationIdService = correlationIdService;
     }
 
     /// <summary>
@@ -47,7 +44,9 @@ public class ValidationMiddleware
     /// </summary>
     private async Task HandleValidationExceptionAsync(HttpContext context, ValidationException validationException)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         _logger.LogWarning("Validation failed for request {CorrelationId}: {Errors}",
             correlationId,
@@ -74,7 +73,9 @@ public class ValidationMiddleware
     /// </summary>
     private async Task HandleArgumentExceptionAsync(HttpContext context, ArgumentException argumentException)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         _logger.LogWarning("Argument validation failed for request {CorrelationId}: {Message}",
             correlationId,

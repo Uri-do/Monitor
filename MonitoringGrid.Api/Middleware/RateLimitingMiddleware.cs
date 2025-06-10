@@ -12,19 +12,13 @@ public class RateLimitingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RateLimitingMiddleware> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
-    private readonly IAdvancedRateLimitingService _rateLimitingService;
 
     public RateLimitingMiddleware(
         RequestDelegate next,
-        ILogger<RateLimitingMiddleware> logger,
-        ICorrelationIdService correlationIdService,
-        IAdvancedRateLimitingService rateLimitingService)
+        ILogger<RateLimitingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _correlationIdService = correlationIdService;
-        _rateLimitingService = rateLimitingService;
     }
 
     /// <summary>
@@ -32,7 +26,9 @@ public class RateLimitingMiddleware
     /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         // Skip rate limiting for certain paths
         if (ShouldSkipRateLimit(context.Request.Path))
@@ -43,8 +39,11 @@ public class RateLimitingMiddleware
 
         try
         {
+            // Resolve the rate limiting service from the request scope
+            var rateLimitingService = context.RequestServices.GetRequiredService<IAdvancedRateLimitingService>();
+
             var rateLimitRequest = CreateRateLimitRequest(context);
-            var result = await _rateLimitingService.CheckRateLimitAsync(rateLimitRequest);
+            var result = await rateLimitingService.CheckRateLimitAsync(rateLimitRequest);
 
             if (!result.IsAllowed)
             {
@@ -53,7 +52,7 @@ public class RateLimitingMiddleware
             }
 
             // Record the request for tracking
-            await _rateLimitingService.RecordRequestAsync(rateLimitRequest);
+            await rateLimitingService.RecordRequestAsync(rateLimitRequest);
 
             // Add rate limit headers to response
             AddRateLimitHeaders(context.Response, result);
@@ -94,6 +93,9 @@ public class RateLimitingMiddleware
         var endpoint = GetNormalizedEndpoint(context.Request.Path);
         var method = context.Request.Method;
         var userAgent = context.Request.Headers.UserAgent.ToString();
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         return new RateLimitRequest
         {
@@ -101,7 +103,8 @@ public class RateLimitingMiddleware
             UserId = userId,
             Endpoint = endpoint,
             Method = method,
-            UserAgent = userAgent
+            UserAgent = userAgent,
+            CorrelationId = correlationId
         };
     }
 

@@ -36,8 +36,8 @@ export interface BulkUserOperation {
 }
 
 class UserService {
-  private baseUrl = `${API_BASE_URL}/api/user`;
-  private authBaseUrl = `${API_BASE_URL}/api/auth`;
+  private baseUrl = `${API_BASE_URL}/api/v2/security/users`;
+  private authBaseUrl = `${API_BASE_URL}/api/v2/security`;
 
   private getAuthHeaders() {
     const token = authService.getToken();
@@ -239,7 +239,7 @@ class UserService {
 
   // Legacy method for compatibility
   async getRoles(): Promise<Role[]> {
-    const response = await fetch(`${API_BASE_URL}/api/roles`, {
+    const response = await fetch(`${API_BASE_URL}/api/v2/security/roles`, {
       headers: this.getAuthHeaders(),
     });
 

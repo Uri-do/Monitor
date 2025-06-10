@@ -16,15 +16,20 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:57653',
+        target: 'https://localhost:57652',
         changeOrigin: true,
-        secure: false,
+        secure: false, // Allow self-signed certificates in development
       },
       '/monitoring-hub': {
-        target: 'http://localhost:57653',
+        target: 'https://localhost:57652',
+        changeOrigin: true,
+        secure: false, // Allow self-signed certificates in development
+        ws: true, // Enable WebSocket proxying for SignalR
+      },
+      '/health': {
+        target: 'https://localhost:57652',
         changeOrigin: true,
         secure: false,
-        ws: true, // Enable WebSocket proxying for SignalR
       },
     },
   },

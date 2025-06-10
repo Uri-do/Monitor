@@ -14,18 +14,15 @@ public class EnhancedExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<EnhancedExceptionHandlingMiddleware> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
     private readonly IWebHostEnvironment _environment;
 
     public EnhancedExceptionHandlingMiddleware(
         RequestDelegate next,
         ILogger<EnhancedExceptionHandlingMiddleware> logger,
-        ICorrelationIdService correlationIdService,
         IWebHostEnvironment environment)
     {
         _next = next;
         _logger = logger;
-        _correlationIdService = correlationIdService;
         _environment = environment;
     }
 
@@ -49,8 +46,14 @@ public class EnhancedExceptionHandlingMiddleware
     /// </summary>
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
-        var traceId = _correlationIdService.GetTraceId();
+        // Get correlation ID from HttpContext items (set by CorrelationIdMiddleware)
+        var correlationId = context.Items.TryGetValue("CorrelationId", out var corrId)
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
+
+        var traceId = context.Items.TryGetValue("TraceId", out var tId)
+            ? tId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         // Log the exception with structured data
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -294,14 +297,14 @@ public interface IExceptionHandlingService
 public class ExceptionHandlingService : IExceptionHandlingService
 {
     private readonly ILogger<ExceptionHandlingService> _logger;
-    private readonly ICorrelationIdService _correlationIdService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ExceptionHandlingService(
         ILogger<ExceptionHandlingService> logger,
-        ICorrelationIdService correlationIdService)
+        IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
-        _correlationIdService = correlationIdService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <summary>
@@ -309,8 +312,14 @@ public class ExceptionHandlingService : IExceptionHandlingService
     /// </summary>
     public void LogException(Exception exception, string? additionalContext = null)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
-        var traceId = _correlationIdService.GetTraceId();
+        var context = _httpContextAccessor.HttpContext;
+        var correlationId = context?.Items.TryGetValue("CorrelationId", out var corrId) == true
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
+
+        var traceId = context?.Items.TryGetValue("TraceId", out var tId) == true
+            ? tId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
@@ -328,8 +337,11 @@ public class ExceptionHandlingService : IExceptionHandlingService
     /// </summary>
     public ApiResponse CreateErrorResponse(Exception exception)
     {
-        var correlationId = _correlationIdService.GetCorrelationId();
-        
+        var context = _httpContextAccessor.HttpContext;
+        var correlationId = context?.Items.TryGetValue("CorrelationId", out var corrId) == true
+            ? corrId?.ToString() ?? Guid.NewGuid().ToString()
+            : Guid.NewGuid().ToString();
+
         return ApiResponse.Failure(exception.Message, new Dictionary<string, object>
         {
             ["CorrelationId"] = correlationId,

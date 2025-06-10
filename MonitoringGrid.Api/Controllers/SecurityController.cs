@@ -16,9 +16,7 @@ namespace MonitoringGrid.Api.Controllers;
 /// Comprehensive security management controller for authentication, authorization, API keys, and security monitoring
 /// </summary>
 [ApiController]
-[ApiVersion("2.0")]
-[ApiVersion("3.0")]
-[Route("api/v{version:apiVersion}/security")]
+[Route("api/security")]
 [Authorize]
 [Produces("application/json")]
 [PerformanceMonitor(slowThresholdMs: 2000)]
@@ -311,8 +309,6 @@ public class SecurityController : ControllerBase
     /// Authenticate user and return JWT token
     /// </summary>
     [HttpPost("auth/login")]
-    [MapToApiVersion("2.0")]
-    [MapToApiVersion("3.0")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {

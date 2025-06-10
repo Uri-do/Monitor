@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MonitoringGrid.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using MonitoringGrid.Infrastructure.Data;
 namespace MonitoringGrid.Infrastructure.Migrations
 {
     [DbContext(typeof(MonitoringContext))]
-    partial class MonitoringContextModelSnapshot : ModelSnapshot
+    [Migration("20250610001114_AddSecurityThreatAndUserTwoFactorSettings")]
+    partial class AddSecurityThreatAndUserTwoFactorSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

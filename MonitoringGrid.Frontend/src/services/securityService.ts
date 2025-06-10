@@ -4,7 +4,7 @@ import { authService } from './authService';
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:7001';
 
 class SecurityService {
-  private baseUrl = `${API_BASE_URL}/api/security`;
+  private baseUrl = `${API_BASE_URL}/api/v2/security`;
 
   private getAuthHeaders() {
     const token = authService.getToken();
@@ -160,7 +160,7 @@ class SecurityService {
 
   // User Management - Connect to actual User API
   async getUsers(): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/api/user`, {
+    const response = await fetch(`${API_BASE_URL}/api/v2/security/users`, {
       headers: this.getAuthHeaders(),
     });
 

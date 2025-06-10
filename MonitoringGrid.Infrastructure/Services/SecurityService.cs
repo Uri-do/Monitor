@@ -1009,6 +1009,13 @@ public class SecurityService : ISecurityService
     {
         try
         {
+            // Whitelist localhost addresses - never consider them suspicious
+            if (IsLocalhostAddress(ipAddress))
+            {
+                _logger.LogDebug("IP {IpAddress} is localhost - not suspicious", ipAddress);
+                return false;
+            }
+
             // Check if IP is in known threat list
             var knownThreat = await _context.Set<SecurityThreat>()
                 .AnyAsync(st => st.IpAddress == ipAddress &&
@@ -1032,6 +1039,30 @@ public class SecurityService : ISecurityService
             _logger.LogError(ex, "Error checking if IP address {IpAddress} is suspicious", ipAddress);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Checks if an IP address is a localhost address that should be trusted
+    /// </summary>
+    /// <param name="ipAddress">The IP address to check</param>
+    /// <returns>True if the IP is a localhost address</returns>
+    private static bool IsLocalhostAddress(string ipAddress)
+    {
+        if (string.IsNullOrWhiteSpace(ipAddress))
+            return false;
+
+        // Common localhost addresses
+        var localhostAddresses = new[]
+        {
+            "127.0.0.1",        // IPv4 localhost
+            "::1",              // IPv6 localhost
+            "localhost",        // Hostname localhost
+            "0.0.0.0",          // All interfaces (development)
+            "::ffff:127.0.0.1", // IPv4-mapped IPv6 localhost
+            "::ffff:0:127.0.0.1" // Alternative IPv4-mapped IPv6 localhost
+        };
+
+        return localhostAddresses.Contains(ipAddress, StringComparer.OrdinalIgnoreCase);
     }
 
     public async Task<bool> IsUserBehaviorSuspiciousAsync(string userId, string action, CancellationToken cancellationToken = default)
@@ -1528,6 +1559,9 @@ public class SecurityService : ISecurityService
             {
                 if (string.IsNullOrEmpty(suspiciousIp.IpAddress)) continue;
 
+                // Skip localhost addresses - they should never be flagged as suspicious
+                if (IsLocalhostAddress(suspiciousIp.IpAddress)) continue;
+
                 var threat = new SecurityThreat
                 {
                     ThreatId = Guid.NewGuid().ToString(),
@@ -1573,6 +1607,9 @@ public class SecurityService : ISecurityService
             foreach (var suspiciousIp in suspiciousIps)
             {
                 if (string.IsNullOrEmpty(suspiciousIp.IpAddress)) continue;
+
+                // Skip localhost addresses - they should never be flagged as suspicious
+                if (IsLocalhostAddress(suspiciousIp.IpAddress)) continue;
 
                 var threat = new SecurityThreat
                 {
