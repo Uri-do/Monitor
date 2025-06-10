@@ -317,7 +317,8 @@ public class ApiDocumentationService : IApiDocumentationService
             Servers = new List<OpenApiServer>
             {
                 new OpenApiServer { Url = GetBaseUrl(), Description = "Production API" },
-                new OpenApiServer { Url = "https://localhost:7000", Description = "Development API" }
+                new OpenApiServer { Url = "https://localhost:57652", Description = "Development API (HTTPS)" },
+                new OpenApiServer { Url = "http://localhost:57653", Description = "Development API (HTTP)" }
             }
         };
 

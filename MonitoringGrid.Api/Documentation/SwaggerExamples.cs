@@ -320,8 +320,13 @@ public class ApiDocumentationFilter : IDocumentFilter
         {
             swaggerDoc.Servers.Add(new OpenApiServer
             {
-                Url = "https://localhost:7000",
-                Description = "Development server"
+                Url = "https://localhost:57652",
+                Description = "Development server (HTTPS)"
+            });
+            swaggerDoc.Servers.Add(new OpenApiServer
+            {
+                Url = "http://localhost:57653",
+                Description = "Development server (HTTP)"
             });
             swaggerDoc.Servers.Add(new OpenApiServer
             {

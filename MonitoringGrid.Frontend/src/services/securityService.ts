@@ -1,7 +1,7 @@
 import { SecurityConfig, SecurityEvent } from '../types/auth';
 import { authService } from './authService';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:7001';
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'https://localhost:57652';
 
 class SecurityService {
   private baseUrl = `${API_BASE_URL}/api/security`;

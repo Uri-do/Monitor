@@ -37,7 +37,7 @@ public class WorkerConfiguration
     /// <summary>
     /// API base URL for SignalR connection
     /// </summary>
-    public string? ApiBaseUrl { get; set; } = "https://localhost:7001";
+    public string? ApiBaseUrl { get; set; } = "https://localhost:57652";
 }
 
 /// <summary>

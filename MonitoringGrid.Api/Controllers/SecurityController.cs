@@ -408,7 +408,7 @@ public class SecurityController : ControllerBase
                 return Unauthorized(new { message = "User ID not found in token" });
             }
 
-            var user = await _userService.GetUserByIdAsync(int.Parse(userId));
+            var user = await _userService.GetUserByIdAsync(userId);
             if (user == null)
             {
                 return NotFound(new { message = "User not found" });
