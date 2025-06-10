@@ -9,7 +9,7 @@ namespace MonitoringGrid.Api.CQRS.Handlers.Kpi;
 /// <summary>
 /// Optimized handler for getting KPIs with projections and performance optimizations
 /// </summary>
-public class GetKpisOptimizedQueryHandler : IRequestHandler<GetKpisOptimizedQuery, PagedResult<KpiSummaryDto>>
+public class GetKpisOptimizedQueryHandler : IRequestHandler<GetKpisOptimizedQuery, PagedResult<KpiListItemDto>>
 {
     private readonly IProjectionRepository<KPI> _projectionRepository;
     private readonly ILogger<GetKpisOptimizedQueryHandler> _logger;
@@ -22,7 +22,7 @@ public class GetKpisOptimizedQueryHandler : IRequestHandler<GetKpisOptimizedQuer
         _logger = logger;
     }
 
-    public async Task<PagedResult<KpiSummaryDto>> Handle(GetKpisOptimizedQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<KpiListItemDto>> Handle(GetKpisOptimizedQuery request, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Executing optimized KPI query with filters: IsActive={IsActive}, Owner={Owner}, Priority={Priority}",
             request.IsActive, request.Owner, request.Priority);
@@ -85,9 +85,9 @@ public class GetKpisOptimizedQueryHandler : IRequestHandler<GetKpisOptimizedQuer
         return predicate;
     }
 
-    private static System.Linq.Expressions.Expression<Func<KPI, KpiSummaryDto>> BuildProjection()
+    private static System.Linq.Expressions.Expression<Func<KPI, KpiListItemDto>> BuildProjection()
     {
-        return k => new KpiSummaryDto
+        return k => new KpiListItemDto
         {
             KpiId = k.KpiId,
             Indicator = k.Indicator,

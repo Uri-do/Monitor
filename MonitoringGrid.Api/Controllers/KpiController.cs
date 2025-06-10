@@ -267,10 +267,10 @@ public class KpiController : ControllerBase
     /// <param name="sortDescending">Sort direction (default: false)</param>
     /// <returns>Paginated list of KPI summaries</returns>
     [HttpGet("optimized")]
-    [ProducesResponseType(typeof(PagedResult<MonitoringGrid.Api.CQRS.Queries.Kpi.KpiSummaryDto>), 200)]
+    [ProducesResponseType(typeof(PagedResult<MonitoringGrid.Api.CQRS.Queries.Kpi.KpiListItemDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
-    public async Task<ActionResult<PagedResult<MonitoringGrid.Api.CQRS.Queries.Kpi.KpiSummaryDto>>> GetKpisOptimized(
+    public async Task<ActionResult<PagedResult<MonitoringGrid.Api.CQRS.Queries.Kpi.KpiListItemDto>>> GetKpisOptimized(
         [FromQuery] bool? isActive = null,
         [FromQuery] string? owner = null,
         [FromQuery] byte? priority = null,

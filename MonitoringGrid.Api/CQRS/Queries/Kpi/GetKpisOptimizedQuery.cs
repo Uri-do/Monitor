@@ -1,6 +1,5 @@
 using MediatR;
 using MonitoringGrid.Api.CQRS.Queries;
-using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Queries.Kpi;
@@ -8,7 +7,7 @@ namespace MonitoringGrid.Api.CQRS.Queries.Kpi;
 /// <summary>
 /// Optimized query for getting KPIs with projections and pagination
 /// </summary>
-public class GetKpisOptimizedQuery : IRequest<PagedResult<KpiSummaryDto>>
+public class GetKpisOptimizedQuery : IRequest<PagedResult<KpiListItemDto>>
 {
     public bool? IsActive { get; set; }
     public string? Owner { get; set; }
@@ -23,7 +22,7 @@ public class GetKpisOptimizedQuery : IRequest<PagedResult<KpiSummaryDto>>
 /// <summary>
 /// Lightweight KPI summary DTO for list views
 /// </summary>
-public class KpiSummaryDto
+public class KpiListItemDto
 {
     public int KpiId { get; set; }
     public string Indicator { get; set; } = string.Empty;
