@@ -26,6 +26,11 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
+  // Hide this card if there are 2 or fewer KPIs to avoid redundancy with NextKpiExecutionCard
+  if (!kpiDashboard?.dueKpis || kpiDashboard.dueKpis.length <= 2) {
+    return null;
+  }
+
   return (
     <Grid item xs={12} md={6}>
       <Card sx={{ height: '100%' }}>

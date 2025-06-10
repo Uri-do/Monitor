@@ -811,8 +811,8 @@ const WorkerManagement: React.FC = () => {
 
           <Divider sx={{ mb: 3 }} />
 
-          {/* Upcoming KPI Schedule */}
-          {status.isRunning && upcomingKpis.length > 0 && (
+          {/* Upcoming KPI Schedule - Only show if there are multiple KPIs or if real-time is disabled */}
+          {status.isRunning && upcomingKpis.length > 1 && (
             <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
               <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Schedule />
@@ -902,6 +902,30 @@ const WorkerManagement: React.FC = () => {
                     </Box>
                   );
                 })}
+              </Box>
+            </Paper>
+          )}
+
+          {/* Single KPI Information - Show when there's only one KPI and worker is running but real-time is disabled */}
+          {status.isRunning && upcomingKpis.length === 1 && !realtimeEnabled && (
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50', border: 1, borderColor: 'grey.300' }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Schedule />
+                KPI Schedule Information
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                There is currently 1 active KPI in the system. Enable real-time features to see live countdown and execution status.
+              </Typography>
+              <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                <Typography variant="subtitle1" fontWeight="medium">
+                  {upcomingKpis[0]?.indicator}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Owner: {upcomingKpis[0]?.owner} • Frequency: {upcomingKpis[0]?.frequency} min
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Next execution: {upcomingKpis[0]?.nextRun?.toLocaleString()}
+                </Typography>
               </Box>
             </Paper>
           )}

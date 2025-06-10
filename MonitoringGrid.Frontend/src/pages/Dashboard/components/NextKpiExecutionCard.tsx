@@ -103,7 +103,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {kpiDashboard?.nextKpiDue && kpiDashboard.activeKpis > 1 ? (
+            {kpiDashboard?.nextKpiDue ? (
               <Box
                 sx={{
                   p: 3,
@@ -271,8 +271,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                   No upcoming executions
                 </Typography>
                 <Typography color="text.secondary" variant="caption">
-                  {kpiDashboard?.activeKpis === 1
-                    ? 'Only one KPI is active - check KPI management for scheduling'
+                  {kpiDashboard?.activeKpis === 0
+                    ? 'No active KPIs - add KPIs to start monitoring'
+                    : kpiDashboard?.activeKpis === 1
+                    ? 'One KPI is active - check KPI management for scheduling'
                     : 'All KPIs are inactive or have no schedule'
                   }
                 </Typography>
