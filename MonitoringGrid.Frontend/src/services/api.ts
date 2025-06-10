@@ -1,26 +1,26 @@
 /**
- * API Service Layer - Updated for Consolidated Controller Architecture
+ * API Service Layer - Updated for Root-Level API Architecture
  *
- * This file has been updated to work with the new consolidated controller structure:
+ * This file has been updated to work with the new root-level API structure:
  *
- * 🎯 KpiController (/api/v{version}/kpi/*):
+ * 🎯 KpiController (/api/kpi/*):
  *   - Core KPI operations (CRUD, execute, metrics, dashboard)
  *   - Alert management (KPI-related alerts)
  *   - Contact management (notification contacts)
  *   - Execution history and analytics
  *
- * 🔐 SecurityController (/api/v{version}/security/*):
+ * 🔐 SecurityController (/api/security/*):
  *   - Authentication (login, register, refresh tokens)
  *   - User and role management
  *   - Security configuration and monitoring
  *   - Audit trail and security events
  *
- * 🔄 RealtimeController (/api/v{version}/realtime/*):
+ * 🔄 RealtimeController (/api/realtime/*):
  *   - Real-time status and monitoring
  *   - SignalR operations
  *   - Live dashboard data
  *
- * ⚙️ WorkerController (/api/v{version}/worker/*):
+ * ⚙️ WorkerController (/api/worker/*):
  *   - Background worker management
  *   - Worker status and control
  */
@@ -65,7 +65,7 @@ import {
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api/v2.0', // Use versioned API endpoints (v2.0 for CQRS)
+  baseURL: '/api', // Root-level API endpoints (versioning removed)
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -551,6 +551,41 @@ export const securityApi = {
     endDate?: string;
   }): Promise<any[]> => {
     const response = await api.get(`/security/events/user/${userId}`, { params });
+    return response.data;
+  },
+};
+
+// Worker API endpoints
+export const workerApi = {
+  // Get worker status
+  getStatus: async (): Promise<any> => {
+    const response = await api.get('/worker/status');
+    return response.data;
+  },
+
+  // Start worker service
+  start: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/worker/start');
+    return response.data;
+  },
+
+  // Stop worker service
+  stop: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/worker/stop');
+    return response.data;
+  },
+
+  // Restart worker service
+  restart: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/worker/restart');
+    return response.data;
+  },
+
+  // Get worker logs
+  getLogs: async (lines?: number): Promise<string[]> => {
+    const response = await api.get('/worker/logs', {
+      params: { lines },
+    });
     return response.data;
   },
 };

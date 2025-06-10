@@ -38,6 +38,7 @@ import { toast } from 'react-hot-toast';
 import { useRealtime } from '../../contexts/RealtimeContext';
 import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
 import { RunningKpisDisplay, RunningKpi } from '../Common';
+import { workerApi, kpiApi } from '../../services/api';
 
 interface WorkerService {
   name: string;
@@ -93,21 +94,16 @@ const WorkerManagement: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('/api/worker/status');
-      if (response.ok) {
-        const data = await response.json();
-        // Enhance services with activity data
-        const enhancedData = {
-          ...data,
-          services: data.services.map((service: WorkerService) => ({
-            ...service,
-            ...getWorkerActivityInfo(service.name, service.status === 'Running')
-          }))
-        };
-        setStatus(enhancedData);
-      } else {
-        console.error('Failed to fetch worker status');
-      }
+      const data = await workerApi.getStatus();
+      // Enhance services with activity data
+      const enhancedData = {
+        ...data,
+        services: data.services.map((service: WorkerService) => ({
+          ...service,
+          ...getWorkerActivityInfo(service.name, service.status === 'Running')
+        }))
+      };
+      setStatus(enhancedData);
     } catch (error) {
       console.error('Error fetching worker status:', error);
     }
@@ -116,53 +112,47 @@ const WorkerManagement: React.FC = () => {
   // Fetch real upcoming KPIs from the API
   const fetchUpcomingKpis = async () => {
     try {
-      const response = await fetch('/api/v1/kpi');
-      if (response.ok) {
-        const kpis = await response.json();
-        const now = new Date();
+      const kpis = await kpiApi.getKpis();
+      const now = new Date();
 
-        console.log('Fetched KPIs from API:', kpis);
-        console.log('Active KPIs:', kpis.filter((kpi: any) => kpi.isActive));
-        console.log('Sample KPI structure:', kpis[0]);
+      console.log('Fetched KPIs from API:', kpis);
+      console.log('Active KPIs:', kpis.filter((kpi: any) => kpi.isActive));
+      console.log('Sample KPI structure:', kpis[0]);
 
-        // Store all KPIs for worker activity info
-        setAllKpis(kpis);
+      // Store all KPIs for worker activity info
+      setAllKpis(kpis);
 
-        // Calculate next run times for active KPIs
-        const activeKpis = kpis.filter((kpi: any) => kpi.isActive);
-        console.log('Filtered active KPIs:', activeKpis);
+      // Calculate next run times for active KPIs
+      const activeKpis = kpis.filter((kpi: any) => kpi.isActive);
+      console.log('Filtered active KPIs:', activeKpis);
 
-        const upcoming = activeKpis
-          .map((kpi: any) => {
-            const lastRun = kpi.lastRun ? new Date(kpi.lastRun) : null;
-            const nextRun = lastRun
-              ? new Date(lastRun.getTime() + kpi.frequency * 60 * 1000)
-              : new Date(now.getTime() + kpi.frequency * 60 * 1000);
+      const upcoming = activeKpis
+        .map((kpi: any) => {
+          const lastRun = kpi.lastRun ? new Date(kpi.lastRun) : null;
+          const nextRun = lastRun
+            ? new Date(lastRun.getTime() + kpi.frequency * 60 * 1000)
+            : new Date(now.getTime() + kpi.frequency * 60 * 1000);
 
-            return {
-              id: kpi.kpiId,
-              indicator: kpi.indicator,
-              owner: kpi.owner,
-              nextRun: nextRun,
-              frequency: kpi.frequency,
-              isCurrentlyRunning: kpi.isCurrentlyRunning || false,
-              lastRun: lastRun,
-              minutesUntilDue: Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60000))
-            };
-          })
-          .sort((a: any, b: any) => a.nextRun.getTime() - b.nextRun.getTime())
-          .slice(0, 5); // Get next 5 KPIs
+          return {
+            id: kpi.kpiId,
+            indicator: kpi.indicator,
+            owner: kpi.owner,
+            nextRun: nextRun,
+            frequency: kpi.frequency,
+            isCurrentlyRunning: kpi.isCurrentlyRunning || false,
+            lastRun: lastRun,
+            minutesUntilDue: Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60000))
+          };
+        })
+        .sort((a: any, b: any) => a.nextRun.getTime() - b.nextRun.getTime())
+        .slice(0, 5); // Get next 5 KPIs
 
-        console.log('Processed upcoming KPIs:', upcoming);
-        setUpcomingKpis(upcoming);
+      console.log('Processed upcoming KPIs:', upcoming);
+      setUpcomingKpis(upcoming);
 
-        // Check for currently executing KPIs
-        const executing = upcoming.find((kpi: any) => kpi.isCurrentlyRunning);
-        setCurrentlyExecutingKpi(executing ? executing.indicator : null);
-      } else {
-        console.log('API response not OK:', response.status);
-        setUpcomingKpis([]);
-      }
+      // Check for currently executing KPIs
+      const executing = upcoming.find((kpi: any) => kpi.isCurrentlyRunning);
+      setCurrentlyExecutingKpi(executing ? executing.indicator : null);
     } catch (error) {
       console.error('Error fetching upcoming KPIs:', error);
       setUpcomingKpis([]);
@@ -239,14 +229,21 @@ const WorkerManagement: React.FC = () => {
   const performAction = async (action: string) => {
     setActionLoading(action);
     try {
-      const response = await fetch(`/api/worker/${action}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      let result: { success: boolean; message: string };
 
-      const result: WorkerActionResult = await response.json();
+      switch (action) {
+        case 'start':
+          result = await workerApi.start();
+          break;
+        case 'stop':
+          result = await workerApi.stop();
+          break;
+        case 'restart':
+          result = await workerApi.restart();
+          break;
+        default:
+          throw new Error(`Unknown action: ${action}`);
+      }
 
       if (result.success) {
         toast.success(result.message);

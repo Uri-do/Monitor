@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.Extensions.Options;
+'[\'using Microsoft.Extensions.Options;
 using Quartz;
 using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
@@ -297,7 +295,6 @@ builder.Services.AddSwaggerGen(c =>
     c.OperationFilter<MonitoringGrid.Api.Documentation.SwaggerExampleOperationFilter>();
 
     // Add custom operation filters for better documentation
-    c.OperationFilter<MonitoringGrid.Api.Documentation.ApiVersionOperationFilter>();
     c.DocumentFilter<MonitoringGrid.Api.Documentation.ApiDocumentationFilter>();
 });
 

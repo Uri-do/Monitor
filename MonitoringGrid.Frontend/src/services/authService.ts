@@ -9,7 +9,7 @@ import {
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 
 class AuthService {
-  private baseUrl = `${API_BASE_URL}/api/v2/security`;
+  private baseUrl = `${API_BASE_URL}/api/security`;
 
   async login(request: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${this.baseUrl}/auth/login`, {

@@ -353,8 +353,6 @@ public class SecurityController : ControllerBase
     /// Register a new user
     /// </summary>
     [HttpPost("auth/register")]
-    [MapToApiVersion("2.0")]
-    [MapToApiVersion("3.0")]
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Register([FromBody] RegisterRequestDto request)
     {
@@ -397,11 +395,39 @@ public class SecurityController : ControllerBase
     }
 
     /// <summary>
+    /// Get current user profile information
+    /// </summary>
+    [HttpGet("auth/profile")]
+    public async Task<ActionResult<UserDto>> GetProfile()
+    {
+        try
+        {
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User ID not found in token" });
+            }
+
+            var user = await _userService.GetUserByIdAsync(int.Parse(userId));
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var userDto = _mapper.Map<UserDto>(user);
+            return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user profile");
+            return StatusCode(500, new { message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
     /// Refresh JWT token using refresh token
     /// </summary>
     [HttpPost("auth/refresh")]
-    [MapToApiVersion("2.0")]
-    [MapToApiVersion("3.0")]
     [AllowAnonymous]
     public async Task<ActionResult<JwtTokenDto>> RefreshToken([FromBody] RefreshTokenRequestDto request)
     {

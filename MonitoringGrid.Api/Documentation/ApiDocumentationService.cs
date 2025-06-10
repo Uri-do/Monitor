@@ -107,7 +107,7 @@ public class ApiDocumentationService : IApiDocumentationService
             new EndpointDocumentation
             {
                 Method = "GET",
-                Path = "/api/v1/kpis",
+                Path = "/api/kpi",
                 Summary = "Get all KPIs with advanced filtering and pagination",
                 Description = "Retrieves KPIs with support for filtering by status, priority, category, and advanced search capabilities. Includes performance optimization with caching and response compression.",
                 Parameters = new List<ParameterDocumentation>
@@ -146,7 +146,7 @@ public class ApiDocumentationService : IApiDocumentationService
             new EndpointDocumentation
             {
                 Method = "POST",
-                Path = "/api/v1/kpis/{id}/execute",
+                Path = "/api/kpi/{id}/execute",
                 Summary = "Execute a specific KPI",
                 Description = "Executes a KPI and returns the results. Supports both synchronous and asynchronous execution modes with comprehensive error handling and performance monitoring.",
                 Parameters = new List<ParameterDocumentation>
@@ -183,7 +183,7 @@ public class ApiDocumentationService : IApiDocumentationService
             new EndpointDocumentation
             {
                 Method = "GET",
-                Path = "/api/v1/alerts",
+                Path = "/api/kpi/alerts",
                 Summary = "Get alerts with advanced filtering",
                 Description = "Retrieves alerts with comprehensive filtering, sorting, and pagination. Includes real-time updates via SignalR integration.",
                 Parameters = new List<ParameterDocumentation>
@@ -251,7 +251,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 Title = "Get KPIs with Filtering",
                 Description = "Example of retrieving KPIs with advanced filtering and pagination",
                 Method = "GET",
-                Url = "/api/v1/kpis?isActive=true&priority=3&page=1&pageSize=10&sortBy=priority",
+                Url = "/api/kpi?isActive=true&priority=3&page=1&pageSize=10&sortBy=priority",
                 Headers = new Dictionary<string, string>
                 {
                     ["Accept"] = "application/json",
@@ -266,7 +266,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 Title = "Execute KPI Asynchronously",
                 Description = "Example of executing a KPI in asynchronous mode",
                 Method = "POST",
-                Url = "/api/v1/kpis/123/execute?async=true&timeout=60",
+                Url = "/api/kpi/123/execute?async=true&timeout=60",
                 Headers = new Dictionary<string, string>
                 {
                     ["Content-Type"] = "application/json",
@@ -282,7 +282,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 Title = "Rate Limit Exceeded Response",
                 Description = "Example response when rate limit is exceeded",
                 Method = "GET",
-                Url = "/api/v1/kpis",
+                Url = "/api/kpi",
                 Headers = new Dictionary<string, string>
                 {
                     ["Accept"] = "application/json"

@@ -267,7 +267,6 @@ public class KpiController : ControllerBase
     /// <param name="sortDescending">Sort direction (default: false)</param>
     /// <returns>Paginated list of KPI summaries</returns>
     [HttpGet("optimized")]
-    [MapToApiVersion("3.0")]
     [ProducesResponseType(typeof(PagedResult<MonitoringGrid.Api.CQRS.Queries.Kpi.KpiSummaryDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -312,7 +311,6 @@ public class KpiController : ControllerBase
     /// <param name="to">End date for metrics</param>
     /// <returns>Performance report</returns>
     [HttpGet("performance")]
-    [MapToApiVersion("3.0")]
     [ProducesResponseType(typeof(PerformanceReport), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -346,7 +344,6 @@ public class KpiController : ControllerBase
     /// Validate and test scheduling calculations (v3.0+)
     /// </summary>
     [HttpGet("scheduling/validate")]
-    [MapToApiVersion("3.0")]
     [ProducesResponseType(200)]
     public IActionResult ValidateScheduling(
         [FromQuery] int frequencyMinutes = 5,

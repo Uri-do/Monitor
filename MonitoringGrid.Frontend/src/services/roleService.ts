@@ -18,7 +18,7 @@ export interface UpdateRoleRequest {
 }
 
 class RoleService {
-  private baseUrl = `${API_BASE_URL}/api/v2/security/roles`;
+  private baseUrl = `${API_BASE_URL}/api/security/roles`;
 
   private getAuthHeaders() {
     const token = authService.getToken();
@@ -126,7 +126,7 @@ class RoleService {
 
   // Get all available permissions
   async getAllPermissions(): Promise<Permission[]> {
-    const response = await fetch(`${API_BASE_URL}/api/v2/security/permissions`, {
+    const response = await fetch(`${API_BASE_URL}/api/security/permissions`, {
       headers: this.getAuthHeaders(),
     });
 

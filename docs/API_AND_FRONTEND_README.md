@@ -66,25 +66,25 @@ MonitoringGrid/
 
 > **Note**: The API has been restructured into a clean, domain-driven architecture with 4 consolidated controllers.
 
-### 🎯 KPI Management Hub (`/api/v{version}/kpi/*`)
+### 🎯 KPI Management Hub (`/api/kpi/*`)
 **Core KPI Operations:**
-- `GET /api/v{version}/kpi` - Get all KPIs with filtering
-- `GET /api/v{version}/kpi/{id}` - Get KPI by ID
-- `POST /api/v{version}/kpi` - Create new KPI
-- `PUT /api/v{version}/kpi/{id}` - Update KPI
-- `DELETE /api/v{version}/kpi/{id}` - Delete KPI
-- `POST /api/v{version}/kpi/{id}/execute` - Execute KPI manually
-- `GET /api/v{version}/kpi/dashboard` - Get KPI dashboard data
-- `GET /api/v{version}/kpi/{id}/metrics` - Get KPI metrics and trends
-- `POST /api/v{version}/kpi/bulk` - Bulk operations on KPIs
+- `GET /api/kpi` - Get all KPIs with filtering
+- `GET /api/kpi/{id}` - Get KPI by ID
+- `POST /api/kpi` - Create new KPI
+- `PUT /api/kpi/{id}` - Update KPI
+- `DELETE /api/kpi/{id}` - Delete KPI
+- `POST /api/kpi/{id}/execute` - Execute KPI manually
+- `GET /api/kpi/dashboard` - Get KPI dashboard data
+- `GET /api/kpi/{id}/metrics` - Get KPI metrics and trends
+- `POST /api/kpi/bulk` - Bulk operations on KPIs
 
 **Alert Management (KPI-related):**
-- `GET /api/v{version}/kpi/alerts` - Get KPI alerts with filtering
-- `GET /api/v{version}/kpi/alerts/{id}` - Get specific alert
-- `POST /api/v{version}/kpi/alerts/{id}/resolve` - Resolve alert
-- `POST /api/v{version}/kpi/alerts/resolve-bulk` - Bulk resolve alerts
-- `GET /api/v{version}/kpi/alerts/statistics` - Get alert statistics
-- `GET /api/v{version}/kpi/alerts/dashboard` - Get alert dashboard
+- `GET /api/kpi/alerts` - Get KPI alerts with filtering
+- `GET /api/kpi/alerts/{id}` - Get specific alert
+- `POST /api/kpi/alerts/{id}/resolve` - Resolve alert
+- `POST /api/kpi/alerts/resolve-bulk` - Bulk resolve alerts
+- `GET /api/kpi/alerts/statistics` - Get alert statistics
+- `GET /api/kpi/alerts/dashboard` - Get alert dashboard
 
 **Contact Management (Notification contacts):**
 - `GET /api/v{version}/kpi/contacts` - Get notification contacts
@@ -96,45 +96,45 @@ MonitoringGrid/
 - `POST /api/v{version}/kpi/contacts/bulk` - Bulk contact operations
 
 **Execution History & Analytics:**
-- `GET /api/v{version}/kpi/execution-history` - Get execution history
-- `GET /api/v{version}/kpi/execution-stats` - Get execution statistics
-- `GET /api/v{version}/kpi/{id}/analytics` - Get KPI performance analytics
-- `GET /api/v{version}/kpi/analytics/system` - Get system analytics
-- `GET /api/v{version}/kpi/health` - Get system health
+- `GET /api/kpi/execution-history` - Get execution history
+- `GET /api/kpi/execution-stats` - Get execution statistics
+- `GET /api/kpi/{id}/analytics` - Get KPI performance analytics
+- `GET /api/kpi/analytics/system` - Get system analytics
+- `GET /api/kpi/health` - Get system health
 
-### 🔐 Security Management Hub (`/api/v{version}/security/*`)
+### 🔐 Security Management Hub (`/api/security/*`)
 **Authentication:**
-- `POST /api/v{version}/security/auth/login` - User authentication
-- `POST /api/v{version}/security/auth/register` - User registration
-- `POST /api/v{version}/security/auth/refresh` - Refresh JWT token
+- `POST /api/security/auth/login` - User authentication
+- `POST /api/security/auth/register` - User registration
+- `POST /api/security/auth/refresh` - Refresh JWT token
 
 **User & Role Management:**
-- `GET /api/v{version}/security/users` - Get all users
-- `PUT /api/v{version}/security/users/{id}/roles` - Update user roles
-- `GET /api/v{version}/security/roles` - Get all roles
-- `GET /api/v{version}/security/permissions` - Get all permissions
+- `GET /api/security/users` - Get all users
+- `PUT /api/security/users/{id}/roles` - Update user roles
+- `GET /api/security/roles` - Get all roles
+- `GET /api/security/permissions` - Get all permissions
 
 **Security Configuration:**
-- `GET /api/v{version}/security/config` - Get security configuration
-- `PUT /api/v{version}/security/config` - Update security configuration
+- `GET /api/security/config` - Get security configuration
+- `PUT /api/security/config` - Update security configuration
 
 **Security Events & Audit:**
-- `GET /api/v{version}/security/events` - Get security events
-- `GET /api/v{version}/security/events/user/{id}` - Get user security events
+- `GET /api/security/events` - Get security events
+- `GET /api/security/events/user/{id}` - Get user security events
 
-### 🔄 Real-time Operations Hub (`/api/v{version}/realtime/*`)
-- `GET /api/v{version}/realtime/status` - Get real-time system status
-- `POST /api/v{version}/realtime/execute/{id}` - Execute KPI in real-time
-- `GET /api/v{version}/realtime/dashboard` - Get live dashboard data
-- `GET /api/v{version}/realtime/connection-info` - Get SignalR connection info
-- `POST /api/v{version}/realtime/test-connection` - Test SignalR connection
+### 🔄 Real-time Operations Hub (`/api/realtime/*`)
+- `GET /api/realtime/status` - Get real-time system status
+- `POST /api/realtime/execute/{id}` - Execute KPI in real-time
+- `GET /api/realtime/dashboard` - Get live dashboard data
+- `GET /api/realtime/connection-info` - Get SignalR connection info
+- `POST /api/realtime/test-connection` - Test SignalR connection
 
-### ⚙️ Worker Management Hub (`/api/v{version}/worker/*`)
-- `GET /api/v{version}/worker/status` - Get worker service status
-- `POST /api/v{version}/worker/start` - Start worker service
-- `POST /api/v{version}/worker/stop` - Stop worker service
-- `POST /api/v{version}/worker/restart` - Restart worker service
-- `GET /api/v{version}/worker/logs` - Get worker logs
+### ⚙️ Worker Management Hub (`/api/worker/*`)
+- `GET /api/worker/status` - Get worker service status
+- `POST /api/worker/start` - Start worker service
+- `POST /api/worker/stop` - Stop worker service
+- `POST /api/worker/restart` - Restart worker service
+- `GET /api/worker/logs` - Get worker logs
 
 ### System
 - `GET /health` - Health check endpoint (unversioned)

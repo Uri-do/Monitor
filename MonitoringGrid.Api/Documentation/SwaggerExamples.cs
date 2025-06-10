@@ -141,7 +141,7 @@ public static class SwaggerExamples
         title = "One or more validation errors occurred",
         status = 400,
         detail = "The request contains invalid data",
-        instance = "/api/v2.0/kpi",
+        instance = "/api/kpi",
         errors = new
         {
             Frequency = new[] { "High priority KPIs (SMS alerts) should not run more frequently than every 5 minutes to avoid spam" },
@@ -267,33 +267,7 @@ public class SwaggerExampleOperationFilter : IOperationFilter
     }
 }
 
-/// <summary>
-/// Operation filter to add API version information
-/// </summary>
-public class ApiVersionOperationFilter : IOperationFilter
-{
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
-    {
-        var apiVersionAttribute = context.MethodInfo.DeclaringType?.GetCustomAttribute<Microsoft.AspNetCore.Mvc.ApiVersionAttribute>();
-        if (apiVersionAttribute != null)
-        {
-            operation.Summary = $"[v{apiVersionAttribute.Versions.First()}] {operation.Summary}";
-        }
-
-        // Add performance and caching information
-        var performanceAttribute = context.MethodInfo.GetCustomAttribute<MonitoringGrid.Api.Filters.PerformanceMonitorAttribute>();
-        if (performanceAttribute != null)
-        {
-            operation.Description += $"\n\n**Performance Monitoring**: This endpoint is monitored for performance.";
-        }
-
-        var cacheAttribute = context.MethodInfo.GetCustomAttribute<Microsoft.AspNetCore.Mvc.ResponseCacheAttribute>();
-        if (cacheAttribute != null)
-        {
-            operation.Description += $"\n\n**Caching**: Response is cached for {cacheAttribute.Duration} seconds";
-        }
-    }
-}
+// ApiVersionOperationFilter removed - API versioning has been removed from the system
 
 /// <summary>
 /// Document filter to add comprehensive API documentation
@@ -312,7 +286,7 @@ public class ApiDocumentationFilter : IDocumentFilter
                 ["title"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("One or more validation errors occurred") },
                 ["status"] = new OpenApiSchema { Type = "integer", Example = new OpenApiInteger(400) },
                 ["detail"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("The request contains invalid data") },
-                ["instance"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("/api/v2.0/kpi") },
+                ["instance"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("/api/kpi") },
                 ["traceId"] = new OpenApiSchema { Type = "string", Example = new OpenApiString("0HN7GLLP5N1J7:00000001") },
                 ["errors"] = new OpenApiSchema
                 {

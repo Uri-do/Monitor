@@ -79,20 +79,16 @@ public class ConsolidatedControllersIntegrationTests
     }
 
     [Fact]
-    public void ConsolidatedArchitecture_ShouldSupportApiVersioning()
+    public void ConsolidatedArchitecture_ShouldUseRootLevelEndpoints()
     {
         // Arrange
-        var supportedVersions = new[] { "2.0", "3.0" };
-        var controllers = new[] { "kpi", "security", "realtime", "worker" };
+        var controllers = new[] { "kpi", "security", "realtime", "worker", "documentation" };
 
         // Act & Assert
-        foreach (var version in supportedVersions)
+        foreach (var controller in controllers)
         {
-            foreach (var controller in controllers)
-            {
-                var endpoint = $"/api/v{version}/{controller}";
-                endpoint.Should().MatchRegex(@"^/api/v\d+\.\d+/\w+$");
-            }
+            var endpoint = $"/api/{controller}";
+            endpoint.Should().MatchRegex(@"^/api/\w+$");
         }
     }
 }

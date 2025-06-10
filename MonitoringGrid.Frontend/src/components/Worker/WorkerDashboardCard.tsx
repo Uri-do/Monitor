@@ -33,6 +33,7 @@ import { toast } from 'react-hot-toast';
 import { WorkerStatusUpdate } from '../../services/signalRService';
 import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
 import { RunningKpi } from '../Common';
+import { workerApi } from '../../services/api';
 
 interface WorkerService {
   name: string;
@@ -77,13 +78,8 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
   const fetchStatus = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/worker/status');
-      if (response.ok) {
-        const data = await response.json();
-        setStatus(data);
-      } else {
-        console.error('Failed to fetch worker status');
-      }
+      const data = await workerApi.getStatus();
+      setStatus(data);
     } catch (error) {
       console.error('Error fetching worker status:', error);
     } finally {
@@ -94,14 +90,21 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
   const performAction = async (action: string) => {
     setActionLoading(action);
     try {
-      const response = await fetch(`/api/worker/${action}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      let result: { success: boolean; message: string };
 
-      const result: WorkerActionResult = await response.json();
+      switch (action) {
+        case 'start':
+          result = await workerApi.start();
+          break;
+        case 'stop':
+          result = await workerApi.stop();
+          break;
+        case 'restart':
+          result = await workerApi.restart();
+          break;
+        default:
+          throw new Error(`Unknown action: ${action}`);
+      }
 
       if (result.success) {
         toast.success(result.message);
