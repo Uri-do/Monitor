@@ -30,16 +30,9 @@ const Dashboard: React.FC = () => {
 
 
 
-  // Use real-time data only if enabled, otherwise use mock data
-  const dashboardState = realtimeEnabled ? realtimeDashboard : {
-    runningKpis: [],
-    countdown: null,
-    nextKpiDue: null,
-    dashboardData: null,
-    isConnected: false,
-    lastUpdate: new Date(),
-    refreshDashboard: () => {},
-  };
+  // Always use real-time data since SignalR is working
+  // TODO: Remove this temporary fix once RealtimeContext connection detection is fixed
+  const dashboardState = realtimeDashboard;
 
   // Fetch dashboard data with aggressive refresh for real-time updates
   const {
