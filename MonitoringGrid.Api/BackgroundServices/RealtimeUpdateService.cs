@@ -206,13 +206,7 @@ public class RealtimeUpdateService : BackgroundService
                         IsRunning = true,
                         Mode = "Manual",
                         ProcessId = externalWorkerProcess.Id,
-                        Services = new List<WorkerServiceDto>
-                        {
-                            new() { Name = "KpiMonitoringWorker", Status = "Running", LastActivity = DateTime.UtcNow },
-                            new() { Name = "ScheduledTaskWorker", Status = "Running", LastActivity = DateTime.UtcNow },
-                            new() { Name = "HealthCheckWorker", Status = "Running", LastActivity = DateTime.UtcNow },
-                            new() { Name = "AlertProcessingWorker", Status = "Running", LastActivity = DateTime.UtcNow }
-                        },
+                        Services = new List<WorkerServiceDto>(), // Remove mock services - should be populated by actual worker status
                         LastHeartbeat = DateTime.UtcNow.ToString("O"),
                         Uptime = CalculateUptime(externalWorkerProcess.StartTime)
                     };

@@ -501,7 +501,7 @@ public class KpiController : ControllerBase
     {
         try
         {
-            // For now, return empty result - this will be implemented with proper alert system
+            // Return empty result until alert system is fully implemented
             var emptyResult = new PaginatedAlertsDto
             {
                 Alerts = new List<AlertLogDto>(),
@@ -532,7 +532,7 @@ public class KpiController : ControllerBase
     {
         try
         {
-            // For now, return not found - this will be implemented with proper alert system
+            // Return not found until alert system is fully implemented
             return NotFound($"Alert with ID {id} not found");
         }
         catch (Exception ex)
@@ -556,7 +556,7 @@ public class KpiController : ControllerBase
     {
         try
         {
-            // For now, return empty statistics - this will be implemented with proper alert system
+            // Return empty statistics until alert system is fully implemented
             var emptyStats = new AlertStatisticsDto
             {
                 TotalAlerts = 0,

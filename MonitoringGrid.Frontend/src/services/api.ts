@@ -298,7 +298,7 @@ export const alertApi = {
 
   // Get alert dashboard
   getDashboard: async (): Promise<AlertDashboardDto> => {
-    // For now, return empty dashboard - this will be implemented with proper alert system
+    // Return empty dashboard until alert dashboard endpoint is implemented
     const emptyDashboard: AlertDashboardDto = {
       totalAlertsToday: 0,
       unresolvedAlerts: 0,
