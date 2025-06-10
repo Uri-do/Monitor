@@ -298,8 +298,18 @@ export const alertApi = {
 
   // Get alert dashboard
   getDashboard: async (): Promise<AlertDashboardDto> => {
-    const response: AxiosResponse<AlertDashboardDto> = await api.get('/alerts/dashboard');
-    return response.data;
+    // For now, return empty dashboard - this will be implemented with proper alert system
+    const emptyDashboard: AlertDashboardDto = {
+      totalAlertsToday: 0,
+      unresolvedAlerts: 0,
+      criticalAlerts: 0,
+      alertsLastHour: 0,
+      alertTrendPercentage: 0,
+      recentAlerts: [],
+      topAlertingKpis: [],
+      hourlyTrend: []
+    };
+    return emptyDashboard;
   },
 
   // Get critical alerts requiring immediate attention

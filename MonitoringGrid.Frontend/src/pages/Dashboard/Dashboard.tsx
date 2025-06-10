@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
     refreshDashboard: () => {},
   };
 
-  // Fetch dashboard data with reasonable refresh since we have real-time updates
+  // Fetch dashboard data with aggressive refresh for real-time updates
   const {
     data: kpiDashboard,
     isLoading: kpiLoading,
@@ -49,9 +49,9 @@ const Dashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['kpi-dashboard'],
     queryFn: kpiApi.getDashboard,
-    refetchInterval: 30000, // Refresh every 30 seconds
-    staleTime: 10000, // Consider data stale after 10 seconds
-    cacheTime: 60000, // Cache for 1 minute
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time data
+    staleTime: 0, // Always consider data stale to force fresh fetches
+    cacheTime: 5000, // Cache for only 5 seconds
     retry: 2, // Retry failed requests twice
     retryDelay: 1000, // Wait 1 second between retries
   });
@@ -63,7 +63,9 @@ const Dashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['alert-dashboard'],
     queryFn: alertApi.getDashboard,
-    refetchInterval: 60000, // Reduced to 60 seconds
+    refetchInterval: 10000, // Refresh every 10 seconds
+    staleTime: 0, // Always consider data stale
+    cacheTime: 5000, // Cache for only 5 seconds
   });
 
   // Merge real-time data with dashboard data

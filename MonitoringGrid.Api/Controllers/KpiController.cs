@@ -478,6 +478,107 @@ public class KpiController : ControllerBase
         });
     }
 
+    #region Alert Management Endpoints
+
+    /// <summary>
+    /// Get alerts with filtering and pagination
+    /// </summary>
+    [HttpGet("alerts")]
+    [SwaggerOperation(Summary = "Get alerts with filtering", Description = "Retrieve alerts with comprehensive filtering and pagination")]
+    [SwaggerResponse(200, "Successfully retrieved alerts", typeof(PaginatedAlertsDto))]
+    [SwaggerResponse(400, "Invalid filter parameters", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<PaginatedAlertsDto>> GetAlerts(
+        [FromQuery] bool? isResolved = null,
+        [FromQuery] string? searchText = null,
+        [FromQuery] string? startDate = null,
+        [FromQuery] string? endDate = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? sortBy = "triggerTime",
+        [FromQuery] string? sortDirection = "desc",
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // For now, return empty result - this will be implemented with proper alert system
+            var emptyResult = new PaginatedAlertsDto
+            {
+                Alerts = new List<AlertLogDto>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = 0
+            };
+
+            return Ok(emptyResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving alerts");
+            return StatusCode(500, "An error occurred while retrieving alerts");
+        }
+    }
+
+    /// <summary>
+    /// Get alert by ID
+    /// </summary>
+    [HttpGet("alerts/{id}")]
+    [SwaggerOperation(Summary = "Get alert by ID", Description = "Retrieve a specific alert by its ID")]
+    [SwaggerResponse(200, "Successfully retrieved alert", typeof(AlertLogDto))]
+    [SwaggerResponse(404, "Alert not found", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<AlertLogDto>> GetAlert(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // For now, return not found - this will be implemented with proper alert system
+            return NotFound($"Alert with ID {id} not found");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving alert {AlertId}", id);
+            return StatusCode(500, "An error occurred while retrieving the alert");
+        }
+    }
+
+    /// <summary>
+    /// Get alert statistics
+    /// </summary>
+    [HttpGet("alerts/statistics")]
+    [SwaggerOperation(Summary = "Get alert statistics", Description = "Retrieve alert statistics for the specified time period")]
+    [SwaggerResponse(200, "Successfully retrieved alert statistics", typeof(AlertStatisticsDto))]
+    [SwaggerResponse(400, "Invalid parameters", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<AlertStatisticsDto>> GetAlertStatistics(
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // For now, return empty statistics - this will be implemented with proper alert system
+            var emptyStats = new AlertStatisticsDto
+            {
+                TotalAlerts = 0,
+                ResolvedAlerts = 0,
+                UnresolvedAlerts = 0,
+                CriticalAlerts = 0,
+                AverageResolutionTimeHours = 0,
+                DailyTrend = new List<AlertTrendDto>(),
+                TopAlertingKpis = new List<KpiAlertSummaryDto>()
+            };
+
+            return Ok(emptyStats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving alert statistics");
+            return StatusCode(500, "An error occurred while retrieving alert statistics");
+        }
+    }
+
+    #endregion
+
     #region Contact Management Endpoints
 
     /// <summary>

@@ -159,6 +159,16 @@ public class PaginatedAlertsDto
 }
 
 /// <summary>
+/// Alert severity statistics
+/// </summary>
+public class AlertSeverityStatsDto
+{
+    public string Severity { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public decimal Percentage { get; set; }
+}
+
+/// <summary>
 /// Alert dashboard summary
 /// </summary>
 public class AlertDashboardDto
