@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,7 @@ using MonitoringGrid.Api.Services;
 using Serilog;
 using Serilog.Events;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Text;
 using System.IO.Compression;
 using FluentValidation.AspNetCore;
@@ -59,6 +61,7 @@ builder.Services.AddControllers(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
 // API Versioning removed - all endpoints now at root level
@@ -366,6 +369,12 @@ if (securityConfig?.Jwt != null)
 // Add Authorization policies
 builder.Services.AddAuthorization(options =>
 {
+    // Global policy: Require authentication for all endpoints
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+
+    // Specific permission-based policies
     options.AddPolicy("RequireUserReadPermission", policy =>
         policy.RequireClaim("permission", "User:Read"));
     options.AddPolicy("RequireUserWritePermission", policy =>
@@ -644,10 +653,10 @@ app.MapHub<MonitoringHub>("/monitoring-hub");
 // Configure worker cleanup on application shutdown
 app.ConfigureWorkerCleanup();
 
-// Map Prometheus metrics endpoint
-app.MapMetrics();
+// Map Prometheus metrics endpoint (public access for monitoring)
+app.MapMetrics().AllowAnonymous();
 
-// Add health check endpoint
+// Add health check endpoint (public access)
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     ResponseWriter = async (context, report) =>
@@ -667,16 +676,16 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
         };
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
     }
-});
+}).AllowAnonymous();
 
-// Add API info endpoint
+// Add API info endpoint (public access)
 app.MapGet("/api/info", () => new
 {
     Name = "Monitoring Grid API",
     Version = "1.0.0",
     Environment = app.Environment.EnvironmentName,
     Timestamp = DateTime.UtcNow
-});
+}).AllowAnonymous();
 
 // Temporarily disable database connection check for testing
 /*

@@ -220,31 +220,27 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           />
         </ListItemIcon>
         <ListItemText
-          primary={
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-              {kpi.indicator}
-            </Typography>
-          }
+          primary={kpi.indicator}
           secondary={
-            <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+            <Box component="span">
+              <Box component="span" sx={{ display: 'block', mb: 0.5 }}>
                 Owner: {kpi.owner}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+              </Box>
+              <Box component="span" sx={{ display: 'block', mb: 1 }}>
                 Started: {formatDistanceToNow(new Date(kpi.startTime), { addSuffix: true })}
                 {kpi.elapsedTime && ` • Elapsed: ${formatElapsedTime(kpi.elapsedTime)}`}
-              </Typography>
-              
+              </Box>
+
               {/* Progress Bar */}
               {showProgress && kpi.progress !== undefined && (
                 <Box sx={{ mt: 1 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
                       {kpi.currentStep || 'Processing...'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    </Box>
+                    <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
                       {kpi.progress}%
-                    </Typography>
+                    </Box>
                   </Box>
                   <LinearProgress
                     variant="determinate"
@@ -263,6 +259,14 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
               )}
             </Box>
           }
+          primaryTypographyProps={{
+            variant: 'subtitle2',
+            sx: { fontWeight: 600, mb: 0.5 }
+          }}
+          secondaryTypographyProps={{
+            component: 'div',
+            sx: { fontSize: '0.875rem', color: 'text.secondary' }
+          }}
         />
       </ListItem>
     );

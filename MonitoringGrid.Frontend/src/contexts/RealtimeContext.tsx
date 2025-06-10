@@ -83,7 +83,22 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 export const useRealtime = (): RealtimeContextType => {
   const context = useContext(RealtimeContext);
   if (context === undefined) {
-    throw new Error('useRealtime must be used within a RealtimeProvider');
+    console.error('useRealtime must be used within a RealtimeProvider. Providing fallback values.');
+
+    // Provide fallback values instead of throwing error
+    return {
+      isEnabled: false,
+      isConnected: false,
+      enableRealtime: async () => {
+        console.warn('RealtimeProvider not available - enableRealtime called');
+      },
+      disableRealtime: async () => {
+        console.warn('RealtimeProvider not available - disableRealtime called');
+      },
+      toggleRealtime: async () => {
+        console.warn('RealtimeProvider not available - toggleRealtime called');
+      },
+    };
   }
   return context;
 };

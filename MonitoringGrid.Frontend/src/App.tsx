@@ -10,6 +10,7 @@ import Layout from '@/components/Layout/Layout';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import Login from '@/pages/Auth/Login';
 import Register from '@/pages/Auth/Register';
+import AuthTest from '@/pages/Auth/AuthTest';
 
 // Lazy loaded components for code splitting
 const Dashboard = React.lazy(() => import('@/pages/Dashboard/Dashboard'));
@@ -191,6 +192,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/auth-test" element={<AuthTest />} />
 
                 {/* Protected Routes */}
                 <Route

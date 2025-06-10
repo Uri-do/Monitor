@@ -77,6 +77,11 @@ const api = axios.create({
 // Request interceptor for authentication
 api.interceptors.request.use(
   config => {
+    // Add authentication token if available
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   error => {
@@ -94,7 +99,16 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      console.error('Unauthorized access');
+      console.error('Unauthorized access - redirecting to login');
+
+      // Clear stored tokens
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+
+      // Redirect to login page if not already there
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/auth-test') {
+        window.location.href = '/login';
+      }
     } else if (error.response?.status >= 500) {
       // Handle server errors
       console.error('Server error occurred');
@@ -284,8 +298,7 @@ export const alertApi = {
 
   // Get alert dashboard
   getDashboard: async (): Promise<AlertDashboardDto> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<AlertDashboardDto> = await api.get('/kpi/alerts/dashboard');
+    const response: AxiosResponse<AlertDashboardDto> = await api.get('/alerts/dashboard');
     return response.data;
   },
 

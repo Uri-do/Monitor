@@ -113,14 +113,14 @@ const Dashboard: React.FC = () => {
       <Grid container spacing={3}>
         {/* KPI Overview Cards */}
         <KpiOverviewCards
-          kpiDashboard={mergedKpiDashboard}
+          kpiDashboard={mergedKpiDashboard as any}
           alertDashboard={alertDashboard}
           kpiLoading={kpiLoading}
           alertLoading={alertLoading}
         />
 
         {/* KPIs Due for Execution - Moved to top */}
-        <KpisDueCard kpiDashboard={mergedKpiDashboard} />
+        <KpisDueCard kpiDashboard={mergedKpiDashboard as any} />
 
         {/* Worker Management - Moved to top */}
         <Grid item xs={12} md={6}>
@@ -132,13 +132,13 @@ const Dashboard: React.FC = () => {
 
         {/* Running KPIs */}
         <RunningKpisCard
-          kpiDashboard={mergedKpiDashboard}
+          kpiDashboard={mergedKpiDashboard as any}
           realtimeRunningKpis={dashboardState.runningKpis}
         />
 
         {/* Next KPI Due */}
         <NextKpiExecutionCard
-          kpiDashboard={mergedKpiDashboard}
+          kpiDashboard={mergedKpiDashboard as any}
           countdown={dashboardState.countdown}
           isConnected={dashboardState.isConnected}
         />

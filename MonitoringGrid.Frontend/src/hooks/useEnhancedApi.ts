@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { analyticsApi, realtimeApi, enhancedAlertApi } from '@/services/api';
+import { analyticsApi, realtimeApi, alertApi } from '@/services/api';
 import {
   SystemAnalyticsDto,
   KpiPerformanceAnalyticsDto,
@@ -192,7 +192,7 @@ export const useCriticalAlerts = (autoRefresh: boolean = true, interval: number 
     try {
       setLoading(true);
       setError(null);
-      const alerts = await enhancedAlertApi.getCriticalAlerts();
+      const alerts = await alertApi.getCriticalAlerts();
       setData(alerts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch critical alerts');
@@ -223,7 +223,7 @@ export const useUnresolvedAlerts = (autoRefresh: boolean = true, interval: numbe
     try {
       setLoading(true);
       setError(null);
-      const alerts = await enhancedAlertApi.getUnresolvedAlerts();
+      const alerts = await alertApi.getUnresolvedAlerts();
       setData(alerts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch unresolved alerts');
@@ -254,7 +254,7 @@ export const useEnhancedAlertStatistics = (days: number = 30) => {
     try {
       setLoading(true);
       setError(null);
-      const statistics = await enhancedAlertApi.getEnhancedStatistics(days);
+      const statistics = await alertApi.getStatistics(days);
       setData(statistics);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch enhanced alert statistics');
@@ -303,7 +303,7 @@ export const useManualAlert = () => {
       try {
         setLoading(true);
         setError(null);
-        const result = await enhancedAlertApi.sendManualAlert({
+        const result = await alertApi.sendManualAlert({
           kpiId,
           message,
           details,

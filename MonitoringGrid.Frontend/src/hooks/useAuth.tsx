@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { AuthState, LoginRequest, RegisterRequest } from '../types/auth';
 import { authService } from '../services/authService';
+import { signalRService } from '../services/signalRService';
 
 interface AuthContextType extends AuthState {
   login: (request: LoginRequest) => Promise<void>;
@@ -29,7 +30,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const token = authService.getToken();
       if (token) {
         try {
+          console.log('Attempting to validate existing token...');
           const user = await authService.getCurrentUser();
+          console.log('Token validation successful, user:', user);
           setState({
             user,
             token,
@@ -38,6 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             error: null,
           });
         } catch (error) {
+          console.log('Token validation failed, clearing token:', error);
           authService.clearToken();
           setState({
             user: null,
@@ -48,6 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           });
         }
       } else {
+        console.log('No token found, user needs to login');
         setState(prev => ({ ...prev, isLoading: false }));
       }
     };
@@ -64,6 +69,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (response.token && response.user) {
         authService.setToken(response.token.accessToken);
         authService.setRefreshToken(response.token.refreshToken);
+
+        // Update SignalR with new token
+        signalRService.updateAuthToken(response.token.accessToken);
 
         setState({
           user: response.user,
@@ -120,6 +128,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       // Logout error handled silently
     }
+
+    // Stop SignalR connection on logout
+    await signalRService.stop();
 
     setState({
       user: null,

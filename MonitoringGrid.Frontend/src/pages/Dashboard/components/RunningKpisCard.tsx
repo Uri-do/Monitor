@@ -28,12 +28,16 @@ const RunningKpisCard: React.FC<RunningKpisCardProps> = ({
   // Use real-time data if available, otherwise fall back to dashboard data
   const runningKpis: RunningKpi[] = realtimeRunningKpis.length > 0
     ? realtimeRunningKpis
-    : kpiDashboard?.runningKpis || [];
+    : (kpiDashboard?.runningKpis || []).map(kpi => ({
+        kpiId: kpi.kpiId,
+        indicator: kpi.indicator,
+        owner: kpi.owner,
+        startTime: new Date().toISOString(), // Fallback since KpiStatusDto doesn't have startTime
+        progress: undefined,
+        estimatedCompletion: undefined,
+      }));
 
-  // Debug logging
-  console.log('RunningKpisCard - realtimeRunningKpis:', realtimeRunningKpis);
-  console.log('RunningKpisCard - kpiDashboard?.runningKpis:', kpiDashboard?.runningKpis);
-  console.log('RunningKpisCard - final runningKpis:', runningKpis);
+
 
   return (
     <RunningKpisDisplay

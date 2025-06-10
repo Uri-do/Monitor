@@ -110,7 +110,12 @@ class AuthService {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get current user');
+      if (response.status === 401) {
+        // Token is invalid/expired, clear it
+        this.clearToken();
+        throw new Error('Authentication token expired');
+      }
+      throw new Error(`Failed to get current user: ${response.status}`);
     }
 
     return response.json();

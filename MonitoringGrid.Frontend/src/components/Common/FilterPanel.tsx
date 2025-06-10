@@ -112,7 +112,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         '& .MuiInputLabel-root': {
           fontWeight: 500,
           '&.Mui-focused': {
-            color: (theme) => theme.palette.primary.main,
+            color: (theme: any) => theme.palette.primary.main,
           },
         },
       },

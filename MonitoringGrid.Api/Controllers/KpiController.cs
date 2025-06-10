@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MonitoringGrid.Api.CQRS.Commands.Kpi;
 using MonitoringGrid.Api.CQRS.Queries.Kpi;
 using MonitoringGrid.Api.DTOs;
@@ -67,7 +68,14 @@ public class KpiController : ControllerBase
         {
             var query = new GetKpisQuery(isActive, owner, priority);
             var result = await _mediator.Send(query, cancellationToken);
-            return Ok(result);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI query failed: {Error}", result.Error);
+                return StatusCode(500, result.Error.Message);
+            }
+
+            return Ok(result.Value);
         }
         catch (Exception ex)
         {
@@ -89,10 +97,18 @@ public class KpiController : ControllerBase
             var query = new GetKpiByIdQuery(id);
             var result = await _mediator.Send(query, cancellationToken);
 
-            if (result == null)
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI query failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.NotFound
+                    ? NotFound(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
+            if (result.Value == null)
                 return NotFound($"KPI with ID {id} not found");
 
-            return Ok(result);
+            return Ok(result.Value);
         }
         catch (Exception ex)
         {
@@ -113,6 +129,17 @@ public class KpiController : ControllerBase
                 return BadRequest(ModelState);
 
             var result = await _mediator.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI creation failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.Validation
+                    ? BadRequest(result.Error.Message)
+                    : result.Error.Type == ErrorType.Conflict
+                    ? Conflict(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
             return CreatedAtAction(nameof(GetKpi), new { id = result.Value.KpiId }, result.Value);
         }
         catch (ArgumentException ex)
@@ -142,7 +169,18 @@ public class KpiController : ControllerBase
                 return BadRequest(ModelState);
 
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI update failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.NotFound
+                    ? NotFound(result.Error.Message)
+                    : result.Error.Type == ErrorType.Validation
+                    ? BadRequest(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
+            return Ok(result.Value);
         }
         catch (ArgumentException ex)
         {
@@ -167,6 +205,14 @@ public class KpiController : ControllerBase
             var command = new DeleteKpiCommand(id);
             var result = await _mediator.Send(command, cancellationToken);
 
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI deletion failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.NotFound
+                    ? NotFound(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
             if (!result.Value)
                 return NotFound($"KPI with ID {id} not found");
 
@@ -190,7 +236,18 @@ public class KpiController : ControllerBase
         {
             var command = new ExecuteKpiCommand(id, request?.CustomFrequency);
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("KPI execution failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.NotFound
+                    ? NotFound(result.Error.Message)
+                    : result.Error.Type == ErrorType.BusinessRule
+                    ? BadRequest(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
+            return Ok(result.Value);
         }
         catch (ArgumentException ex)
         {
@@ -221,7 +278,14 @@ public class KpiController : ControllerBase
         {
             var query = new GetKpiDashboardQuery();
             var result = await _mediator.Send(query, cancellationToken);
-            return Ok(result);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("Dashboard query failed: {Error}", result.Error);
+                return StatusCode(500, result.Error.Message);
+            }
+
+            return Ok(result.Value);
         }
         catch (Exception ex)
         {
@@ -240,7 +304,16 @@ public class KpiController : ControllerBase
         try
         {
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(new { Message = result });
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("Bulk operation failed: {Error}", result.Error);
+                return result.Error.Type == ErrorType.Validation
+                    ? BadRequest(result.Error.Message)
+                    : StatusCode(500, result.Error.Message);
+            }
+
+            return Ok(new { Message = result.Value });
         }
         catch (ArgumentException ex)
         {
