@@ -66,12 +66,25 @@ public class RealtimeUpdateService : BackgroundService
             }
             catch (OperationCanceledException)
             {
+                _logger.LogInformation("Countdown updates cancelled");
+                break;
+            }
+            catch (ObjectDisposedException)
+            {
+                _logger.LogInformation("Service provider disposed, stopping countdown updates");
                 break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending countdown update");
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // Wait before retrying
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // Wait before retrying
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
         }
     }
@@ -87,22 +100,42 @@ public class RealtimeUpdateService : BackgroundService
             }
             catch (OperationCanceledException)
             {
+                _logger.LogInformation("Periodic updates cancelled");
+                break;
+            }
+            catch (ObjectDisposedException)
+            {
+                _logger.LogInformation("Service provider disposed, stopping periodic updates");
                 break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error sending periodic updates");
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); // Wait before retrying
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); // Wait before retrying
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
         }
     }
 
     private async Task SendPeriodicUpdatesAsync()
     {
-        using var scope = _serviceProvider.CreateScope();
-
         try
         {
+            // Check if service provider is disposed before creating scope
+            if (_serviceProvider == null)
+            {
+                _logger.LogWarning("Service provider is null, skipping periodic updates");
+                return;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+
             // Send worker status update
             await SendWorkerStatusUpdateAsync(scope);
 
@@ -111,6 +144,11 @@ public class RealtimeUpdateService : BackgroundService
 
             // Send next KPI schedule update
             await SendNextKpiScheduleUpdateAsync(scope);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed, stopping periodic updates");
+            return; // Gracefully exit when service provider is disposed
         }
         catch (Exception ex)
         {
@@ -122,6 +160,13 @@ public class RealtimeUpdateService : BackgroundService
     {
         try
         {
+            // Check if scope is disposed
+            if (scope?.ServiceProvider == null)
+            {
+                _logger.LogWarning("Service scope is null or disposed, skipping worker status update");
+                return;
+            }
+
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
@@ -190,6 +235,10 @@ public class RealtimeUpdateService : BackgroundService
 
             _logger.LogDebug("Sent worker status update: IsRunning={IsRunning}, Mode={Mode}, ProcessId={ProcessId}, Uptime={Uptime}",
                 workerStatus.IsRunning, workerStatus.Mode, workerStatus.ProcessId, workerStatus.Uptime);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed during worker status update");
         }
         catch (Exception ex)
         {
@@ -268,6 +317,13 @@ public class RealtimeUpdateService : BackgroundService
     {
         try
         {
+            // Check if scope is disposed
+            if (scope?.ServiceProvider == null)
+            {
+                _logger.LogWarning("Service scope is null or disposed, skipping running KPIs update");
+                return;
+            }
+
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
             var kpis = await kpiRepository.GetAllAsync();
@@ -292,6 +348,10 @@ public class RealtimeUpdateService : BackgroundService
             };
 
             await realtimeNotificationService.SendRunningKpisUpdateAsync(runningKpisUpdate);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed during running KPIs update");
         }
         catch (Exception ex)
         {
@@ -326,6 +386,13 @@ public class RealtimeUpdateService : BackgroundService
     {
         try
         {
+            // Check if scope is disposed
+            if (scope?.ServiceProvider == null)
+            {
+                _logger.LogWarning("Service scope is null or disposed, skipping next KPI schedule update");
+                return;
+            }
+
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
             var kpis = await kpiRepository.GetAllAsync();
@@ -353,6 +420,10 @@ public class RealtimeUpdateService : BackgroundService
 
             await realtimeNotificationService.SendNextKpiScheduleUpdateAsync(scheduleUpdate);
         }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed during next KPI schedule update");
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending next KPI schedule update");
@@ -361,10 +432,17 @@ public class RealtimeUpdateService : BackgroundService
 
     private async Task SendCountdownUpdateAsync()
     {
-        using var scope = _serviceProvider.CreateScope();
-
         try
         {
+            // Check if service provider is disposed before creating scope
+            if (_serviceProvider == null)
+            {
+                _logger.LogWarning("Service provider is null, skipping countdown update");
+                return;
+            }
+
+            using var scope = _serviceProvider.CreateScope();
+
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
             var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
             var kpis = await kpiRepository.GetAllAsync();
@@ -394,6 +472,11 @@ public class RealtimeUpdateService : BackgroundService
                     await realtimeNotificationService.SendCountdownUpdateAsync(countdownUpdate);
                 }
             }
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed, stopping countdown updates");
+            return; // Gracefully exit when service provider is disposed
         }
         catch (Exception ex)
         {

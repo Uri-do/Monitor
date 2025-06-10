@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MonitoringGrid.Api.DTOs;
 
@@ -6,6 +7,7 @@ namespace MonitoringGrid.Api.Hubs;
 /// <summary>
 /// SignalR Hub for real-time monitoring notifications
 /// </summary>
+[AllowAnonymous] // Temporary: Allow anonymous access for testing real-time features
 public class MonitoringHub : Hub
 {
     private readonly ILogger<MonitoringHub> _logger;

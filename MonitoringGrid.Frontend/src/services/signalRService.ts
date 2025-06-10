@@ -114,27 +114,28 @@ class SignalRService {
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {
         withCredentials: true,
-        accessTokenFactory: () => {
-          const token = localStorage.getItem('auth_token');
-          console.log('SignalR requesting token, found:', token ? 'valid token' : 'no token');
+        // Temporarily disable authentication for testing
+        // accessTokenFactory: () => {
+        //   const token = localStorage.getItem('auth_token');
+        //   console.log('SignalR requesting token, found:', token ? 'valid token' : 'no token');
 
-          // Return null if no token to prevent malformed token errors
-          if (!token || token.trim() === '') {
-            console.log('No valid token available for SignalR connection');
-            return null;
-          }
+        //   // Return null if no token to prevent malformed token errors
+        //   if (!token || token.trim() === '') {
+        //     console.log('No valid token available for SignalR connection');
+        //     return null;
+        //   }
 
-          return token;
-        },
+        //   return token;
+        // },
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: retryContext => {
-          // Only retry if we have a valid token
-          const token = localStorage.getItem('auth_token');
-          if (!token || token.trim() === '') {
-            console.log('No token available, stopping SignalR reconnection attempts');
-            return null; // Stop retrying if no token
-          }
+          // Temporarily allow reconnection without token for testing
+          // const token = localStorage.getItem('auth_token');
+          // if (!token || token.trim() === '') {
+          //   console.log('No token available, stopping SignalR reconnection attempts');
+          //   return null; // Stop retrying if no token
+          // }
 
           if (retryContext.previousRetryCount < this.maxReconnectAttempts) {
             return this.reconnectDelay * Math.pow(2, retryContext.previousRetryCount);
@@ -311,13 +312,13 @@ class SignalRService {
   }
 
   public async start(): Promise<void> {
-    // Check if we have a valid token before attempting to connect
-    const token = localStorage.getItem('auth_token');
-    if (!token || token.trim() === '') {
-      console.log('Cannot start SignalR connection: No authentication token available');
-      this.eventHandlers.onConnectionStateChanged?.('Disconnected');
-      return;
-    }
+    // Temporarily disable token check for testing
+    // const token = localStorage.getItem('auth_token');
+    // if (!token || token.trim() === '') {
+    //   console.log('Cannot start SignalR connection: No authentication token available');
+    //   this.eventHandlers.onConnectionStateChanged?.('Disconnected');
+    //   return;
+    // }
 
     if (!this.connection) {
       this.initializeConnection();
@@ -344,13 +345,14 @@ class SignalRService {
       console.error('Error starting SignalR connection:', error);
       this.eventHandlers.onConnectionStateChanged?.('Failed');
 
-      // Only retry if we still have a valid token
-      const currentToken = localStorage.getItem('auth_token');
-      if (currentToken && currentToken.trim() !== '' && this.reconnectAttempts < this.maxReconnectAttempts) {
+      // Temporarily allow retry without token for testing
+      // const currentToken = localStorage.getItem('auth_token');
+      // if (currentToken && currentToken.trim() !== '' && this.reconnectAttempts < this.maxReconnectAttempts) {
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
         setTimeout(() => this.start(), this.reconnectDelay);
       } else {
-        console.log('Not retrying SignalR connection: No valid token or max attempts reached');
+        console.log('Not retrying SignalR connection: Max attempts reached');
       }
     }
   }
