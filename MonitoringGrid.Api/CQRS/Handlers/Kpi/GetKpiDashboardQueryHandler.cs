@@ -43,13 +43,28 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
         var now = DateTime.UtcNow;
         var today = now.Date;
 
-        var kpiRepository = _unitOfWork.Repository<KPI>();
-        var alertRepository = _unitOfWork.Repository<AlertLog>();
-        var historicalRepository = _unitOfWork.Repository<HistoricalData>();
+        // Get all KPIs (this is needed for dashboard counts)
+        var kpis = (await _unitOfWork.Repository<KPI>().GetAllAsync(cancellationToken)).ToList();
 
-        var kpis = (await kpiRepository.GetAllAsync(cancellationToken)).ToList();
-        var allAlerts = (await alertRepository.GetAllAsync(cancellationToken)).ToList();
-        var allHistoricalData = (await historicalRepository.GetAllAsync(cancellationToken)).ToList();
+        // Only get recent alerts (last 7 days) to reduce data load
+        var recentAlertsDate = now.AddDays(-7);
+        var allAlerts = (await _unitOfWork.Repository<AlertLog>().GetAllAsync(cancellationToken))
+            .Where(a => a.TriggerTime >= recentAlertsDate)
+            .ToList();
+
+        // Get recent executions (last 10) for dashboard display
+        var recentExecutions = (await _unitOfWork.Repository<HistoricalData>().GetAllAsync(cancellationToken))
+            .Where(h => h.Timestamp >= now.AddHours(-24))
+            .OrderByDescending(h => h.Timestamp)
+            .Take(10)
+            .Select(h =>
+            {
+                var dto = _mapper.Map<KpiExecutionStatusDto>(h);
+                var kpi = kpis.FirstOrDefault(k => k.KpiId == h.KpiId);
+                dto.Indicator = kpi?.Indicator ?? "Unknown";
+                return dto;
+            })
+            .ToList();
 
         activity?.SetTag("dashboard.kpi_count", kpis.Count)
                 ?.SetTag("dashboard.alert_count", allAlerts.Count);
@@ -103,21 +118,7 @@ public class GetKpiDashboardQueryHandler : IQueryHandler<GetKpiDashboardQuery, K
             .OrderBy(x => x.NextRun)
             .FirstOrDefault();
 
-        // Get recent executions (last 10)
-        var recentExecutions = allHistoricalData
-            .Where(h => h.Timestamp >= now.AddHours(-24)) // Last 24 hours
-            .OrderByDescending(h => h.Timestamp)
-            .Take(10)
-            .Select(h => new KpiExecutionStatusDto
-            {
-                KpiId = h.KpiId,
-                Indicator = kpis.FirstOrDefault(k => k.KpiId == h.KpiId)?.Indicator ?? "Unknown",
-                ExecutionTime = h.Timestamp,
-                IsSuccessful = h.IsSuccessful,
-                Value = h.Value,
-                ExecutionTimeMs = h.ExecutionTimeMs
-            })
-            .ToList();
+        // Recent executions already created above in optimized query
 
         var dashboard = new KpiDashboardDto
         {

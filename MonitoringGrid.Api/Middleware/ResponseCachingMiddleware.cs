@@ -86,9 +86,9 @@ public class ResponseCachingMiddleware
         {
             var p when p?.Contains("/api/kpi/dashboard") == true => new CacheConfiguration
             {
-                Enabled = true,
-                Duration = TimeSpan.FromMinutes(2),
-                VaryByQuery = true,
+                Enabled = false, // Disable caching for dashboard to show real-time data
+                Duration = TimeSpan.Zero,
+                VaryByQuery = false,
                 Tags = new[] { "dashboard", "kpi" }
             },
             var p when p?.Contains("/api/kpi") == true && !p.Contains("/execute") => new CacheConfiguration

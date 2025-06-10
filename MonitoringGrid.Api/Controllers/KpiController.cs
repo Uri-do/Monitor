@@ -1,12 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Api.CQRS.Commands.Kpi;
 using MonitoringGrid.Api.CQRS.Queries.Kpi;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Filters;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace MonitoringGrid.Api.Controllers;
@@ -24,14 +26,17 @@ public class KpiController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<KpiController> _logger;
     private readonly IPerformanceMetricsService? _performanceMetrics;
+    private readonly IUnitOfWork _unitOfWork;
 
     public KpiController(
         IMediator mediator,
         ILogger<KpiController> logger,
+        IUnitOfWork unitOfWork,
         IPerformanceMetricsService? performanceMetrics = null)
     {
         _mediator = mediator;
         _logger = logger;
+        _unitOfWork = unitOfWork;
         _performanceMetrics = performanceMetrics;
     }
 
@@ -270,7 +275,7 @@ public class KpiController : ControllerBase
     /// Get KPI dashboard data
     /// </summary>
     [HttpGet("dashboard")]
-    [ResponseCache(Duration = 60, VaryByQueryKeys = new string[] { })]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [DatabasePerformanceMonitor]
     public async Task<ActionResult<KpiDashboardDto>> GetDashboard(CancellationToken cancellationToken = default)
     {
@@ -472,4 +477,561 @@ public class KpiController : ControllerBase
             Type = error.Type.ToString()
         });
     }
+
+    #region Contact Management Endpoints
+
+    /// <summary>
+    /// Get all contacts with optional filtering
+    /// </summary>
+    [HttpGet("contacts")]
+    [SwaggerOperation(Summary = "Get all contacts", Description = "Retrieve all notification contacts with optional filtering")]
+    [SwaggerResponse(200, "Successfully retrieved contacts", typeof(List<ContactDto>))]
+    [SwaggerResponse(400, "Invalid filter parameters", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<List<ContactDto>>> GetContacts(
+        [FromQuery, SwaggerParameter("Filter by active status")] bool? isActive = null,
+        [FromQuery, SwaggerParameter("Search by name, email, or phone")] string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting contacts with filters - IsActive: {IsActive}, Search: {Search}", isActive, search);
+
+            var contactRepository = _unitOfWork.Repository<Contact>();
+            var contacts = await contactRepository.GetWithThenIncludesAsync(
+                null, // no predicate - get all
+                c => c.ContactId, // order by ContactId
+                true, // ascending
+                query => query.Include(c => c.KpiContacts).ThenInclude(kc => kc.KPI));
+
+            // Apply filters
+            var filteredContacts = contacts.AsEnumerable();
+
+            if (isActive.HasValue)
+            {
+                filteredContacts = filteredContacts.Where(c => c.IsActive == isActive.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLower();
+                filteredContacts = filteredContacts.Where(c =>
+                    c.Name.ToLower().Contains(searchLower) ||
+                    (c.Email != null && c.Email.ToLower().Contains(searchLower)) ||
+                    (c.Phone != null && c.Phone.ToLower().Contains(searchLower)));
+            }
+
+            var contactDtos = filteredContacts.Select(c => new ContactDto
+            {
+                ContactId = c.ContactId,
+                Name = c.Name,
+                Email = c.Email,
+                Phone = c.Phone,
+                IsActive = c.IsActive,
+                CreatedDate = c.CreatedDate,
+                ModifiedDate = c.ModifiedDate,
+                AssignedKpis = c.KpiContacts?.Select(kc => new KpiSummaryDto
+                {
+                    KpiId = kc.KPI?.KpiId ?? 0,
+                    Indicator = kc.KPI?.Indicator ?? "",
+                    Owner = kc.KPI?.Owner ?? "",
+                    Priority = kc.KPI?.Priority ?? 0,
+                    IsActive = kc.KPI?.IsActive ?? false
+                }).ToList() ?? new List<KpiSummaryDto>()
+            }).ToList();
+
+            _logger.LogDebug("Retrieved {Count} contacts", contactDtos.Count);
+            return Ok(contactDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contacts");
+            return StatusCode(500, "An error occurred while retrieving contacts");
+        }
+    }
+
+    /// <summary>
+    /// Get contact by ID
+    /// </summary>
+    [HttpGet("contacts/{id}")]
+    [SwaggerOperation(Summary = "Get contact by ID", Description = "Retrieve a specific contact by its ID")]
+    [SwaggerResponse(200, "Successfully retrieved contact", typeof(ContactDto))]
+    [SwaggerResponse(404, "Contact not found", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<ContactDto>> GetContact(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting contact with ID: {ContactId}", id);
+
+            var contactRepository = _unitOfWork.Repository<Contact>();
+            var contact = await contactRepository.GetByIdWithThenIncludesAsync(id,
+                query => query.Include(c => c.KpiContacts).ThenInclude(kc => kc.KPI));
+
+            if (contact == null)
+            {
+                _logger.LogWarning("Contact with ID {ContactId} not found", id);
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            var contactDto = new ContactDto
+            {
+                ContactId = contact.ContactId,
+                Name = contact.Name,
+                Email = contact.Email,
+                Phone = contact.Phone,
+                IsActive = contact.IsActive,
+                CreatedDate = contact.CreatedDate,
+                ModifiedDate = contact.ModifiedDate,
+                AssignedKpis = contact.KpiContacts?.Select(kc => new KpiSummaryDto
+                {
+                    KpiId = kc.KPI?.KpiId ?? 0,
+                    Indicator = kc.KPI?.Indicator ?? "",
+                    Owner = kc.KPI?.Owner ?? "",
+                    Priority = kc.KPI?.Priority ?? 0,
+                    IsActive = kc.KPI?.IsActive ?? false
+                }).ToList() ?? new List<KpiSummaryDto>()
+            };
+
+            return Ok(contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contact with ID: {ContactId}", id);
+            return StatusCode(500, "An error occurred while retrieving the contact");
+        }
+    }
+
+    /// <summary>
+    /// Create a new contact
+    /// </summary>
+    [HttpPost("contacts")]
+    [SwaggerOperation(Summary = "Create new contact", Description = "Create a new notification contact")]
+    [SwaggerResponse(201, "Contact created successfully", typeof(ContactDto))]
+    [SwaggerResponse(400, "Invalid contact data", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<ContactDto>> CreateContact(
+        [FromBody] CreateContactRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Creating new contact: {Name}", request.Name);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var contact = new Contact
+            {
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone,
+                IsActive = request.IsActive,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+
+            var contactRepository = _unitOfWork.Repository<Contact>();
+            await contactRepository.AddAsync(contact, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var contactDto = new ContactDto
+            {
+                ContactId = contact.ContactId,
+                Name = contact.Name,
+                Email = contact.Email,
+                Phone = contact.Phone,
+                IsActive = contact.IsActive,
+                CreatedDate = contact.CreatedDate,
+                ModifiedDate = contact.ModifiedDate,
+                AssignedKpis = new List<KpiSummaryDto>()
+            };
+
+            _logger.LogInformation("Created contact with ID: {ContactId}", contact.ContactId);
+            return CreatedAtAction(nameof(GetContact), new { id = contact.ContactId }, contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating contact");
+            return StatusCode(500, "An error occurred while creating the contact");
+        }
+    }
+
+    /// <summary>
+    /// Update an existing contact
+    /// </summary>
+    [HttpPut("contacts/{id}")]
+    [SwaggerOperation(Summary = "Update contact", Description = "Update an existing notification contact")]
+    [SwaggerResponse(200, "Contact updated successfully", typeof(ContactDto))]
+    [SwaggerResponse(400, "Invalid contact data", typeof(object))]
+    [SwaggerResponse(404, "Contact not found", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<ContactDto>> UpdateContact(
+        int id,
+        [FromBody] UpdateContactRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Updating contact with ID: {ContactId}", id);
+
+            if (id != request.ContactId)
+            {
+                return BadRequest("Contact ID in URL does not match request body");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var contactRepository = _unitOfWork.Repository<Contact>();
+            var contact = await contactRepository.GetByIdAsync(id, cancellationToken);
+
+            if (contact == null)
+            {
+                _logger.LogWarning("Contact with ID {ContactId} not found for update", id);
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            // Update contact properties
+            contact.Name = request.Name;
+            contact.Email = request.Email;
+            contact.Phone = request.Phone;
+            contact.IsActive = request.IsActive;
+            contact.ModifiedDate = DateTime.UtcNow;
+
+            await contactRepository.UpdateAsync(contact, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var contactDto = new ContactDto
+            {
+                ContactId = contact.ContactId,
+                Name = contact.Name,
+                Email = contact.Email,
+                Phone = contact.Phone,
+                IsActive = contact.IsActive,
+                CreatedDate = contact.CreatedDate,
+                ModifiedDate = contact.ModifiedDate,
+                AssignedKpis = new List<KpiSummaryDto>()
+            };
+
+            _logger.LogInformation("Updated contact with ID: {ContactId}", contact.ContactId);
+            return Ok(contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating contact with ID: {ContactId}", id);
+            return StatusCode(500, "An error occurred while updating the contact");
+        }
+    }
+
+    /// <summary>
+    /// Delete a contact
+    /// </summary>
+    [HttpDelete("contacts/{id}")]
+    [SwaggerOperation(Summary = "Delete contact", Description = "Delete a notification contact")]
+    [SwaggerResponse(204, "Contact deleted successfully")]
+    [SwaggerResponse(404, "Contact not found", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult> DeleteContact(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Deleting contact with ID: {ContactId}", id);
+
+            var contactRepository = _unitOfWork.Repository<Contact>();
+            var contact = await contactRepository.GetByIdAsync(id, cancellationToken);
+
+            if (contact == null)
+            {
+                _logger.LogWarning("Contact with ID {ContactId} not found for deletion", id);
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            await contactRepository.DeleteAsync(contact, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Deleted contact with ID: {ContactId}", contact.ContactId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting contact with ID: {ContactId}", id);
+            return StatusCode(500, "An error occurred while deleting the contact");
+        }
+    }
+
+    #endregion
+
+    #region Execution History Endpoints
+
+    /// <summary>
+    /// Get execution history with pagination and filters
+    /// </summary>
+    [HttpGet("execution-history")]
+    [SwaggerOperation(Summary = "Get execution history", Description = "Retrieve execution history with pagination and filtering")]
+    [SwaggerResponse(200, "Successfully retrieved execution history", typeof(PaginatedExecutionHistoryDto))]
+    [SwaggerResponse(400, "Invalid filter parameters", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<PaginatedExecutionHistoryDto>> GetExecutionHistory(
+        [FromQuery, SwaggerParameter("Filter by KPI ID")] int? kpiId = null,
+        [FromQuery, SwaggerParameter("Filter by executor")] string? executedBy = null,
+        [FromQuery, SwaggerParameter("Filter by execution method")] string? executionMethod = null,
+        [FromQuery, SwaggerParameter("Filter by success status")] bool? isSuccessful = null,
+        [FromQuery, SwaggerParameter("Start date filter")] DateTime? startDate = null,
+        [FromQuery, SwaggerParameter("End date filter")] DateTime? endDate = null,
+        [FromQuery, SwaggerParameter("Page size")] int pageSize = 20,
+        [FromQuery, SwaggerParameter("Page number")] int pageNumber = 1,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting execution history with filters - KpiId: {KpiId}, ExecutedBy: {ExecutedBy}, Method: {Method}",
+                kpiId, executedBy, executionMethod);
+
+            var historyRepository = _unitOfWork.Repository<HistoricalData>();
+
+            // Build query with filters
+            var query = historyRepository.GetWithThenIncludesAsync(
+                h => (kpiId == null || h.KpiId == kpiId) &&
+                     (executedBy == null || h.ExecutedBy.Contains(executedBy)) &&
+                     (executionMethod == null || h.ExecutionMethod.Contains(executionMethod)) &&
+                     (isSuccessful == null || h.IsSuccessful == isSuccessful) &&
+                     (startDate == null || h.Timestamp >= startDate) &&
+                     (endDate == null || h.Timestamp <= endDate),
+                h => h.Timestamp,
+                false, // descending order
+                query => query.Include(h => h.KPI));
+
+            var allHistory = await query;
+            var totalCount = allHistory.Count();
+
+            // Apply pagination
+            var pagedHistory = allHistory
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(h => new ExecutionHistoryDto
+                {
+                    HistoricalId = h.HistoricalId,
+                    KpiId = h.KpiId,
+                    Indicator = h.KPI?.Indicator ?? "",
+                    KpiOwner = h.KPI?.Owner ?? "",
+                    SpName = h.KPI?.SpName ?? "",
+                    Timestamp = h.Timestamp,
+                    ExecutedBy = h.ExecutedBy,
+                    ExecutionMethod = h.ExecutionMethod,
+                    CurrentValue = h.Value,
+                    HistoricalValue = h.HistoricalValue,
+                    DeviationPercent = h.DeviationPercent,
+                    Period = h.Period,
+                    MetricKey = h.MetricKey,
+                    IsSuccessful = h.IsSuccessful,
+                    ErrorMessage = h.ErrorMessage,
+                    ExecutionTimeMs = h.ExecutionTimeMs,
+                    DatabaseName = h.DatabaseName,
+                    ServerName = h.ServerName,
+                    ShouldAlert = h.ShouldAlert,
+                    AlertSent = h.AlertSent,
+                    SessionId = h.SessionId,
+                    IpAddress = h.IpAddress,
+                    SqlCommand = h.SqlCommand,
+                    RawResponse = h.RawResponse,
+                    ExecutionContext = h.ExecutionContext,
+                    PerformanceCategory = GetPerformanceCategory(h.ExecutionTimeMs),
+                    DeviationCategory = GetDeviationCategory(h.DeviationPercent)
+                }).ToList();
+
+            var result = new PaginatedExecutionHistoryDto
+            {
+                Executions = pagedHistory,
+                TotalCount = totalCount,
+                Page = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                HasNextPage = pageNumber < (int)Math.Ceiling((double)totalCount / pageSize),
+                HasPreviousPage = pageNumber > 1
+            };
+
+            _logger.LogDebug("Retrieved {Count} of {Total} execution history records", pagedHistory.Count, totalCount);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting execution history");
+            return StatusCode(500, "An error occurred while retrieving execution history");
+        }
+    }
+
+    /// <summary>
+    /// Get execution statistics
+    /// </summary>
+    [HttpGet("execution-stats")]
+    [SwaggerOperation(Summary = "Get execution statistics", Description = "Retrieve execution statistics for KPIs")]
+    [SwaggerResponse(200, "Successfully retrieved execution statistics", typeof(List<ExecutionStatsDto>))]
+    [SwaggerResponse(400, "Invalid parameters", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<List<ExecutionStatsDto>>> GetExecutionStats(
+        [FromQuery, SwaggerParameter("Filter by KPI ID")] int? kpiId = null,
+        [FromQuery, SwaggerParameter("Number of days to analyze")] int days = 7,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting execution stats for KpiId: {KpiId}, Days: {Days}", kpiId, days);
+
+            var historyRepository = _unitOfWork.Repository<HistoricalData>();
+            var startDate = DateTime.UtcNow.AddDays(-days);
+
+            var history = await historyRepository.GetWithThenIncludesAsync(
+                h => (kpiId == null || h.KpiId == kpiId) && h.Timestamp >= startDate,
+                h => h.Timestamp,
+                false,
+                query => query.Include(h => h.KPI));
+
+            var stats = history
+                .GroupBy(h => h.KpiId)
+                .Select(g => new ExecutionStatsDto
+                {
+                    KpiId = g.Key,
+                    Indicator = g.First().KPI?.Indicator ?? "",
+                    Owner = g.First().KPI?.Owner ?? "",
+                    TotalExecutions = g.Count(),
+                    SuccessfulExecutions = g.Count(h => h.IsSuccessful),
+                    FailedExecutions = g.Count(h => !h.IsSuccessful),
+                    SuccessRate = g.Count() > 0 ? (double)g.Count(h => h.IsSuccessful) / g.Count() * 100 : 0,
+                    AvgExecutionTimeMs = g.Where(h => h.ExecutionTimeMs.HasValue).Any()
+                        ? g.Where(h => h.ExecutionTimeMs.HasValue).Average(h => h.ExecutionTimeMs.Value)
+                        : null,
+                    MinExecutionTimeMs = g.Where(h => h.ExecutionTimeMs.HasValue).Any()
+                        ? g.Where(h => h.ExecutionTimeMs.HasValue).Min(h => h.ExecutionTimeMs.Value)
+                        : null,
+                    MaxExecutionTimeMs = g.Where(h => h.ExecutionTimeMs.HasValue).Any()
+                        ? g.Where(h => h.ExecutionTimeMs.HasValue).Max(h => h.ExecutionTimeMs.Value)
+                        : null,
+                    LastExecution = g.Max(h => h.Timestamp),
+                    AlertsTriggered = g.Count(h => h.ShouldAlert),
+                    AlertsSent = g.Count(h => h.AlertSent),
+                    UniqueExecutors = g.Where(h => !string.IsNullOrEmpty(h.ExecutedBy)).Select(h => h.ExecutedBy).Distinct().Count(),
+                    ExecutionMethods = g.Where(h => !string.IsNullOrEmpty(h.ExecutionMethod)).Select(h => h.ExecutionMethod).Distinct().Count()
+                }).ToList();
+
+            _logger.LogDebug("Retrieved execution stats for {Count} KPIs", stats.Count);
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting execution statistics");
+            return StatusCode(500, "An error occurred while retrieving execution statistics");
+        }
+    }
+
+    /// <summary>
+    /// Get detailed execution information
+    /// </summary>
+    [HttpGet("execution-history/{historicalId}")]
+    [SwaggerOperation(Summary = "Get execution detail", Description = "Retrieve detailed execution information by ID")]
+    [SwaggerResponse(200, "Successfully retrieved execution detail", typeof(ExecutionHistoryDetailDto))]
+    [SwaggerResponse(404, "Execution not found", typeof(object))]
+    [SwaggerResponse(500, "Internal server error", typeof(object))]
+    public async Task<ActionResult<ExecutionHistoryDetailDto>> GetExecutionDetail(
+        long historicalId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Getting execution detail for HistoricalId: {HistoricalId}", historicalId);
+
+            var historyRepository = _unitOfWork.Repository<HistoricalData>();
+            var execution = await historyRepository.GetByIdWithThenIncludesAsync(historicalId,
+                query => query.Include(h => h.KPI));
+
+            if (execution == null)
+            {
+                _logger.LogWarning("Execution with ID {HistoricalId} not found", historicalId);
+                return NotFound($"Execution with ID {historicalId} not found");
+            }
+
+            var detail = new ExecutionHistoryDetailDto
+            {
+                HistoricalId = execution.HistoricalId,
+                KpiId = execution.KpiId,
+                Indicator = execution.KPI?.Indicator ?? "",
+                KpiOwner = execution.KPI?.Owner ?? "",
+                SpName = execution.KPI?.SpName ?? "",
+                Timestamp = execution.Timestamp,
+                ExecutedBy = execution.ExecutedBy,
+                ExecutionMethod = execution.ExecutionMethod,
+                CurrentValue = execution.Value,
+                HistoricalValue = execution.HistoricalValue,
+                DeviationPercent = execution.DeviationPercent,
+                Period = execution.Period,
+                MetricKey = execution.MetricKey,
+                IsSuccessful = execution.IsSuccessful,
+                ErrorMessage = execution.ErrorMessage,
+                ExecutionTimeMs = execution.ExecutionTimeMs,
+                SqlCommand = execution.SqlCommand,
+                SqlParameters = execution.SqlParameters,
+                RawResponse = execution.RawResponse,
+                ConnectionString = execution.ConnectionString,
+                DatabaseName = execution.DatabaseName,
+                ServerName = execution.ServerName,
+                IpAddress = execution.IpAddress,
+                UserAgent = execution.UserAgent,
+                SessionId = execution.SessionId,
+                ExecutionContext = execution.ExecutionContext,
+                ShouldAlert = execution.ShouldAlert,
+                AlertSent = execution.AlertSent
+            };
+
+            return Ok(detail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting execution detail for HistoricalId: {HistoricalId}", historicalId);
+            return StatusCode(500, "An error occurred while retrieving execution detail");
+        }
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Get performance category based on execution time
+    /// </summary>
+    private static string GetPerformanceCategory(int? executionTimeMs)
+    {
+        if (!executionTimeMs.HasValue) return "Unknown";
+
+        return executionTimeMs.Value switch
+        {
+            < 1000 => "Fast",
+            < 5000 => "Normal",
+            < 10000 => "Slow",
+            _ => "Very Slow"
+        };
+    }
+
+    /// <summary>
+    /// Get deviation category based on deviation percentage
+    /// </summary>
+    private static string GetDeviationCategory(decimal? deviationPercent)
+    {
+        if (!deviationPercent.HasValue) return "None";
+
+        var absDeviation = Math.Abs(deviationPercent.Value);
+        return absDeviation switch
+        {
+            < 1 => "Minimal",
+            < 5 => "Low",
+            < 10 => "Moderate",
+            < 20 => "High",
+            _ => "Critical"
+        };
+    }
+
+    #endregion
 }

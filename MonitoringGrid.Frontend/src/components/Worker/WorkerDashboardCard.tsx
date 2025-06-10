@@ -112,8 +112,19 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
-      toast.error(`Failed to ${action} worker`);
+    } catch (error: any) {
+      // Try to extract the error message from the API response
+      let errorMessage = `Failed to ${action} worker`;
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.Message) {
+        errorMessage = error.response.data.Message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
       console.error(`Error ${action}ing worker:`, error);
     } finally {
       setActionLoading(null);

@@ -66,7 +66,7 @@ import {
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: '/api', // Root-level API endpoints (versioning removed)
-  timeout: 30000,
+  timeout: 60000, // Increased timeout to 60 seconds for dashboard queries
   headers: {
     'Content-Type': 'application/json',
   },

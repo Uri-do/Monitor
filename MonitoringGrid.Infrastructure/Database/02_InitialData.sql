@@ -51,29 +51,13 @@ WHEN NOT MATCHED THEN
     VALUES (source.Name, source.Email, source.Phone, source.IsActive);
 GO
 
--- Insert sample KPI configuration (based on the requirements example)
+-- Insert only real KPI configuration with actual stored procedure
 MERGE monitoring.KPIs AS target
-USING (VALUES 
-    ('Deposits', 'Amnon', 1, 5, 10.00, 'monitoring.usp_MonitorDeposits', 
-     'No deposits in last {frequency} minutes', 
-     'Alert: Only {current} deposits detected in the last {frequency} minutes. Historical average: {historical}. Deviation: {deviation}%', 
-     1, NULL, 30, 1.00),
-    ('Transaction Volume', 'Tech Team', 2, 15, 15.00, 'monitoring.usp_MonitorTransactions',
-     'Transaction volume deviation detected',
-     'Transaction volume alert: Current volume is {current}, historical average is {historical}. Deviation of {deviation}% detected.',
-     1, NULL, 60, 10.00),
-    ('Settlement Companies', 'Mike', 1, 10, 20.00, 'monitoring.usp_MonitorSettlementCompanies',
-     'Settlement company performance issue',
-     'Settlement company performance alert: Current success rate is {current}%, historical average is {historical}%. Deviation: {deviation}%',
-     1, NULL, 45, 50.00),
-    ('Country Deposits', 'Gavriel', 2, 30, 25.00, 'monitoring.usp_MonitorCountryDeposits',
-     'Country deposit pattern anomaly',
-     'Country deposit anomaly detected: Current deposits {current}, historical average {historical}. Deviation: {deviation}%',
-     1, NULL, 120, 5.00),
-    ('White Label Performance', 'Itai', 2, 20, 30.00, 'monitoring.usp_MonitorWhiteLabelPerformance',
-     'White label performance deviation',
-     'White label performance alert: Current performance {current}, historical {historical}. Deviation: {deviation}%',
-     1, NULL, 90, 20.00)
+USING (VALUES
+    ('Transaction Success Rate', 'Gavriel', 1, 30, 5.00, '[stats].[stp_MonitorTransactions]',
+     'Transaction success rate alert: {deviation}% deviation detected',
+     'Transaction monitoring alert: Current success rate is {current}%, historical average is {historical}%. Deviation of {deviation}% detected.',
+     1, NULL, 60, 90.00)
 ) AS source (Indicator, Owner, Priority, Frequency, Deviation, SpName, SubjectTemplate, DescriptionTemplate, IsActive, LastRun, CooldownMinutes, MinimumThreshold)
 ON target.Indicator = source.Indicator
 WHEN MATCHED THEN
@@ -95,11 +79,7 @@ WHEN NOT MATCHED THEN
 GO
 
 -- Map KPIs to contacts
-DECLARE @DepositKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'Deposits')
-DECLARE @TransactionKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'Transaction Volume')
-DECLARE @SettlementKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'Settlement Companies')
-DECLARE @CountryKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'Country Deposits')
-DECLARE @WhiteLabelKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'White Label Performance')
+DECLARE @TransactionKpiId INT = (SELECT KpiId FROM monitoring.KPIs WHERE Indicator = 'Transaction Success Rate')
 
 DECLARE @AmnonId INT = (SELECT ContactId FROM monitoring.Contacts WHERE Name = 'Amnon')
 DECLARE @ItaiId INT = (SELECT ContactId FROM monitoring.Contacts WHERE Name = 'Itai')
@@ -107,21 +87,11 @@ DECLARE @MikeId INT = (SELECT ContactId FROM monitoring.Contacts WHERE Name = 'M
 DECLARE @GavrielId INT = (SELECT ContactId FROM monitoring.Contacts WHERE Name = 'Gavriel')
 DECLARE @TechTeamId INT = (SELECT ContactId FROM monitoring.Contacts WHERE Name = 'Tech Team')
 
--- Insert KPI-Contact mappings
+-- Insert KPI-Contact mappings for the real KPI only
 MERGE monitoring.KpiContacts AS target
-USING (VALUES 
-    (@DepositKpiId, @AmnonId),
-    (@DepositKpiId, @ItaiId),
-    (@DepositKpiId, @MikeId),
-    (@DepositKpiId, @GavrielId),
-    (@TransactionKpiId, @TechTeamId),
-    (@TransactionKpiId, @AmnonId),
-    (@SettlementKpiId, @MikeId),
-    (@SettlementKpiId, @TechTeamId),
-    (@CountryKpiId, @GavrielId),
-    (@CountryKpiId, @TechTeamId),
-    (@WhiteLabelKpiId, @ItaiId),
-    (@WhiteLabelKpiId, @TechTeamId)
+USING (VALUES
+    (@TransactionKpiId, @GavrielId),
+    (@TransactionKpiId, @TechTeamId)
 ) AS source (KpiId, ContactId)
 ON target.KpiId = source.KpiId AND target.ContactId = source.ContactId
 WHEN NOT MATCHED THEN

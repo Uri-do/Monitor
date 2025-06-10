@@ -99,6 +99,14 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.MetricKey, opt => opt.MapFrom(src => src.MetricKey))
             .ForMember(dest => dest.Period, opt => opt.MapFrom(src => src.Period));
 
+        CreateMap<HistoricalData, KpiExecutionStatusDto>()
+            .ForMember(dest => dest.KpiId, opt => opt.MapFrom(src => src.KpiId))
+            .ForMember(dest => dest.Indicator, opt => opt.Ignore()) // Will be set manually
+            .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => src.Timestamp))
+            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value))
+            .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful))
+            .ForMember(dest => dest.ExecutionTimeMs, opt => opt.MapFrom(src => src.ExecutionTimeMs ?? 0));
+
         // System status mappings
         CreateMap<SystemStatus, SystemStatusDto>();
 

@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { Box, Grid, LinearProgress, Typography } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, alertApi } from '@/services/api';
-import WorkerDashboardCard from '@/components/Worker/WorkerDashboardCard';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { useRealtime } from '@/contexts/RealtimeContext';
 
@@ -17,6 +16,7 @@ import TopAlertingKpisCard from './components/TopAlertingKpisCard';
 
 const Dashboard: React.FC = () => {
   const { isEnabled: realtimeEnabled, enableRealtime } = useRealtime();
+  const queryClient = useQueryClient();
 
   // Real-time dashboard state - only enabled when real-time features are active
   const realtimeDashboard = useRealtimeDashboard();
@@ -32,7 +32,6 @@ const Dashboard: React.FC = () => {
 
   // Use real-time data only if enabled, otherwise use mock data
   const dashboardState = realtimeEnabled ? realtimeDashboard : {
-    workerStatus: null,
     runningKpis: [],
     countdown: null,
     nextKpiDue: null,
@@ -42,7 +41,7 @@ const Dashboard: React.FC = () => {
     refreshDashboard: () => {},
   };
 
-  // Fetch dashboard data with less frequent refresh since we have real-time updates
+  // Fetch dashboard data with reasonable refresh since we have real-time updates
   const {
     data: kpiDashboard,
     isLoading: kpiLoading,
@@ -50,7 +49,11 @@ const Dashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['kpi-dashboard'],
     queryFn: kpiApi.getDashboard,
-    refetchInterval: 60000, // Reduced to 60 seconds since we have real-time updates
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 10000, // Consider data stale after 10 seconds
+    cacheTime: 60000, // Cache for 1 minute
+    retry: 2, // Retry failed requests twice
+    retryDelay: 1000, // Wait 1 second between retries
   });
 
   const {
@@ -84,6 +87,9 @@ const Dashboard: React.FC = () => {
   }, [kpiDashboard, dashboardState.runningKpis, dashboardState.nextKpiDue]);
 
   const handleRefresh = () => {
+    // Clear query cache and force fresh data
+    queryClient.invalidateQueries({ queryKey: ['kpi-dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['alert-dashboard'] });
     refetchKpi();
     refetchAlert();
     dashboardState.refreshDashboard();
@@ -121,14 +127,6 @@ const Dashboard: React.FC = () => {
 
         {/* KPIs Due for Execution - Moved to top */}
         <KpisDueCard kpiDashboard={mergedKpiDashboard as any} />
-
-        {/* Worker Management - Moved to top */}
-        <Grid item xs={12} md={6}>
-          <WorkerDashboardCard
-            workerStatus={dashboardState.workerStatus}
-            realtimeEnabled={realtimeEnabled}
-          />
-        </Grid>
 
         {/* Running KPIs */}
         <RunningKpisCard

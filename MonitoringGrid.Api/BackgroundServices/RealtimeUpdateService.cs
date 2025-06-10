@@ -123,27 +123,144 @@ public class RealtimeUpdateService : BackgroundService
         try
         {
             var realtimeNotificationService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
-            var process = Process.GetCurrentProcess();
-            var workerStatus = new WorkerStatusUpdateDto
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            // Check if worker services are integrated or manual
+            var isIntegrated = configuration.GetValue<bool>("Monitoring:EnableWorkerServices", false);
+            var currentProcess = Process.GetCurrentProcess();
+
+            WorkerStatusUpdateDto workerStatus;
+
+            if (isIntegrated)
             {
-                IsRunning = true, // API is running if this service is running
-                Mode = "Integrated", // Running as part of API
-                ProcessId = process.Id,
-                Services = new List<WorkerServiceDto>
+                // Integrated mode - worker services are running within the API process
+                workerStatus = new WorkerStatusUpdateDto
                 {
-                    new() { Name = "KpiMonitoring", Status = "Running", LastActivity = DateTime.UtcNow },
-                    new() { Name = "HealthCheck", Status = "Running", LastActivity = DateTime.UtcNow },
-                    new() { Name = "RealtimeUpdates", Status = "Running", LastActivity = DateTime.UtcNow }
-                },
-                LastHeartbeat = DateTime.UtcNow.ToString("O"),
-                Uptime = (DateTime.UtcNow - process.StartTime).ToString(@"hh\:mm\:ss")
-            };
+                    IsRunning = true,
+                    Mode = "Integrated",
+                    ProcessId = currentProcess.Id,
+                    Services = new List<WorkerServiceDto>
+                    {
+                        new() { Name = "KpiMonitoring", Status = "Running", LastActivity = DateTime.UtcNow },
+                        new() { Name = "HealthCheck", Status = "Running", LastActivity = DateTime.UtcNow },
+                        new() { Name = "RealtimeUpdates", Status = "Running", LastActivity = DateTime.UtcNow }
+                    },
+                    LastHeartbeat = DateTime.UtcNow.ToString("O"),
+                    Uptime = CalculateUptime(currentProcess.StartTime)
+                };
+            }
+            else
+            {
+                // Manual mode - check for external worker processes
+                var externalWorkerProcess = FindExternalWorkerProcess();
+
+                if (externalWorkerProcess != null)
+                {
+                    workerStatus = new WorkerStatusUpdateDto
+                    {
+                        IsRunning = true,
+                        Mode = "Manual",
+                        ProcessId = externalWorkerProcess.Id,
+                        Services = new List<WorkerServiceDto>
+                        {
+                            new() { Name = "KpiMonitoringWorker", Status = "Running", LastActivity = DateTime.UtcNow },
+                            new() { Name = "ScheduledTaskWorker", Status = "Running", LastActivity = DateTime.UtcNow },
+                            new() { Name = "HealthCheckWorker", Status = "Running", LastActivity = DateTime.UtcNow },
+                            new() { Name = "AlertProcessingWorker", Status = "Running", LastActivity = DateTime.UtcNow }
+                        },
+                        LastHeartbeat = DateTime.UtcNow.ToString("O"),
+                        Uptime = CalculateUptime(externalWorkerProcess.StartTime)
+                    };
+                }
+                else
+                {
+                    workerStatus = new WorkerStatusUpdateDto
+                    {
+                        IsRunning = false,
+                        Mode = "Manual",
+                        ProcessId = null,
+                        Services = new List<WorkerServiceDto>(),
+                        LastHeartbeat = DateTime.UtcNow.ToString("O"),
+                        Uptime = "00:00:00"
+                    };
+                }
+            }
 
             await realtimeNotificationService.SendWorkerStatusUpdateAsync(workerStatus);
+
+            _logger.LogDebug("Sent worker status update: IsRunning={IsRunning}, Mode={Mode}, ProcessId={ProcessId}, Uptime={Uptime}",
+                workerStatus.IsRunning, workerStatus.Mode, workerStatus.ProcessId, workerStatus.Uptime);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending worker status update");
+        }
+    }
+
+    private Process? FindExternalWorkerProcess()
+    {
+        try
+        {
+            // Find running MonitoringGrid.Worker processes
+            var workerProcesses = Process.GetProcesses()
+                .Where(p =>
+                {
+                    try
+                    {
+                        // Check for direct MonitoringGrid.Worker process name
+                        if (p.ProcessName.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase))
+                            return true;
+
+                        // Check for dotnet processes running MonitoringGrid.Worker
+                        if (p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+                        {
+                            try
+                            {
+                                // Check command line arguments for MonitoringGrid.Worker
+                                var commandLine = GetProcessCommandLine(p.Id);
+                                return commandLine?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                            }
+                            catch
+                            {
+                                // Fallback to checking main module
+                                return p.MainModule?.FileName?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                            }
+                        }
+
+                        return false;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                })
+                .Where(p => p.Id != Environment.ProcessId) // Exclude current API process
+                .OrderByDescending(p => p.StartTime) // Get the most recently started process
+                .ToList();
+
+            // Return the first running worker process
+            return workerProcesses.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error finding external worker process");
+            return null;
+        }
+    }
+
+    private string? GetProcessCommandLine(int processId)
+    {
+        try
+        {
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}");
+            using var objects = searcher.Get();
+            return objects.Cast<System.Management.ManagementObject>()
+                .FirstOrDefault()?["CommandLine"]?.ToString();
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -155,8 +272,7 @@ public class RealtimeUpdateService : BackgroundService
             var kpiRepository = scope.ServiceProvider.GetRequiredService<IRepository<KPI>>();
             var kpis = await kpiRepository.GetAllAsync();
 
-            // For demo purposes, simulate some running KPIs
-            // In a real implementation, this would come from actual execution tracking
+            // Get only actually running KPIs from the database
             var runningKpis = kpis
                 .Where(k => k.IsActive && k.IsCurrentlyRunning)
                 .Select(k => new RunningKpiDto
@@ -165,8 +281,8 @@ public class RealtimeUpdateService : BackgroundService
                     Indicator = k.Indicator,
                     Owner = k.Owner,
                     StartTime = k.ExecutionStartTime?.ToString("O") ?? DateTime.UtcNow.ToString("O"),
-                    Progress = Random.Shared.Next(10, 90), // Simulate progress
-                    EstimatedCompletion = DateTime.UtcNow.AddMinutes(Random.Shared.Next(1, 5)).ToString("O")
+                    Progress = CalculateActualProgress(k), // Use actual progress calculation
+                    EstimatedCompletion = CalculateEstimatedCompletion(k)?.ToString("O")
                 })
                 .ToList();
 
@@ -181,6 +297,29 @@ public class RealtimeUpdateService : BackgroundService
         {
             _logger.LogError(ex, "Error sending running KPIs update");
         }
+    }
+
+    private int CalculateActualProgress(KPI kpi)
+    {
+        // Calculate actual progress based on execution start time
+        if (!kpi.ExecutionStartTime.HasValue)
+            return 0;
+
+        var elapsed = DateTime.UtcNow - kpi.ExecutionStartTime.Value;
+        var estimatedDuration = TimeSpan.FromMinutes(2); // Assume 2 minutes average execution time
+
+        var progress = (int)Math.Min(95, (elapsed.TotalMilliseconds / estimatedDuration.TotalMilliseconds) * 100);
+        return Math.Max(0, progress);
+    }
+
+    private DateTime? CalculateEstimatedCompletion(KPI kpi)
+    {
+        // Calculate estimated completion based on execution start time
+        if (!kpi.ExecutionStartTime.HasValue)
+            return null;
+
+        var estimatedDuration = TimeSpan.FromMinutes(2); // Assume 2 minutes average execution time
+        return kpi.ExecutionStartTime.Value.Add(estimatedDuration);
     }
 
     private async Task SendNextKpiScheduleUpdateAsync(IServiceScope scope)
@@ -259,6 +398,26 @@ public class RealtimeUpdateService : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending countdown update");
+        }
+    }
+
+    private string CalculateUptime(DateTime startTime)
+    {
+        try
+        {
+            // Use local time for both start and current time to avoid timezone issues
+            var currentTime = DateTime.Now;
+            var uptime = currentTime - startTime;
+
+            // Ensure uptime is not negative
+            if (uptime.TotalSeconds < 0)
+                uptime = TimeSpan.Zero;
+
+            return uptime.ToString(@"hh\:mm\:ss");
+        }
+        catch
+        {
+            return "00:00:00";
         }
     }
 }

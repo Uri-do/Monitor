@@ -46,31 +46,8 @@ import { useQuery } from '@tanstack/react-query';
 import { alertApi, kpiApi } from '@/services/api';
 import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
 
-// Mock analytics data
-const mockTrendData = [
-  { date: '2024-01-01', alerts: 12, kpiExecutions: 45, successRate: 95 },
-  { date: '2024-01-02', alerts: 8, kpiExecutions: 48, successRate: 98 },
-  { date: '2024-01-03', alerts: 15, kpiExecutions: 42, successRate: 92 },
-  { date: '2024-01-04', alerts: 6, kpiExecutions: 50, successRate: 96 },
-  { date: '2024-01-05', alerts: 10, kpiExecutions: 47, successRate: 94 },
-  { date: '2024-01-06', alerts: 4, kpiExecutions: 52, successRate: 100 },
-  { date: '2024-01-07', alerts: 9, kpiExecutions: 49, successRate: 97 },
-];
-
-const mockSeverityData = [
-  { name: 'Critical', value: 15, color: '#f44336' },
-  { name: 'High', value: 25, color: '#ff9800' },
-  { name: 'Medium', value: 35, color: '#2196f3' },
-  { name: 'Low', value: 25, color: '#4caf50' },
-];
-
-const mockKpiPerformance = [
-  { name: 'Daily Sales Revenue', executions: 168, alerts: 12, successRate: 92.8 },
-  { name: 'Customer Satisfaction', executions: 84, alerts: 3, successRate: 96.4 },
-  { name: 'System Response Time', executions: 504, alerts: 25, successRate: 95.0 },
-  { name: 'Order Processing', executions: 336, alerts: 8, successRate: 97.6 },
-  { name: 'User Engagement', executions: 168, alerts: 5, successRate: 97.0 },
-];
+// Analytics data will be loaded from real API endpoints
+// No mock data - show empty state when no real data is available
 
 const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('7d');
@@ -158,16 +135,16 @@ const Analytics: React.FC = () => {
                 <Typography variant="h6">Alerts Today</Typography>
               </Box>
               <Typography variant="h3" color="warning.main">
-                {alertStats?.alertsToday || 2}
+                {alertStats?.alertsToday || 0}
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                 <Chip
-                  label={`${alertStats?.unresolvedAlerts || 1} Unresolved`}
+                  label={`${alertStats?.unresolvedAlerts || 0} Unresolved`}
                   color="error"
                   size="small"
                 />
                 <Chip
-                  label={`${alertStats?.resolvedAlerts || 1} Resolved`}
+                  label={`${alertStats?.resolvedAlerts || 0} Resolved`}
                   color="success"
                   size="small"
                 />
@@ -184,12 +161,11 @@ const Analytics: React.FC = () => {
                 <Typography variant="h6">Success Rate</Typography>
               </Box>
               <Typography variant="h3" color="success.main">
-                96.2%
+                {alertStats?.successRate ? `${alertStats.successRate.toFixed(1)}%` : 'N/A'}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUp color="success" sx={{ mr: 0.5 }} />
-                <Typography variant="body2" color="success.main">
-                  +2.1% from last week
+                <Typography variant="body2" color="text.secondary">
+                  Based on recent executions
                 </Typography>
               </Box>
             </CardContent>
@@ -204,12 +180,11 @@ const Analytics: React.FC = () => {
                 <Typography variant="h6">Avg Response</Typography>
               </Box>
               <Typography variant="h3" color="info.main">
-                2.4m
+                {alertStats?.avgResponseTime ? `${alertStats.avgResponseTime}ms` : 'N/A'}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingDown color="success" sx={{ mr: 0.5 }} />
-                <Typography variant="body2" color="success.main">
-                  -15s from last week
+                <Typography variant="body2" color="text.secondary">
+                  Average execution time
                 </Typography>
               </Box>
             </CardContent>
@@ -224,31 +199,39 @@ const Analytics: React.FC = () => {
                 Alert Trends Over Time
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={mockTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="alerts"
-                    stackId="1"
-                    stroke="#f44336"
-                    fill="#f44336"
-                    fillOpacity={0.6}
-                    name="Alerts"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="kpiExecutions"
-                    stackId="2"
-                    stroke="#2196f3"
-                    fill="#2196f3"
-                    fillOpacity={0.6}
-                    name="KPI Executions"
-                  />
-                </AreaChart>
+                {alertStats?.trendData && alertStats.trendData.length > 0 ? (
+                  <AreaChart data={alertStats.trendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="alerts"
+                      stackId="1"
+                      stroke="#f44336"
+                      fill="#f44336"
+                      fillOpacity={0.6}
+                      name="Alerts"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="kpiExecutions"
+                      stackId="2"
+                      stroke="#2196f3"
+                      fill="#2196f3"
+                      fillOpacity={0.6}
+                      name="KPI Executions"
+                    />
+                  </AreaChart>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No trend data available
+                    </Typography>
+                  </Box>
+                )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -262,21 +245,29 @@ const Analytics: React.FC = () => {
                 Alert Severity Distribution
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={mockSeverityData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {mockSeverityData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </RechartsPieChart>
+                {alertStats?.severityDistribution && alertStats.severityDistribution.length > 0 ? (
+                  <RechartsPieChart>
+                    <Pie
+                      data={alertStats.severityDistribution}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {alertStats.severityDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPieChart>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No severity data available
+                    </Typography>
+                  </Box>
+                )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -301,25 +292,31 @@ const Analytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockKpiPerformance.map((kpi, index) => (
-                      <tr key={index} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                        <td style={{ padding: '12px', fontWeight: 'medium' }}>{kpi.name}</td>
-                        <td style={{ textAlign: 'center', padding: '12px' }}>{kpi.executions}</td>
-                        <td style={{ textAlign: 'center', padding: '12px' }}>{kpi.alerts}</td>
-                        <td style={{ textAlign: 'center', padding: '12px' }}>{kpi.successRate}%</td>
-                        <td style={{ textAlign: 'center', padding: '12px' }}>
-                          <StatusChip
-                            status={
-                              kpi.successRate >= 95
-                                ? 'success'
-                                : kpi.successRate >= 90
-                                  ? 'warning'
-                                  : 'error'
-                            }
-                          />
+                    {kpiDashboard?.recentExecutions && kpiDashboard.recentExecutions.length > 0 ? (
+                      kpiDashboard.recentExecutions.map((execution, index) => (
+                        <tr key={index} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                          <td style={{ padding: '12px', fontWeight: 'medium' }}>{execution.indicator}</td>
+                          <td style={{ textAlign: 'center', padding: '12px' }}>1</td>
+                          <td style={{ textAlign: 'center', padding: '12px' }}>0</td>
+                          <td style={{ textAlign: 'center', padding: '12px' }}>
+                            {execution.isSuccessful ? '100' : '0'}%
+                          </td>
+                          <td style={{ textAlign: 'center', padding: '12px' }}>
+                            <StatusChip
+                              status={execution.isSuccessful ? 'success' : 'error'}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            No KPI execution data available
+                          </Typography>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </Box>

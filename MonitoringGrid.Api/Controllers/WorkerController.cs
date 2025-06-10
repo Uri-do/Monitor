@@ -44,14 +44,20 @@ public class WorkerController : ControllerBase
 
             if (isIntegrated)
             {
-                // Check integrated Worker services
+                // Check integrated Worker services (when EnableWorkerServices = true)
                 var hostedServices = _serviceProvider.GetServices<IHostedService>();
                 var workerServices = hostedServices.Where(s => s.GetType().Namespace?.Contains("MonitoringGrid.Worker") == true).ToList();
-                
+
+                var currentProcess = Process.GetCurrentProcess();
+                var originalStartTime = currentProcess.StartTime;
+                var currentTime = DateTime.Now;
+                var uptime = currentTime - originalStartTime;
+
                 status.IsRunning = workerServices.Any();
                 status.Mode = "Integrated";
                 status.ProcessId = Environment.ProcessId;
-                status.StartTime = Process.GetCurrentProcess().StartTime;
+                status.StartTime = originalStartTime;
+                status.Uptime = uptime.TotalSeconds > 0 ? uptime : TimeSpan.Zero;
                 status.Services = workerServices.Select(s => new WorkerServiceDto
                 {
                     Name = s.GetType().Name,
@@ -61,68 +67,81 @@ public class WorkerController : ControllerBase
             }
             else
             {
+                // Manual mode (when EnableWorkerServices = false)
                 // Check external Worker process
                 lock (_processLock)
                 {
+                    // First check if we have a tracked process
+                    _logger.LogDebug("Checking worker status - _workerProcess is {IsNull}, HasExited: {HasExited}",
+                        _workerProcess == null ? "null" : "not null",
+                        _workerProcess?.HasExited.ToString() ?? "N/A");
+
                     if (_workerProcess != null && !_workerProcess.HasExited)
                     {
                         try
                         {
+                            var originalStartTime = _workerProcess.StartTime;
+                            var currentTime = DateTime.Now;
+                            var uptime = currentTime - originalStartTime;
+
                             status.IsRunning = true;
-                            status.Mode = "External";
+                            status.Mode = "Manual";
                             status.ProcessId = _workerProcess.Id;
-                            status.StartTime = _workerProcess.StartTime;
-                            status.Services = new List<WorkerServiceDto>
-                            {
-                                new WorkerServiceDto
-                                {
-                                    Name = "KpiMonitoringWorker",
-                                    Status = "Running",
-                                    LastActivity = DateTime.UtcNow
-                                },
-                                new WorkerServiceDto
-                                {
-                                    Name = "ScheduledTaskWorker",
-                                    Status = "Running",
-                                    LastActivity = DateTime.UtcNow
-                                },
-                                new WorkerServiceDto
-                                {
-                                    Name = "HealthCheckWorker",
-                                    Status = "Running",
-                                    LastActivity = DateTime.UtcNow
-                                },
-                                new WorkerServiceDto
-                                {
-                                    Name = "AlertProcessingWorker",
-                                    Status = "Running",
-                                    LastActivity = DateTime.UtcNow
-                                }
-                            };
+                            status.StartTime = originalStartTime;
+                            status.Uptime = uptime.TotalSeconds > 0 ? uptime : TimeSpan.Zero;
+                            status.Services = GetWorkerServices();
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Error accessing Worker process details");
+                            _logger.LogWarning(ex, "Error accessing tracked Worker process details");
                             status.IsRunning = true;
-                            status.Mode = "External";
+                            status.Mode = "Manual";
                             status.ProcessId = _workerProcess.Id;
                             status.StartTime = DateTime.UtcNow; // Fallback to current time
-                            status.Services = new List<WorkerServiceDto>
-                            {
-                                new WorkerServiceDto
-                                {
-                                    Name = "MonitoringGrid.Worker",
-                                    Status = "Running",
-                                    LastActivity = DateTime.UtcNow
-                                }
-                            };
+                            status.Services = GetWorkerServices();
                         }
                     }
                     else
                     {
-                        status.IsRunning = false;
-                        status.Mode = "External";
-                        status.Services = new List<WorkerServiceDto>();
+                        // If no tracked process, look for external worker processes
+                        _logger.LogDebug("No tracked process found, looking for external worker processes");
+                        var externalWorkerProcess = FindExternalWorkerProcess();
+                        _logger.LogDebug("External worker process search result: {ProcessId}",
+                            externalWorkerProcess?.Id.ToString() ?? "null");
+
+                        if (externalWorkerProcess != null)
+                        {
+                            try
+                            {
+                                var originalStartTime = externalWorkerProcess.StartTime;
+                                var currentTime = DateTime.Now;
+                                var uptime = currentTime - originalStartTime;
+
+                                status.IsRunning = true;
+                                status.Mode = "Manual";
+                                status.ProcessId = externalWorkerProcess.Id;
+                                status.StartTime = originalStartTime;
+                                status.Uptime = uptime.TotalSeconds > 0 ? uptime : TimeSpan.Zero;
+                                status.Services = GetWorkerServices();
+
+                                _logger.LogInformation("Detected external Worker process with PID: {ProcessId}", externalWorkerProcess.Id);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Error accessing external Worker process details");
+                                status.IsRunning = true;
+                                status.Mode = "Manual";
+                                status.ProcessId = externalWorkerProcess.Id;
+                                status.StartTime = DateTime.UtcNow; // Fallback to current time
+                                status.Services = GetWorkerServices();
+                            }
+                        }
+                        else
+                        {
+                            status.IsRunning = false;
+                            status.Mode = "Manual";
+                            status.Services = new List<WorkerServiceDto>();
+                        }
                     }
                 }
             }
@@ -158,12 +177,16 @@ public class WorkerController : ControllerBase
 
             lock (_processLock)
             {
-                if (_workerProcess != null && !_workerProcess.HasExited)
+                // Check for ANY running worker processes (both tracked and external)
+                var allWorkerProcesses = GetAllWorkerProcesses();
+                if (allWorkerProcesses.Any())
                 {
+                    var runningWorker = allWorkerProcesses.First();
                     return BadRequest(new WorkerActionResultDto
                     {
                         Success = false,
-                        Message = "Worker is already running",
+                        Message = $"Worker is already running (PID: {runningWorker.Id}). Found {allWorkerProcesses.Count} worker process(es).",
+                        ProcessId = runningWorker.Id,
                         Timestamp = DateTime.UtcNow
                     });
                 }
@@ -457,6 +480,137 @@ public class WorkerController : ControllerBase
         {
             _logger.LogError(ex, "Error during manual worker cleanup");
             return StatusCode(500, new { success = false, message = "Failed to cleanup workers" });
+        }
+    }
+
+    private Process? FindExternalWorkerProcess()
+    {
+        try
+        {
+            // Find running MonitoringGrid.Worker processes
+            var workerProcesses = GetAllWorkerProcesses();
+
+            // Return the first running worker process
+            return workerProcesses.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error finding external worker process");
+            return null;
+        }
+    }
+
+    private List<Process> GetAllWorkerProcesses()
+    {
+        try
+        {
+            return System.Diagnostics.Process.GetProcesses()
+                .Where(p =>
+                {
+                    try
+                    {
+                        // Check for direct MonitoringGrid.Worker process name
+                        if (p.ProcessName.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase))
+                            return true;
+
+                        // Check for dotnet processes running MonitoringGrid.Worker
+                        if (p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+                        {
+                            try
+                            {
+                                // Check command line arguments for MonitoringGrid.Worker
+                                var commandLine = GetProcessCommandLine(p.Id);
+                                return commandLine?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                            }
+                            catch
+                            {
+                                // Fallback to checking main module
+                                return p.MainModule?.FileName?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                            }
+                        }
+
+                        return false;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                })
+                .Where(p => p.Id != Environment.ProcessId) // Exclude current API process
+                .OrderByDescending(p => p.StartTime) // Get the most recently started process
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error getting worker processes");
+            return new List<Process>();
+        }
+    }
+
+    private string? GetProcessCommandLine(int processId)
+    {
+        try
+        {
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}");
+            using var objects = searcher.Get();
+            return objects.Cast<System.Management.ManagementObject>()
+                .FirstOrDefault()?["CommandLine"]?.ToString();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private List<WorkerServiceDto> GetWorkerServices()
+    {
+        return new List<WorkerServiceDto>
+        {
+            new WorkerServiceDto
+            {
+                Name = "KpiMonitoringWorker",
+                Status = "Running",
+                LastActivity = DateTime.UtcNow
+            },
+            new WorkerServiceDto
+            {
+                Name = "ScheduledTaskWorker",
+                Status = "Running",
+                LastActivity = DateTime.UtcNow
+            },
+            new WorkerServiceDto
+            {
+                Name = "HealthCheckWorker",
+                Status = "Running",
+                LastActivity = DateTime.UtcNow
+            },
+            new WorkerServiceDto
+            {
+                Name = "AlertProcessingWorker",
+                Status = "Running",
+                LastActivity = DateTime.UtcNow
+            }
+        };
+    }
+
+    private string CalculateUptime(DateTime startTime)
+    {
+        try
+        {
+            // Use local time for both start and current time to avoid timezone issues
+            var currentTime = DateTime.Now;
+            var uptime = currentTime - startTime;
+
+            // Ensure uptime is not negative
+            if (uptime.TotalSeconds < 0)
+                uptime = TimeSpan.Zero;
+
+            return uptime.ToString(@"hh\:mm\:ss");
+        }
+        catch
+        {
+            return "00:00:00";
         }
     }
 }

@@ -318,7 +318,14 @@ public class WorkerStatusDto
     public string Mode { get; set; } = string.Empty; // "Integrated" or "External"
     public int? ProcessId { get; set; }
     public DateTime? StartTime { get; set; }
-    public TimeSpan? Uptime => StartTime.HasValue ? DateTime.UtcNow - StartTime.Value : null;
+
+    private TimeSpan? _uptime;
+    public TimeSpan? Uptime
+    {
+        get => _uptime ?? (StartTime.HasValue ? DateTime.UtcNow - StartTime.Value.ToUniversalTime() : null);
+        set => _uptime = value;
+    }
+
     public List<WorkerServiceDto> Services { get; set; } = new();
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }

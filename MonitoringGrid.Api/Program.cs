@@ -494,8 +494,8 @@ if (enableWorkerServices)
 }
 else
 {
-    // Use legacy enhanced scheduler (deprecated - use Worker service instead)
-    // builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+    // Use legacy enhanced scheduler when external workers are used
+    builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
 }
 
 // Add real-time update service (always enabled for SignalR updates)

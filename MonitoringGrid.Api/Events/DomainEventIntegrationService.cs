@@ -81,60 +81,8 @@ public class DomainEventIntegrationService
 
         try
         {
-            // Simulate KPI creation
-            var demoKpi = new KPI
-            {
-                KpiId = 999,
-                Indicator = "Demo KPI",
-                Owner = "System",
-                Priority = 1,
-                Frequency = 60
-            };
-            var kpiCreatedEvent = new KpiCreatedEvent(demoKpi);
-
-            await PublishEventAsync(kpiCreatedEvent, cancellationToken);
-
-            // Wait a bit to simulate processing time
-            await Task.Delay(100, cancellationToken);
-
-            // Simulate KPI execution
-            var kpiExecutedEvent = new KpiExecutedEvent(
-                kpiId: 999,
-                indicator: "Demo KPI",
-                owner: "System",
-                wasSuccessful: true,
-                currentValue: 95.5m,
-                historicalValue: 98.2m);
-
-            await PublishEventAsync(kpiExecutedEvent, cancellationToken);
-
-            // Wait a bit more
-            await Task.Delay(100, cancellationToken);
-
-            // Simulate threshold breach
-            var thresholdBreachedEvent = new KpiThresholdBreachedEvent(
-                kpiId: 999,
-                indicator: "Demo KPI",
-                currentValue: 85.0m,
-                historicalValue: 98.2m,
-                deviation: 13.4m,
-                severity: "Medium");
-
-            await PublishEventAsync(thresholdBreachedEvent, cancellationToken);
-
-            // Wait a bit more
-            await Task.Delay(100, cancellationToken);
-
-            // Simulate KPI deactivation
-            var kpiDeactivatedEvent = new KpiDeactivatedEvent(
-                kpiId: 999,
-                indicator: "Demo KPI",
-                reason: "Demo completed",
-                deactivatedBy: "DemoService");
-
-            await PublishEventAsync(kpiDeactivatedEvent, cancellationToken);
-
-            _logger.LogInformation("Domain event workflow demonstration completed successfully");
+            // No demo events - only process real domain events from actual KPI operations
+            _logger.LogInformation("Domain event service ready - will process real events only");
         }
         catch (Exception ex)
         {

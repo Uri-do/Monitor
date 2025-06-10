@@ -117,7 +117,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
     setSteps(prev => prev.map(step => (step.id === stepId ? { ...step, ...updates } : step)));
   };
 
-  const simulateExecution = async () => {
+  const executeKpi = async () => {
     setIsExecuting(true);
     setStartTime(new Date());
     setExecutionResult(null);
@@ -844,7 +844,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
 
       <DialogActions>
         {!isExecuting && !executionResult && (
-          <Button onClick={simulateExecution} variant="contained" startIcon={<ExecuteIcon />}>
+          <Button onClick={executeKpi} variant="contained" startIcon={<ExecuteIcon />}>
             Execute KPI
           </Button>
         )}
