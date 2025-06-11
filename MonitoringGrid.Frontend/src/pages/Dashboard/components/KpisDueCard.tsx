@@ -16,7 +16,7 @@ import { TrendingUp, Warning, CheckCircle, PlayArrow } from '@mui/icons-material
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { KpiDashboardDto } from '../../../types/api';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 interface KpisDueCardProps {
   kpiDashboard?: KpiDashboardDto;
@@ -33,7 +33,7 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
 
   return (
     <Grid item xs={12} md={6}>
-      <UltimateCard sx={{ height: '100%' }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
@@ -64,7 +64,7 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
                   <ListItem
                     key={kpi.kpiId}
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: 1,
                       mb: 1,
                       border: '1px solid',
                       borderColor: 'warning.light',
@@ -152,7 +152,7 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
             )}
           </Box>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Grid>
   );
 };

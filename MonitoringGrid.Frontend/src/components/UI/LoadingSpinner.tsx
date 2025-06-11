@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, CircularProgress, Typography, Stack } from '@mui/material';
-import { UltimateCard } from './UltimateCard';
+import Card from './Card';
 
 interface UltimateLoadingSpinnerProps {
   message?: string;
@@ -137,7 +137,7 @@ export const UltimateLoadingSpinner: React.FC<UltimateLoadingSpinnerProps> = ({
     );
   }
 
-  return <UltimateCard sx={{ p: 4, textAlign: 'center' }}>{SpinnerContent}</UltimateCard>;
+  return <Card sx={{ p: 4, textAlign: 'center' }}>{SpinnerContent}</Card>;
 };
 
 export default UltimateLoadingSpinner;

@@ -15,14 +15,14 @@ import { useDeleteKpi, useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  UltimateDataTable,
-  UltimateDataTableColumn,
-  UltimatePageHeader,
-  UltimateFilterPanel,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
-} from '@/components/UltimateEnterprise';
-import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
+  DataTable,
+  DataTableColumn,
+  PageHeader,
+  FilterPanel,
+  StatusChip,
+  LoadingSpinner,
+} from '@/components';
+import ExecutionProgressDialog from '@/components/Business/KPI/ExecutionProgressDialog';
 
 const KpiList: React.FC = () => {
   const navigate = useNavigate();
@@ -73,7 +73,7 @@ const KpiList: React.FC = () => {
 
           if (result.isSuccessful) {
             toast.success(
-              `KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`
+              `KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue || 'N/A'}, Deviation: ${result.deviationPercent?.toFixed(2) || 'N/A'}%`
             );
           } else {
             toast.error(
@@ -131,12 +131,12 @@ const KpiList: React.FC = () => {
   }, [kpis, filters.search]);
 
   // Define table columns
-  const columns: UltimateDataTableColumn<KpiDto>[] = [
+  const columns: DataTableColumn<KpiDto>[] = [
     {
       id: 'indicator',
       label: 'KPI Indicator',
       sortable: true,
-      minWidth: 200,
+      width: 200,
       render: (value, row) => (
         <Box>
           <Box sx={{ fontWeight: 'medium', mb: 0.5 }}>{value}</Box>
@@ -148,66 +148,66 @@ const KpiList: React.FC = () => {
       id: 'owner',
       label: 'Owner',
       sortable: true,
-      minWidth: 120,
+      width: 120,
     },
     {
       id: 'priority',
       label: 'Priority',
       sortable: true,
-      minWidth: 100,
-      render: (value, row) => <UltimateStatusChip status={row.priorityName} />,
+      width: 100,
+      render: (value, row) => <StatusChip status={row.priorityName} />,
     },
     {
       id: 'isActive',
       label: 'Status',
       sortable: true,
-      minWidth: 100,
-      render: (value, row) => <UltimateStatusChip status={getKpiStatus(row)} />,
+      width: 100,
+      render: (value, row) => <StatusChip status={getKpiStatus(row)} />,
     },
     {
       id: 'frequency',
       label: 'Frequency',
       sortable: true,
-      minWidth: 100,
+      width: 100,
       render: value => `${value} min`,
     },
     {
       id: 'lastMinutes',
       label: 'Data Window',
       sortable: true,
-      minWidth: 120,
+      width: 120,
       render: value => `${value} min (${Math.round(value / 60)}h)`,
     },
     {
       id: 'deviation',
       label: 'Deviation',
       sortable: true,
-      minWidth: 100,
+      width: 100,
       render: value => `${value}%`,
     },
     {
       id: 'lastRun',
       label: 'Last Run',
       sortable: true,
-      minWidth: 140,
+      width: 140,
       render: value => (value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never'),
     },
     {
       id: 'contacts',
       label: 'Contacts',
-      minWidth: 80,
+      width: 80,
       align: 'center',
       render: value => value.length,
     },
   ];
 
   if (isLoading) {
-    return <UltimateLoadingSpinner message="Loading KPIs..." />;
+    return <LoadingSpinner />;
   }
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="KPI Management"
         subtitle={`Manage and monitor your Key Performance Indicators (${filteredKpis.length} total)`}
         primaryAction={{
@@ -219,7 +219,7 @@ const KpiList: React.FC = () => {
         refreshing={isLoading}
       />
 
-      <UltimateFilterPanel
+      <FilterPanel
         fields={[
           {
             name: 'isActive',
@@ -255,7 +255,7 @@ const KpiList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <UltimateDataTable
+      <DataTable
         columns={columns}
         data={filteredKpis}
         loading={isLoading}
@@ -272,7 +272,7 @@ const KpiList: React.FC = () => {
             label: 'Execute Now',
             icon: <ExecuteIcon />,
             onClick: handleExecute,
-            color: 'primary',
+
             disabled: kpi => !kpi.isActive,
           },
         ]}

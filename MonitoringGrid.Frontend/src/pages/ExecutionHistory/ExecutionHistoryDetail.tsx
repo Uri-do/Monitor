@@ -27,16 +27,16 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-import { useQuery } from '@tanstack/react-query';
+
 import { executionHistoryApi, kpiApi } from '@/services/api';
 import { useExecutionDetail } from '@/hooks/useExecutionHistory';
 import { useKpi } from '@/hooks/useKpis';
 import { ExecutionHistoryDetailDto } from '@/types/api';
 import {
-  UltimatePageHeader,
-  UltimateLoadingSpinner,
-  UltimateStatusChip,
-} from '@/components/UltimateEnterprise';
+  PageHeader,
+  LoadingSpinner,
+  StatusChip,
+} from '@/components';
 
 const ExecutionHistoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,9 +53,7 @@ const ExecutionHistoryDetail: React.FC = () => {
   const { data: execution, isLoading, error } = useExecutionDetail(historicalId);
 
   // Fetch KPI details if we came from KPI page and have execution data
-  const { data: kpiData } = useKpi(execution?.kpiId || kpiId, {
-    enabled: !!(execution?.kpiId || kpiId) && fromKpiDetails,
-  });
+  const { data: kpiData } = useKpi(execution?.kpiId || kpiId);
 
   // Handle invalid ID
   React.useEffect(() => {
@@ -187,7 +185,7 @@ const ExecutionHistoryDetail: React.FC = () => {
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box>
-                  <strong>Current Value:</strong> {execution.currentValue.toFixed(2)}
+                  <strong>Current Value:</strong> {execution.currentValue?.toFixed(2) || 'N/A'}
                 </Box>
                 <Box>
                   <strong>Historical Value:</strong>{' '}
@@ -197,7 +195,7 @@ const ExecutionHistoryDetail: React.FC = () => {
                   <strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%
                 </Box>
                 <Box>
-                  <strong>Execution Time:</strong> {execution.executionTimeMs || 'N/A'}ms
+                  <strong>Execution Time:</strong> {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
                 </Box>
                 <Box>
                   <strong>Performance:</strong>

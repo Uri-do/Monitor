@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { KpiType } from '@/types/api';
 import { KPI_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/kpiTypeUtils';
-import { UltimateCard, UltimateInputField, UltimateSelect } from '@/components/UltimateEnterprise';
+import { Card, InputField, Select } from '@/components/UI';
 
 interface KpiTypeSelectorProps {
   selectedType: KpiType;
@@ -60,7 +60,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
   const requiresOperator = selectedDefinition?.requiredFields.includes('comparisonOperator');
 
   return (
-    <UltimateCard>
+    <Card>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           {getKpiTypeIconComponent(selectedType)}
@@ -75,7 +75,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
         <Grid container spacing={3}>
           {/* KPI Type Selection */}
           <Grid item xs={12}>
-            <UltimateSelect
+            <Select
               fullWidth
               label="KPI Type"
               value={selectedType}
@@ -121,7 +121,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
           {requiresThreshold && (
             <>
               <Grid item xs={12} md={6}>
-                <UltimateInputField
+                <InputField
                   fullWidth
                   label="Threshold Value"
                   type="number"
@@ -135,7 +135,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
 
               {requiresOperator && (
                 <Grid item xs={12} md={6}>
-                  <UltimateSelect
+                  <Select
                     fullWidth
                     label="Comparison Operator"
                     value={comparisonOperator}
@@ -190,7 +190,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
           </Grid>
         </Grid>
       </CardContent>
-    </UltimateCard>
+    </Card>
   );
 };
 

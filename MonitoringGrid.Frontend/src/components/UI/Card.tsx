@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, CardProps, Box } from '@mui/material';
+import { Card, CardProps, Box, useTheme } from '@mui/material';
 
-interface UltimateCardProps extends CardProps {
+interface CustomCardProps extends CardProps {
   children: React.ReactNode;
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   hoverEffect?: boolean;
@@ -35,7 +35,9 @@ const shadowColorMap = {
   info: 'rgba(79, 172, 254, 0.3)',
 };
 
-export const UltimateCard: React.FC<UltimateCardProps> = ({
+export type { CustomCardProps };
+
+export const CustomCard: React.FC<CustomCardProps> = ({
   children,
   gradient = 'primary',
   hoverEffect = true,
@@ -43,15 +45,17 @@ export const UltimateCard: React.FC<UltimateCardProps> = ({
   sx,
   ...props
 }) => {
+  const theme = useTheme();
+
   return (
     <Card
       elevation={4}
       sx={{
         background: glowEffect
           ? gradientMap[gradient]
-          : 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          : theme.palette.background.paper,
         border: `1px solid ${borderColorMap[gradient]}`,
-        borderRadius: 3,
+        borderRadius: 1,
         transition: 'all 0.3s ease-in-out',
         position: 'relative',
         overflow: 'hidden',
@@ -86,4 +90,4 @@ export const UltimateCard: React.FC<UltimateCardProps> = ({
   );
 };
 
-export default UltimateCard;
+export default CustomCard;

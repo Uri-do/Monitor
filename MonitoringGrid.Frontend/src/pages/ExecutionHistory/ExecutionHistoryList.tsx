@@ -7,13 +7,10 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   Grid,
-  Card,
   CardContent,
   Accordion,
   AccordionSummary,
@@ -36,16 +33,16 @@ import toast from 'react-hot-toast';
 import { executionHistoryApi } from '@/services/api';
 import { ExecutionHistoryDto, ExecutionHistoryDetailDto } from '@/types/api';
 import {
-  UltimatePageHeader,
-  UltimateDataTable,
-  UltimateDataTableColumn,
-  UltimateFilterPanel,
-  UltimateLoadingSpinner,
-  UltimateStatusChip,
-  UltimateDialog,
-  UltimateButton,
-  UltimateCard,
-} from '@/components/UltimateEnterprise';
+  PageHeader,
+  DataTable,
+  DataTableColumn,
+  FilterPanel,
+  LoadingSpinner,
+  StatusChip,
+  Dialog,
+  Button,
+  Card,
+} from '@/components';
 
 interface ExecutionHistoryFilters {
   kpiId?: number;
@@ -133,12 +130,12 @@ const ExecutionHistoryList: React.FC = () => {
   };
 
   // Define table columns
-  const columns: UltimateDataTableColumn<ExecutionHistoryDto>[] = [
+  const columns: DataTableColumn<ExecutionHistoryDto>[] = [
     {
       id: 'timestamp',
       label: 'Execution Time',
       sortable: true,
-      minWidth: 160,
+      width: 160,
       render: value => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
@@ -154,7 +151,7 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'indicator',
       label: 'KPI',
       sortable: true,
-      minWidth: 200,
+      width: 200,
       render: (value, row) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5 }}>
@@ -170,18 +167,18 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'isSuccessful',
       label: 'Status',
       sortable: true,
-      minWidth: 100,
-      render: (value, row) => <UltimateStatusChip status={value ? 'success' : 'error'} />,
+      width: 100,
+      render: (value, row) => <StatusChip status={value ? 'success' : 'error'} />,
     },
     {
       id: 'currentValue',
       label: 'Value',
       sortable: true,
-      minWidth: 100,
+      width: 100,
       render: (value, row) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            {value.toFixed(2)}
+            {value?.toFixed(2) || 'N/A'}
           </Typography>
           {row.deviationPercent !== null && row.deviationPercent !== undefined && (
             <Typography
@@ -199,7 +196,7 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'executionTimeMs',
       label: 'Duration',
       sortable: true,
-      minWidth: 120,
+      width: 120,
       render: (value, row) => (
         <Box>
           <Typography variant="body2">{value ? `${value}ms` : 'N/A'}</Typography>
@@ -216,7 +213,7 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'executedBy',
       label: 'Executed By',
       sortable: true,
-      minWidth: 120,
+      width: 120,
       render: (value, row) => (
         <Box>
           <Typography variant="body2">{value || 'System'}</Typography>
@@ -230,7 +227,7 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'shouldAlert',
       label: 'Alert',
       sortable: true,
-      minWidth: 80,
+      width: 80,
       align: 'center',
       render: (value, row) =>
         value ? (
@@ -248,12 +245,12 @@ const ExecutionHistoryList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <UltimateLoadingSpinner message="Loading execution history..." />;
+    return <LoadingSpinner message="Loading execution history..." />;
   }
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="Execution History"
         subtitle={`View detailed execution logs and performance metrics (${historyData?.totalCount || 0} total executions)`}
         onRefresh={refetch}
@@ -274,7 +271,7 @@ const ExecutionHistoryList: React.FC = () => {
         ]}
       />
 
-      <UltimateFilterPanel
+      <FilterPanel
         fields={[
           {
             name: 'isSuccessful',
@@ -330,7 +327,7 @@ const ExecutionHistoryList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <UltimateDataTable
+      <DataTable
         columns={columns}
         data={executions}
         loading={isLoading}
@@ -342,13 +339,13 @@ const ExecutionHistoryList: React.FC = () => {
             label: 'View KPI',
             icon: <KpiIcon />,
             onClick: handleViewKpi,
-            color: 'primary',
+
           },
           {
             label: 'View Details',
             icon: <ViewIcon />,
             onClick: handleViewDetail,
-            color: 'secondary',
+
           },
         ]}
         pagination={{
@@ -366,21 +363,19 @@ const ExecutionHistoryList: React.FC = () => {
       />
 
       {/* Execution Detail Dialog */}
-      <UltimateDialog
+      <Dialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false })}
         title="Execution Details"
-        icon={<ViewIcon />}
-        gradient="info"
         maxWidth="lg"
         actions={
-          <UltimateButton gradient="secondary" onClick={() => setDetailDialog({ open: false })}>
+          <Button variant="outlined" onClick={() => setDetailDialog({ open: false })}>
             Close
-          </UltimateButton>
+          </Button>
         }
       >
         {detailDialog.execution && <ExecutionDetailView execution={detailDialog.execution} />}
-      </UltimateDialog>
+      </Dialog>
     </Box>
   );
 };
@@ -392,7 +387,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
       <Grid container spacing={3}>
         {/* Basic Information */}
         <Grid item xs={12} md={6}>
-          <UltimateCard>
+          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -419,12 +414,12 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 </Box>
               </Box>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         {/* Performance Metrics */}
         <Grid item xs={12} md={6}>
-          <UltimateCard>
+          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <TimerIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -442,7 +437,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                   <strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%
                 </Box>
                 <Box>
-                  <strong>Execution Time:</strong> {execution.executionTimeMs || 'N/A'}ms
+                  <strong>Execution Time:</strong> {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
                 </Box>
                 <Box>
                   <strong>Performance:</strong>
@@ -464,7 +459,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 </Box>
               </Box>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         {/* Technical Details */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/appStore';
 import { useRealtime } from '@/contexts/RealtimeContext';
+import { signalRService } from '@/services/signalRService';
 
 interface CollaborationUser {
   id: string;
@@ -66,9 +67,12 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
   } = options;
 
   const queryClient = useQueryClient();
-  const { connection, isConnected } = useRealtime();
+  const { isConnected } = useRealtime();
   const currentPage = useAppStore(state => state.currentPage);
   const setConnectionState = useAppStore(state => state.setConnectionState);
+
+  // Get connection from signalRService directly
+  const connection = isConnected ? (signalRService as any).connection : null;
 
   const [activeUsers, setActiveUsers] = useState<CollaborationUser[]>([]);
   const [cursors, setCursors] = useState<Map<string, CollaborationCursor>>(new Map());
@@ -138,6 +142,7 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       const editWithMetadata = {
         ...edit,
         id: crypto.randomUUID(),
+        userId: 'current-user', // TODO: Get from auth context
         timestamp: new Date(),
       };
 
@@ -155,6 +160,7 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       const commentWithMetadata = {
         ...comment,
         id: crypto.randomUUID(),
+        userId: 'current-user', // TODO: Get from auth context
         timestamp: new Date(),
         replies: [],
       };

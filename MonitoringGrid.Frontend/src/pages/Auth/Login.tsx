@@ -19,7 +19,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { UltimateCard, UltimateInputField, UltimateButton } from '@/components/UltimateEnterprise';
+import { Card, InputField, Button } from '@/components';
 
 const loginSchema = yup.object({
   username: yup.string().required('Username is required'),
@@ -106,20 +106,28 @@ export const Login: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundColor: 'background.default',
         padding: 2,
       }}
     >
-      <UltimateCard sx={{ maxWidth: 400, width: '100%' }} glowEffect={true}>
-        <CardContent sx={{ p: 4 }}>
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
+      <Card
+        sx={{
+          maxWidth: 380,
+          width: '100%',
+          backgroundColor: 'background.paper',
+          boxShadow: 3
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
             <Box
               component="img"
               src={mgLogo}
               alt="MonitoringGrid Logo"
               sx={{
-                width: '100%',
-                mb: 2,
+                width: '200px',
+                maxWidth: '100%',
+                mb: 1,
               }}
             />
             <Typography variant="body2" color="text.secondary">
@@ -140,28 +148,30 @@ export const Login: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <UltimateInputField
+            <InputField
               {...register('username')}
               fullWidth
               label="Username"
-              margin="normal"
+              margin="dense"
               error={!!errors.username}
               helperText={errors.username?.message}
               disabled={isLoading}
               autoComplete="username"
               autoFocus
+              sx={{ mb: 1 }}
             />
 
-            <UltimateInputField
+            <InputField
               {...register('password')}
               fullWidth
               label="Password"
               type={showPassword ? 'text' : 'password'}
-              margin="normal"
+              margin="dense"
               error={!!errors.password}
               helperText={errors.password?.message}
               disabled={isLoading}
               autoComplete="current-password"
+              sx={{ mb: 1 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -178,37 +188,38 @@ export const Login: React.FC = () => {
             />
 
             {requiresTwoFactor && (
-              <UltimateInputField
+              <InputField
                 {...register('twoFactorCode')}
                 fullWidth
                 label="Two-Factor Code"
-                margin="normal"
+                margin="dense"
                 error={!!errors.twoFactorCode}
                 helperText={errors.twoFactorCode?.message}
                 disabled={isLoading}
                 autoComplete="one-time-code"
                 placeholder="Enter 6-digit code"
+                sx={{ mb: 1 }}
               />
             )}
 
             <FormControlLabel
               control={<Checkbox {...register('rememberMe')} disabled={isLoading} />}
               label="Remember me"
-              sx={{ mt: 1, mb: 2 }}
+              sx={{ mt: 0.5, mb: 1.5 }}
             />
 
-            <UltimateButton
+            <Button
               type="submit"
               fullWidth
               gradient="primary"
               size="large"
               disabled={isLoading}
-              sx={{ mb: 2 }}
+              sx={{ mb: 1.5 }}
             >
               {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
-            </UltimateButton>
+            </Button>
 
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Box sx={{ textAlign: 'center', mb: 1 }}>
               <Link
                 component="button"
                 type="button"
@@ -220,7 +231,7 @@ export const Login: React.FC = () => {
               </Link>
             </Box>
 
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Box sx={{ textAlign: 'center', mb: 1.5 }}>
               <Typography variant="body2" color="text.secondary">
                 Don't have an account?{' '}
                 <Link
@@ -236,55 +247,56 @@ export const Login: React.FC = () => {
               </Typography>
             </Box>
 
-            <Divider sx={{ my: 2 }}>
+            <Divider sx={{ my: 1.5 }}>
               <Typography variant="body2" color="text.secondary">
                 Or continue with
               </Typography>
             </Divider>
 
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <UltimateButton
+            <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+              <Button
                 fullWidth
                 variant="outlined"
                 gradient="info"
                 startIcon={<Microsoft />}
                 onClick={() => handleSsoLogin('microsoft')}
                 disabled={isLoading}
+                size="small"
               >
                 Microsoft
-              </UltimateButton>
-              <UltimateButton
+              </Button>
+              <Button
                 fullWidth
                 variant="outlined"
                 gradient="warning"
                 startIcon={<Google />}
                 onClick={() => handleSsoLogin('google')}
                 disabled={isLoading}
+                size="small"
               >
                 Google
-              </UltimateButton>
+              </Button>
             </Box>
 
-            <Divider sx={{ my: 2 }}>
+            <Divider sx={{ my: 1 }}>
               <Typography variant="body2" color="text.secondary">
                 Or explore without signing in
               </Typography>
             </Divider>
 
-            <UltimateButton
+            <Button
               fullWidth
               variant="outlined"
               gradient="secondary"
-              size="large"
               startIcon={<PlayArrow />}
               onClick={handleDemoMode}
               disabled={isLoading}
             >
               Try Demo Mode
-            </UltimateButton>
+            </Button>
           </form>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Box>
   );
 };

@@ -38,6 +38,7 @@ export interface KpiExecutionCompleted {
   duration: number;
   completedAt: string;
   errorMessage?: string;
+  alertsGenerated?: number;
 }
 
 export interface CountdownUpdate {

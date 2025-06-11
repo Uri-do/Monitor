@@ -1,12 +1,13 @@
 import React from 'react';
 import { Box, Typography, Stack, IconButton, Tooltip } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
-import { UltimateButton } from './UltimateButton';
-import { UltimateCard } from './UltimateCard';
+import Button from './Button';
+import Card from './Card';
 
-interface UltimatePageHeaderProps {
+export interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  icon?: React.ReactElement;
   primaryAction?: {
     label: string;
     icon?: React.ReactElement;
@@ -19,25 +20,35 @@ interface UltimatePageHeaderProps {
     onClick: () => void;
     gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   }>;
+  actions?: Array<{
+    label: string;
+    icon?: React.ReactElement;
+    onClick: () => void;
+    variant?: 'contained' | 'outlined' | 'text';
+    gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
+  }>;
   onRefresh?: () => void;
   refreshing?: boolean;
   breadcrumbs?: Array<{
     label: string;
     onClick?: () => void;
+    href?: string;
   }>;
 }
 
-export const UltimatePageHeader: React.FC<UltimatePageHeaderProps> = ({
+export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
+  icon,
   primaryAction,
   secondaryActions = [],
+  actions = [],
   onRefresh,
   refreshing = false,
   breadcrumbs = [],
 }) => {
   return (
-    <UltimateCard gradient="primary" glowEffect={true} sx={{ mb: 3 }}>
+    <Card gradient="primary" glowEffect={true} sx={{ mb: 3 }}>
       <Box sx={{ p: 3 }}>
         {/* Breadcrumbs */}
         {breadcrumbs.length > 0 && (
@@ -81,17 +92,30 @@ export const UltimatePageHeader: React.FC<UltimatePageHeaderProps> = ({
         >
           {/* Title and Subtitle */}
           <Box>
-            <Typography
-              variant="h4"
-              sx={{
-                color: 'white',
-                fontWeight: 700,
-                mb: subtitle ? 1 : 0,
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              }}
-            >
-              {title}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: subtitle ? 1 : 0 }}>
+              {icon && (
+                <Box
+                  sx={{
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                  }}
+                >
+                  {icon}
+                </Box>
+              )}
+              <Typography
+                variant="h4"
+                sx={{
+                  color: 'white',
+                  fontWeight: 700,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }}
+              >
+                {title}
+              </Typography>
+            </Box>
             {subtitle && (
               <Typography
                 variant="body1"
@@ -139,7 +163,7 @@ export const UltimatePageHeader: React.FC<UltimatePageHeaderProps> = ({
 
             {/* Secondary Actions */}
             {secondaryActions.map((action, index) => (
-              <UltimateButton
+              <Button
                 key={index}
                 variant="outlined"
                 gradient={action.gradient || 'primary'}
@@ -155,12 +179,33 @@ export const UltimatePageHeader: React.FC<UltimatePageHeaderProps> = ({
                 }}
               >
                 {action.label}
-              </UltimateButton>
+              </Button>
+            ))}
+
+            {/* Additional Actions */}
+            {actions.map((action, index) => (
+              <Button
+                key={`action-${index}`}
+                variant={action.variant || 'outlined'}
+                gradient={action.gradient || 'primary'}
+                startIcon={action.icon}
+                onClick={action.onClick}
+                sx={{
+                  color: 'white',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': {
+                    borderColor: 'rgba(255, 255, 255, 0.6)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                {action.label}
+              </Button>
             ))}
 
             {/* Primary Action */}
             {primaryAction && (
-              <UltimateButton
+              <Button
                 gradient={primaryAction.gradient || 'secondary'}
                 startIcon={primaryAction.icon}
                 onClick={primaryAction.onClick}
@@ -172,13 +217,17 @@ export const UltimatePageHeader: React.FC<UltimatePageHeaderProps> = ({
                 }}
               >
                 {primaryAction.label}
-              </UltimateButton>
+              </Button>
             )}
           </Stack>
         </Stack>
       </Box>
-    </UltimateCard>
+    </Card>
   );
 };
 
-export default UltimatePageHeader;
+export default PageHeader;
+
+// Keep Ultimate export for backward compatibility during migration
+export { PageHeader as UltimatePageHeader };
+export type { PageHeaderProps as UltimatePageHeaderProps };

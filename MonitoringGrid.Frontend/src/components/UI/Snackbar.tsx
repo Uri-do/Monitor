@@ -1,5 +1,5 @@
 import React from 'react';
-import { Snackbar, Alert, AlertProps } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 
 interface UltimateSnackbarProps {
   open: boolean;
@@ -49,7 +49,7 @@ export const UltimateSnackbar: React.FC<UltimateSnackbarProps> = ({
         sx={{
           background: gradientMap[severity],
           boxShadow: `0 8px 25px ${shadowColorMap[severity]}`,
-          borderRadius: 2,
+          borderRadius: 1,
           '& .MuiAlert-icon': {
             color: 'white',
           },

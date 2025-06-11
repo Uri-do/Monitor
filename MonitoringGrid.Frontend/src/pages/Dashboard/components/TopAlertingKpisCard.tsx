@@ -13,7 +13,7 @@ import {
 import { Error } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AlertDashboardDto } from '../../../types/api';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 interface TopAlertingKpisCardProps {
   alertDashboard?: AlertDashboardDto;
@@ -29,7 +29,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
 
   return (
     <Grid item xs={12}>
-      <UltimateCard gradient="error" glowEffect={true}>
+      <Card gradient="error" glowEffect={true}>
         <CardContent>
           <Box display="flex" alignItems="center" gap={1} mb={3}>
             <Error sx={{ fontSize: 28 }} />
@@ -44,7 +44,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
                 button
                 onClick={() => navigate(`/kpis/${kpi.kpiId}`)}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 1,
                   mb: 1,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -106,7 +106,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
             ))}
           </List>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Grid>
   );
 };

@@ -1,22 +1,22 @@
 // MonitoringGrid Components - Main Export Index
 // Organized by category for easy imports and maintenance
 
-// ===== ULTIMATE ENTERPRISE DESIGN SYSTEM =====
-// Core design system components - use these for all new development
+// ===== UI DESIGN SYSTEM =====
+// Core design system components - clean, professional UI components
 export {
-  UltimateCard,
-  UltimateButton,
-  UltimateDialog,
-  UltimateInputField,
-  UltimateSelect,
-  UltimateDataTable,
-  UltimatePageHeader,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
-  UltimateMetricCard,
-  UltimateSnackbar,
-  UltimateFilterPanel,
-} from './UltimateEnterprise';
+  Button,
+  Card,
+  Dialog,
+  InputField,
+  Select,
+  DataTable,
+  PageHeader,
+  StatusChip,
+  LoadingSpinner,
+  MetricCard,
+  Snackbar,
+  FilterPanel,
+} from './UI';
 
 // ===== BUSINESS LOGIC COMPONENTS =====
 // Domain-specific components with business logic
@@ -31,7 +31,6 @@ export {
   ContactFormDialog,
   // Worker Management
   WorkerDashboardCard,
-  WorkerManagement,
 } from './Business';
 
 // ===== LAYOUT COMPONENTS =====
@@ -58,22 +57,20 @@ export { default as AdvancedEnhancementDemo } from './Demo/AdvancedEnhancementDe
 export { default as EnhancementDemo } from './Demo/EnhancementDemo';
 export { default as EnterpriseFeaturesDemo } from './Demo/EnterpriseFeaturesDemo';
 export { default as NextGenFeaturesDemo } from './Demo/NextGenFeaturesDemo';
-export { default as UltimateComponentsDemo } from './Demo/UltimateComponentsDemo';
-export { default as UltimateDataTableDemo } from './Demo/UltimateDataTableDemo';
-export { default as UltimateEnterpriseDemo } from './Demo/UltimateEnterpriseDemo';
+export { default as ComponentsDemo } from './Demo/UltimateComponentsDemo';
+export { default as DataTableDemo } from './Demo/UltimateDataTableDemo';
+export { default as EnterpriseDemo } from './Demo/UltimateEnterpriseDemo';
 
 // ===== TYPE EXPORTS =====
 // Re-export important types for convenience
 export type {
-  UltimateDataTableColumn,
-  UltimateDataTableProps,
-  UltimateCardProps,
-  UltimateButtonProps,
-  UltimateDialogProps,
-  UltimateInputFieldProps,
-  UltimateSelectProps,
-  UltimateMetricCardProps,
-  UltimateSnackbarProps,
-} from './UltimateEnterprise';
+  CustomButtonProps as ButtonProps,
+  CustomCardProps as CardProps,
+  CustomDialogProps as DialogProps,
+  CustomInputFieldProps as InputFieldProps,
+  CustomSelectProps as SelectProps,
+  DataTableProps,
+  DataTableColumn,
+} from './UI';
 
 export type { KpiFormData, ContactFormData, RunningKpi } from './Business';

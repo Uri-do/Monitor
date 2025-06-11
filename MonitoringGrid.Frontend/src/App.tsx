@@ -39,7 +39,7 @@ const ExecutionHistoryList = React.lazy(
 const ExecutionHistoryDetail = React.lazy(
   () => import('@/pages/ExecutionHistory/ExecutionHistoryDetail')
 );
-const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
+const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
 const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
 const EnhancementDemo = React.lazy(() => import('@/components/Demo/EnhancementDemo'));
 const AdvancedEnhancementDemo = React.lazy(
@@ -500,7 +500,7 @@ function App() {
                           <Route
                             path="/admin/users"
                             element={
-                              <LazyRoute requiredPermissions={['User:Read']}>
+                              <LazyRoute>
                                 <UserManagement />
                               </LazyRoute>
                             }
@@ -509,7 +509,7 @@ function App() {
                           <Route
                             path="/admin/roles"
                             element={
-                              <LazyRoute requiredPermissions={['Role:Read']}>
+                              <LazyRoute>
                                 <RoleManagement />
                               </LazyRoute>
                             }
@@ -518,7 +518,7 @@ function App() {
                           <Route
                             path="/admin/settings"
                             element={
-                              <LazyRoute requiredPermissions={['System:Admin']}>
+                              <LazyRoute>
                                 <SystemSettings />
                               </LazyRoute>
                             }

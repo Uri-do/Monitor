@@ -121,7 +121,7 @@ export const useBulkKpiOperation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: kpiApi.bulkKpiOperation,
+    mutationFn: kpiApi.bulkOperation,
     onSuccess: (_, variables) => {
       const operationType = variables.operation;
       const count = variables.kpiIds.length;

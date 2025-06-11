@@ -1,7 +1,7 @@
 import React from 'react';
-import { TextField, TextFieldProps, Box } from '@mui/material';
+import { TextField, TextFieldProps, Box, useTheme } from '@mui/material';
 
-interface UltimateInputFieldProps extends Omit<TextFieldProps, 'color'> {
+interface CustomInputFieldProps extends Omit<TextFieldProps, 'color'> {
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   glowEffect?: boolean;
 }
@@ -33,17 +33,21 @@ const focusColorMap = {
   info: '#4facfe',
 };
 
-export const UltimateInputField: React.FC<UltimateInputFieldProps> = ({
+export type { CustomInputFieldProps };
+
+export const CustomInputField = React.forwardRef<HTMLDivElement, CustomInputFieldProps>(({
   gradient = 'primary',
   glowEffect = true,
   sx,
   ...props
-}) => {
+}, ref) => {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         p: 3,
-        borderRadius: 2,
+        borderRadius: 1,
         background: gradientMap[gradient],
         border: `1px solid ${borderColorMap[gradient]}`,
         transition: 'all 0.3s ease-in-out',
@@ -55,18 +59,25 @@ export const UltimateInputField: React.FC<UltimateInputFieldProps> = ({
       }}
     >
       <TextField
+        ref={ref}
         variant="outlined"
         fullWidth
         sx={{
           '& .MuiOutlinedInput-root': {
-            background: 'rgba(255, 255, 255, 0.8)',
-            borderRadius: 2,
+            background: theme.palette.mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 1,
             transition: 'all 0.3s ease-in-out',
             '&:hover': {
-              background: 'rgba(255, 255, 255, 0.9)',
+              background: theme.palette.mode === 'light'
+                ? 'rgba(255, 255, 255, 0.9)'
+                : 'rgba(255, 255, 255, 0.08)',
             },
             '&.Mui-focused': {
-              background: 'white',
+              background: theme.palette.mode === 'light'
+                ? 'white'
+                : 'rgba(255, 255, 255, 0.1)',
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
@@ -85,6 +96,8 @@ export const UltimateInputField: React.FC<UltimateInputFieldProps> = ({
       />
     </Box>
   );
-};
+});
 
-export default UltimateInputField;
+CustomInputField.displayName = 'CustomInputField';
+
+export default CustomInputField;

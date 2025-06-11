@@ -8,10 +8,11 @@ import {
   Typography,
   Box,
   IconButton,
+  useTheme,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
-interface UltimateDialogProps extends Omit<DialogProps, 'title'> {
+interface CustomDialogProps extends Omit<DialogProps, 'title'> {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
@@ -58,7 +59,9 @@ const backgroundGradientMap = {
   info: 'linear-gradient(135deg, rgba(79, 172, 254, 0.05) 0%, rgba(0, 242, 254, 0.05) 100%)',
 };
 
-export const UltimateDialog: React.FC<UltimateDialogProps> = ({
+export type { CustomDialogProps };
+
+export const CustomDialog: React.FC<CustomDialogProps> = ({
   children,
   title,
   subtitle,
@@ -71,6 +74,8 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
   fullWidth = true,
   ...props
 }) => {
+  const theme = useTheme();
+
   return (
     <Dialog
       maxWidth={maxWidth}
@@ -78,9 +83,9 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
       onClose={onClose}
       PaperProps={{
         sx: {
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          backgroundColor: theme.palette.background.paper,
           border: `1px solid ${borderColorMap[gradient]}`,
-          borderRadius: 3,
+          borderRadius: 1,
           boxShadow: `0 20px 40px ${shadowColorMap[gradient]}`,
         },
       }}
@@ -163,4 +168,4 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
   );
 };
 
-export default UltimateDialog;
+export default CustomDialog;

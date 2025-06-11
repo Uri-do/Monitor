@@ -1,12 +1,7 @@
 import React from 'react';
 import { FormControlLabel, Switch, Grid, Typography } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon, Assessment as KpiIcon } from '@mui/icons-material';
-import {
-  UltimateDialog,
-  UltimateInputField,
-  UltimateSelect,
-  UltimateButton,
-} from '@/components/UltimateEnterprise';
+import { Dialog, InputField, Select, Button } from '@/components';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -28,7 +23,7 @@ const kpiSchema = yup.object({
   isActive: yup.boolean().required(),
 });
 
-type KpiFormData = yup.InferType<typeof kpiSchema>;
+export type KpiFormData = yup.InferType<typeof kpiSchema>;
 
 interface KpiFormDialogProps {
   open: boolean;
@@ -52,7 +47,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
   onSubmit,
   initialData,
   isEdit = false,
-  loading = false,
+  loading: _loading = false,
 }) => {
   const {
     control,
@@ -96,7 +91,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
   };
 
   return (
-    <UltimateDialog
+    <Dialog
       open={open}
       onClose={handleClose}
       title={isEdit ? 'Edit KPI' : 'Create New KPI'}
@@ -110,7 +105,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
       maxWidth="md"
       actions={
         <>
-          <UltimateButton
+          <Button
             variant="outlined"
             gradient="secondary"
             startIcon={<CancelIcon />}
@@ -118,8 +113,8 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             disabled={isSubmitting}
           >
             Cancel
-          </UltimateButton>
-          <UltimateButton
+          </Button>
+          <Button
             type="submit"
             gradient="primary"
             startIcon={<SaveIcon />}
@@ -127,7 +122,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             onClick={handleSubmit(handleFormSubmit)}
           >
             {isSubmitting ? 'Saving...' : isEdit ? 'Update KPI' : 'Create KPI'}
-          </UltimateButton>
+          </Button>
         </>
       }
     >
@@ -144,7 +139,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="indicator"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="KPI Indicator"
                 fullWidth
@@ -161,7 +156,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="owner"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Owner"
                 fullWidth
@@ -178,7 +173,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="priority"
             control={control}
             render={({ field }) => (
-              <UltimateSelect
+              <Select
                 {...field}
                 label="Priority"
                 fullWidth
@@ -223,7 +218,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="frequency"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Frequency (minutes)"
                 type="number"
@@ -241,7 +236,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="lastMinutes"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Data Window (minutes)"
                 type="number"
@@ -259,7 +254,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="deviation"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Deviation Threshold (%)"
                 type="number"
@@ -279,7 +274,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="spName"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Stored Procedure Name"
                 fullWidth
@@ -296,7 +291,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="cooldownMinutes"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Cooldown Period (minutes)"
                 type="number"
@@ -321,7 +316,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="subjectTemplate"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Subject Template"
                 fullWidth
@@ -338,7 +333,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             name="descriptionTemplate"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Description Template"
                 fullWidth
@@ -352,7 +347,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
           />
         </Grid>
       </Grid>
-    </UltimateDialog>
+    </Dialog>
   );
 };
 

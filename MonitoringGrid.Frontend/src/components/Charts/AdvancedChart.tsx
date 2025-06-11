@@ -41,14 +41,14 @@ import {
   ComposedChart,
 } from 'recharts';
 
-interface ChartDataPoint {
+export interface ChartDataPoint {
   [key: string]: any;
   timestamp?: string | Date;
   value?: number;
   category?: string;
 }
 
-interface ChartSeries {
+export interface ChartSeries {
   key: string;
   name: string;
   color: string;
@@ -56,7 +56,7 @@ interface ChartSeries {
   yAxisId?: 'left' | 'right';
 }
 
-interface AdvancedChartProps {
+export interface AdvancedChartProps {
   title?: string;
   subtitle?: string;
   data: ChartDataPoint[];
@@ -388,7 +388,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
         );
 
       default:
-        return null;
+        return <div>Unsupported chart type</div>;
     }
   };
 
@@ -492,3 +492,5 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
     </Card>
   );
 };
+
+export default AdvancedChart;

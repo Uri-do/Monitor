@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { kpiApi } from '@/services/api';
+import { kpiApi, executionHistoryApi } from '@/services/api';
 import { KpiDto, KpiMetricsDto } from '@/types/api';
 import { queryKeys } from '@/utils/queryKeys';
 
@@ -48,7 +48,7 @@ export const useKpiMetrics = (id: number, days: number = 30) => {
 export const useKpiExecutions = (id: number) => {
   return useQuery({
     queryKey: queryKeys.kpis.executions(id),
-    queryFn: () => kpiApi.getKpiExecutions?.(id) || Promise.resolve([]),
+    queryFn: () => executionHistoryApi.getExecutionHistory({ kpiId: id }).then(data => data.executions || []),
     enabled: !!id && id > 0,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000, // Refetch every minute for recent executions

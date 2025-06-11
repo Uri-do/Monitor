@@ -174,6 +174,10 @@ public class KpiExecutionService : IKpiExecutionService
 
         await command.ExecuteNonQueryAsync(cancellationToken);
 
+        // Calculate execution time
+        var overallEndTime = DateTime.UtcNow;
+        var totalExecutionMs = (int)(overallEndTime - overallStartTime).TotalMilliseconds;
+
         // Extract results
         var key = keyParam.Value?.ToString() ?? kpi.Indicator;
         var currentValue = currentParam.Value != DBNull.Value ? (decimal)currentParam.Value : 0;
@@ -187,7 +191,8 @@ public class KpiExecutionService : IKpiExecutionService
             CurrentValue = currentValue,
             HistoricalValue = historicalValue,
             DeviationPercent = deviationPercent,
-            ExecutionTime = DateTime.UtcNow
+            ExecutionTime = DateTime.UtcNow,
+            ExecutionTimeMs = totalExecutionMs
         };
 
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
@@ -195,8 +200,8 @@ public class KpiExecutionService : IKpiExecutionService
         // Store historical data
         await StoreHistoricalDataAsync(kpi, result, cancellationToken);
 
-        _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%",
-            kpi.Indicator, currentValue, historicalValue, deviationPercent);
+        _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%, ExecutionTime={ExecutionTimeMs}ms",
+            kpi.Indicator, currentValue, historicalValue, deviationPercent, totalExecutionMs);
 
         return result;
     }

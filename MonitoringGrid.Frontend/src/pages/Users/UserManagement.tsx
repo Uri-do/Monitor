@@ -36,7 +36,7 @@ import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { UltimatePageHeader } from '@/components/UltimateEnterprise';
+import { PageHeader } from '@/components';
 import {
   userService,
   CreateUserRequest,
@@ -170,7 +170,7 @@ export const UserManagement: React.FC = () => {
   const onSubmit = async (data: UserFormData) => {
     if (editingUser) {
       const updateRequest: UpdateUserRequest = {
-        id: editingUser.userId,
+        email: data.email,
         displayName: data.displayName,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -179,7 +179,7 @@ export const UserManagement: React.FC = () => {
         roleIds: data.roles,
         isActive: data.isActive,
       };
-      updateUserMutation.mutate(updateRequest, {
+      updateUserMutation.mutate({ id: editingUser.userId, ...updateRequest }, {
         onSuccess: () => {
           setDialogOpen(false);
           setSuccess('User updated successfully');
@@ -340,7 +340,7 @@ export const UserManagement: React.FC = () => {
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="User Management"
         subtitle="Manage system users and their permissions"
         primaryAction={{

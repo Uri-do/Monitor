@@ -28,7 +28,7 @@ import { CreateContactRequest, UpdateContactRequest } from '@/types/api';
 import { useContact } from '@/hooks/useContacts';
 import { useCreateContact, useUpdateContact } from '@/hooks/mutations';
 import toast from 'react-hot-toast';
-import { PageHeader, LoadingSpinner } from '@/components/Common';
+import { PageHeader, LoadingSpinner } from '@/components';
 
 // Validation schema
 const contactSchema = yup

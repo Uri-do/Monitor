@@ -36,7 +36,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
-import { UltimatePageHeader } from '@/components/UltimateEnterprise';
+import { PageHeader } from '@/components';
 import toast from 'react-hot-toast';
 
 const passwordSchema = yup.object({
@@ -120,7 +120,7 @@ const UserProfile: React.FC = () => {
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="My Profile"
         subtitle="Manage your account settings and preferences"
       />

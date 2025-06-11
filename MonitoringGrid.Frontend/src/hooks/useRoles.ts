@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { roleService } from '@/services';
+import { roleService, userService } from '@/services';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
@@ -22,7 +22,7 @@ export const useRoles = () => {
 export const useRole = (roleId: string) => {
   return useQuery({
     queryKey: queryKeys.roles.detail(roleId),
-    queryFn: () => roleService.getRole(roleId),
+    queryFn: () => roleService.getRoleById(roleId),
     enabled: !!roleId,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,
@@ -48,7 +48,7 @@ export const usePermissions = () => {
 export const useUserRoles = (userId: string) => {
   return useQuery({
     queryKey: queryKeys.users.roles(userId),
-    queryFn: () => roleService.getUserRoles?.(userId) || Promise.resolve([]),
+    queryFn: () => userService.getUserRoles(userId),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,

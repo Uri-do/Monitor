@@ -38,10 +38,10 @@ import { useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  UltimatePageHeader,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
-} from '@/components/UltimateEnterprise';
+  PageHeader,
+  StatusChip,
+  LoadingSpinner,
+} from '@/components';
 
 const ContactDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +52,7 @@ const ContactDetail: React.FC = () => {
 
   // Use enhanced hooks for data fetching
   const { data: contact, isLoading: contactLoading } = useContact(contactId);
-  const { data: allKpis = [], isLoading: kpisLoading } = useKpis({}, { enabled: assignDialogOpen });
+  const { data: allKpis = [], isLoading: kpisLoading } = useKpis();
 
   // Use mutation hook for KPI execution
   const executeKpiMutation = useExecuteKpi();

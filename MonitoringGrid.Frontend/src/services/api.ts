@@ -275,6 +275,8 @@ export const alertApi = {
           page: filter.page || 1,
           pageSize: filter.pageSize || 20,
           totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
         };
       }
       throw error;
@@ -337,6 +339,14 @@ export const alertApi = {
       averageResolutionTimeHours: 0,
       dailyTrend: [],
       topAlertingKpis: [],
+      alertsToday: 0,
+      alertsThisWeek: 0,
+      alertsThisMonth: 0,
+      highPriorityAlerts: 0,
+      successRate: 0,
+      avgResponseTime: 0,
+      trendData: [],
+      severityDistribution: [],
     };
   },
 
@@ -436,6 +446,57 @@ export const systemApi = {
   }> => {
     const response = await api.get('/info');
     return response.data;
+  },
+
+  // Get system analytics
+  getAnalytics: async (timeRange: string): Promise<any> => {
+    // Return mock data until implemented
+    return {
+      totalRequests: 0,
+      averageResponseTime: 0,
+      errorRate: 0,
+      uptime: '100%',
+    };
+  },
+
+  // Get system settings
+  getSettings: async (): Promise<any> => {
+    // Return mock data until implemented
+    return {
+      maintenanceMode: false,
+      debugMode: false,
+      logLevel: 'info',
+    };
+  },
+
+  // Get dashboard overview
+  getDashboardOverview: async (): Promise<any> => {
+    // Return mock data until implemented
+    return {
+      totalKpis: 0,
+      activeKpis: 0,
+      totalAlerts: 0,
+      systemHealth: 'healthy',
+    };
+  },
+
+  // Get dashboard metrics
+  getDashboardMetrics: async (timeRange: string): Promise<any> => {
+    // Return mock data until implemented
+    return {
+      metrics: [],
+      timeRange,
+    };
+  },
+
+  // Get realtime dashboard
+  getRealtimeDashboard: async (): Promise<any> => {
+    // Return mock data until implemented
+    return {
+      liveMetrics: [],
+      connections: 0,
+      lastUpdate: new Date().toISOString(),
+    };
   },
 };
 

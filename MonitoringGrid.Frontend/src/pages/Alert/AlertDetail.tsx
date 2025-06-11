@@ -37,9 +37,9 @@ import { alertApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  UltimatePageHeader,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
+  PageHeader,
+  StatusChip,
+  LoadingSpinner,
 } from '@/components/UltimateEnterprise';
 
 const AlertDetail: React.FC = () => {
@@ -135,7 +135,7 @@ const AlertDetail: React.FC = () => {
                 label: 'Resolve Alert',
                 icon: <ResolveIcon />,
                 onClick: () => setResolveDialogOpen(true),
-                color: 'success',
+                gradient: 'success',
               }
             : undefined
         }

@@ -21,6 +21,8 @@ interface PWAActions {
   skipWaiting: () => Promise<void>;
   unregister: () => Promise<boolean>;
   showInstallPrompt: () => Promise<boolean>;
+  requestBackgroundSync: (tag: string) => Promise<void>;
+  subscribeToPushNotifications: () => Promise<PushSubscription | null>;
 }
 
 /**
@@ -256,8 +258,14 @@ export const usePWA = (): PWAState & PWAActions => {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register(tag);
-        console.log(`[PWA] Background sync registered: ${tag}`);
+        // Type assertion for experimental Background Sync API
+        const syncManager = (registration as any).sync;
+        if (syncManager && typeof syncManager.register === 'function') {
+          await syncManager.register(tag);
+          console.log(`[PWA] Background sync registered: ${tag}`);
+        } else {
+          console.warn('[PWA] Background sync not supported');
+        }
       } catch (error) {
         console.error('[PWA] Background sync registration failed:', error);
       }

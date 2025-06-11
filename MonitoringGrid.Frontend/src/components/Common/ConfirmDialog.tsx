@@ -6,7 +6,7 @@ import {
   Check as CheckIcon,
   Cancel as CancelIcon,
 } from '@mui/icons-material';
-import { UltimateDialog, UltimateButton } from '@/components/UltimateEnterprise';
+import { Dialog, Button } from '@/components/UI';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -60,7 +60,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   };
 
   return (
-    <UltimateDialog
+    <Dialog
       open={open}
       onClose={loading ? undefined : onClose}
       title={title}
@@ -69,7 +69,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       maxWidth="sm"
       actions={
         <>
-          <UltimateButton
+          <Button
             variant="outlined"
             gradient="secondary"
             startIcon={<CancelIcon />}
@@ -77,15 +77,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             disabled={loading}
           >
             {cancelText}
-          </UltimateButton>
-          <UltimateButton
+          </Button>
+          <Button
             gradient={getGradient()}
             startIcon={severity === 'error' ? <DeleteIcon /> : <CheckIcon />}
             onClick={onConfirm}
             disabled={loading}
           >
             {loading ? 'Processing...' : confirmText}
-          </UltimateButton>
+          </Button>
         </>
       }
     >
@@ -98,7 +98,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Typography variant="body2">{details}</Typography>
         </Alert>
       )}
-    </UltimateDialog>
+    </Dialog>
   );
 };
 

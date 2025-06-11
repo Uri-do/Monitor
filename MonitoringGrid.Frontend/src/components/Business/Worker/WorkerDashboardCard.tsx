@@ -26,14 +26,13 @@ import {
   AutorenewOutlined,
   Timer,
   PlayCircle,
-  AccessTime,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { WorkerStatusUpdate } from '../../services/signalRService';
-import { useRealtimeDashboard } from '../../hooks/useRealtimeDashboard';
-import { RunningKpi } from '../Common';
-import { workerApi } from '../../services/api';
+import { WorkerStatusUpdate } from '@/services/signalRService';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { RunningKpi } from '../KPI/RunningKpisDisplay';
+import { workerApi } from '@/services/api';
 
 interface WorkerService {
   name: string;
@@ -48,13 +47,6 @@ interface WorkerStatus {
   processId?: number;
   startTime?: string;
   services: WorkerService[];
-  timestamp: string;
-}
-
-interface WorkerActionResult {
-  success: boolean;
-  message: string;
-  processId?: number;
   timestamp: string;
 }
 

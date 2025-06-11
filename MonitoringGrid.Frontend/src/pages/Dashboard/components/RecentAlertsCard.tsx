@@ -16,7 +16,7 @@ import { History, PlayArrow, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { AlertDashboardDto } from '../../../types/api';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 interface RecentAlertsCardProps {
   alertDashboard?: AlertDashboardDto;
@@ -44,7 +44,7 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
 
   return (
     <Grid item xs={12} md={6}>
-      <UltimateCard sx={{ height: '100%' }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
@@ -142,7 +142,7 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
             )}
           </Box>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Grid>
   );
 };

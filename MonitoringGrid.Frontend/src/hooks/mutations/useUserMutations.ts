@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, roleService } from '@/services';
+import { CreateUserRequest, UpdateUserRequest } from '@/services/userService';
+import { UpdateRoleRequest } from '@/services/roleService';
 import { queryKeys } from '@/utils/queryKeys';
 import toast from 'react-hot-toast';
 
@@ -18,7 +20,7 @@ export const useCreateUser = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
 
       // Optionally set the new user in cache
-      queryClient.setQueryData(queryKeys.users.detail(newUser.id), newUser);
+      queryClient.setQueryData(queryKeys.users.detail(newUser.userId), newUser);
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to create user');
@@ -33,7 +35,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: userService.updateUser,
+    mutationFn: (data: UpdateUserRequest & { id: string }) => userService.updateUser(data.id, data),
     onSuccess: (updatedUser, variables) => {
       toast.success('User updated successfully');
 
@@ -107,7 +109,7 @@ export const useCreateRole = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.roles() });
 
       // Optionally set the new role in cache
-      queryClient.setQueryData(['role', newRole.id], newRole);
+      queryClient.setQueryData(['role', newRole.roleId], newRole);
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to create role');
@@ -122,7 +124,7 @@ export const useUpdateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: roleService.updateRole,
+    mutationFn: (data: { id: string; request: UpdateRoleRequest }) => roleService.updateRole(data.id, data.request),
     onSuccess: (updatedRole, variables) => {
       toast.success('Role updated successfully');
 

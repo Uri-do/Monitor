@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Card,
   CardContent,
   Typography,
   Grid,
@@ -15,24 +14,15 @@ import {
   ListItemText,
   TextField,
   MenuItem,
-  Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   FormControl,
   InputLabel,
-  Select,
-  Snackbar,
+  Select as MuiSelect,
+  useTheme,
 } from '@mui/material';
-import {
-  UltimateCard,
-  UltimateButton,
-  UltimateDialog,
-  UltimateInputField,
-  UltimateSelect,
-  UltimateSnackbar,
-} from '@/components/UltimateEnterprise';
+import { Card, Button, Dialog, Snackbar } from '@/components';
 import {
   CheckCircle as CheckIcon,
   Speed as SpeedIcon,
@@ -60,6 +50,7 @@ import { useNavigate } from 'react-router-dom';
 
 export const EnhancementDemo: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [kpiDialogOpen, setKpiDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -298,9 +289,16 @@ export const EnhancementDemo: React.FC = () => {
                 </Typography>
                 <Button
                   variant="outlined"
-                  color={demo.color as any}
                   size="small"
                   endIcon={<ArrowIcon />}
+                  sx={{
+                    borderColor: demo.color,
+                    color: demo.color,
+                    '&:hover': {
+                      borderColor: demo.color,
+                      backgroundColor: `${demo.color}10`
+                    }
+                  }}
                 >
                   Explore Demo
                 </Button>
@@ -355,7 +353,7 @@ export const EnhancementDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateCard gradient="primary" sx={{ height: '100%' }}>
+          <Card gradient="primary" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Box
@@ -374,7 +372,7 @@ export const EnhancementDemo: React.FC = () => {
                 </Typography>
               </Box>
               <Stack spacing={2}>
-                <UltimateButton
+                <Button
                   gradient="primary"
                   onClick={() => setKpiDialogOpen(true)}
                   disabled={isCreating}
@@ -384,8 +382,8 @@ export const EnhancementDemo: React.FC = () => {
                   loadingIcon={<RealTimeIcon />}
                 >
                   {isCreating ? 'Creating...' : 'Create Ultimate KPI'}
-                </UltimateButton>
-                <UltimateButton
+                </Button>
+                <Button
                   gradient="error"
                   variant="outlined"
                   onClick={() => setConfirmDialogOpen(true)}
@@ -393,14 +391,14 @@ export const EnhancementDemo: React.FC = () => {
                   icon={<SecurityIcon />}
                 >
                   Enterprise Confirmation
-                </UltimateButton>
+                </Button>
               </Stack>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateCard gradient="secondary" sx={{ height: '100%' }}>
+          <Card gradient="secondary" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Box
@@ -419,15 +417,15 @@ export const EnhancementDemo: React.FC = () => {
                 </Typography>
               </Box>
               <Stack spacing={2}>
-                <UltimateButton
+                <Button
                   gradient="secondary"
                   onClick={() => setContactDialogOpen(true)}
                   fullWidth
                   icon={<ContactIcon />}
                 >
                   Enterprise Contact
-                </UltimateButton>
-                <UltimateButton
+                </Button>
+                <Button
                   gradient="success"
                   variant="outlined"
                   onClick={handleRefreshDemo}
@@ -435,10 +433,10 @@ export const EnhancementDemo: React.FC = () => {
                   icon={<RefreshIcon />}
                 >
                   Refresh Enterprise
-                </UltimateButton>
+                </Button>
               </Stack>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
       </Grid>
 
@@ -476,7 +474,7 @@ export const EnhancementDemo: React.FC = () => {
       {/* Demo Dialogs - Ultimate Enterprise Style */}
 
       {/* KPI Creation Dialog - Ultimate Enterprise Style */}
-      <UltimateDialog
+      <Dialog
         open={kpiDialogOpen}
         onClose={() => setKpiDialogOpen(false)}
         title="Create Ultimate KPI"
@@ -485,14 +483,14 @@ export const EnhancementDemo: React.FC = () => {
         gradient="primary"
         actions={
           <>
-            <UltimateButton
+            <Button
               variant="outlined"
               gradient="primary"
               onClick={() => setKpiDialogOpen(false)}
             >
               Cancel
-            </UltimateButton>
-            <UltimateButton
+            </Button>
+            <Button
               gradient="primary"
               onClick={handleKpiSubmit}
               disabled={isCreating}
@@ -501,21 +499,20 @@ export const EnhancementDemo: React.FC = () => {
               icon={<RocketIcon />}
             >
               {isCreating ? 'Creating Ultimate KPI...' : 'Create Ultimate KPI'}
-            </UltimateButton>
+            </Button>
           </>
         }
       >
         <Stack spacing={4} sx={{ mt: 1 }}>
-          <UltimateInputField
+          <TextField
             label="KPI Name"
             value={kpiForm.name}
             onChange={e => setKpiForm({ ...kpiForm, name: e.target.value })}
             required
             placeholder="e.g., Database Response Time"
-            gradient="primary"
           />
 
-          <UltimateInputField
+          <TextField
             label="Description"
             value={kpiForm.description}
             onChange={e => setKpiForm({ ...kpiForm, description: e.target.value })}
@@ -523,41 +520,39 @@ export const EnhancementDemo: React.FC = () => {
             multiline
             rows={3}
             placeholder="Describe what this KPI monitors and its business impact..."
-            gradient="secondary"
           />
 
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <UltimateSelect
+              <MuiSelect
                 label="Priority Level"
                 value={kpiForm.priority}
                 onChange={e => setKpiForm({ ...kpiForm, priority: e.target.value })}
-                gradient="success"
               >
                 <MenuItem value="Low">🟢 Low Priority</MenuItem>
                 <MenuItem value="Medium">🟡 Medium Priority</MenuItem>
                 <MenuItem value="High">🟠 High Priority</MenuItem>
                 <MenuItem value="Critical">🔴 Critical Priority</MenuItem>
-              </UltimateSelect>
+              </MuiSelect>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <UltimateInputField
+              <TextField
                 label="Owner / Team"
                 value={kpiForm.owner}
                 onChange={e => setKpiForm({ ...kpiForm, owner: e.target.value })}
                 placeholder="e.g., DevOps Team, Platform Engineering"
-                gradient="info"
               />
             </Grid>
           </Grid>
         </Stack>
-      </UltimateDialog>
+      </Dialog>
 
       {/* Contact Creation Dialog - Ultimate Enterprise Style */}
       <Dialog
         open={contactDialogOpen}
         onClose={() => setContactDialogOpen(false)}
+        title="Create Enterprise Contact"
         maxWidth="md"
         fullWidth
         PaperProps={{
@@ -622,12 +617,18 @@ export const EnhancementDemo: React.FC = () => {
                   variant="outlined"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      background: 'rgba(255, 255, 255, 0.8)',
+                      background: theme.palette.mode === 'light'
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(255, 255, 255, 0.05)',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        background: theme.palette.mode === 'light'
+                          ? 'rgba(255, 255, 255, 0.9)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       },
                       '&.Mui-focused': {
-                        background: 'white',
+                        background: theme.palette.mode === 'light'
+                          ? 'white'
+                          : 'rgba(255, 255, 255, 0.1)',
                       },
                     },
                   }}
@@ -657,12 +658,18 @@ export const EnhancementDemo: React.FC = () => {
                   variant="outlined"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      background: 'rgba(255, 255, 255, 0.8)',
+                      background: theme.palette.mode === 'light'
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(255, 255, 255, 0.05)',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        background: theme.palette.mode === 'light'
+                          ? 'rgba(255, 255, 255, 0.9)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       },
                       '&.Mui-focused': {
-                        background: 'white',
+                        background: theme.palette.mode === 'light'
+                          ? 'white'
+                          : 'rgba(255, 255, 255, 0.1)',
                       },
                     },
                   }}
@@ -690,12 +697,18 @@ export const EnhancementDemo: React.FC = () => {
                   variant="outlined"
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      background: 'rgba(255, 255, 255, 0.8)',
+                      background: theme.palette.mode === 'light'
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(255, 255, 255, 0.05)',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        background: theme.palette.mode === 'light'
+                          ? 'rgba(255, 255, 255, 0.9)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       },
                       '&.Mui-focused': {
-                        background: 'white',
+                        background: theme.palette.mode === 'light'
+                          ? 'white'
+                          : 'rgba(255, 255, 255, 0.1)',
                       },
                     },
                   }}
@@ -716,17 +729,23 @@ export const EnhancementDemo: React.FC = () => {
               >
                 <FormControl fullWidth>
                   <InputLabel>Enterprise Role</InputLabel>
-                  <Select
+                  <MuiSelect
                     value={contactForm.role}
-                    onChange={e => setContactForm({ ...contactForm, role: e.target.value })}
+                    onChange={(e: any) => setContactForm({ ...contactForm, role: e.target.value })}
                     label="Enterprise Role"
                     sx={{
-                      background: 'rgba(255, 255, 255, 0.8)',
+                      background: theme.palette.mode === 'light'
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(255, 255, 255, 0.05)',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        background: theme.palette.mode === 'light'
+                          ? 'rgba(255, 255, 255, 0.9)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       },
                       '&.Mui-focused': {
-                        background: 'white',
+                        background: theme.palette.mode === 'light'
+                          ? 'white'
+                          : 'rgba(255, 255, 255, 0.1)',
                       },
                     }}
                   >
@@ -736,7 +755,7 @@ export const EnhancementDemo: React.FC = () => {
                     <MenuItem value="Admin">🔧 System Administrator</MenuItem>
                     <MenuItem value="Architect">🏗️ Solution Architect</MenuItem>
                     <MenuItem value="Security">🛡️ Security Engineer</MenuItem>
-                  </Select>
+                  </MuiSelect>
                 </FormControl>
               </Box>
             </Grid>
@@ -788,6 +807,7 @@ export const EnhancementDemo: React.FC = () => {
       <Dialog
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
+        title="Enterprise Confirmation"
         maxWidth="sm"
         PaperProps={{
           sx: {
@@ -926,27 +946,9 @@ export const EnhancementDemo: React.FC = () => {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          variant="filled"
-          sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #8bc34a 100%)',
-            boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)',
-            '& .MuiAlert-icon': {
-              color: 'white',
-            },
-            '& .MuiAlert-message': {
-              color: 'white',
-              fontWeight: 500,
-            },
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+        message={snackbarMessage}
+        severity="success"
+      />
 
       {/* Add CSS animations */}
       <style>

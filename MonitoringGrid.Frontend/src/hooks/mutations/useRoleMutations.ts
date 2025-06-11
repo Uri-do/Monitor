@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { roleService } from '@/services';
+import { roleService, userService } from '@/services';
 import { queryKeys } from '@/utils/queryKeys';
-import { CreateRoleRequest, UpdateRoleRequest } from '@/types/api';
+import { CreateRoleRequest, UpdateRoleRequest } from '@/services/roleService';
 import toast from 'react-hot-toast';
 
 /**
@@ -82,7 +82,7 @@ export const useAssignUserRoles = () => {
 
   return useMutation({
     mutationFn: ({ userId, roleIds }: { userId: string; roleIds: string[] }) =>
-      roleService.assignUserRoles?.(userId, roleIds) || Promise.resolve(),
+      userService.assignRoles(userId, roleIds),
     onSuccess: (_, { userId }) => {
       toast.success('User roles updated successfully');
 

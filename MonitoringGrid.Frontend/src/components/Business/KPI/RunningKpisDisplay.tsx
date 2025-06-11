@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { PlayCircle, PlayArrow, TrendingUp } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 export interface RunningKpi {
   kpiId: number;
@@ -66,7 +66,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
 
   const displayKpis = maxDisplay ? runningKpis.slice(0, maxDisplay) : runningKpis;
 
-  const renderKpiItem = (kpi: RunningKpi, index: number) => {
+  const renderKpiItem = (kpi: RunningKpi, _index: number) => {
     if (compact) {
       // Compact version for WorkerDashboardCard
       return (
@@ -108,10 +108,6 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
                 sx={{
                   height: 4,
                   borderRadius: 2,
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                  '& .MuiLinearProgress-bar': {
-                    backgroundColor: 'white',
-                  },
                 }}
               />
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
@@ -250,11 +246,6 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
                     sx={{
                       height: 4,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 2,
-                        backgroundColor: 'primary.main',
-                      },
                     }}
                   />
                 </Box>
@@ -335,7 +326,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
   // Card variant (default)
   return (
     <Grid item xs={12} md={6}>
-      <UltimateCard sx={{ height: '100%' }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
@@ -375,7 +366,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
             )}
           </Box>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Grid>
   );
 };

@@ -13,7 +13,6 @@ export { default as ContactFormDialog } from './Contact/ContactFormDialog';
 
 // Worker Management Components
 export { default as WorkerDashboardCard } from './Worker/WorkerDashboardCard';
-export { default as WorkerManagement } from './Worker/WorkerManagement';
 
 // Re-export types if needed
 export type { KpiFormData } from './KPI/KpiFormDialog';

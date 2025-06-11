@@ -104,7 +104,7 @@ export const UltimateStatusChip: React.FC<UltimateStatusChipProps> = ({
     statusConfig[status as keyof typeof statusConfig] ||
     statusConfig.info;
 
-  const shouldAnimate = animated && config.animated;
+  const shouldAnimate = animated && (config as any).animated;
 
   return (
     <Chip

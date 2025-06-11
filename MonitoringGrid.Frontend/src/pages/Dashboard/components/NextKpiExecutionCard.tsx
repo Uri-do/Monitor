@@ -29,7 +29,7 @@ import {
   getCountdownSeverity,
   shouldCountdownPulse,
 } from '../../../utils/countdown';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 interface NextKpiExecutionCardProps {
   kpiDashboard?: KpiDashboardDto;
@@ -70,7 +70,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
 
   return (
     <Grid item xs={12} md={6}>
-      <UltimateCard sx={{ height: '100%' }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
@@ -307,7 +307,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
             )}
           </Box>
         </CardContent>
-      </UltimateCard>
+      </Card>
     </Grid>
   );
 };

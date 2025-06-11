@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  FormControlLabel,
-  Switch,
-  Grid,
-  Typography,
-  Alert,
-  InputAdornment,
-} from '@mui/material';
+import { FormControlLabel, Switch, Grid, Typography, Alert, InputAdornment } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
@@ -15,11 +8,7 @@ import {
   Person as PersonIcon,
   ContactMail as ContactIcon,
 } from '@mui/icons-material';
-import {
-  UltimateDialog,
-  UltimateInputField,
-  UltimateButton,
-} from '@/components/UltimateEnterprise';
+import { Dialog, InputField, Button } from '@/components';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -41,7 +30,7 @@ const contactSchema = yup
     }
   );
 
-type ContactFormData = yup.InferType<typeof contactSchema>;
+export type ContactFormData = yup.InferType<typeof contactSchema>;
 
 interface ContactFormDialogProps {
   open: boolean;
@@ -58,7 +47,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
   onSubmit,
   initialData,
   isEdit = false,
-  loading = false,
+  loading: _loading = false,
 }) => {
   const {
     control,
@@ -94,7 +83,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
   };
 
   return (
-    <UltimateDialog
+    <Dialog
       open={open}
       onClose={handleClose}
       title={isEdit ? 'Edit Contact' : 'Create New Contact'}
@@ -106,7 +95,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
       maxWidth="sm"
       actions={
         <>
-          <UltimateButton
+          <Button
             variant="outlined"
             gradient="secondary"
             startIcon={<CancelIcon />}
@@ -114,8 +103,8 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             disabled={isSubmitting}
           >
             Cancel
-          </UltimateButton>
-          <UltimateButton
+          </Button>
+          <Button
             type="submit"
             gradient="secondary"
             startIcon={<SaveIcon />}
@@ -123,7 +112,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             onClick={handleSubmit(handleFormSubmit)}
           >
             {isSubmitting ? 'Saving...' : isEdit ? 'Update Contact' : 'Create Contact'}
-          </UltimateButton>
+          </Button>
         </>
       }
     >
@@ -139,7 +128,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             name="name"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Full Name"
                 fullWidth
@@ -163,7 +152,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             name="email"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Email Address"
                 type="email"
@@ -188,7 +177,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
             name="phone"
             control={control}
             render={({ field }) => (
-              <UltimateInputField
+              <InputField
                 {...field}
                 label="Phone Number"
                 fullWidth
@@ -233,7 +222,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
           </Alert>
         </Grid>
       </Grid>
-    </UltimateDialog>
+    </Dialog>
   );
 };
 

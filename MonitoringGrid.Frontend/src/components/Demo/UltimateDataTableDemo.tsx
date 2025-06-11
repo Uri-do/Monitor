@@ -1,29 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Chip,
-  Avatar,
-  LinearProgress,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
+import { Box, Typography, Grid, Chip, Avatar, LinearProgress, IconButton } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-  Person as PersonIcon,
   Business as BusinessIcon,
   Computer as ComputerIcon,
   Storage as StorageIcon,
   Security as SecurityIcon,
   Wifi as NetworkIcon,
 } from '@mui/icons-material';
-import {
-  UltimateDataTable,
-  UltimateDataTableColumn,
-  UltimateSnackbar,
-} from '@/components/UltimateEnterprise';
+import { DataTable, DataTableColumn, Snackbar } from '@/components';
 
 export const UltimateDataTableDemo: React.FC = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -101,7 +87,7 @@ export const UltimateDataTableDemo: React.FC = () => {
   };
 
   // Define comprehensive columns with advanced formatting
-  const columns: UltimateDataTableColumn[] = [
+  const columns: DataTableColumn[] = [
     {
       id: 'name',
       label: 'Monitor Name',
@@ -353,7 +339,7 @@ export const UltimateDataTableDemo: React.FC = () => {
       </Grid>
 
       {/* Ultimate DataTable */}
-      <UltimateDataTable
+      <DataTable
         title="🚀 Enterprise Monitoring Dashboard"
         subtitle={`Real-time monitoring data with ${tableData.length} active monitors across multiple regions`}
         data={tableData}
@@ -402,7 +388,7 @@ export const UltimateDataTableDemo: React.FC = () => {
       />
 
       {/* Ultimate Snackbar */}
-      <UltimateSnackbar
+      <Snackbar
         open={snackbarOpen}
         message={snackbarMessage}
         severity={snackbarSeverity}

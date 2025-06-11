@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonProps, Box } from '@mui/material';
 
-interface UltimateButtonProps extends Omit<ButtonProps, 'color'> {
+interface CustomButtonProps extends Omit<ButtonProps, 'color'> {
   children: React.ReactNode;
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   icon?: React.ReactElement;
@@ -46,7 +46,9 @@ const outlineColorMap = {
   info: '#4facfe',
 };
 
-export const UltimateButton: React.FC<UltimateButtonProps> = ({
+export type { CustomButtonProps };
+
+export const CustomButton: React.FC<CustomButtonProps> = ({
   children,
   gradient = 'primary',
   icon,
@@ -100,7 +102,7 @@ export const UltimateButton: React.FC<UltimateButtonProps> = ({
         }),
         py: 1.5,
         px: 3,
-        borderRadius: 2,
+        borderRadius: 1,
         ...sx,
       }}
       {...props}
@@ -127,4 +129,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-export default UltimateButton;
+export default CustomButton;

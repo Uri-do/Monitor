@@ -20,7 +20,7 @@ interface TraceSpan {
   tags: Record<string, any>;
   logs: Array<{
     timestamp: Date;
-    level: 'debug' | 'info' | 'warn' | 'error';
+    level: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
     message: string;
     fields?: Record<string, any>;
   }>;
@@ -279,7 +279,7 @@ export const useObservability = (componentName?: string) => {
 
       const metrics: Partial<PerformanceMetrics> = {
         ttfb: navigation.responseStart - navigation.requestStart,
-        renderTime: navigation.loadEventEnd - navigation.navigationStart,
+        renderTime: navigation.loadEventEnd - navigation.fetchStart,
       };
 
       // First Contentful Paint

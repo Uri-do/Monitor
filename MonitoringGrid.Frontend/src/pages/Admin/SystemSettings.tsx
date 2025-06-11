@@ -42,7 +42,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { PageHeader } from '../../components/Common';
+import { PageHeader } from '@/components';
 import toast from 'react-hot-toast';
 
 interface SystemConfig {

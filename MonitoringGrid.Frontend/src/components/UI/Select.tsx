@@ -1,11 +1,17 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, SelectProps, Box } from '@mui/material';
+import { FormControl, InputLabel, Select, SelectProps, Box, MenuItem, useTheme } from '@mui/material';
 
-interface UltimateSelectProps extends Omit<SelectProps, 'color'> {
+interface SelectOption {
+  value: any;
+  label: string;
+}
+
+interface CustomSelectProps extends Omit<SelectProps, 'color'> {
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   glowEffect?: boolean;
   label: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  options?: SelectOption[];
 }
 
 const gradientMap = {
@@ -35,19 +41,24 @@ const focusColorMap = {
   info: '#4facfe',
 };
 
-export const UltimateSelect: React.FC<UltimateSelectProps> = ({
+export type { CustomSelectProps };
+
+export const CustomSelect: React.FC<CustomSelectProps> = ({
   gradient = 'primary',
   glowEffect = true,
   label,
   children,
+  options,
   sx,
   ...props
 }) => {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         p: 3,
-        borderRadius: 2,
+        borderRadius: 1,
         background: gradientMap[gradient],
         border: `1px solid ${borderColorMap[gradient]}`,
         height: '100%',
@@ -73,14 +84,20 @@ export const UltimateSelect: React.FC<UltimateSelectProps> = ({
         <Select
           label={label}
           sx={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            borderRadius: 2,
+            background: theme.palette.mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 1,
             transition: 'all 0.3s ease-in-out',
             '&:hover': {
-              background: 'rgba(255, 255, 255, 0.9)',
+              background: theme.palette.mode === 'light'
+                ? 'rgba(255, 255, 255, 0.9)'
+                : 'rgba(255, 255, 255, 0.08)',
             },
             '&.Mui-focused': {
-              background: 'white',
+              background: theme.palette.mode === 'light'
+                ? 'white'
+                : 'rgba(255, 255, 255, 0.1)',
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
@@ -90,11 +107,17 @@ export const UltimateSelect: React.FC<UltimateSelectProps> = ({
           }}
           {...props}
         >
-          {children}
+          {options
+            ? options.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))
+            : children}
         </Select>
       </FormControl>
     </Box>
   );
 };
 
-export default UltimateSelect;
+export default CustomSelect;

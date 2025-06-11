@@ -15,12 +15,12 @@ import { AlertLogDto } from '@/types/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  UltimateDataTable,
-  UltimateDataTableColumn,
-  UltimatePageHeader,
-  UltimateFilterPanel,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
+  DataTable,
+  DataTableColumn,
+  PageHeader,
+  FilterPanel,
+  StatusChip,
+  LoadingSpinner,
 } from '@/components/UltimateEnterprise';
 
 const AlertList: React.FC = () => {
@@ -125,12 +125,12 @@ const AlertList: React.FC = () => {
   }, [alertsData?.alerts, filters.search]);
 
   // Define table columns
-  const columns: UltimateDataTableColumn<AlertLogDto>[] = [
+  const columns: DataTableColumn<AlertLogDto>[] = [
     {
       id: 'triggerTime',
       label: 'Triggered',
       sortable: true,
-      minWidth: 140,
+      width: 140,
       render: value => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
@@ -146,14 +146,14 @@ const AlertList: React.FC = () => {
       id: 'severity',
       label: 'Severity',
       sortable: true,
-      minWidth: 100,
-      render: value => <UltimateStatusChip status={value} />,
+      width: 100,
+      render: value => <StatusChip status={value} />,
     },
     {
       id: 'kpiIndicator',
       label: 'KPI',
       sortable: true,
-      minWidth: 200,
+      width: 200,
       render: (value, row) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5 }}>
@@ -168,7 +168,7 @@ const AlertList: React.FC = () => {
     {
       id: 'message',
       label: 'Message',
-      minWidth: 300,
+      width: 300,
       render: (value, row) => (
         <Box>
           <Typography variant="body2" sx={{ mb: 0.5 }}>
@@ -189,7 +189,7 @@ const AlertList: React.FC = () => {
     {
       id: 'sentViaName',
       label: 'Sent Via',
-      minWidth: 100,
+      width: 100,
       render: (value, row) => (
         <Tooltip title={`Sent to: ${row.sentTo}`}>
           <Chip label={value} size="small" variant="outlined" />
@@ -200,10 +200,10 @@ const AlertList: React.FC = () => {
       id: 'isResolved',
       label: 'Status',
       sortable: true,
-      minWidth: 120,
+      width: 120,
       render: (value, row) => (
         <Box>
-          <UltimateStatusChip status={value ? 'resolved' : 'unresolved'} />
+          <StatusChip status={value ? 'resolved' : 'unresolved'} />
           {value && row.resolvedTime && (
             <Typography variant="caption" color="text.secondary" display="block">
               {format(new Date(row.resolvedTime), 'MMM dd, HH:mm')}
@@ -215,12 +215,12 @@ const AlertList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <UltimateLoadingSpinner message="Loading alerts..." />;
+    return <LoadingSpinner />;
   }
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="Alert Management"
         subtitle={`Monitor and manage system alerts (${filteredAlerts.length} total)`}
         secondaryActions={[
@@ -241,7 +241,7 @@ const AlertList: React.FC = () => {
         refreshing={isLoading}
       />
 
-      <UltimateFilterPanel
+      <FilterPanel
         fields={[
           {
             name: 'isResolved',
@@ -293,7 +293,7 @@ const AlertList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <UltimateDataTable
+      <DataTable
         columns={columns}
         data={filteredAlerts}
         loading={isLoading}
@@ -308,9 +308,7 @@ const AlertList: React.FC = () => {
             label: 'Resolve',
             icon: <ResolveIcon />,
             onClick: handleResolve,
-            color: 'success',
-            disabled: alert => alert.isResolved,
-            hidden: alert => alert.isResolved,
+            disabled: (alert: any) => alert.isResolved,
           },
         ]}
         emptyMessage="No alerts found."

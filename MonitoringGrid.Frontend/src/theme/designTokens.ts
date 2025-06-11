@@ -208,12 +208,12 @@ export const designTokens = {
   // Component-specific tokens
   components: {
     card: {
-      borderRadius: '1rem',
+      borderRadius: '0.25rem',
       padding: '1.5rem',
       shadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     },
     button: {
-      borderRadius: '0.5rem',
+      borderRadius: '0.25rem',
       padding: {
         sm: '0.5rem 1rem',
         md: '0.75rem 1.5rem',
@@ -221,7 +221,7 @@ export const designTokens = {
       },
     },
     input: {
-      borderRadius: '0.5rem',
+      borderRadius: '0.25rem',
       padding: '0.75rem 1rem',
     },
   },

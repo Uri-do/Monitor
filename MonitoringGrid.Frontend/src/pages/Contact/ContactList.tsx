@@ -16,13 +16,13 @@ import { useDeleteContact } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  UltimateDataTable,
-  UltimateDataTableColumn,
-  UltimatePageHeader,
-  UltimateFilterPanel,
-  UltimateStatusChip,
-  UltimateLoadingSpinner,
-} from '@/components/UltimateEnterprise';
+  DataTable,
+  DataTableColumn,
+  PageHeader,
+  FilterPanel,
+  StatusChip,
+  LoadingSpinner,
+} from '@/components';
 
 const ContactList: React.FC = () => {
   const navigate = useNavigate();
@@ -64,12 +64,12 @@ const ContactList: React.FC = () => {
   }, [contacts, filters.search]);
 
   // Define table columns
-  const columns: UltimateDataTableColumn<ContactDto>[] = [
+  const columns: DataTableColumn<ContactDto>[] = [
     {
       id: 'name',
       label: 'Contact Name',
       sortable: true,
-      minWidth: 180,
+      width: 180,
       render: (value, row) => (
         <Box>
           <Box sx={{ fontWeight: 'medium', mb: 0.5 }}>{value}</Box>
@@ -100,13 +100,13 @@ const ContactList: React.FC = () => {
       id: 'isActive',
       label: 'Status',
       sortable: true,
-      minWidth: 100,
-      render: value => <UltimateStatusChip status={value ? 'active' : 'inactive'} />,
+      width: 100,
+      render: value => <StatusChip status={value ? 'active' : 'inactive'} />,
     },
     {
       id: 'assignedKpis',
       label: 'Assigned KPIs',
-      minWidth: 120,
+      width: 120,
       align: 'center',
       render: value => (
         <Chip label={value.length} color={value.length > 0 ? 'primary' : 'default'} size="small" />
@@ -116,25 +116,25 @@ const ContactList: React.FC = () => {
       id: 'createdDate',
       label: 'Created',
       sortable: true,
-      minWidth: 120,
+      width: 120,
       render: value => format(new Date(value), 'MMM dd, yyyy'),
     },
     {
       id: 'modifiedDate',
       label: 'Last Modified',
       sortable: true,
-      minWidth: 140,
+      width: 140,
       render: value => format(new Date(value), 'MMM dd, HH:mm'),
     },
   ];
 
   if (isLoading) {
-    return <UltimateLoadingSpinner message="Loading contacts..." />;
+    return <LoadingSpinner />;
   }
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="Contact Management"
         subtitle={`Manage notification contacts and their KPI assignments (${filteredContacts.length} total)`}
         primaryAction={{
@@ -151,8 +151,9 @@ const ContactList: React.FC = () => {
                 toast.error('Please select contacts to assign');
                 return;
               }
-              toast.info(
-                `Bulk assignment for ${selectedRows.length} contacts - Feature in development`
+              toast(
+                `Bulk assignment for ${selectedRows.length} contacts - Feature in development`,
+                { icon: 'ℹ️' }
               );
             },
             gradient: 'info',
@@ -162,7 +163,7 @@ const ContactList: React.FC = () => {
         refreshing={isLoading}
       />
 
-      <UltimateFilterPanel
+      <FilterPanel
         fields={[
           {
             name: 'isActive',
@@ -182,7 +183,7 @@ const ContactList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <UltimateDataTable
+      <DataTable
         columns={columns}
         data={filteredContacts}
         loading={isLoading}
@@ -202,7 +203,7 @@ const ContactList: React.FC = () => {
               // TODO: Implement KPI assignment
               toast('KPI assignment feature coming soon', { icon: 'ℹ️' });
             },
-            color: 'primary',
+
           },
         ]}
         emptyMessage="No contacts found. Add your first contact to get started."

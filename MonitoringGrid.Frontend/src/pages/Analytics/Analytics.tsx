@@ -32,12 +32,12 @@ import {
 import { useAlertStatistics } from '@/hooks/useAlerts';
 import { useKpiDashboard } from '@/hooks/useKpis';
 import {
-  UltimatePageHeader,
-  UltimateLoadingSpinner,
-  UltimateStatusChip,
-  UltimateCard,
-  UltimateSelect,
-  UltimateMetricCard,
+  PageHeader,
+  LoadingSpinner,
+  StatusChip,
+  Card,
+  Select,
+  MetricCard,
 } from '@/components/UltimateEnterprise';
 
 // Analytics data will be loaded from real API endpoints
@@ -54,12 +54,12 @@ const Analytics: React.FC = () => {
   const isLoading = alertStatsLoading || kpiLoading;
 
   if (isLoading) {
-    return <UltimateLoadingSpinner message="Loading analytics..." />;
+    return <LoadingSpinner />;
   }
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="Analytics & Insights"
         subtitle="Comprehensive monitoring system analytics and performance metrics"
         secondaryActions={[
@@ -77,10 +77,10 @@ const Analytics: React.FC = () => {
 
       {/* Time Range Selector */}
       <Box sx={{ mb: 3 }}>
-        <UltimateSelect
+        <Select
           label="Time Range"
           value={timeRange}
-          onChange={e => setTimeRange(e.target.value)}
+          onChange={e => setTimeRange(e.target.value as string)}
           options={[
             { value: '7d', label: 'Last 7 Days' },
             { value: '30d', label: 'Last 30 Days' },
@@ -93,53 +93,33 @@ const Analytics: React.FC = () => {
       <Grid container spacing={3}>
         {/* Key Metrics Cards */}
         <Grid item xs={12} sm={6} md={3}>
-          <UltimateMetricCard
+          <MetricCard
             title="Total KPIs"
             value={(kpiDashboard?.totalKpis || 0).toString()}
             icon={<Assessment />}
             gradient="primary"
-            chip={
-              <Stack direction="row" spacing={1}>
-                <Chip
-                  label={`${kpiDashboard?.activeKpis || 0} Active`}
-                  color="success"
-                  size="small"
-                />
-                <Chip
-                  label={`${kpiDashboard?.inactiveKpis || 0} Inactive`}
-                  color="default"
-                  size="small"
-                />
-              </Stack>
-            }
+            chip={{
+              label: `${kpiDashboard?.activeKpis || 0} Active`,
+              color: 'success'
+            }}
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <UltimateMetricCard
+          <MetricCard
             title="Alerts Today"
             value={(alertStats?.alertsToday || 0).toString()}
             icon={<Warning />}
             gradient="warning"
-            chip={
-              <Stack direction="row" spacing={1}>
-                <Chip
-                  label={`${alertStats?.unresolvedAlerts || 0} Unresolved`}
-                  color="error"
-                  size="small"
-                />
-                <Chip
-                  label={`${alertStats?.resolvedAlerts || 0} Resolved`}
-                  color="success"
-                  size="small"
-                />
-              </Stack>
-            }
+            chip={{
+              label: `${alertStats?.unresolvedAlerts || 0} Unresolved`,
+              color: 'error'
+            }}
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <UltimateMetricCard
+          <MetricCard
             title="Success Rate"
             value={alertStats?.successRate ? `${alertStats.successRate.toFixed(1)}%` : 'N/A'}
             icon={<CheckCircle />}
@@ -149,7 +129,7 @@ const Analytics: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <UltimateMetricCard
+          <MetricCard
             title="Avg Response"
             value={alertStats?.avgResponseTime ? `${alertStats.avgResponseTime}ms` : 'N/A'}
             icon={<Timeline />}
@@ -160,7 +140,7 @@ const Analytics: React.FC = () => {
 
         {/* Alert Trends Chart */}
         <Grid item xs={12} lg={8}>
-          <UltimateCard>
+          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Alert Trends Over Time
@@ -208,12 +188,12 @@ const Analytics: React.FC = () => {
                 )}
               </ResponsiveContainer>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         {/* Alert Severity Distribution */}
         <Grid item xs={12} lg={4}>
-          <UltimateCard>
+          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Alert Severity Distribution
@@ -251,12 +231,12 @@ const Analytics: React.FC = () => {
                 )}
               </ResponsiveContainer>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         {/* KPI Performance Table */}
         <Grid item xs={12}>
-          <UltimateCard>
+          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 KPI Performance Summary
@@ -285,7 +265,7 @@ const Analytics: React.FC = () => {
                             {execution.isSuccessful ? '100' : '0'}%
                           </td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>
-                            <UltimateStatusChip
+                            <StatusChip
                               status={execution.isSuccessful ? 'success' : 'error'}
                             />
                           </td>
@@ -304,7 +284,7 @@ const Analytics: React.FC = () => {
                 </table>
               </Box>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
       </Grid>
     </Box>

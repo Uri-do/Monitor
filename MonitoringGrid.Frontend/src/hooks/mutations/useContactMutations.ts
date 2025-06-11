@@ -86,7 +86,7 @@ export const useBulkContactOperation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: contactApi.bulkContactOperation,
+    mutationFn: contactApi.bulkOperation,
     onSuccess: (_, variables) => {
       const operationType = variables.operation;
       const count = variables.contactIds.length;

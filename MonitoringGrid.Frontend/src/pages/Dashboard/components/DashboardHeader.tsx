@@ -7,7 +7,7 @@ import {
   getCountdownSeverity,
   shouldCountdownPulse,
 } from '../../../utils/countdown';
-import { UltimateCard } from '@/components/UltimateEnterprise';
+import { Card } from '@/components';
 
 interface DashboardHeaderProps {
   lastUpdate?: string;
@@ -17,7 +17,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown, onRefresh }) => {
   return (
-    <UltimateCard gradient="primary" glowEffect={true} sx={{ mb: 4 }}>
+    <Card gradient="primary" glowEffect={true} sx={{ mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ p: 3 }}>
         <Box>
           <Box display="flex" alignItems="center" gap={2} mb={1}>
@@ -98,7 +98,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown
           </IconButton>
         </Box>
       </Box>
-    </UltimateCard>
+    </Card>
   );
 };
 

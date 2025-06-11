@@ -63,7 +63,7 @@ export const useCreateManualAlert = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: alertApi.createManualAlert,
+    mutationFn: alertApi.sendManualAlert,
     onSuccess: () => {
       toast.success('Manual alert created successfully');
 

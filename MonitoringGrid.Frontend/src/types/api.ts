@@ -292,6 +292,18 @@ export interface AlertStatisticsDto {
   averageResolutionTimeHours: number;
   dailyTrend: AlertTrendDto[];
   topAlertingKpis: KpiAlertSummaryDto[];
+  // Additional properties for enhanced analytics
+  successRate?: number;
+  avgResponseTime?: number;
+  trendData?: TrendDataDto[];
+  severityDistribution?: AlertSeverityStatsDto[];
+}
+
+export interface AlertSeverityStatsDto {
+  severity: string;
+  count: number;
+  percentage: number;
+  color?: string;
 }
 
 export interface ResolveAlertRequest {
@@ -403,6 +415,7 @@ export interface ExecutionStatsDto {
   lastExecution?: string;
   uniqueExecutors: number;
   executionMethods: number;
+  isSuccessful?: boolean;
 }
 
 // Enhanced Analytics API Types

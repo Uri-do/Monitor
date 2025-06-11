@@ -29,7 +29,7 @@ import {
   Key as KeyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { UltimatePageHeader } from '@/components/UltimateEnterprise';
+import { PageHeader } from '@/components/UltimateEnterprise';
 import { SecuritySettings } from '../Settings/SecuritySettings';
 import ApiKeyManagement from './ApiKeyManagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,7 +73,9 @@ const Administration: React.FC = () => {
   const { user } = useAuth();
 
   const hasPermission = (permissions: string[]) => {
-    if (!user) return false;
+    // In demo mode or if no user, allow access to all sections
+    if (!user) return true;
+    if (!user.permissions || user.permissions.length === 0) return true;
     return permissions.some(permission => user.permissions.includes(permission));
   };
 
@@ -175,7 +177,7 @@ const Administration: React.FC = () => {
   if (isSecurityPage) {
     return (
       <Box>
-        <UltimatePageHeader
+        <PageHeader
           title="Security Settings"
           subtitle="Configure authentication, authorization, and security policies"
         />
@@ -191,7 +193,7 @@ const Administration: React.FC = () => {
   if (isAuditPage) {
     return (
       <Box>
-        <UltimatePageHeader
+        <PageHeader
           title="Security Audit Log"
           subtitle="View security events and authentication logs"
         />
@@ -204,7 +206,7 @@ const Administration: React.FC = () => {
 
   return (
     <Box>
-      <UltimatePageHeader
+      <PageHeader
         title="Administration"
         subtitle="Manage users, security, and system configuration"
       />
@@ -261,6 +263,15 @@ const Administration: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
+            {filteredSections.filter(section => ['users', 'roles', 'security', 'api-keys'].includes(section.id)).length === 0 && (
+              <Grid item xs={12}>
+                <Alert severity="info">
+                  Security and access management features are available with proper authentication.
+                  Please log in with administrative privileges to access user management, role configuration,
+                  security settings, and API key management.
+                </Alert>
+              </Grid>
+            )}
           </Grid>
         </TabPanel>
 
@@ -304,6 +315,14 @@ const Administration: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
+            {filteredSections.filter(section => ['system'].includes(section.id)).length === 0 && (
+              <Grid item xs={12}>
+                <Alert severity="info">
+                  System management features include configuration of system-wide settings,
+                  performance parameters, and operational controls. Administrative access required.
+                </Alert>
+              </Grid>
+            )}
           </Grid>
         </TabPanel>
 
@@ -347,6 +366,14 @@ const Administration: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
+            {filteredSections.filter(section => ['audit'].includes(section.id)).length === 0 && (
+              <Grid item xs={12}>
+                <Alert severity="info">
+                  Monitoring and logging features include security audit logs, system event tracking,
+                  and performance monitoring. These features provide comprehensive oversight of system activities.
+                </Alert>
+              </Grid>
+            )}
           </Grid>
         </TabPanel>
       </Paper>

@@ -77,6 +77,34 @@ class UserService {
     return response.json();
   }
 
+  async getCurrentUser(): Promise<User> {
+    const response = await fetch(`${this.baseUrl}/profile`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch current user');
+    }
+
+    return response.json();
+  }
+
+  async updatePassword(data: { userId: string; currentPassword: string; newPassword: string }): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/${data.userId}/password`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update password');
+    }
+  }
+
   async createUser(request: CreateUserRequest): Promise<User> {
     const response = await fetch(this.baseUrl, {
       method: 'POST',

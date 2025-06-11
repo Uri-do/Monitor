@@ -111,11 +111,11 @@ export const NextGenFeaturesDemo: React.FC = () => {
   ];
 
   const virtualizedColumns = [
-    { field: 'id' as keyof (typeof largeDataset)[0], headerName: 'ID', width: 80 },
-    { field: 'name' as keyof (typeof largeDataset)[0], headerName: 'Name', width: 150 },
-    { field: 'value' as keyof (typeof largeDataset)[0], headerName: 'Value', width: 100 },
-    { field: 'category' as keyof (typeof largeDataset)[0], headerName: 'Category', width: 120 },
-    { field: 'status' as keyof (typeof largeDataset)[0], headerName: 'Status', width: 100 },
+    { id: 'id', label: 'ID', field: 'id' as keyof (typeof largeDataset)[0], width: 80 },
+    { id: 'name', label: 'Name', field: 'name' as keyof (typeof largeDataset)[0], width: 150 },
+    { id: 'value', label: 'Value', field: 'value' as keyof (typeof largeDataset)[0], width: 100 },
+    { id: 'category', label: 'Category', field: 'category' as keyof (typeof largeDataset)[0], width: 120 },
+    { id: 'status', label: 'Status', field: 'status' as keyof (typeof largeDataset)[0], width: 100 },
   ];
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -351,9 +351,6 @@ export const NextGenFeaturesDemo: React.FC = () => {
             columns={virtualizedColumns}
             height={400}
             searchable
-            sortable
-            striped
-            dense
           />
         </TabPanel>
 

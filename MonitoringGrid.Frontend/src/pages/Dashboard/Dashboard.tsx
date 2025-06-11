@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <Box>
       {/* Header */}
       <DashboardHeader
         lastUpdate={kpiDashboard?.lastUpdate}

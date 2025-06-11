@@ -48,7 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check if user has required permissions
   if (requiredPermissions.length > 0) {
     const hasRequiredPermissions = requiredPermissions.every(permission =>
-      user.permissions.includes(permission)
+      user.permissions?.includes(permission)
     );
 
     if (!hasRequiredPermissions) {
@@ -72,6 +72,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Required permissions: {requiredPermissions.join(', ')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Current user permissions: {user.permissions?.join(', ') || 'None'}
           </Typography>
         </Box>
       );

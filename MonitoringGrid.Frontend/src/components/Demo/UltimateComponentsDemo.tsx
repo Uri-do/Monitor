@@ -15,16 +15,16 @@ import {
   CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 import {
-  UltimateCard,
-  UltimateButton,
-  UltimateDialog,
-  UltimateInputField,
-  UltimateSelect,
-  UltimateMetricCard,
-  UltimateSnackbar,
-  UltimateDataTable,
-  UltimateDataTableColumn,
-} from '@/components/UltimateEnterprise';
+  Card,
+  Button,
+  Dialog,
+  InputField,
+  Select,
+  MetricCard,
+  Snackbar,
+  DataTable,
+  DataTableColumn,
+} from '@/components';
 
 export const UltimateComponentsDemo: React.FC = () => {
   // Dialog states
@@ -138,7 +138,7 @@ export const UltimateComponentsDemo: React.FC = () => {
     },
   ];
 
-  const tableColumns: UltimateDataTableColumn[] = [
+  const tableColumns: DataTableColumn[] = [
     { id: 'name', label: 'Monitor Name', sortable: true, filterable: true, width: 200 },
     {
       id: 'status',
@@ -275,7 +275,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       </Typography>
       <Grid container spacing={3} sx={{ mb: 6 }}>
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="Performance Score"
             value={`${liveMetrics.performance.toFixed(1)}%`}
             subtitle="Real-time system performance"
@@ -287,7 +287,7 @@ export const UltimateComponentsDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="Memory Usage"
             value={`${liveMetrics.memory.toFixed(1)}%`}
             subtitle="Intelligent memory monitoring"
@@ -299,7 +299,7 @@ export const UltimateComponentsDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="Network Health"
             value={`${liveMetrics.network.toFixed(1)}%`}
             subtitle="Enterprise network monitoring"
@@ -317,7 +317,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       </Typography>
       <Grid container spacing={3} sx={{ mb: 6 }}>
         <Grid item xs={12} md={6}>
-          <UltimateCard gradient="primary" sx={{ height: '100%' }}>
+          <Card gradient="primary" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <CodeIcon sx={{ fontSize: 32, color: '#667eea' }} />
@@ -329,15 +329,15 @@ export const UltimateComponentsDemo: React.FC = () => {
                 Showcase of primary gradient buttons with advanced styling and hover effects.
               </Typography>
               <Stack spacing={2}>
-                <UltimateButton
+                <Button
                   gradient="primary"
                   fullWidth
                   icon={<RocketIcon />}
                   onClick={() => setPrimaryDialogOpen(true)}
                 >
                   Open Ultimate Dialog
-                </UltimateButton>
-                <UltimateButton
+                </Button>
+                <Button
                   gradient="secondary"
                   variant="outlined"
                   fullWidth
@@ -345,14 +345,14 @@ export const UltimateComponentsDemo: React.FC = () => {
                   onClick={() => showNotification('Secondary action triggered! ⭐', 'warning')}
                 >
                   Secondary Action
-                </UltimateButton>
+                </Button>
               </Stack>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <UltimateCard gradient="success" sx={{ height: '100%' }}>
+          <Card gradient="success" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <CheckIcon sx={{ fontSize: 32, color: '#43e97b' }} />
@@ -364,7 +364,7 @@ export const UltimateComponentsDemo: React.FC = () => {
                 Enterprise-grade success operations with real-time feedback and notifications.
               </Typography>
               <Stack spacing={2}>
-                <UltimateButton
+                <Button
                   gradient="success"
                   fullWidth
                   icon={<CheckIcon />}
@@ -373,8 +373,8 @@ export const UltimateComponentsDemo: React.FC = () => {
                   }
                 >
                   Execute Success Action
-                </UltimateButton>
-                <UltimateButton
+                </Button>
+                <Button
                   gradient="error"
                   variant="outlined"
                   fullWidth
@@ -382,10 +382,10 @@ export const UltimateComponentsDemo: React.FC = () => {
                   onClick={() => showNotification('Error simulation triggered! ⚠️', 'error')}
                 >
                   Simulate Error
-                </UltimateButton>
+                </Button>
               </Stack>
             </CardContent>
-          </UltimateCard>
+          </Card>
         </Grid>
       </Grid>
 
@@ -395,7 +395,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       </Typography>
       <Grid container spacing={3} sx={{ mb: 6 }}>
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="Active Errors"
             value={liveMetrics.errors}
             subtitle="Enterprise error tracking"
@@ -411,7 +411,7 @@ export const UltimateComponentsDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="System Uptime"
             value={`${liveMetrics.uptime.toFixed(2)}%`}
             subtitle="Enterprise reliability metrics"
@@ -422,7 +422,7 @@ export const UltimateComponentsDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <UltimateMetricCard
+          <MetricCard
             title="Throughput"
             value={`${(liveMetrics.throughput / 1000).toFixed(1)}K`}
             subtitle="Requests per second"
@@ -437,34 +437,34 @@ export const UltimateComponentsDemo: React.FC = () => {
       <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
         🎯 Action Center
       </Typography>
-      <UltimateCard gradient="warning" sx={{ mb: 4 }}>
+      <Card gradient="warning" sx={{ mb: 4 }}>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
             Enterprise Control Panel
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
-              <UltimateButton
+              <Button
                 gradient="info"
                 fullWidth
                 icon={<ContactIcon />}
                 onClick={() => setSecondaryDialogOpen(true)}
               >
                 Contact Manager
-              </UltimateButton>
+              </Button>
             </Grid>
             <Grid item xs={12} md={3}>
-              <UltimateButton
+              <Button
                 gradient="warning"
                 fullWidth
                 icon={<RefreshIcon />}
                 onClick={() => showNotification('System refreshed! 🔄', 'info')}
               >
                 Refresh System
-              </UltimateButton>
+              </Button>
             </Grid>
             <Grid item xs={12} md={3}>
-              <UltimateButton
+              <Button
                 gradient="secondary"
                 variant="outlined"
                 fullWidth
@@ -472,10 +472,10 @@ export const UltimateComponentsDemo: React.FC = () => {
                 onClick={() => showNotification('Security scan initiated! 🛡️', 'warning')}
               >
                 Security Scan
-              </UltimateButton>
+              </Button>
             </Grid>
             <Grid item xs={12} md={3}>
-              <UltimateButton
+              <Button
                 gradient="success"
                 variant="outlined"
                 fullWidth
@@ -483,17 +483,17 @@ export const UltimateComponentsDemo: React.FC = () => {
                 onClick={() => showNotification('Analytics generated! 📈', 'success')}
               >
                 Generate Report
-              </UltimateButton>
+              </Button>
             </Grid>
           </Grid>
         </CardContent>
-      </UltimateCard>
+      </Card>
 
       {/* Ultimate DataTable Showcase */}
       <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
         📊 Ultimate DataTable
       </Typography>
-      <UltimateDataTable
+      <DataTable
         title="Enterprise Monitoring Dashboard"
         subtitle="Advanced data table with sorting, filtering, search, export, and bulk actions"
         data={sampleTableData}
@@ -524,7 +524,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       {/* Ultimate Dialogs */}
 
       {/* Primary Dialog - Form Demo */}
-      <UltimateDialog
+      <Dialog
         open={primaryDialogOpen}
         onClose={() => setPrimaryDialogOpen(false)}
         title="Ultimate Enterprise Form"
@@ -533,21 +533,21 @@ export const UltimateComponentsDemo: React.FC = () => {
         gradient="primary"
         actions={
           <>
-            <UltimateButton
+            <Button
               variant="outlined"
               gradient="primary"
               onClick={() => setPrimaryDialogOpen(false)}
             >
               Cancel
-            </UltimateButton>
-            <UltimateButton gradient="primary" onClick={handleFormSubmit} icon={<CheckIcon />}>
+            </Button>
+            <Button gradient="primary" onClick={handleFormSubmit} icon={<CheckIcon />}>
               Create Enterprise Item
-            </UltimateButton>
+            </Button>
           </>
         }
       >
         <Stack spacing={4}>
-          <UltimateInputField
+          <InputField
             label="Component Name"
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -556,7 +556,7 @@ export const UltimateComponentsDemo: React.FC = () => {
             gradient="primary"
           />
 
-          <UltimateInputField
+          <InputField
             label="Description"
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -569,7 +569,7 @@ export const UltimateComponentsDemo: React.FC = () => {
 
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <UltimateSelect
+              <Select
                 label="Priority Level"
                 value={formData.priority}
                 onChange={e => setFormData({ ...formData, priority: e.target.value as string })}
@@ -579,11 +579,11 @@ export const UltimateComponentsDemo: React.FC = () => {
                 <MenuItem value="Medium">🟡 Medium Priority</MenuItem>
                 <MenuItem value="High">🟠 High Priority</MenuItem>
                 <MenuItem value="Critical">🔴 Critical Priority</MenuItem>
-              </UltimateSelect>
+              </Select>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <UltimateSelect
+              <Select
                 label="Category"
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value as string })}
@@ -594,14 +594,14 @@ export const UltimateComponentsDemo: React.FC = () => {
                 <MenuItem value="Analytics">📊 Analytics</MenuItem>
                 <MenuItem value="Integration">🔗 Integration</MenuItem>
                 <MenuItem value="Monitoring">👁️ Monitoring</MenuItem>
-              </UltimateSelect>
+              </Select>
             </Grid>
           </Grid>
         </Stack>
-      </UltimateDialog>
+      </Dialog>
 
       {/* Secondary Dialog - Contact Manager */}
-      <UltimateDialog
+      <Dialog
         open={secondaryDialogOpen}
         onClose={() => setSecondaryDialogOpen(false)}
         title="Enterprise Contact Manager"
@@ -610,14 +610,14 @@ export const UltimateComponentsDemo: React.FC = () => {
         gradient="secondary"
         actions={
           <>
-            <UltimateButton
+            <Button
               variant="outlined"
               gradient="secondary"
               onClick={() => setSecondaryDialogOpen(false)}
             >
               Close
-            </UltimateButton>
-            <UltimateButton
+            </Button>
+            <Button
               gradient="secondary"
               onClick={() => {
                 setSecondaryDialogOpen(false);
@@ -626,7 +626,7 @@ export const UltimateComponentsDemo: React.FC = () => {
               icon={<StarIcon />}
             >
               Access Contact System
-            </UltimateButton>
+            </Button>
           </>
         }
       >
@@ -644,17 +644,17 @@ export const UltimateComponentsDemo: React.FC = () => {
 
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item xs={6}>
-              <UltimateButton
+              <Button
                 gradient="success"
                 fullWidth
                 icon={<CheckIcon />}
                 onClick={() => showNotification('Feature activated! ✨', 'success')}
               >
                 Activate Feature
-              </UltimateButton>
+              </Button>
             </Grid>
             <Grid item xs={6}>
-              <UltimateButton
+              <Button
                 gradient="warning"
                 variant="outlined"
                 fullWidth
@@ -662,14 +662,14 @@ export const UltimateComponentsDemo: React.FC = () => {
                 onClick={() => showNotification('Security check completed! 🔒', 'warning')}
               >
                 Security Check
-              </UltimateButton>
+              </Button>
             </Grid>
           </Grid>
         </Box>
-      </UltimateDialog>
+      </Dialog>
 
       {/* Ultimate Snackbar */}
-      <UltimateSnackbar
+      <Snackbar
         open={snackbarOpen}
         message={snackbarMessage}
         severity={snackbarSeverity}

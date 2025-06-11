@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +18,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider,
   Grid,
   Card,
   CardContent,
@@ -43,12 +42,6 @@ import {
   QueryStats as QueryIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import {
-  KpiExecutionResultDto,
-  ExecutionStepInfo,
-  ExecutionTimingInfo,
-  DatabaseExecutionInfo,
-} from '@/types/api';
 
 interface ExecutionStep {
   id: string;
@@ -336,7 +329,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
 
         {/* Step Details */}
         <Stepper activeStep={activeStep} orientation="vertical">
-          {steps.map((step, index) => (
+          {steps.map((step, _index) => (
             <Step key={step.id}>
               <StepLabel icon={getStepIcon(step)} error={step.status === 'error'}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -409,7 +402,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                             <Chip
                               label={`${executionResult.deviationPercent?.toFixed(2) || 'N/A'}%`}
                               size="small"
-                              color={executionResult.deviationPercent > 10 ? 'warning' : 'default'}
+                              color={(executionResult.deviationPercent ?? 0) > 10 ? 'warning' : 'default'}
                             />
                           </Box>
                           {executionResult.executionTimeMs && (
@@ -676,7 +669,7 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                       </TableHead>
                       <TableBody>
                         {executionResult.executionSteps.map(
-                          (step: ExecutionStepInfo, index: number) => (
+                          (step: any, index: number) => (
                             <TableRow key={index}>
                               <TableCell>
                                 <Typography variant="body2" fontWeight="medium">

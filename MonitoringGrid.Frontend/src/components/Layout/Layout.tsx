@@ -46,7 +46,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme as useCustomTheme } from '@/hooks/useTheme';
 import mgLogo from '@/assets/images/mglogo.png';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 const collapsedDrawerWidth = 64;
 
 interface LayoutProps {

@@ -22,7 +22,7 @@ export const useUsers = (isActive?: boolean) => {
 export const useUser = (id: string) => {
   return useQuery({
     queryKey: queryKeys.users.detail(id),
-    queryFn: () => userService.getUser(id),
+    queryFn: () => userService.getUserById(id),
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
   });
@@ -58,7 +58,7 @@ export const useRoles = () => {
 export const useRole = (id: string) => {
   return useQuery({
     queryKey: ['role', id],
-    queryFn: () => roleService.getRole(id),
+    queryFn: () => roleService.getRoleById(id),
     enabled: !!id,
     staleTime: 10 * 60 * 1000,
   });

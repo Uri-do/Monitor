@@ -29,7 +29,7 @@ import { Role, Permission } from '../../types/auth';
 import { CreateRoleRequest, UpdateRoleRequest } from '../../services/roleService';
 import { useRoles, usePermissions } from '@/hooks/useRoles';
 import { useCreateRole, useUpdateRole, useDeleteRole } from '@/hooks/mutations/useRoleMutations';
-import { PageHeader } from '../../components/Common';
+import { PageHeader } from '@/components';
 import toast from 'react-hot-toast';
 
 const roleSchema = yup.object({

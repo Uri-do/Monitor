@@ -12,7 +12,6 @@ import {
   TextField,
   IconButton,
   Checkbox,
-  Chip,
   Menu,
   MenuItem,
   Tooltip,
@@ -27,7 +26,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterIcon,
   GetApp as ExportIcon,
   Refresh as RefreshIcon,
   MoreVert as MoreIcon,
@@ -37,33 +35,40 @@ import {
   FileDownload as DownloadIcon,
   Print as PrintIcon,
 } from '@mui/icons-material';
-import { UltimateButton } from './UltimateButton';
-import { UltimateCard } from './UltimateCard';
+import { CustomButton } from './Button';
+import { CustomCard } from './Card';
 
-export interface UltimateDataTableColumn {
+export interface DataTableColumn<T = any> {
   id: string;
   label: string;
   sortable?: boolean;
   filterable?: boolean;
   width?: number | string;
   align?: 'left' | 'center' | 'right';
-  format?: (value: any, row?: any) => React.ReactNode;
+  format?: (value: any, row?: T) => React.ReactNode;
+  render?: (value: any, row: T) => React.ReactNode;
   filterType?: 'text' | 'select' | 'date' | 'number';
   filterOptions?: { label: string; value: any }[];
 }
 
-export interface UltimateDataTableProps {
+export interface DataTableProps {
   title?: string;
   subtitle?: string;
   data: any[];
-  columns: UltimateDataTableColumn[];
+  columns: DataTableColumn[];
   loading?: boolean;
   searchable?: boolean;
   filterable?: boolean;
   exportable?: boolean;
   refreshable?: boolean;
   selectable?: boolean;
-  pagination?: boolean;
+  pagination?: boolean | {
+    page: number;
+    rowsPerPage: number;
+    totalCount: number;
+    onPageChange: (page: number) => void;
+    onRowsPerPageChange: (newSize: number) => void;
+  };
   rowsPerPageOptions?: number[];
   defaultRowsPerPage?: number;
   onRefresh?: () => void;
@@ -76,9 +81,24 @@ export interface UltimateDataTableProps {
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   height?: number | string;
   maxHeight?: number | string;
+  selectedRows?: any[];
+  onSelectionChange?: (selectedRows: any[]) => void;
+  defaultActions?: {
+    view?: (row: any) => void;
+    edit?: (row: any) => void;
+    delete?: (row: any) => void;
+  };
+  actions?: Array<{
+    label: string;
+    icon?: React.ReactNode;
+    onClick: (row: any) => void;
+    disabled?: (row: any) => boolean;
+  }>;
+  emptyMessage?: string;
+  rowKey?: string;
 }
 
-export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
+export const UltimateDataTable: React.FC<DataTableProps> = ({
   title = 'Ultimate Data Table',
   subtitle,
   data = [],
@@ -216,7 +236,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
   const isSelected = (row: any) => selected.findIndex(item => item.id === row.id) !== -1;
 
   return (
-    <UltimateCard gradient={gradient} sx={{ height: height || 'auto' }}>
+    <CustomCard gradient={gradient} sx={{ height: height || 'auto' }}>
       <Box sx={{ p: 3 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -234,7 +254,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
           {/* Action Buttons */}
           <Stack direction="row" spacing={1}>
             {refreshable && (
-              <UltimateButton
+              <CustomButton
                 variant="outlined"
                 gradient={gradient}
                 icon={<RefreshIcon />}
@@ -242,19 +262,19 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                 disabled={loading}
               >
                 Refresh
-              </UltimateButton>
+              </CustomButton>
             )}
 
             {exportable && (
               <>
-                <UltimateButton
+                <CustomButton
                   variant="outlined"
                   gradient="success"
                   icon={<ExportIcon />}
                   onClick={e => setExportMenuAnchor(e.currentTarget)}
                 >
                   Export
-                </UltimateButton>
+                </CustomButton>
                 <Menu
                   anchorEl={exportMenuAnchor}
                   open={Boolean(exportMenuAnchor)}
@@ -275,14 +295,14 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
 
             {selected.length > 0 && (
               <>
-                <UltimateButton
+                <CustomButton
                   variant="outlined"
                   gradient="warning"
                   icon={<MoreIcon />}
                   onClick={e => setBulkMenuAnchor(e.currentTarget)}
                 >
                   Bulk Actions ({selected.length})
-                </UltimateButton>
+                </CustomButton>
                 <Menu
                   anchorEl={bulkMenuAnchor}
                   open={Boolean(bulkMenuAnchor)}
@@ -365,8 +385,6 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
           component={Paper}
           sx={{
             maxHeight,
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
-            border: '1px solid rgba(0, 0, 0, 0.1)',
             borderRadius: 2,
           }}
         >
@@ -524,7 +542,12 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
 
                       {columns.map(column => (
                         <TableCell key={column.id} align={column.align || 'left'}>
-                          {column.format ? column.format(row[column.id], row) : row[column.id]}
+                          {column.render
+                            ? column.render(row[column.id], row)
+                            : column.format
+                              ? column.format(row[column.id], row)
+                              : row[column.id]
+                          }
                         </TableCell>
                       ))}
 
@@ -622,7 +645,222 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
           </Box>
         )}
       </Box>
-    </UltimateCard>
+    </CustomCard>
+  );
+};
+
+// Simple DataTable component that properly handles defaultActions and actions
+export const DataTable: React.FC<DataTableProps> = ({
+  data = [],
+  columns = [],
+  loading = false,
+  selectable = false,
+  selectedRows = [],
+  onSelectionChange,
+  defaultActions,
+  actions = [],
+  emptyMessage = 'No data available',
+  rowKey = 'id',
+  pagination,
+  ...props
+}) => {
+  const [internalSelectedRows, setInternalSelectedRows] = useState<any[]>([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Use controlled or uncontrolled selection
+  const currentSelectedRows = selectedRows || internalSelectedRows;
+  const handleSelectionChange = onSelectionChange || setInternalSelectedRows;
+
+  // Handle pagination
+  const isPaginationObject = typeof pagination === 'object' && pagination !== null;
+  const currentPage = isPaginationObject ? pagination.page - 1 : page; // Convert to 0-based
+  const currentRowsPerPage = isPaginationObject ? pagination.rowsPerPage : rowsPerPage;
+  const totalCount = isPaginationObject ? pagination.totalCount : data.length;
+
+  // Paginate data only if pagination is boolean true (client-side pagination)
+  const displayData = pagination === true
+    ? data.slice(currentPage * currentRowsPerPage, (currentPage + 1) * currentRowsPerPage)
+    : data;
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      handleSelectionChange(displayData);
+    } else {
+      handleSelectionChange([]);
+    }
+  };
+
+  const handleSelectRow = (row: any) => {
+    const rowId = row[rowKey];
+    const isSelected = currentSelectedRows.some(selected => selected[rowKey] === rowId);
+
+    if (isSelected) {
+      handleSelectionChange(currentSelectedRows.filter(selected => selected[rowKey] !== rowId));
+    } else {
+      handleSelectionChange([...currentSelectedRows, row]);
+    }
+  };
+
+  const isRowSelected = (row: any) => {
+    return currentSelectedRows.some(selected => selected[rowKey] === row[rowKey]);
+  };
+
+  // Check if we need to show actions column
+  const hasActions = defaultActions || actions.length > 0;
+
+  return (
+    <Box>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              {selectable && (
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={currentSelectedRows.length > 0 && currentSelectedRows.length < displayData.length}
+                    checked={displayData.length > 0 && currentSelectedRows.length === displayData.length}
+                    onChange={handleSelectAll}
+                  />
+                </TableCell>
+              )}
+
+              {columns.map(column => (
+                <TableCell key={column.id} align={column.align || 'left'}>
+                  {column.label}
+                </TableCell>
+              ))}
+
+              {hasActions && (
+                <TableCell align="center">Actions</TableCell>
+              )}
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0)}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <Typography>Loading...</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : displayData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (hasActions ? 1 : 0)}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <Typography color="text.secondary">{emptyMessage}</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : (
+              displayData.map((row, index) => (
+                <TableRow key={row[rowKey] || index} hover>
+                  {selectable && (
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isRowSelected(row)}
+                        onChange={() => handleSelectRow(row)}
+                      />
+                    </TableCell>
+                  )}
+
+                  {columns.map(column => (
+                    <TableCell key={column.id} align={column.align || 'left'}>
+                      {column.render
+                        ? column.render(row[column.id], row)
+                        : column.format
+                          ? column.format(row[column.id], row)
+                          : row[column.id]
+                      }
+                    </TableCell>
+                  ))}
+
+                  {hasActions && (
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        {defaultActions?.view && (
+                          <Tooltip title="View">
+                            <IconButton
+                              size="small"
+                              onClick={() => defaultActions.view!(row)}
+                              sx={{ color: 'primary.main' }}
+                            >
+                              <ViewIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {defaultActions?.edit && (
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => defaultActions.edit!(row)}
+                              sx={{ color: 'success.main' }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {defaultActions?.delete && (
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              onClick={() => defaultActions.delete!(row)}
+                              sx={{ color: 'error.main' }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {actions.map((action, actionIndex) => (
+                          <Tooltip key={actionIndex} title={action.label}>
+                            <IconButton
+                              size="small"
+                              onClick={() => action.onClick(row)}
+                              disabled={action.disabled ? action.disabled(row) : false}
+                              sx={{ color: 'primary.main' }}
+                            >
+                              {action.icon}
+                            </IconButton>
+                          </Tooltip>
+                        ))}
+                      </Box>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {pagination && (
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={currentPage}
+          onPageChange={(_, newPage) => {
+            if (isPaginationObject) {
+              pagination.onPageChange(newPage + 1); // Convert back to 1-based
+            } else {
+              setPage(newPage);
+            }
+          }}
+          rowsPerPage={currentRowsPerPage}
+          onRowsPerPageChange={(e) => {
+            const newSize = parseInt(e.target.value, 10);
+            if (isPaginationObject) {
+              pagination.onRowsPerPageChange(newSize);
+            } else {
+              setRowsPerPage(newSize);
+              setPage(0);
+            }
+          }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+        />
+      )}
+    </Box>
   );
 };
 

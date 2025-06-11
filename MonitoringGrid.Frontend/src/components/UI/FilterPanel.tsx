@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Box, Collapse, Grid, IconButton, Stack, Typography, InputAdornment } from '@mui/material';
+import { Box, Collapse, Grid, IconButton, Stack, Typography, InputAdornment, TextField } from '@mui/material';
 import {
   ExpandMore as ExpandIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
   FilterList as FilterIcon,
 } from '@mui/icons-material';
-import { UltimateCard } from './UltimateCard';
-import { UltimateInputField } from './UltimateInputField';
-import { UltimateSelect } from './UltimateSelect';
-import { UltimateButton } from './UltimateButton';
+import Card from './Card';
+import InputField from './InputField';
+import Select from './Select';
+import Button from './Button';
 
 interface FilterField {
   name: string;
@@ -67,7 +67,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
       .length + (searchTerm ? 1 : 0);
 
   return (
-    <UltimateCard sx={{ mb: 3 }}>
+    <Card sx={{ mb: 3 }}>
       <Box sx={{ p: 2 }}>
         {/* Header */}
         <Stack
@@ -103,7 +103,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
 
           <Stack direction="row" alignItems="center" spacing={1}>
             {activeFilterCount > 0 && (
-              <UltimateButton
+              <Button
                 size="small"
                 variant="outlined"
                 gradient="error"
@@ -111,7 +111,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
                 onClick={handleClear}
               >
                 Clear All
-              </UltimateButton>
+              </Button>
             )}
             <IconButton
               onClick={() => setExpanded(!expanded)}
@@ -128,11 +128,12 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
         {/* Search Bar - Always Visible */}
         {onSearch && (
           <Box sx={{ mb: expanded ? 2 : 0 }}>
-            <UltimateInputField
+            <TextField
               fullWidth
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={e => handleSearchChange(e.target.value)}
+              variant="outlined"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -157,7 +158,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
             {fields.map(field => (
               <Grid item xs={12} sm={6} md={4} key={field.name}>
                 {field.type === 'select' ? (
-                  <UltimateSelect
+                  <Select
                     fullWidth
                     label={field.label}
                     value={filters[field.name] || field.defaultValue || ''}
@@ -165,7 +166,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
                     options={field.options || []}
                   />
                 ) : (
-                  <UltimateInputField
+                  <InputField
                     fullWidth
                     label={field.label}
                     type={field.type}
@@ -179,7 +180,7 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
           </Grid>
         </Collapse>
       </Box>
-    </UltimateCard>
+    </Card>
   );
 };
 
