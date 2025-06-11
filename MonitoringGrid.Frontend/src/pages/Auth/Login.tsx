@@ -15,7 +15,7 @@ import {
   InputAdornment,
   CircularProgress,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Microsoft, Google } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Microsoft, Google, PlayArrow } from '@mui/icons-material';
 import mgLogo from '../../assets/images/mglogo.png';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -94,6 +94,11 @@ export const Login: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDemoMode = () => {
+    // Navigate directly to demo without authentication
+    navigate('/demo');
   };
 
   return (
@@ -259,6 +264,33 @@ export const Login: React.FC = () => {
                 Google
               </Button>
             </Box>
+
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Or explore without signing in
+              </Typography>
+            </Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              color="secondary"
+              size="large"
+              startIcon={<PlayArrow />}
+              onClick={handleDemoMode}
+              disabled={isLoading}
+              sx={{
+                borderColor: 'secondary.main',
+                color: 'secondary.main',
+                '&:hover': {
+                  borderColor: 'secondary.dark',
+                  backgroundColor: 'secondary.main',
+                  color: 'white',
+                },
+              }}
+            >
+              Try Demo Mode
+            </Button>
           </form>
         </CardContent>
       </Card>

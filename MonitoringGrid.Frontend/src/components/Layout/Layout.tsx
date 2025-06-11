@@ -19,6 +19,8 @@ import {
   Chip,
   Tooltip,
   Divider,
+  Button,
+  Alert,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -70,18 +72,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Get system health
+  // Check if we're in demo mode (no authentication required)
+  const isDemoMode = location.pathname.startsWith('/demo');
+
+  // Get system health (disabled in demo mode)
   const { data: healthData } = useQuery({
     queryKey: ['health'],
     queryFn: systemApi.getHealth,
     refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: !isDemoMode, // Disable API calls in demo mode
   });
 
-  // Get alert dashboard for badge counts
+  // Get alert dashboard for badge counts (disabled in demo mode)
   const { data: alertDashboard } = useQuery({
     queryKey: ['alert-dashboard'],
     queryFn: alertApi.getDashboard,
     refetchInterval: 60000, // Refresh every minute
+    enabled: !isDemoMode, // Disable API calls in demo mode
   });
 
   const handleDrawerToggle = () => {
@@ -100,11 +107,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const hasPermission = (permissions: string[]) => {
-    if (!user) return false;
+    if (!user) return isDemoMode; // Allow access in demo mode
     return permissions.some(permission => user.permissions.includes(permission));
   };
 
-  const allNavItems: NavItem[] = [
+  // Demo mode navigation items
+  const demoNavItems: NavItem[] = [
+    {
+      text: 'Basic Demo',
+      icon: <DashboardIcon />,
+      path: '/demo',
+    },
+    {
+      text: 'Advanced Demo',
+      icon: <KpiIcon />,
+      path: '/demo/advanced',
+    },
+    {
+      text: 'Next-Gen Features',
+      icon: <AnalyticsIcon />,
+      path: '/demo/nextgen',
+    },
+    {
+      text: 'Enterprise Features',
+      icon: <AdminPanelSettings />,
+      path: '/demo/enterprise',
+    },
+    {
+      text: 'Ultimate Enterprise',
+      icon: <WorkerIcon />,
+      path: '/demo/ultimate',
+    },
+  ];
+
+  // Regular navigation items
+  const regularNavItems: NavItem[] = [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
@@ -155,6 +192,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
   ];
 
+  const allNavItems = isDemoMode ? demoNavItems : regularNavItems;
+
   const navItems = allNavItems.filter(
     item => !item.requiredPermissions || hasPermission(item.requiredPermissions)
   );
@@ -172,7 +211,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           justifyContent: sidebarCollapsed ? 'center' : 'space-between',
           px: sidebarCollapsed ? 1 : 2,
           position: 'relative',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: isDemoMode
+            ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)'
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
           overflow: 'hidden',
           '&::before': {
@@ -329,8 +370,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{
           width: { md: `calc(100% - ${currentDrawerWidth}px)` },
           ml: { md: `${currentDrawerWidth}px` },
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          boxShadow: '0px 4px 20px rgba(102, 126, 234, 0.3)',
+          background: isDemoMode
+            ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)'
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          boxShadow: isDemoMode
+            ? '0px 4px 20px rgba(255, 107, 107, 0.3)'
+            : '0px 4px 20px rgba(102, 126, 234, 0.3)',
         }}
       >
         <Toolbar sx={{ minHeight: '64px !important' }}>
@@ -365,7 +410,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {navItems.find(
                 item =>
                   location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
-              )?.text || 'Monitoring Grid'}
+              )?.text || (isDemoMode ? 'MonitoringGrid Demo' : 'Monitoring Grid')}
             </Typography>
             <Typography
               variant="caption"
@@ -375,7 +420,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 lineHeight: 1,
               }}
             >
-              Real-time monitoring dashboard
+              {isDemoMode ? 'Interactive demo - explore our features' : 'Real-time monitoring dashboard'}
             </Typography>
           </Box>
 
@@ -442,8 +487,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </IconButton>
             </Tooltip>
 
-            {/* User Menu */}
-            <UserMenu />
+            {/* User Menu or Demo Mode Indicator */}
+            {isDemoMode ? (
+              <Tooltip title="Demo Mode - Sign in for full access">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate('/login')}
+                  sx={{
+                    color: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderColor: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                >
+                  Sign In
+                </Button>
+              </Tooltip>
+            ) : (
+              <UserMenu />
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -507,7 +573,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>{children}</Box>
+        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
+          {/* Demo Mode Banner */}
+          {isDemoMode && (
+            <Alert
+              severity="info"
+              sx={{
+                mb: 3,
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                borderColor: 'rgba(255, 107, 107, 0.3)',
+                '& .MuiAlert-icon': {
+                  color: '#ff6b6b',
+                },
+              }}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => navigate('/login')}
+                  sx={{ color: '#ff6b6b' }}
+                >
+                  Sign In for Full Access
+                </Button>
+              }
+            >
+              <Typography variant="body2">
+                <strong>Demo Mode:</strong> You're exploring MonitoringGrid's features.
+                Some functionality may be limited or simulated.
+              </Typography>
+            </Alert>
+          )}
+          {children}
+        </Box>
       </Box>
     </Box>
   );

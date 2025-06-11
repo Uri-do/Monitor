@@ -21,12 +21,12 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { contactApi } from '@/services/api';
 import { CreateContactRequest, UpdateContactRequest } from '@/types/api';
+import { useContact } from '@/hooks/useContacts';
+import { useCreateContact, useUpdateContact } from '@/hooks/mutations';
 import toast from 'react-hot-toast';
 import { PageHeader, LoadingSpinner } from '@/components/Common';
 
@@ -58,16 +58,13 @@ type ContactFormData = yup.InferType<typeof contactSchema>;
 const ContactCreate: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEdit = Boolean(id);
   const contactId = parseInt(id || '0');
 
-  // Fetch contact for editing
-  const { data: contact, isLoading: contactLoading } = useQuery({
-    queryKey: ['contact', contactId],
-    queryFn: () => contactApi.getContact(contactId),
-    enabled: isEdit && !!contactId,
-  });
+  // Use our enhanced hooks
+  const { data: contact, isLoading: contactLoading } = useContact(contactId);
+  const createContactMutation = useCreateContact();
+  const updateContactMutation = useUpdateContact();
 
   // Form setup
   const {
@@ -97,31 +94,24 @@ const ContactCreate: React.FC = () => {
     }
   }, [contact, isEdit, reset]);
 
-  // Create/Update mutations
-  const createMutation = useMutation({
-    mutationFn: (data: CreateContactRequest) => contactApi.createContact(data),
-    onSuccess: () => {
-      toast.success('Contact created successfully');
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      navigate('/contacts');
+  // Create wrapper mutations with navigation
+  const createMutation = {
+    ...createContactMutation,
+    mutate: (data: CreateContactRequest) => {
+      createContactMutation.mutate(data, {
+        onSuccess: () => navigate('/contacts'),
+      });
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create contact');
-    },
-  });
+  };
 
-  const updateMutation = useMutation({
-    mutationFn: (data: UpdateContactRequest) => contactApi.updateContact(data),
-    onSuccess: () => {
-      toast.success('Contact updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      queryClient.invalidateQueries({ queryKey: ['contact', contactId] });
-      navigate(`/contacts/${contactId}`);
+  const updateMutation = {
+    ...updateContactMutation,
+    mutate: (data: UpdateContactRequest) => {
+      updateContactMutation.mutate(data, {
+        onSuccess: () => navigate(`/contacts/${contactId}`),
+      });
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update contact');
-    },
-  });
+  };
 
   const onSubmit = (data: ContactFormData) => {
     const formData = {

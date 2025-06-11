@@ -9,10 +9,10 @@ import {
   Phone as PhoneIcon,
   Assignment as AssignIcon,
 } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { contactApi } from '@/services/api';
 import { ContactDto } from '@/types/api';
+import { useContacts } from '@/hooks/useContacts';
+import { useDeleteContact } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
@@ -26,42 +26,27 @@ import {
 
 const ContactList: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     isActive: '',
     search: '',
   });
   const [selectedRows, setSelectedRows] = useState<ContactDto[]>([]);
 
-  // Fetch Contacts
+  // Use our enhanced hooks
   const {
     data: contacts = [],
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: ['contacts', filters],
-    queryFn: () =>
-      contactApi.getContacts({
-        isActive: filters.isActive ? filters.isActive === 'true' : undefined,
-        search: filters.search || undefined,
-      }),
+  } = useContacts({
+    isActive: filters.isActive ? filters.isActive === 'true' : undefined,
+    search: filters.search || undefined,
   });
 
-  // Delete Contact mutation
-  const deleteMutation = useMutation({
-    mutationFn: contactApi.deleteContact,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      toast.success('Contact deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete contact');
-    },
-  });
+  const deleteContactMutation = useDeleteContact();
 
   const handleDelete = (contact: ContactDto) => {
     if (window.confirm(`Are you sure you want to delete "${contact.name}"?`)) {
-      deleteMutation.mutate(contact.contactId);
+      deleteContactMutation.mutate(contact.contactId);
     }
   };
 

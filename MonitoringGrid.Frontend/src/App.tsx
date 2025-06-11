@@ -4,9 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
 import { useTheme } from '@mui/material/styles';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '@/i18n';
 
 // Core Components (not lazy loaded for better initial performance)
 import Layout from '@/components/Layout/Layout';
+import DemoLayout from '@/components/Layout/DemoLayout';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import Login from '@/pages/Auth/Login';
 import Register from '@/pages/Auth/Register';
@@ -38,6 +41,14 @@ const ExecutionHistoryDetail = React.lazy(
 );
 const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
 const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
+const EnhancementDemo = React.lazy(() => import('@/components/Demo/EnhancementDemo'));
+const AdvancedEnhancementDemo = React.lazy(() => import('@/components/Demo/AdvancedEnhancementDemo'));
+const NextGenFeaturesDemo = React.lazy(() => import('@/components/Demo/NextGenFeaturesDemo'));
+const EnterpriseFeaturesDemo = React.lazy(() => import('@/components/Demo/EnterpriseFeaturesDemo'));
+const UltimateEnterpriseDemo = React.lazy(() => import('@/components/Demo/UltimateEnterpriseDemo'));
+const UltimateComponentsDemo = React.lazy(() => import('@/components/Demo/UltimateComponentsDemo'));
+const UltimateDataTableDemo = React.lazy(() => import('@/components/Demo/UltimateDataTableDemo'));
+const TestPage = React.lazy(() => import('@/pages/Test/TestPage'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -182,17 +193,102 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CustomThemeProvider>
-        <CssBaseline />
-        <AuthProvider>
-          <RealtimeProvider>
-            <ErrorBoundary>
-            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <Routes>
+      <I18nextProvider i18n={i18n}>
+        <CustomThemeProvider>
+          <CssBaseline />
+          <ErrorBoundary>
+            <AuthProvider>
+              <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Routes>
+                  {/* Demo Routes - Public Access */}
+                <Route
+                  path="/demo"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <EnhancementDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/advanced"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <AdvancedEnhancementDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/nextgen"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <NextGenFeaturesDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/enterprise"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <EnterpriseFeaturesDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/ultimate"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <UltimateEnterpriseDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/components"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <UltimateComponentsDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
+                <Route
+                  path="/demo/datatable"
+                  element={
+                    <DemoLayout>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <UltimateDataTableDemo />
+                      </Suspense>
+                    </DemoLayout>
+                  }
+                />
+
                 {/* Public Routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth-test" element={<AuthTest />} />
+
+                {/* Authenticated Routes */}
+                <Route
+                  path="/*"
+                  element={
+                    <RealtimeProvider>
+                      <Routes>
 
                 {/* Protected Routes */}
                 <Route
@@ -437,19 +533,31 @@ function App() {
                   }
                 />
 
+                          {/* Test Page */}
+                          <Route
+                            path="/test"
+                            element={
+                              <LazyRoute>
+                                <TestPage />
+                              </LazyRoute>
+                            }
+                          />
 
-
-                {/* Catch all route */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Router>
+                          {/* Catch all route */}
+                          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        </Routes>
+                      </RealtimeProvider>
+                    }
+                  />
+                </Routes>
+              </Router>
+            </AuthProvider>
           </ErrorBoundary>
-          </RealtimeProvider>
-        </AuthProvider>
 
         {/* Toast notifications */}
         <ThemedToaster />
       </CustomThemeProvider>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 }

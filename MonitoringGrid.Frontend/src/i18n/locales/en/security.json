@@ -1,0 +1,250 @@
+{
+  "title": "Security Center",
+  "subtitle": "Enterprise security management and monitoring",
+  "sections": {
+    "overview": "Security Overview",
+    "threats": "Threat Detection",
+    "compliance": "Compliance",
+    "audit": "Audit Logs",
+    "policies": "Security Policies",
+    "incidents": "Security Incidents",
+    "analytics": "Security Analytics",
+    "reports": "Security Reports"
+  },
+  "dashboard": {
+    "securityScore": "Security Score",
+    "riskLevel": "Risk Level",
+    "activeThreats": "Active Threats",
+    "complianceStatus": "Compliance Status",
+    "recentEvents": "Recent Security Events",
+    "threatTrends": "Threat Trends",
+    "vulnerabilities": "Vulnerabilities",
+    "incidents": "Security Incidents"
+  },
+  "threats": {
+    "title": "Threat Detection",
+    "types": {
+      "bruteForce": "Brute Force Attack",
+      "unusualLocation": "Unusual Location",
+      "suspiciousDevice": "Suspicious Device",
+      "dataExfiltration": "Data Exfiltration",
+      "privilegeEscalation": "Privilege Escalation",
+      "malware": "Malware Detection",
+      "phishing": "Phishing Attempt",
+      "ddos": "DDoS Attack"
+    },
+    "severity": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk",
+      "critical": "Critical Risk"
+    },
+    "status": {
+      "active": "Active",
+      "investigating": "Under Investigation",
+      "resolved": "Resolved",
+      "falsePositive": "False Positive"
+    },
+    "actions": {
+      "investigate": "Investigate",
+      "resolve": "Mark as Resolved",
+      "falsePositive": "Mark as False Positive",
+      "escalate": "Escalate",
+      "block": "Block Source",
+      "quarantine": "Quarantine"
+    }
+  },
+  "compliance": {
+    "title": "Compliance Management",
+    "frameworks": {
+      "gdpr": "GDPR",
+      "sox": "SOX",
+      "hipaa": "HIPAA",
+      "iso27001": "ISO 27001",
+      "pci": "PCI DSS",
+      "nist": "NIST Framework"
+    },
+    "status": {
+      "compliant": "Compliant",
+      "nonCompliant": "Non-Compliant",
+      "partial": "Partially Compliant",
+      "unknown": "Unknown"
+    },
+    "reports": {
+      "generate": "Generate Report",
+      "schedule": "Schedule Report",
+      "export": "Export Report",
+      "findings": "Compliance Findings",
+      "recommendations": "Recommendations",
+      "remediation": "Remediation Plan"
+    }
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "events": {
+      "login": "User Login",
+      "logout": "User Logout",
+      "dataAccess": "Data Access",
+      "dataModification": "Data Modification",
+      "configChange": "Configuration Change",
+      "privilegeChange": "Privilege Change",
+      "systemAccess": "System Access",
+      "fileAccess": "File Access"
+    },
+    "filters": {
+      "user": "User",
+      "action": "Action",
+      "resource": "Resource",
+      "dateRange": "Date Range",
+      "ipAddress": "IP Address",
+      "success": "Success Status"
+    },
+    "export": {
+      "csv": "Export as CSV",
+      "pdf": "Export as PDF",
+      "json": "Export as JSON"
+    }
+  },
+  "policies": {
+    "title": "Security Policies",
+    "password": {
+      "title": "Password Policy",
+      "minLength": "Minimum Length",
+      "requireUppercase": "Require Uppercase",
+      "requireLowercase": "Require Lowercase",
+      "requireDigit": "Require Digit",
+      "requireSpecialChar": "Require Special Character",
+      "maxAge": "Maximum Age (days)",
+      "historyCount": "Password History Count"
+    },
+    "session": {
+      "title": "Session Policy",
+      "timeout": "Session Timeout (minutes)",
+      "maxSessions": "Maximum Concurrent Sessions",
+      "requireMfa": "Require Multi-Factor Authentication"
+    },
+    "access": {
+      "title": "Access Policy",
+      "maxFailedAttempts": "Maximum Failed Login Attempts",
+      "lockoutDuration": "Account Lockout Duration (minutes)",
+      "ipWhitelist": "IP Whitelist",
+      "allowedCountries": "Allowed Countries"
+    }
+  },
+  "incidents": {
+    "title": "Security Incidents",
+    "create": "Create Incident",
+    "types": {
+      "dataBreach": "Data Breach",
+      "unauthorizedAccess": "Unauthorized Access",
+      "malwareInfection": "Malware Infection",
+      "phishingAttack": "Phishing Attack",
+      "insiderThreat": "Insider Threat",
+      "systemCompromise": "System Compromise",
+      "serviceDisruption": "Service Disruption"
+    },
+    "severity": {
+      "low": "Low Impact",
+      "medium": "Medium Impact",
+      "high": "High Impact",
+      "critical": "Critical Impact"
+    },
+    "status": {
+      "open": "Open",
+      "investigating": "Investigating",
+      "contained": "Contained",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "fields": {
+      "title": "Incident Title",
+      "description": "Description",
+      "severity": "Severity",
+      "type": "Incident Type",
+      "assignedTo": "Assigned To",
+      "affectedSystems": "Affected Systems",
+      "timeline": "Timeline",
+      "evidence": "Evidence",
+      "response": "Response Actions"
+    }
+  },
+  "analytics": {
+    "title": "Security Analytics",
+    "metrics": {
+      "loginAttempts": "Login Attempts",
+      "failedLogins": "Failed Logins",
+      "successfulLogins": "Successful Logins",
+      "threatsByType": "Threats by Type",
+      "riskTrends": "Risk Trends",
+      "complianceScore": "Compliance Score",
+      "vulnerabilityCount": "Vulnerability Count",
+      "incidentCount": "Incident Count"
+    },
+    "charts": {
+      "loginTrends": "Login Trends",
+      "threatDistribution": "Threat Distribution",
+      "riskOverTime": "Risk Over Time",
+      "complianceTrends": "Compliance Trends",
+      "incidentsByType": "Incidents by Type"
+    },
+    "timeRanges": {
+      "last24hours": "Last 24 Hours",
+      "last7days": "Last 7 Days",
+      "last30days": "Last 30 Days",
+      "last90days": "Last 90 Days",
+      "lastYear": "Last Year"
+    }
+  },
+  "mfa": {
+    "title": "Multi-Factor Authentication",
+    "setup": "Setup MFA",
+    "disable": "Disable MFA",
+    "verify": "Verify Setup",
+    "backupCodes": "Backup Codes",
+    "generateCodes": "Generate New Backup Codes",
+    "qrCode": "QR Code",
+    "manualEntry": "Manual Entry",
+    "secret": "Secret Key",
+    "instructions": "Scan the QR code with your authenticator app or enter the secret key manually"
+  },
+  "devices": {
+    "title": "Trusted Devices",
+    "trust": "Trust Device",
+    "revoke": "Revoke Trust",
+    "lastUsed": "Last Used",
+    "deviceType": "Device Type",
+    "location": "Location",
+    "browser": "Browser",
+    "operatingSystem": "Operating System"
+  },
+  "sessions": {
+    "title": "Active Sessions",
+    "current": "Current Session",
+    "terminate": "Terminate Session",
+    "terminateAll": "Terminate All Sessions",
+    "lastActivity": "Last Activity",
+    "ipAddress": "IP Address",
+    "location": "Location",
+    "device": "Device"
+  },
+  "notifications": {
+    "threatDetected": "New threat detected",
+    "incidentCreated": "Security incident created",
+    "complianceViolation": "Compliance violation detected",
+    "suspiciousActivity": "Suspicious activity detected",
+    "policyViolation": "Security policy violation",
+    "mfaEnabled": "Multi-factor authentication enabled",
+    "deviceTrusted": "Device marked as trusted",
+    "sessionTerminated": "Session terminated"
+  },
+  "errors": {
+    "loadFailed": "Failed to load security data",
+    "updateFailed": "Failed to update security settings",
+    "threatResolutionFailed": "Failed to resolve threat",
+    "incidentCreationFailed": "Failed to create incident",
+    "complianceReportFailed": "Failed to generate compliance report",
+    "mfaSetupFailed": "Failed to setup multi-factor authentication",
+    "deviceTrustFailed": "Failed to trust device",
+    "sessionTerminationFailed": "Failed to terminate session"
+  }
+}

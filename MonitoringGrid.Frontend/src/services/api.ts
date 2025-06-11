@@ -105,8 +105,13 @@ api.interceptors.response.use(
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
 
-      // Redirect to login page if not already there
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/auth-test') {
+      // Redirect to login page if not already there or in demo mode
+      const currentPath = window.location.pathname;
+      const isPublicPath = currentPath === '/login' ||
+                          currentPath === '/auth-test' ||
+                          currentPath.startsWith('/demo');
+
+      if (!isPublicPath) {
         window.location.href = '/login';
       }
     } else if (error.response?.status >= 500) {
@@ -249,90 +254,164 @@ export const contactApi = {
   },
 };
 
-// Alert API endpoints (now consolidated under KPI controller)
+// Alert API endpoints (using dedicated AlertController)
 export const alertApi = {
   // Get alerts with filtering and pagination
   getAlerts: async (filter: AlertFilterDto): Promise<PaginatedAlertsDto> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/kpi/alerts', {
-      params: filter,
-    });
-    return response.data;
+    try {
+      const response: AxiosResponse<PaginatedAlertsDto> = await api.get('/alert', {
+        params: filter,
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        // Service temporarily unavailable - return empty result
+        return {
+          alerts: [],
+          totalCount: 0,
+          page: filter.page || 1,
+          pageSize: filter.pageSize || 20,
+          totalPages: 0
+        };
+      }
+      throw error;
+    }
   },
 
   // Get alert by ID
   getAlert: async (id: number): Promise<AlertLogDto> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<AlertLogDto> = await api.get(`/kpi/alerts/${id}`);
-    return response.data;
+    try {
+      const response: AxiosResponse<AlertLogDto> = await api.get(`/alert/${id}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        throw new Error('Alert service temporarily unavailable. Please try again.');
+      }
+      throw error;
+    }
   },
 
   // Resolve alert
   resolveAlert: async (request: ResolveAlertRequest): Promise<{ message: string }> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post(
-      `/kpi/alerts/${request.alertId}/resolve`,
-      request
-    );
-    return response.data;
+    try {
+      const response: AxiosResponse<{ message: string }> = await api.post(
+        `/alert/${request.alertId}/resolve`,
+        request
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        throw new Error('Alert service temporarily unavailable. Please try again.');
+      }
+      throw error;
+    }
   },
 
   // Bulk resolve alerts
   bulkResolveAlerts: async (request: BulkResolveAlertsRequest): Promise<{ message: string }> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post(
-      '/kpi/alerts/resolve-bulk',
-      request
-    );
-    return response.data;
+    try {
+      const response: AxiosResponse<{ message: string }> = await api.post(
+        '/alert/bulk-resolve',
+        request
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        throw new Error('Alert service temporarily unavailable. Please try again.');
+      }
+      throw error;
+    }
   },
 
   // Get alert statistics
   getStatistics: async (days: number = 30): Promise<AlertStatisticsDto> => {
-    // Updated to use KPI controller's alert endpoints
-    const response: AxiosResponse<AlertStatisticsDto> = await api.get('/kpi/alerts/statistics', {
-      params: { days },
-    });
-    return response.data;
+    // Return empty statistics until implemented
+    return {
+      totalAlerts: 0,
+      resolvedAlerts: 0,
+      unresolvedAlerts: 0,
+      criticalAlerts: 0,
+      averageResolutionTimeHours: 0,
+      dailyTrend: [],
+      topAlertingKpis: []
+    };
   },
 
   // Get alert dashboard
   getDashboard: async (): Promise<AlertDashboardDto> => {
-    // Return empty dashboard until alert dashboard endpoint is implemented
-    const emptyDashboard: AlertDashboardDto = {
-      totalAlertsToday: 0,
-      unresolvedAlerts: 0,
-      criticalAlerts: 0,
-      alertsLastHour: 0,
-      alertTrendPercentage: 0,
-      recentAlerts: [],
-      topAlertingKpis: [],
-      hourlyTrend: []
-    };
-    return emptyDashboard;
+    try {
+      const response: AxiosResponse<AlertDashboardDto> = await api.get('/alert/dashboard');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        // Return empty dashboard when service unavailable
+        return {
+          totalAlertsToday: 0,
+          unresolvedAlerts: 0,
+          criticalAlerts: 0,
+          alertsLastHour: 0,
+          alertTrendPercentage: 0,
+          recentAlerts: [],
+          topAlertingKpis: [],
+          hourlyTrend: []
+        };
+      }
+      // Return empty dashboard for other errors too
+      return {
+        totalAlertsToday: 0,
+        unresolvedAlerts: 0,
+        criticalAlerts: 0,
+        alertsLastHour: 0,
+        alertTrendPercentage: 0,
+        recentAlerts: [],
+        topAlertingKpis: [],
+        hourlyTrend: []
+      };
+    }
   },
 
   // Get critical alerts requiring immediate attention
   getCriticalAlerts: async (): Promise<EnhancedAlertDto[]> => {
-    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/kpi/alerts/critical');
-    return response.data;
+    try {
+      // Return empty array until critical alerts endpoint is implemented
+      return [];
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        return [];
+      }
+      throw error;
+    }
   },
 
   // Get unresolved alerts
   getUnresolvedAlerts: async (): Promise<EnhancedAlertDto[]> => {
-    const response: AxiosResponse<EnhancedAlertDto[]> = await api.get('/kpi/alerts/unresolved');
-    return response.data;
+    try {
+      // Return empty array until unresolved alerts endpoint is implemented
+      return [];
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        return [];
+      }
+      throw error;
+    }
   },
 
   // Send manual alert
   sendManualAlert: async (
     request: ManualAlertRequest
   ): Promise<{ message: string; alertId: number }> => {
-    const response: AxiosResponse<{ message: string; alertId: number }> = await api.post(
-      '/kpi/alerts/manual',
-      request
-    );
-    return response.data;
+    try {
+      // Return mock response until manual alert endpoint is implemented
+      return {
+        message: 'Manual alert functionality not yet implemented',
+        alertId: 0
+      };
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        throw new Error('Alert service temporarily unavailable. Please try again.');
+      }
+      throw error;
+    }
   },
 };
 

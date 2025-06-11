@@ -43,8 +43,9 @@ import {
   UpdateUserRequest,
   BulkUserOperation,
 } from '../../services/userService';
-import { roleService } from '../../services/roleService';
 import { User, Role } from '../../types/auth';
+import { useUsers, useRoles } from '@/hooks/useUsers';
+import { useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/mutations';
 import toast from 'react-hot-toast';
 
 const userSchema = yup.object({
@@ -75,15 +76,21 @@ interface UserFormData {
 }
 
 export const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [bulkMenuAnchor, setBulkMenuAnchor] = useState<null | HTMLElement>(null);
+
+  // Use our enhanced hooks
+  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useUsers();
+  const { data: roles = [], isLoading: rolesLoading } = useRoles();
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+
+  const loading = usersLoading || rolesLoading;
 
   const {
     control,
@@ -98,28 +105,7 @@ export const UserManagement: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [usersData, rolesData] = await Promise.all([
-        userService.getUsers(),
-        roleService.getRoles(),
-      ]);
-      setUsers(usersData);
-      setRoles(rolesData);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error loading data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Data loading is now handled by our hooks automatically
 
   const handleCreateUser = () => {
     setEditingUser(null);
@@ -155,18 +141,7 @@ export const UserManagement: React.FC = () => {
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      await userService.deleteUser(userId);
-      toast.success('User deleted successfully');
-      setSuccess('User deleted successfully');
-      loadData();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete user';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error deleting user:', err);
-    }
+    deleteUserMutation.mutate(userId);
   };
 
   const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
@@ -180,7 +155,7 @@ export const UserManagement: React.FC = () => {
         toast.success('User deactivated successfully');
         setSuccess('User deactivated successfully');
       }
-      loadData();
+      refetchUsers(); // Use our hook's refetch instead of loadData
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -193,46 +168,49 @@ export const UserManagement: React.FC = () => {
   };
 
   const onSubmit = async (data: UserFormData) => {
-    try {
-      if (editingUser) {
-        const updateRequest: UpdateUserRequest = {
-          displayName: data.displayName,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          department: data.department,
-          title: data.title,
-          roleIds: data.roles,
-          isActive: data.isActive,
-        };
-        await userService.updateUser(editingUser.userId, updateRequest);
-        toast.success('User updated successfully');
-        setSuccess('User updated successfully');
-      } else {
-        const createRequest: CreateUserRequest = {
-          username: data.username,
-          email: data.email,
-          displayName: data.displayName,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          department: data.department,
-          title: data.title,
-          password: 'TempPassword123!', // Temporary password - should be changed on first login
-          roleIds: data.roles,
-          isActive: data.isActive,
-          emailConfirmed: false,
-        };
-        await userService.createUser(createRequest);
-        toast.success('User created successfully');
-        setSuccess('User created successfully');
-      }
-      setDialogOpen(false);
-      loadData();
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : `Failed to ${editingUser ? 'update' : 'create'} user`;
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error saving user:', err);
+    if (editingUser) {
+      const updateRequest: UpdateUserRequest = {
+        id: editingUser.userId,
+        displayName: data.displayName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        department: data.department,
+        title: data.title,
+        roleIds: data.roles,
+        isActive: data.isActive,
+      };
+      updateUserMutation.mutate(updateRequest, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setSuccess('User updated successfully');
+        },
+        onError: (err: any) => {
+          setError(err.message || 'Failed to update user');
+        },
+      });
+    } else {
+      const createRequest: CreateUserRequest = {
+        username: data.username,
+        email: data.email,
+        displayName: data.displayName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        department: data.department,
+        title: data.title,
+        password: 'TempPassword123!', // Temporary password - should be changed on first login
+        roleIds: data.roles,
+        isActive: data.isActive,
+        emailConfirmed: false,
+      };
+      createUserMutation.mutate(createRequest, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setSuccess('User created successfully');
+        },
+        onError: (err: any) => {
+          setError(err.message || 'Failed to create user');
+        },
+      });
     }
   };
 
@@ -254,7 +232,7 @@ export const UserManagement: React.FC = () => {
       await userService.bulkOperation(bulkOperation);
       toast.success(`${operation} operation completed successfully`);
       setSelectedUsers([]);
-      loadData();
+      refetchUsers(); // Use our hook's refetch instead of loadData
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : `Failed to ${operation} users`;
       toast.error(errorMessage);

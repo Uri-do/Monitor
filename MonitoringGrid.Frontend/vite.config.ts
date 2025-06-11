@@ -9,6 +9,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/pages': path.resolve(__dirname, './src/pages'),
+      '@/services': path.resolve(__dirname, './src/services'),
+      '@/types': path.resolve(__dirname, './src/types'),
+      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/stores': path.resolve(__dirname, './src/stores'),
+      '@/contexts': path.resolve(__dirname, './src/contexts'),
+      '@/assets': path.resolve(__dirname, './src/assets'),
     },
   },
   server: {
@@ -36,6 +45,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -43,9 +53,41 @@ export default defineConfig({
           mui: ['@mui/material', '@mui/icons-material'],
           charts: ['recharts'],
           query: ['@tanstack/react-query'],
+          router: ['react-router-dom'],
+          virtualization: ['react-window'],
+          state: ['zustand'],
+          i18n: ['react-i18next', 'i18next'],
         },
       },
     },
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __COMMIT_HASH__: JSON.stringify(process.env.COMMIT_HASH || 'dev'),
+    __FEATURE_FLAGS__: JSON.stringify({
+      enableMicroFrontends: false,
+      enableAI: true,
+      enableAdvancedAnalytics: true,
+      enableCollaboration: true,
+      enableEdgeComputing: true,
+      enableBlockchain: true,
+      enableQuantumCrypto: true,
+      enableEventMesh: true,
+      enableServerless: true,
+      enableUltimateEnterprise: true,
+    }),
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@tanstack/react-query',
+      'react-router-dom',
+      'zustand',
+      'recharts',
+    ],
   },
   test: {
     globals: true,

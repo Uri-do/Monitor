@@ -21,11 +21,13 @@ import {
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon, PlayArrow as TestIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { kpiApi, contactApi } from '@/services/api';
+import { kpiApi } from '@/services/api';
+import { useKpi } from '@/hooks/useKpis';
+import { useActiveContacts } from '@/hooks/useContacts';
+import { useCreateKpi, useUpdateKpi, useExecuteKpi } from '@/hooks/mutations';
 import {
   CreateKpiRequest,
   UpdateKpiRequest,
@@ -105,7 +107,6 @@ const priorityOptions = [
 const KpiCreate: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isEdit = Boolean(id);
   const kpiId = parseInt(id || '0');
 
@@ -122,18 +123,9 @@ const KpiCreate: React.FC = () => {
     'gt'
   );
 
-  // Fetch KPI for editing
-  const { data: kpi, isLoading: kpiLoading } = useQuery({
-    queryKey: ['kpi', kpiId],
-    queryFn: () => kpiApi.getKpi(kpiId),
-    enabled: isEdit && !!kpiId,
-  });
-
-  // Fetch all contacts for assignment
-  const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: () => contactApi.getContacts({ isActive: true }),
-  });
+  // Use our enhanced hooks
+  const { data: kpi, isLoading: kpiLoading } = useKpi(kpiId);
+  const { data: contacts = [], isLoading: contactsLoading } = useActiveContacts();
 
   // Form setup
   const {
@@ -206,46 +198,38 @@ const KpiCreate: React.FC = () => {
     }
   }, [kpi, isEdit, reset]);
 
-  // Create/Update mutations
-  const createMutation = useMutation({
-    mutationFn: (data: CreateKpiRequest) => kpiApi.createKpi(data),
-    onSuccess: () => {
-      toast.success('KPI created successfully');
-      queryClient.invalidateQueries({ queryKey: ['kpis'] });
-      navigate('/kpis');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create KPI');
-    },
-  });
+  // Use our custom mutation hooks
+  const createKpiMutation = useCreateKpi();
+  const updateKpiMutation = useUpdateKpi();
+  const executeKpiMutation = useExecuteKpi();
 
-  const updateMutation = useMutation({
-    mutationFn: (data: UpdateKpiRequest) => kpiApi.updateKpi(data),
-    onSuccess: () => {
-      toast.success('KPI updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['kpis'] });
-      queryClient.invalidateQueries({ queryKey: ['kpi', kpiId] });
-      navigate(`/kpis/${kpiId}`);
+  // Override success callbacks to handle navigation
+  const createMutation = {
+    ...createKpiMutation,
+    mutate: (data: CreateKpiRequest) => {
+      createKpiMutation.mutate(data, {
+        onSuccess: () => navigate('/kpis'),
+      });
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update KPI');
-    },
-  });
+  };
 
-  // Test KPI mutation
-  const testMutation = useMutation({
-    mutationFn: () => kpiApi.executeKpi({ kpiId }),
-    onSuccess: result => {
-      if (result.isSuccessful) {
-        toast.success('KPI test completed successfully');
-      } else {
-        toast.error(`KPI test failed: ${result.errorMessage}`);
+  const updateMutation = {
+    ...updateKpiMutation,
+    mutate: (data: UpdateKpiRequest) => {
+      updateKpiMutation.mutate(data, {
+        onSuccess: () => navigate(`/kpis/${kpiId}`),
+      });
+    },
+  };
+
+  const testMutation = {
+    ...executeKpiMutation,
+    mutate: () => {
+      if (isEdit && kpiId) {
+        executeKpiMutation.mutate({ kpiId });
       }
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to test KPI');
-    },
-  });
+  };
 
   const onSubmit = (data: KpiFormData) => {
     const formData = {

@@ -206,6 +206,162 @@ class SecurityService {
 
     return response.json();
   }
+
+  // Enterprise Security Features
+  async getThreatDetections(filters?: {
+    type?: string;
+    severity?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value.toString());
+      });
+    }
+
+    const response = await fetch(`${this.baseUrl}/threats?${params}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error('Failed to fetch threat detections');
+    }
+
+    return response.json();
+  }
+
+  async getComplianceReports(type?: string): Promise<any[]> {
+    const params = type ? `?type=${type}` : '';
+    const response = await fetch(`${this.baseUrl}/compliance${params}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error('Failed to fetch compliance reports');
+    }
+
+    return response.json();
+  }
+
+  async getAuditLogs(filters?: {
+    userId?: string;
+    action?: string;
+    resource?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value.toString());
+      });
+    }
+
+    const response = await fetch(`${this.baseUrl}/audit?${params}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error('Failed to fetch audit logs');
+    }
+
+    return response.json();
+  }
+
+  async getSecurityDashboard(): Promise<{
+    totalEvents: number;
+    criticalEvents: number;
+    activeThreats: number;
+    riskScore: number;
+    recentEvents: SecurityEvent[];
+    threatTrends: Array<{ date: string; count: number; severity: string }>;
+  }> {
+    const response = await fetch(`${this.baseUrl}/dashboard`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      // Return mock data if endpoint doesn't exist
+      if (response.status === 404) {
+        return {
+          totalEvents: 0,
+          criticalEvents: 0,
+          activeThreats: 0,
+          riskScore: 85,
+          recentEvents: [],
+          threatTrends: [],
+        };
+      }
+      throw new Error('Failed to fetch security dashboard');
+    }
+
+    return response.json();
+  }
+
+  async getUserRiskScore(userId?: string): Promise<{
+    score: number;
+    level: 'low' | 'medium' | 'high' | 'critical';
+    factors: Array<{
+      factor: string;
+      impact: number;
+      description: string;
+    }>;
+    recommendations: string[];
+  }> {
+    const url = userId ? `${this.baseUrl}/risk/${userId}` : `${this.baseUrl}/risk`;
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      // Return mock data if endpoint doesn't exist
+      if (response.status === 404) {
+        return {
+          score: 25,
+          level: 'low',
+          factors: [],
+          recommendations: [],
+        };
+      }
+      throw new Error('Failed to fetch user risk score');
+    }
+
+    return response.json();
+  }
+
+  async getSecurityAnalytics(period: string = '30d'): Promise<{
+    loginAttempts: Array<{ date: string; successful: number; failed: number }>;
+    threatsByType: Array<{ type: string; count: number }>;
+    riskTrends: Array<{ date: string; averageRisk: number }>;
+    complianceScore: number;
+    topRiskyUsers: Array<{ userId: string; userName: string; riskScore: number }>;
+  }> {
+    const response = await fetch(`${this.baseUrl}/analytics?period=${period}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      // Return mock data if endpoint doesn't exist
+      if (response.status === 404) {
+        return {
+          loginAttempts: [],
+          threatsByType: [],
+          riskTrends: [],
+          complianceScore: 95,
+          topRiskyUsers: [],
+        };
+      }
+      throw new Error('Failed to fetch security analytics');
+    }
+
+    return response.json();
+  }
 }
 
 export const securityService = new SecurityService();

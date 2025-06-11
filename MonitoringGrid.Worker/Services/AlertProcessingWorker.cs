@@ -58,16 +58,17 @@ public class AlertProcessingWorker : BackgroundService
 
     private async Task ProcessAlertsAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var alertService = scope.ServiceProvider.GetRequiredService<IAlertService>();
-
         _logger.LogDebug("Starting alert processing cycle");
 
         try
         {
+            using var scope = _serviceProvider.CreateScope();
+            var alertService = scope.ServiceProvider.GetRequiredService<IAlertService>();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
             // Get unresolved alerts
-            var unresolvedAlerts = await GetUnresolvedAlertsAsync(alertService, cancellationToken);
-            
+            var unresolvedAlerts = await GetUnresolvedAlertsAsync(context, cancellationToken);
+
             if (!unresolvedAlerts.Any())
             {
                 _logger.LogDebug("No unresolved alerts to process");
@@ -84,10 +85,15 @@ public class AlertProcessingWorker : BackgroundService
 
             foreach (var batch in batches)
             {
-                await ProcessAlertBatchAsync(alertService, batch, cancellationToken);
+                await ProcessAlertBatchAsync(scope.ServiceProvider, batch, cancellationToken);
             }
 
             _logger.LogInformation("Completed alert processing cycle");
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service provider disposed during alert processing - stopping cycle");
+            return;
         }
         catch (Exception ex)
         {
@@ -96,12 +102,8 @@ public class AlertProcessingWorker : BackgroundService
         }
     }
 
-    private async Task<List<AlertLog>> GetUnresolvedAlertsAsync(IAlertService alertService, CancellationToken cancellationToken)
+    private async Task<List<AlertLog>> GetUnresolvedAlertsAsync(MonitoringGrid.Infrastructure.Data.MonitoringContext context, CancellationToken cancellationToken)
     {
-        // Get unresolved alerts from the database directly
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
-
         var cutoffTime = DateTime.UtcNow.AddHours(-24);
         return await context.AlertLogs
             .Where(a => !a.IsResolved && a.TriggerTime >= cutoffTime)
@@ -109,18 +111,20 @@ public class AlertProcessingWorker : BackgroundService
             .ToListAsync(cancellationToken);
     }
 
-    private async Task ProcessAlertBatchAsync(IAlertService alertService, List<AlertLog> alerts, CancellationToken cancellationToken)
+    private async Task ProcessAlertBatchAsync(IServiceProvider scopedServiceProvider, List<AlertLog> alerts, CancellationToken cancellationToken)
     {
-        var tasks = alerts.Select(alert => ProcessSingleAlertAsync(alertService, alert, cancellationToken));
+        var alertService = scopedServiceProvider.GetRequiredService<IAlertService>();
+        var tasks = alerts.Select(alert => ProcessSingleAlertAsync(scopedServiceProvider, alert, cancellationToken));
         await Task.WhenAll(tasks);
     }
 
-    private async Task ProcessSingleAlertAsync(IAlertService alertService, AlertLog alert, CancellationToken cancellationToken)
+    private async Task ProcessSingleAlertAsync(IServiceProvider scopedServiceProvider, AlertLog alert, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogDebug("Processing alert {AlertId} for KPI {KpiId}", alert.AlertId, alert.KpiId);
 
+            var alertService = scopedServiceProvider.GetRequiredService<IAlertService>();
             var processed = false;
 
             // Check for auto-resolution based on age
@@ -129,7 +133,7 @@ public class AlertProcessingWorker : BackgroundService
                 var autoResolutionThreshold = DateTime.UtcNow.AddMinutes(-_configuration.AlertProcessing.AutoResolutionTimeoutMinutes);
                 if (alert.TriggerTime <= autoResolutionThreshold)
                 {
-                    await AutoResolveAlertAsync(alertService, alert, cancellationToken);
+                    await AutoResolveAlertAsync(scopedServiceProvider, alert, cancellationToken);
                     processed = true;
                 }
             }
@@ -152,6 +156,10 @@ public class AlertProcessingWorker : BackgroundService
                 _alertsProcessedCounter.Add(1);
             }
         }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service disposed while processing alert {AlertId}", alert.AlertId);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing alert {AlertId}", alert.AlertId);
@@ -160,15 +168,17 @@ public class AlertProcessingWorker : BackgroundService
 
 
 
-    private async Task AutoResolveAlertAsync(IAlertService alertService, AlertLog alert, CancellationToken cancellationToken)
+    private async Task AutoResolveAlertAsync(IServiceProvider scopedServiceProvider, AlertLog alert, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogInformation("Auto-resolving alert {AlertId} for KPI {KpiId} - timeout reached after {Minutes} minutes",
                 alert.AlertId, alert.KpiId, _configuration.AlertProcessing.AutoResolutionTimeoutMinutes);
 
+            var alertService = scopedServiceProvider.GetRequiredService<IAlertService>();
+
             // Check if the underlying issue is still present
-            var shouldResolve = await ShouldAutoResolveAlertAsync(alert, cancellationToken);
+            var shouldResolve = await ShouldAutoResolveAlertAsync(scopedServiceProvider, alert, cancellationToken);
 
             if (shouldResolve)
             {
@@ -190,6 +200,10 @@ public class AlertProcessingWorker : BackgroundService
                 _logger.LogWarning("Alert {AlertId} not auto-resolved - underlying issue still present", alert.AlertId);
             }
         }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service disposed while auto-resolving alert {AlertId}", alert.AlertId);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to auto-resolve alert {AlertId}", alert.AlertId);
@@ -197,17 +211,13 @@ public class AlertProcessingWorker : BackgroundService
         }
     }
 
-    private async Task<bool> ShouldAutoResolveAlertAsync(AlertLog alert, CancellationToken cancellationToken)
+    private async Task<bool> ShouldAutoResolveAlertAsync(IServiceProvider scopedServiceProvider, AlertLog alert, CancellationToken cancellationToken)
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
-            var kpiExecutionService = scope.ServiceProvider.GetRequiredService<IKpiExecutionService>();
+            var kpiExecutionService = scopedServiceProvider.GetRequiredService<IKpiExecutionService>();
+            var kpiService = scopedServiceProvider.GetRequiredService<IKpiService>();
 
-            // Re-execute the KPI to check current status
-            // Get the KPI first
-            using var kpiScope = _serviceProvider.CreateScope();
-            var kpiService = kpiScope.ServiceProvider.GetRequiredService<IKpiService>();
             var kpi = await kpiService.GetKpiByIdAsync(alert.KpiId, cancellationToken);
 
             if (kpi == null)
@@ -217,7 +227,7 @@ public class AlertProcessingWorker : BackgroundService
             }
 
             var result = await kpiExecutionService.ExecuteKpiAsync(kpi, cancellationToken);
-            
+
             if (!result.IsSuccessful)
             {
                 _logger.LogWarning("Cannot determine auto-resolution for alert {AlertId} - KPI execution failed", alert.AlertId);
@@ -227,12 +237,17 @@ public class AlertProcessingWorker : BackgroundService
             // Simple logic: if the current value is within acceptable range, resolve the alert
             // In a real implementation, this would be more sophisticated based on alert type and thresholds
             var currentValue = result.CurrentValue;
-            
+
             // For demonstration, assume alerts are triggered when values are outside normal range
             // This would be replaced with actual business logic
             var isWithinNormalRange = currentValue > 0 && currentValue < 1000; // Example thresholds
-            
+
             return isWithinNormalRange;
+        }
+        catch (ObjectDisposedException ex)
+        {
+            _logger.LogWarning(ex, "Service disposed while checking auto-resolution for alert {AlertId}", alert.AlertId);
+            return false;
         }
         catch (Exception ex)
         {

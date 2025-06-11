@@ -11,6 +11,7 @@ export const queryKeys = {
     detail: (id: number) => [...queryKeys.kpis.details(), id] as const,
     executions: (id: number) => [...queryKeys.kpis.detail(id), 'executions'] as const,
     analytics: (id: number) => [...queryKeys.kpis.detail(id), 'analytics'] as const,
+    dashboard: () => [...queryKeys.kpis.all, 'dashboard'] as const,
   },
 
   // Alert related queries
@@ -20,7 +21,8 @@ export const queryKeys = {
     list: (filters: any) => [...queryKeys.alerts.lists(), filters] as const,
     details: () => [...queryKeys.alerts.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.alerts.details(), id] as const,
-    statistics: () => [...queryKeys.alerts.all, 'statistics'] as const,
+    statistics: (timeRangeDays?: number) => [...queryKeys.alerts.all, 'statistics', timeRangeDays] as const,
+    dashboard: () => [...queryKeys.alerts.all, 'dashboard'] as const,
   },
 
   // Contact related queries
@@ -40,7 +42,35 @@ export const queryKeys = {
     details: () => [...queryKeys.users.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.users.details(), id] as const,
     profile: () => [...queryKeys.users.all, 'profile'] as const,
-    roles: () => [...queryKeys.users.all, 'roles'] as const,
+    roles: (userId?: string) => [...queryKeys.users.all, 'roles', userId] as const,
+  },
+
+  // Role related queries
+  roles: {
+    all: ['roles'] as const,
+    lists: () => [...queryKeys.roles.all, 'list'] as const,
+    list: (filters?: any) => [...queryKeys.roles.lists(), filters] as const,
+    details: () => [...queryKeys.roles.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.roles.details(), id] as const,
+  },
+
+  // Permission related queries
+  permissions: {
+    all: ['permissions'] as const,
+    lists: () => [...queryKeys.permissions.all, 'list'] as const,
+    list: (filters?: any) => [...queryKeys.permissions.lists(), filters] as const,
+  },
+
+  // Execution History related queries
+  executionHistory: {
+    all: ['executionHistory'] as const,
+    lists: () => [...queryKeys.executionHistory.all, 'list'] as const,
+    list: (filters: any) => [...queryKeys.executionHistory.lists(), filters] as const,
+    details: () => [...queryKeys.executionHistory.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.executionHistory.details(), id] as const,
+    byKpi: (kpiId: number, limit?: number) => [...queryKeys.executionHistory.all, 'byKpi', kpiId, limit] as const,
+    statistics: (timeRangeDays: number) => [...queryKeys.executionHistory.all, 'statistics', timeRangeDays] as const,
+    recent: (limit: number) => [...queryKeys.executionHistory.all, 'recent', limit] as const,
   },
 
   // System related queries

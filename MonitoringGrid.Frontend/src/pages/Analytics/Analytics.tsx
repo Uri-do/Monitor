@@ -42,8 +42,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useQuery } from '@tanstack/react-query';
-import { alertApi, kpiApi } from '@/services/api';
+import { useAlertStatistics } from '@/hooks/useAlerts';
+import { useKpiDashboard } from '@/hooks/useKpis';
 import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
 
 // Analytics data will be loaded from real API endpoints
@@ -52,16 +52,10 @@ import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
 const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('7d');
 
-  // Fetch analytics data
-  const { data: alertStats, isLoading: alertStatsLoading } = useQuery({
-    queryKey: ['alert-statistics', timeRange],
-    queryFn: () => alertApi.getStatistics(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90),
-  });
-
-  const { data: kpiDashboard, isLoading: kpiLoading } = useQuery({
-    queryKey: ['kpi-dashboard'],
-    queryFn: kpiApi.getDashboard,
-  });
+  // Use enhanced hooks for data fetching
+  const timeRangeDays = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+  const { data: alertStats, isLoading: alertStatsLoading } = useAlertStatistics(timeRangeDays);
+  const { data: kpiDashboard, isLoading: kpiLoading } = useKpiDashboard();
 
   const isLoading = alertStatsLoading || kpiLoading;
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSignalR } from '../services/signalRService';
 import {
   WorkerStatusUpdate,
@@ -11,6 +12,7 @@ import {
 } from '../services/signalRService';
 import { KpiDashboardDto } from '../types/api';
 import { useRealtime } from '../contexts/RealtimeContext';
+import { queryKeys } from '../utils/queryKeys';
 
 export interface RealtimeDashboardState {
   // Worker status
@@ -54,6 +56,7 @@ export interface RealtimeDashboardActions {
 
 export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboardActions => {
   const { isEnabled: realtimeEnabled, isConnected: realtimeConnected } = useRealtime();
+  const queryClient = useQueryClient();
 
   const [state, setState] = useState<RealtimeDashboardState>({
     workerStatus: null,
@@ -129,7 +132,20 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
       runningKpis: prev.runningKpis.filter(kpi => kpi.kpiId !== data.kpiId),
       lastUpdate: new Date(),
     }));
-  }, []);
+
+    // Update TanStack Query cache with fresh data
+    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.detail(data.kpiId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.executions(data.kpiId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.analytics(data.kpiId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+
+    // If execution generated alerts, refresh alert data
+    if (data.alertsGenerated && data.alertsGenerated > 0) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.statistics() });
+    }
+  }, [queryClient]);
 
   // Countdown update handler
   const handleCountdownUpdate = useCallback((data: CountdownUpdate) => {
@@ -240,7 +256,12 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   const refreshDashboard = useCallback(() => {
     setState(prev => ({ ...prev, lastUpdate: new Date() }));
-  }, []);
+
+    // Invalidate dashboard-related queries to trigger fresh data fetch
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
+  }, [queryClient]);
 
   return {
     ...state,

@@ -1,0 +1,38 @@
+{
+  "title": "Key Performance Indicators",
+  "subtitle": "Monitor and manage your KPIs",
+  "create": "Create KPI",
+  "edit": "Edit KPI",
+  "delete": "Delete KPI",
+  "execute": "Execute KPI",
+  "fields": {
+    "indicator": "Indicator Name",
+    "description": "Description",
+    "owner": "Owner",
+    "spName": "Stored Procedure",
+    "frequency": "Frequency",
+    "threshold": "Threshold",
+    "isActive": "Active",
+    "alertOnDeviation": "Alert on Deviation",
+    "deviationPercentage": "Deviation Percentage"
+  },
+  "frequency": {
+    "manual": "Manual",
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly"
+  },
+  "status": {
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "critical": "Critical",
+    "unknown": "Unknown"
+  },
+  "actions": {
+    "viewHistory": "View History",
+    "configure": "Configure",
+    "duplicate": "Duplicate",
+    "export": "Export Data"
+  }
+}

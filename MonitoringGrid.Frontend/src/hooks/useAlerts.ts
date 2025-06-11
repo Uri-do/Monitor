@@ -1,107 +1,74 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { alertApi } from '@/services/api';
 import {
   AlertLogDto,
   AlertFilterDto,
   PaginatedAlertsDto,
-  ResolveAlertRequest,
-  BulkResolveAlertsRequest,
 } from '@/types/api';
+import { queryKeys } from '@/utils/queryKeys';
 
+/**
+ * Enhanced useAlerts hook using TanStack Query
+ * Provides automatic caching, background refetching, and error handling
+ */
 export const useAlerts = (filters: AlertFilterDto) => {
-  const [data, setData] = useState<PaginatedAlertsDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return useQuery({
+    queryKey: queryKeys.alerts.list(filters),
+    queryFn: () => alertApi.getAlerts(filters),
+    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    staleTime: 30 * 1000, // Consider data fresh for 30 seconds
+    refetchInterval: 60 * 1000, // Auto-refetch every minute for real-time updates
+  });
+};
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const alerts = await alertApi.getAlerts(filters);
-      setData(alerts);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch alerts');
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
+/**
+ * Enhanced useAlertStatistics hook for analytics
+ */
+export const useAlertStatistics = (timeRangeDays: number) => {
+  return useQuery({
+    queryKey: queryKeys.alerts.statistics(timeRangeDays),
+    queryFn: () => alertApi.getStatistics(timeRangeDays),
+    placeholderData: (previousData) => previousData,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchInterval: 10 * 60 * 1000, // Auto-refetch every 10 minutes
+  });
+};
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+/**
+ * Enhanced useAlertDashboard hook for dashboard data with real-time optimization
+ */
+export const useAlertDashboard = () => {
+  return useQuery({
+    queryKey: queryKeys.alerts.dashboard(),
+    queryFn: alertApi.getDashboard,
+    placeholderData: (previousData) => previousData,
+    staleTime: 10 * 1000, // Consider data fresh for 10 seconds for real-time dashboard
+    refetchInterval: 10 * 1000, // Auto-refetch every 10 seconds for real-time updates
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
 
-  const resolveAlert = useCallback(async (alertId: number, request: ResolveAlertRequest) => {
-    try {
-      await alertApi.resolveAlert(request);
-      // Update the local state to mark alert as resolved
-      setData(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          alerts: prev.alerts.map(alert =>
-            alert.alertId === alertId
-              ? {
-                  ...alert,
-                  isResolved: true,
-                  resolvedTime: new Date().toISOString(),
-                  resolvedBy: request.resolvedBy,
-                }
-              : alert
-          ),
-        };
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to resolve alert';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  }, []);
+/**
+ * Hook to fetch a single alert by ID
+ */
+export const useAlert = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.alerts.detail(id),
+    queryFn: () => alertApi.getAlert(id),
+    enabled: !!id && id > 0,
+    staleTime: 30 * 1000,
+  });
+};
 
-  const bulkResolveAlerts = useCallback(async (request: BulkResolveAlertsRequest) => {
-    try {
-      await alertApi.bulkResolveAlerts(request);
-      // Update the local state to mark alerts as resolved
-      setData(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          alerts: prev.alerts.map(alert =>
-            request.alertIds.includes(alert.alertId)
-              ? {
-                  ...alert,
-                  isResolved: true,
-                  resolvedTime: new Date().toISOString(),
-                  resolvedBy: request.resolvedBy,
-                }
-              : alert
-          ),
-        };
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to bulk resolve alerts';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  }, []);
-
-  const getAlert = useCallback(async (id: number): Promise<AlertLogDto> => {
-    try {
-      const alert = await alertApi.getAlert(id);
-      return alert;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch alert';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  }, []);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchData,
-    resolveAlert,
-    bulkResolveAlerts,
-    getAlert,
-  };
+/**
+ * Hook to fetch basic alert statistics (without time range)
+ */
+export const useBasicAlertStatistics = () => {
+  return useQuery({
+    queryKey: queryKeys.alerts.statistics(),
+    queryFn: () => alertApi.getStatistics(),
+    staleTime: 2 * 60 * 1000, // Statistics can be stale for 2 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
 };

@@ -7,10 +7,11 @@ import {
   PlayArrow as ExecuteIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { kpiApi } from '@/services/api';
 import { KpiDto, TestKpiRequest } from '@/types/api';
+import { useKpis } from '@/hooks/useKpis';
+import { useDeleteKpi, useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
@@ -25,7 +26,6 @@ import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 
 const KpiList: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     isActive: '',
     owner: '',
@@ -38,62 +38,52 @@ const KpiList: React.FC = () => {
     kpi?: KpiDto;
   }>({ open: false });
 
-  // Fetch KPIs
+  // Use our enhanced KPI hook
   const {
     data: kpis = [],
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: ['kpis', filters],
-    queryFn: () =>
-      kpiApi.getKpis({
-        isActive: filters.isActive ? filters.isActive === 'true' : undefined,
-        owner: filters.owner || undefined,
-        priority: filters.priority ? parseInt(filters.priority) : undefined,
-      }),
+  } = useKpis({
+    isActive: filters.isActive ? filters.isActive === 'true' : undefined,
+    owner: filters.owner || undefined,
+    priority: filters.priority ? parseInt(filters.priority) : undefined,
   });
 
-  // Delete KPI mutation
-  const deleteMutation = useMutation({
-    mutationFn: kpiApi.deleteKpi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['kpis'] });
-      toast.success('KPI deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete KPI');
-    },
-  });
+  // Use our custom mutation hooks
+  const deleteKpiMutation = useDeleteKpi();
+  const executeKpiMutation = useExecuteKpi();
 
-  // Execute KPI mutation
-  const executeMutation = useMutation({
-    mutationFn: (request: TestKpiRequest) => kpiApi.executeKpi(request),
-    onSuccess: result => {
-      // Show detailed execution results
-      const executionTime = result.executionTimeMs ? `${result.executionTimeMs}ms` : 'N/A';
-      const statusMessage = result.isSuccessful
-        ? `✅ Success (${executionTime})`
-        : `❌ Failed (${executionTime})`;
+  // Create wrapper for delete with confirmation
+  const deleteMutation = {
+    ...deleteKpiMutation,
+    mutate: (kpiId: number) => deleteKpiMutation.mutate(kpiId),
+  };
 
-      if (result.isSuccessful) {
-        toast.success(
-          `KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`
-        );
-      } else {
-        toast.error(
-          `KPI execution failed: ${result.errorMessage || 'Unknown error'}\nExecution time: ${executionTime}`
-        );
-      }
+  // Create wrapper for execute with custom success handling
+  const executeMutation = {
+    ...executeKpiMutation,
+    mutate: (request: TestKpiRequest) => {
+      executeKpiMutation.mutate(request, {
+        onSuccess: (result) => {
+          // Show detailed execution results
+          const executionTime = result.executionTimeMs ? `${result.executionTimeMs}ms` : 'N/A';
+          const statusMessage = result.isSuccessful
+            ? `✅ Success (${executionTime})`
+            : `❌ Failed (${executionTime})`;
 
-      // Store execution results for potential debugging
-      // Execution details are available in result object for debugging if needed
-
-      queryClient.invalidateQueries({ queryKey: ['kpis'] });
+          if (result.isSuccessful) {
+            toast.success(
+              `KPI executed: ${statusMessage}\nCurrent: ${result.currentValue}, Historical: ${result.historicalValue}, Deviation: ${result.deviationPercent.toFixed(2)}%`
+            );
+          } else {
+            toast.error(
+              `KPI execution failed: ${result.errorMessage || 'Unknown error'}\nExecution time: ${executionTime}`
+            );
+          }
+        },
+      });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to execute KPI');
-    },
-  });
+  };
 
   const handleDelete = (kpi: KpiDto) => {
     if (window.confirm(`Are you sure you want to delete "${kpi.indicator}"?`)) {
@@ -108,12 +98,11 @@ const KpiList: React.FC = () => {
   const handleProgressExecute = async () => {
     if (!progressDialog.kpi) return;
 
-    const result = await kpiApi.executeKpi({ kpiId: progressDialog.kpi.kpiId });
+    // Use our execute mutation hook for consistency
+    executeKpiMutation.mutate({ kpiId: progressDialog.kpi.kpiId });
 
-    // Execution results are available in result object for debugging if needed
-
-    queryClient.invalidateQueries({ queryKey: ['kpis'] });
-    return result;
+    // The mutation hook handles cache invalidation automatically
+    return Promise.resolve();
   };
 
   const getKpiStatus = (kpi: KpiDto) => {

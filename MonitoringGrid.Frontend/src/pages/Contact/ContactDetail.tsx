@@ -32,8 +32,9 @@ import {
   PlayArrow as ExecuteIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { contactApi, kpiApi } from '@/services/api';
+import { useContact } from '@/hooks/useContacts';
+import { useKpis } from '@/hooks/useKpis';
+import { useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
@@ -41,24 +42,16 @@ import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
 const ContactDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
   const contactId = parseInt(id || '0');
 
-  // Fetch contact details
-  const { data: contact, isLoading: contactLoading } = useQuery({
-    queryKey: ['contact', contactId],
-    queryFn: () => contactApi.getContact(contactId),
-    enabled: !!contactId,
-  });
+  // Use enhanced hooks for data fetching
+  const { data: contact, isLoading: contactLoading } = useContact(contactId);
+  const { data: allKpis = [], isLoading: kpisLoading } = useKpis({}, { enabled: assignDialogOpen });
 
-  // Fetch all KPIs for assignment dialog
-  const { data: allKpis = [], isLoading: kpisLoading } = useQuery({
-    queryKey: ['kpis'],
-    queryFn: () => kpiApi.getKpis({}),
-    enabled: assignDialogOpen,
-  });
+  // Use mutation hook for KPI execution
+  const executeKpiMutation = useExecuteKpi();
 
   if (contactLoading) {
     return <LoadingSpinner />;
@@ -76,14 +69,8 @@ const ContactDetail: React.FC = () => {
     navigate(`/kpis/${kpiId}`);
   };
 
-  const handleKpiExecute = async (kpiId: number) => {
-    try {
-      await kpiApi.executeKpi({ kpiId });
-      toast.success('KPI executed successfully');
-      queryClient.invalidateQueries({ queryKey: ['contact', contactId] });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to execute KPI');
-    }
+  const handleKpiExecute = (kpiId: number) => {
+    executeKpiMutation.mutate({ kpiId });
   };
 
   return (

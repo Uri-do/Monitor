@@ -1,0 +1,139 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Real-time monitoring overview",
+  "sections": {
+    "overview": "Overview",
+    "kpis": "Key Performance Indicators",
+    "alerts": "Active Alerts",
+    "performance": "System Performance",
+    "analytics": "Analytics",
+    "recent": "Recent Activity",
+    "trends": "Trends",
+    "summary": "Summary"
+  },
+  "metrics": {
+    "totalKpis": "Total KPIs",
+    "activeKpis": "Active KPIs",
+    "criticalAlerts": "Critical Alerts",
+    "systemHealth": "System Health",
+    "uptime": "Uptime",
+    "responseTime": "Response Time",
+    "throughput": "Throughput",
+    "errorRate": "Error Rate",
+    "availability": "Availability",
+    "performance": "Performance Score",
+    "compliance": "Compliance Score",
+    "riskLevel": "Risk Level"
+  },
+  "widgets": {
+    "kpiStatus": {
+      "title": "KPI Status",
+      "description": "Current status of all KPIs",
+      "healthy": "Healthy",
+      "warning": "Warning",
+      "critical": "Critical",
+      "unknown": "Unknown"
+    },
+    "alertSummary": {
+      "title": "Alert Summary",
+      "description": "Overview of active alerts",
+      "new": "New",
+      "acknowledged": "Acknowledged",
+      "resolved": "Resolved"
+    },
+    "performanceChart": {
+      "title": "Performance Trends",
+      "description": "System performance over time",
+      "cpu": "CPU Usage",
+      "memory": "Memory Usage",
+      "disk": "Disk Usage",
+      "network": "Network Usage"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "description": "Latest system events",
+      "kpiExecuted": "KPI executed",
+      "alertTriggered": "Alert triggered",
+      "userLogin": "User login",
+      "configChanged": "Configuration changed"
+    },
+    "topAlerts": {
+      "title": "Top Alerts",
+      "description": "Most critical alerts",
+      "viewAll": "View all alerts"
+    },
+    "systemStatus": {
+      "title": "System Status",
+      "description": "Overall system health",
+      "operational": "Operational",
+      "degraded": "Degraded Performance",
+      "outage": "Partial Outage",
+      "maintenance": "Under Maintenance"
+    }
+  },
+  "timeRanges": {
+    "realtime": "Real-time",
+    "last5min": "Last 5 minutes",
+    "last15min": "Last 15 minutes",
+    "last30min": "Last 30 minutes",
+    "last1hour": "Last hour",
+    "last6hours": "Last 6 hours",
+    "last12hours": "Last 12 hours",
+    "last24hours": "Last 24 hours",
+    "last7days": "Last 7 days",
+    "last30days": "Last 30 days",
+    "custom": "Custom range"
+  },
+  "filters": {
+    "all": "All",
+    "critical": "Critical",
+    "warning": "Warning",
+    "normal": "Normal",
+    "active": "Active",
+    "inactive": "Inactive",
+    "acknowledged": "Acknowledged",
+    "unacknowledged": "Unacknowledged"
+  },
+  "actions": {
+    "refresh": "Refresh Dashboard",
+    "customize": "Customize Layout",
+    "export": "Export Data",
+    "fullscreen": "Full Screen",
+    "settings": "Dashboard Settings",
+    "autoRefresh": "Auto Refresh",
+    "pauseRefresh": "Pause Refresh"
+  },
+  "settings": {
+    "title": "Dashboard Settings",
+    "layout": "Layout",
+    "widgets": "Widgets",
+    "refresh": "Refresh Settings",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "autoRefreshInterval": "Auto Refresh Interval",
+    "showGrid": "Show Grid",
+    "compactMode": "Compact Mode",
+    "enableAnimations": "Enable Animations",
+    "enableSounds": "Enable Sounds"
+  },
+  "notifications": {
+    "dataUpdated": "Dashboard data updated",
+    "refreshPaused": "Auto refresh paused",
+    "refreshResumed": "Auto refresh resumed",
+    "layoutSaved": "Layout saved successfully",
+    "settingsUpdated": "Settings updated successfully"
+  },
+  "errors": {
+    "loadFailed": "Failed to load dashboard data",
+    "refreshFailed": "Failed to refresh data",
+    "saveFailed": "Failed to save settings",
+    "networkError": "Network connection error",
+    "serverError": "Server error occurred"
+  },
+  "empty": {
+    "noKpis": "No KPIs configured",
+    "noAlerts": "No active alerts",
+    "noData": "No data available for selected time range",
+    "noActivity": "No recent activity"
+  }
+}

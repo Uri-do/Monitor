@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Box, Grid, LinearProgress, Typography } from '@mui/material';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { kpiApi, alertApi } from '@/services/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useKpiDashboard } from '@/hooks/useKpis';
+import { useAlertDashboard } from '@/hooks/useAlerts';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { useRealtime } from '@/contexts/RealtimeContext';
 
@@ -34,32 +35,18 @@ const Dashboard: React.FC = () => {
   // TODO: Remove this temporary fix once RealtimeContext connection detection is fixed
   const dashboardState = realtimeDashboard;
 
-  // Fetch dashboard data with aggressive refresh for real-time updates
+  // Use enhanced hooks for dashboard data with optimized real-time updates
   const {
     data: kpiDashboard,
     isLoading: kpiLoading,
     refetch: refetchKpi,
-  } = useQuery({
-    queryKey: ['kpi-dashboard'],
-    queryFn: kpiApi.getDashboard,
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time data
-    staleTime: 0, // Always consider data stale to force fresh fetches
-    cacheTime: 5000, // Cache for only 5 seconds
-    retry: 2, // Retry failed requests twice
-    retryDelay: 1000, // Wait 1 second between retries
-  });
+  } = useKpiDashboard();
 
   const {
     data: alertDashboard,
     isLoading: alertLoading,
     refetch: refetchAlert,
-  } = useQuery({
-    queryKey: ['alert-dashboard'],
-    queryFn: alertApi.getDashboard,
-    refetchInterval: 10000, // Refresh every 10 seconds
-    staleTime: 0, // Always consider data stale
-    cacheTime: 5000, // Cache for only 5 seconds
-  });
+  } = useAlertDashboard();
 
   // Merge real-time data with dashboard data
   const mergedKpiDashboard = React.useMemo(() => {
@@ -82,9 +69,9 @@ const Dashboard: React.FC = () => {
   }, [kpiDashboard, dashboardState.runningKpis, dashboardState.nextKpiDue]);
 
   const handleRefresh = () => {
-    // Clear query cache and force fresh data
-    queryClient.invalidateQueries({ queryKey: ['kpi-dashboard'] });
-    queryClient.invalidateQueries({ queryKey: ['alert-dashboard'] });
+    // Use enhanced query keys for cache invalidation
+    queryClient.invalidateQueries({ queryKey: ['kpis', 'dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['alerts', 'dashboard'] });
     refetchKpi();
     refetchAlert();
     dashboardState.refreshDashboard();

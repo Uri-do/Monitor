@@ -30,3 +30,12 @@ export { default as KpiTypeSelector } from './KpiTypeSelector';
 
 export { default as RunningKpisDisplay } from './RunningKpisDisplay';
 export type { RunningKpi } from './RunningKpisDisplay';
+
+// Enhanced components
+export { EnhancedDataTable } from './EnhancedDataTable';
+export { ModernDataTable } from './ModernDataTable';
+export { VirtualizedDataTable } from './VirtualizedDataTable';
+export { ErrorBoundary, withErrorBoundary } from './ErrorBoundary';
+
+// Enhanced component types
+export type { EnhancedDataTableColumn, EnhancedDataTableAction } from './EnhancedDataTable';

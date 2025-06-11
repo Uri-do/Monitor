@@ -26,7 +26,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Role, Permission } from '../../types/auth';
-import { roleService, CreateRoleRequest, UpdateRoleRequest } from '../../services/roleService';
+import { CreateRoleRequest, UpdateRoleRequest } from '../../services/roleService';
+import { useRoles, usePermissions } from '@/hooks/useRoles';
+import { useCreateRole, useUpdateRole, useDeleteRole } from '@/hooks/mutations/useRoleMutations';
 import { PageHeader } from '../../components/Common';
 import toast from 'react-hot-toast';
 
@@ -52,13 +54,21 @@ interface RoleFormData {
 }
 
 const RoleManagement: React.FC = () => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Use enhanced hooks for data fetching
+  const { data: roles = [], isLoading: rolesLoading } = useRoles();
+  const { data: permissions = [], isLoading: permissionsLoading } = usePermissions();
+
+  // Use mutation hooks
+  const createRoleMutation = useCreateRole();
+  const updateRoleMutation = useUpdateRole();
+  const deleteRoleMutation = useDeleteRole();
+
+  const loading = rolesLoading || permissionsLoading;
 
   const {
     control,
@@ -73,28 +83,7 @@ const RoleManagement: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [rolesData, permissionsData] = await Promise.all([
-        roleService.getRoles(),
-        roleService.getAllPermissions(),
-      ]);
-      setRoles(rolesData);
-      setPermissions(permissionsData);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load role data';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error loading data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // No need for manual data loading - hooks handle this automatically
 
   const handleCreateRole = () => {
     setEditingRole(null);
@@ -118,53 +107,55 @@ const RoleManagement: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleDeleteRole = async (roleId: string) => {
+  const handleDeleteRole = (roleId: string) => {
     if (!confirm('Are you sure you want to delete this role?')) return;
 
-    try {
-      await roleService.deleteRole(roleId);
-      toast.success('Role deleted successfully');
-      setSuccess('Role deleted successfully');
-      loadData();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete role';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error deleting role:', err);
-    }
+    deleteRoleMutation.mutate(roleId, {
+      onSuccess: () => {
+        setSuccess('Role deleted successfully');
+      },
+      onError: (err: any) => {
+        setError(err.message || 'Failed to delete role');
+      },
+    });
   };
 
-  const onSubmit = async (data: RoleFormData) => {
-    try {
-      if (editingRole) {
-        const updateRequest: UpdateRoleRequest = {
-          name: data.name,
-          description: data.description,
-          permissionIds: data.permissionIds,
-          isActive: data.isActive,
-        };
-        await roleService.updateRole(editingRole.roleId, updateRequest);
-        toast.success('Role updated successfully');
-        setSuccess('Role updated successfully');
-      } else {
-        const createRequest: CreateRoleRequest = {
-          name: data.name,
-          description: data.description,
-          permissionIds: data.permissionIds,
-          isActive: data.isActive,
-        };
-        await roleService.createRole(createRequest);
-        toast.success('Role created successfully');
-        setSuccess('Role created successfully');
-      }
-      setDialogOpen(false);
-      loadData();
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : `Failed to ${editingRole ? 'update' : 'create'} role`;
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('Error saving role:', err);
+  const onSubmit = (data: RoleFormData) => {
+    if (editingRole) {
+      const updateRequest: UpdateRoleRequest = {
+        name: data.name,
+        description: data.description,
+        permissionIds: data.permissionIds,
+        isActive: data.isActive,
+      };
+      updateRoleMutation.mutate(
+        { roleId: editingRole.roleId, data: updateRequest },
+        {
+          onSuccess: () => {
+            setDialogOpen(false);
+            setSuccess('Role updated successfully');
+          },
+          onError: (err: any) => {
+            setError(err.message || 'Failed to update role');
+          },
+        }
+      );
+    } else {
+      const createRequest: CreateRoleRequest = {
+        name: data.name,
+        description: data.description,
+        permissionIds: data.permissionIds,
+        isActive: data.isActive,
+      };
+      createRoleMutation.mutate(createRequest, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setSuccess('Role created successfully');
+        },
+        onError: (err: any) => {
+          setError(err.message || 'Failed to create role');
+        },
+      });
     }
   };
 

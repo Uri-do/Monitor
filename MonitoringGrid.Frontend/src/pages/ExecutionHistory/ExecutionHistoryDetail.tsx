@@ -27,7 +27,10 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
+import { useQuery } from '@tanstack/react-query';
 import { executionHistoryApi, kpiApi } from '@/services/api';
+import { useExecutionDetail } from '@/hooks/useExecutionHistory';
+import { useKpi } from '@/hooks/useKpis';
 import { ExecutionHistoryDetailDto } from '@/types/api';
 import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
 
@@ -42,21 +45,15 @@ const ExecutionHistoryDetail: React.FC = () => {
   const fromKpiDetails = location.state?.fromKpiDetails;
   const kpiId = location.state?.kpiId;
 
-  // Fetch execution detail
+  // Use enhanced hooks for data fetching
   const {
     data: execution,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['execution-detail', historicalId],
-    queryFn: () => executionHistoryApi.getExecutionDetail(historicalId),
-    enabled: !!historicalId,
-  });
+  } = useExecutionDetail(historicalId);
 
   // Fetch KPI details if we came from KPI page and have execution data
-  const { data: kpiData } = useQuery({
-    queryKey: ['kpi', execution?.kpiId || kpiId],
-    queryFn: () => kpiApi.getKpi(execution?.kpiId || kpiId),
+  const { data: kpiData } = useKpi(execution?.kpiId || kpiId, {
     enabled: !!(execution?.kpiId || kpiId) && fromKpiDetails,
   });
 

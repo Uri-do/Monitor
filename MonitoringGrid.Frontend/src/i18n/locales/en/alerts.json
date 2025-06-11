@@ -1,0 +1,34 @@
+{
+  "title": "Alerts",
+  "subtitle": "Monitor and manage system alerts",
+  "acknowledge": "Acknowledge Alert",
+  "resolve": "Resolve Alert",
+  "fields": {
+    "message": "Message",
+    "severity": "Severity",
+    "kpi": "Related KPI",
+    "currentValue": "Current Value",
+    "threshold": "Threshold",
+    "deviation": "Deviation",
+    "createdAt": "Created At",
+    "acknowledgedBy": "Acknowledged By",
+    "acknowledgedAt": "Acknowledged At"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "status": {
+    "new": "New",
+    "acknowledged": "Acknowledged",
+    "resolved": "Resolved"
+  },
+  "filters": {
+    "all": "All Alerts",
+    "unacknowledged": "Unacknowledged",
+    "critical": "Critical Only",
+    "recent": "Recent"
+  }
+}
