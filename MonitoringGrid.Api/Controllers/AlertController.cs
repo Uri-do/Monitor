@@ -70,15 +70,15 @@ public class AlertController : ControllerBase
             var alertsResult = await _alertRepository.GetAlertsWithFilteringAsync(filter);
 
             // Map to DTOs
-            var alertDtos = alertsResult.Items.Select(alert => new AlertLogDto
+            var alertDtos = alertsResult.Alerts.Select(alert => new AlertLogDto
             {
                 AlertId = alert.AlertId,
                 KpiId = alert.KpiId,
                 KpiIndicator = alert.KPI?.Indicator ?? "Unknown",
                 KpiOwner = alert.KPI?.Owner ?? "Unknown",
                 TriggerTime = alert.TriggerTime,
-                Subject = alert.Subject,
-                Description = alert.Description,
+                Message = alert.Message ?? "No message",
+                Details = alert.Details,
                 SentVia = alert.SentVia,
                 SentTo = alert.SentTo,
                 CurrentValue = alert.CurrentValue,
@@ -142,8 +142,8 @@ public class AlertController : ControllerBase
                 KpiIndicator = alert.KPI?.Indicator ?? "Unknown",
                 KpiOwner = alert.KPI?.Owner ?? "Unknown",
                 TriggerTime = alert.TriggerTime,
-                Subject = alert.Subject,
-                Description = alert.Description,
+                Message = alert.Message ?? "No message",
+                Details = alert.Details,
                 SentVia = alert.SentVia,
                 SentTo = alert.SentTo,
                 CurrentValue = alert.CurrentValue,
@@ -192,8 +192,12 @@ public class AlertController : ControllerBase
                 AlertTrendPercentage = dashboard.AlertTrendPercentage,
                 HourlyTrend = dashboard.HourlyTrend.Select(h => new AlertTrendDto
                 {
-                    Hour = h.Hour,
-                    Count = h.Count
+                    Date = h.Date,
+                    AlertCount = h.AlertCount,
+                    CriticalCount = h.CriticalCount,
+                    HighCount = h.HighCount,
+                    MediumCount = h.MediumCount,
+                    LowCount = h.LowCount
                 }).ToList()
             };
 
