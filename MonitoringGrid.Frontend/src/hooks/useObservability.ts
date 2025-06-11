@@ -51,7 +51,7 @@ interface PerformanceMetrics {
   fid: number; // First Input Delay
   cls: number; // Cumulative Layout Shift
   ttfb: number; // Time to First Byte
-  
+
   // Custom metrics
   renderTime: number;
   apiResponseTime: number;
@@ -84,10 +84,10 @@ export const useObservability = (componentName?: string) => {
   const sessionId = useRef(crypto.randomUUID());
   const traceId = useRef<string | null>(null);
   const activeSpans = useRef<Map<string, TraceSpan>>(new Map());
-  
-  const incrementApiCallCount = useAppStore((state) => state.incrementApiCallCount);
-  const incrementErrorCount = useAppStore((state) => state.incrementErrorCount);
-  const addError = useAppStore((state) => state.addError);
+
+  const incrementApiCallCount = useAppStore(state => state.incrementApiCallCount);
+  const incrementErrorCount = useAppStore(state => state.incrementErrorCount);
+  const addError = useAppStore(state => state.addError);
 
   // Initialize observability
   useEffect(() => {
@@ -95,7 +95,7 @@ export const useObservability = (componentName?: string) => {
     setupGlobalErrorHandling();
     setupPerformanceObserver();
     setupUserInteractionTracking();
-    
+
     return () => {
       cleanup();
     };
@@ -119,17 +119,20 @@ export const useObservability = (componentName?: string) => {
   }, []);
 
   // Metrics collection
-  const recordMetric = useCallback((metric: MetricData) => {
-    const enrichedMetric = {
-      ...metric,
-      sessionId: sessionId.current,
-      component: componentName,
-      url: window.location.pathname,
-    };
+  const recordMetric = useCallback(
+    (metric: MetricData) => {
+      const enrichedMetric = {
+        ...metric,
+        sessionId: sessionId.current,
+        component: componentName,
+        url: window.location.pathname,
+      };
 
-    // Send to monitoring service
-    sendToMonitoringService('metric', enrichedMetric);
-  }, [componentName]);
+      // Send to monitoring service
+      sendToMonitoringService('metric', enrichedMetric);
+    },
+    [componentName]
+  );
 
   const recordBusinessMetric = useCallback((metric: BusinessMetric) => {
     const enrichedMetric = {
@@ -150,111 +153,130 @@ export const useObservability = (componentName?: string) => {
     return { traceId: newTraceId, spanId: span.spanId };
   }, []);
 
-  const startSpan = useCallback((operationName: string, tags?: Record<string, any>, parentSpanId?: string) => {
-    const spanId = crypto.randomUUID();
-    const span: TraceSpan = {
-      traceId: traceId.current || crypto.randomUUID(),
-      spanId,
-      parentSpanId,
-      operationName,
-      startTime: new Date(),
-      tags: {
-        component: componentName,
-        sessionId: sessionId.current,
-        ...tags,
-      },
-      logs: [],
-      status: 'ok',
-    };
+  const startSpan = useCallback(
+    (operationName: string, tags?: Record<string, any>, parentSpanId?: string) => {
+      const spanId = crypto.randomUUID();
+      const span: TraceSpan = {
+        traceId: traceId.current || crypto.randomUUID(),
+        spanId,
+        parentSpanId,
+        operationName,
+        startTime: new Date(),
+        tags: {
+          component: componentName,
+          sessionId: sessionId.current,
+          ...tags,
+        },
+        logs: [],
+        status: 'ok',
+      };
 
-    activeSpans.current.set(spanId, span);
-    return span;
-  }, [componentName]);
+      activeSpans.current.set(spanId, span);
+      return span;
+    },
+    [componentName]
+  );
 
-  const finishSpan = useCallback((spanId: string, status: 'ok' | 'error' | 'timeout' = 'ok', error?: Error) => {
-    const span = activeSpans.current.get(spanId);
-    if (!span) return;
+  const finishSpan = useCallback(
+    (spanId: string, status: 'ok' | 'error' | 'timeout' = 'ok', error?: Error) => {
+      const span = activeSpans.current.get(spanId);
+      if (!span) return;
 
-    span.endTime = new Date();
-    span.duration = span.endTime.getTime() - span.startTime.getTime();
-    span.status = status;
+      span.endTime = new Date();
+      span.duration = span.endTime.getTime() - span.startTime.getTime();
+      span.status = status;
 
-    if (error) {
+      if (error) {
+        span.logs.push({
+          timestamp: new Date(),
+          level: 'error',
+          message: error.message,
+          fields: {
+            errorName: error.name,
+            errorStack: error.stack,
+          },
+        });
+      }
+
+      // Send completed span to monitoring service
+      sendToMonitoringService('span', span);
+      activeSpans.current.delete(spanId);
+    },
+    []
+  );
+
+  const addSpanLog = useCallback(
+    (spanId: string, level: LogEntry['level'], message: string, fields?: Record<string, any>) => {
+      const span = activeSpans.current.get(spanId);
+      if (!span) return;
+
       span.logs.push({
         timestamp: new Date(),
-        level: 'error',
-        message: error.message,
-        fields: {
-          errorName: error.name,
-          errorStack: error.stack,
-        },
+        level,
+        message,
+        fields,
       });
-    }
-
-    // Send completed span to monitoring service
-    sendToMonitoringService('span', span);
-    activeSpans.current.delete(spanId);
-  }, []);
-
-  const addSpanLog = useCallback((spanId: string, level: LogEntry['level'], message: string, fields?: Record<string, any>) => {
-    const span = activeSpans.current.get(spanId);
-    if (!span) return;
-
-    span.logs.push({
-      timestamp: new Date(),
-      level,
-      message,
-      fields,
-    });
-  }, []);
+    },
+    []
+  );
 
   // Logging
-  const logEvent = useCallback((
-    message: string,
-    level: LogEntry['level'] = 'info',
-    component?: string,
-    metadata?: Record<string, any>,
-    error?: Error
-  ) => {
-    const logEntry: LogEntry = {
-      timestamp: new Date(),
-      level,
-      message,
-      component: component || componentName || 'unknown',
-      userId: getCurrentUserId(),
-      sessionId: sessionId.current,
-      traceId: traceId.current || undefined,
-      metadata,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : undefined,
-    };
+  const logEvent = useCallback(
+    (
+      message: string,
+      level: LogEntry['level'] = 'info',
+      component?: string,
+      metadata?: Record<string, any>,
+      error?: Error
+    ) => {
+      const logEntry: LogEntry = {
+        timestamp: new Date(),
+        level,
+        message,
+        component: component || componentName || 'unknown',
+        userId: getCurrentUserId(),
+        sessionId: sessionId.current,
+        traceId: traceId.current || undefined,
+        metadata,
+        error: error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : undefined,
+      };
 
-    // Console logging for development
-    if (process.env.NODE_ENV === 'development') {
-      const logMethod = level === 'error' || level === 'fatal' ? 'error' : 
-                      level === 'warn' ? 'warn' : 'log';
-      console[logMethod](`[${level.toUpperCase()}] ${component || componentName}: ${message}`, metadata);
-    }
+      // Console logging for development
+      if (process.env.NODE_ENV === 'development') {
+        const logMethod =
+          level === 'error' || level === 'fatal' ? 'error' : level === 'warn' ? 'warn' : 'log';
+        console[logMethod](
+          `[${level.toUpperCase()}] ${component || componentName}: ${message}`,
+          metadata
+        );
+      }
 
-    // Send to monitoring service
-    sendToMonitoringService('log', logEntry);
+      // Send to monitoring service
+      sendToMonitoringService('log', logEntry);
 
-    // Update app store for error tracking
-    if (level === 'error' || level === 'fatal') {
-      incrementErrorCount();
-      addError(message, metadata);
-    }
-  }, [componentName, incrementErrorCount, addError]);
+      // Update app store for error tracking
+      if (level === 'error' || level === 'fatal') {
+        incrementErrorCount();
+        addError(message, metadata);
+      }
+    },
+    [componentName, incrementErrorCount, addError]
+  );
 
   // Performance monitoring
   const recordPerformanceMetrics = useCallback(() => {
     if ('performance' in window) {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
       const paint = performance.getEntriesByType('paint');
-      
+
       const metrics: Partial<PerformanceMetrics> = {
         ttfb: navigation.responseStart - navigation.requestStart,
         renderTime: navigation.loadEventEnd - navigation.navigationStart,
@@ -284,70 +306,79 @@ export const useObservability = (componentName?: string) => {
   }, [recordMetric]);
 
   // User interaction tracking
-  const trackUserInteraction = useCallback((interaction: Omit<UserInteraction, 'sessionId' | 'timestamp'>) => {
-    const enrichedInteraction: UserInteraction = {
-      ...interaction,
-      sessionId: sessionId.current,
-      timestamp: new Date(),
-      userId: getCurrentUserId(),
-    };
+  const trackUserInteraction = useCallback(
+    (interaction: Omit<UserInteraction, 'sessionId' | 'timestamp'>) => {
+      const enrichedInteraction: UserInteraction = {
+        ...interaction,
+        sessionId: sessionId.current,
+        timestamp: new Date(),
+        userId: getCurrentUserId(),
+      };
 
-    sendToMonitoringService('interaction', enrichedInteraction);
-  }, []);
+      sendToMonitoringService('interaction', enrichedInteraction);
+    },
+    []
+  );
 
   // Error tracking
-  const trackError = useCallback((error: Error, context?: Record<string, any>) => {
-    logEvent(error.message, 'error', componentName, {
-      errorName: error.name,
-      errorStack: error.stack,
-      context,
-    }, error);
+  const trackError = useCallback(
+    (error: Error, context?: Record<string, any>) => {
+      logEvent(
+        error.message,
+        'error',
+        componentName,
+        {
+          errorName: error.name,
+          errorStack: error.stack,
+          context,
+        },
+        error
+      );
 
-    // Create error span if we have an active trace
-    if (traceId.current) {
-      const span = startSpan('error_handling', {
-        'error.name': error.name,
-        'error.message': error.message,
-      });
-      finishSpan(span.spanId, 'error', error);
-    }
-  }, [componentName, logEvent, startSpan, finishSpan]);
+      // Create error span if we have an active trace
+      if (traceId.current) {
+        const span = startSpan('error_handling', {
+          'error.name': error.name,
+          'error.message': error.message,
+        });
+        finishSpan(span.spanId, 'error', error);
+      }
+    },
+    [componentName, logEvent, startSpan, finishSpan]
+  );
 
   // API call tracking
-  const trackApiCall = useCallback((
-    method: string,
-    url: string,
-    duration: number,
-    status: number,
-    error?: Error
-  ) => {
-    incrementApiCallCount();
+  const trackApiCall = useCallback(
+    (method: string, url: string, duration: number, status: number, error?: Error) => {
+      incrementApiCallCount();
 
-    const span = startSpan('api_call', {
-      'http.method': method,
-      'http.url': url,
-      'http.status_code': status,
-    });
+      const span = startSpan('api_call', {
+        'http.method': method,
+        'http.url': url,
+        'http.status_code': status,
+      });
 
-    recordMetric({
-      name: 'api.response_time',
-      value: duration,
-      timestamp: new Date(),
-      tags: {
-        method,
-        endpoint: new URL(url).pathname,
-        status: status.toString(),
-      },
-      unit: 'ms',
-    });
+      recordMetric({
+        name: 'api.response_time',
+        value: duration,
+        timestamp: new Date(),
+        tags: {
+          method,
+          endpoint: new URL(url).pathname,
+          status: status.toString(),
+        },
+        unit: 'ms',
+      });
 
-    if (error) {
-      addSpanLog(span.spanId, 'error', `API call failed: ${error.message}`);
-      finishSpan(span.spanId, 'error', error);
-    } else {
-      finishSpan(span.spanId, status >= 400 ? 'error' : 'ok');
-    }
-  }, [incrementApiCallCount, recordMetric, startSpan, finishSpan, addSpanLog]);
+      if (error) {
+        addSpanLog(span.spanId, 'error', `API call failed: ${error.message}`);
+        finishSpan(span.spanId, 'error', error);
+      } else {
+        finishSpan(span.spanId, status >= 400 ? 'error' : 'ok');
+      }
+    },
+    [incrementApiCallCount, recordMetric, startSpan, finishSpan, addSpanLog]
+  );
 
   // Setup global error handling
   const setupGlobalErrorHandling = useCallback(() => {
@@ -377,8 +408,8 @@ export const useObservability = (componentName?: string) => {
   // Setup performance observer
   const setupPerformanceObserver = useCallback(() => {
     if ('PerformanceObserver' in window) {
-      const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
+      const observer = new PerformanceObserver(list => {
+        list.getEntries().forEach(entry => {
           if (entry.entryType === 'largest-contentful-paint') {
             recordMetric({
               name: 'performance.lcp',
@@ -391,7 +422,9 @@ export const useObservability = (componentName?: string) => {
       });
 
       try {
-        observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
+        observer.observe({
+          entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'],
+        });
       } catch (e) {
         // Observer not supported
       }
@@ -406,7 +439,10 @@ export const useObservability = (componentName?: string) => {
       const target = event.target as HTMLElement;
       trackUserInteraction({
         type: 'click',
-        element: target.tagName + (target.id ? `#${target.id}` : '') + (target.className ? `.${target.className}` : ''),
+        element:
+          target.tagName +
+          (target.id ? `#${target.id}` : '') +
+          (target.className ? `.${target.className}` : ''),
         page: window.location.pathname,
       });
     };
@@ -453,19 +489,19 @@ export const useObservability = (componentName?: string) => {
     recordMetric,
     recordBusinessMetric,
     recordPerformanceMetrics,
-    
+
     // Tracing
     startTrace,
     startSpan,
     finishSpan,
     addSpanLog,
-    
+
     // Logging
     logEvent,
     trackError,
     trackApiCall,
     trackUserInteraction,
-    
+
     // State
     sessionId: sessionId.current,
     traceId: traceId.current,

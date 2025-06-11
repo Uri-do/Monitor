@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Grid,
-  Card,
   CardContent,
   Typography,
   Box,
@@ -13,11 +12,24 @@ import {
   LinearProgress,
   Tooltip,
 } from '@mui/material';
-import { Schedule, PlayArrow, Timer, PlayCircle, AccessTime, Wifi, WifiOff } from '@mui/icons-material';
+import {
+  Schedule,
+  PlayArrow,
+  Timer,
+  PlayCircle,
+  AccessTime,
+  Wifi,
+  WifiOff,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { KpiDashboardDto } from '../../../types/api';
-import { formatCountdownWithContext, getCountdownSeverity, shouldCountdownPulse } from '../../../utils/countdown';
+import {
+  formatCountdownWithContext,
+  getCountdownSeverity,
+  shouldCountdownPulse,
+} from '../../../utils/countdown';
+import { UltimateCard } from '@/components/UltimateEnterprise';
 
 interface NextKpiExecutionCardProps {
   kpiDashboard?: KpiDashboardDto;
@@ -28,12 +40,10 @@ interface NextKpiExecutionCardProps {
 const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
   kpiDashboard,
   countdown,
-  isConnected = false
+  isConnected = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-
-
 
   const getCountdownProgress = (seconds: number, frequency: number): number => {
     if (seconds <= 0) return 100;
@@ -60,17 +70,25 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
 
   return (
     <Grid item xs={12} md={6}>
-      <Card sx={{ height: '100%' }}>
+      <UltimateCard sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
-              <Schedule sx={{ color: (theme) => theme.palette.primary.main }} />
+              <Schedule sx={{ color: theme => theme.palette.primary.main }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Next KPI Execution
               </Typography>
-              <Tooltip title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}>
+              <Tooltip
+                title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}
+              >
                 <Chip
-                  icon={isConnected ? <Wifi sx={{ fontSize: '14px !important' }} /> : <WifiOff sx={{ fontSize: '14px !important' }} />}
+                  icon={
+                    isConnected ? (
+                      <Wifi sx={{ fontSize: '14px !important' }} />
+                    ) : (
+                      <WifiOff sx={{ fontSize: '14px !important' }} />
+                    )
+                  }
                   label={isConnected ? 'Live' : 'Offline'}
                   size="small"
                   color={isConnected ? 'success' : 'error'}
@@ -91,10 +109,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
               size="small"
               onClick={() => navigate('/kpis')}
               sx={{
-                backgroundColor: (theme) => theme.palette.primary.main,
+                backgroundColor: theme => theme.palette.primary.main,
                 color: 'white',
                 '&:hover': {
-                  backgroundColor: (theme) => theme.palette.primary.dark,
+                  backgroundColor: theme => theme.palette.primary.dark,
                 },
               }}
             >
@@ -113,7 +131,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       ? 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)'
                       : 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.2) 100%)',
                   border: '1px solid',
-                  borderColor: (theme) => theme.palette.primary.light,
+                  borderColor: theme => theme.palette.primary.light,
                   position: 'relative',
                   overflow: 'hidden',
                 }}
@@ -123,7 +141,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                     badgeContent={<Timer sx={{ fontSize: 12, color: 'white' }} />}
                     sx={{
                       '& .MuiBadge-badge': {
-                        backgroundColor: (theme) =>
+                        backgroundColor: theme =>
                           kpiDashboard.nextKpiDue?.status === 'Due Soon'
                             ? theme.palette.warning.main
                             : theme.palette.primary.main,
@@ -131,10 +149,13 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       },
                     }}
                   >
-                    <PlayCircle sx={{ fontSize: 32, color: (theme) => theme.palette.primary.main }} />
+                    <PlayCircle sx={{ fontSize: 32, color: theme => theme.palette.primary.main }} />
                   </Badge>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: (theme) => theme.palette.primary.dark }}>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 600, color: theme => theme.palette.primary.dark }}
+                    >
                       {kpiDashboard.nextKpiDue?.indicator}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -164,7 +185,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       <AccessTime
                         sx={{
                           fontSize: 16,
-                          color: (theme) =>
+                          color: theme =>
                             countdown !== null && countdown !== undefined && countdown <= 60
                               ? theme.palette.warning.main
                               : theme.palette.primary.main,
@@ -186,7 +207,9 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                         sx={{
                           fontWeight: 600,
                           fontSize: '0.9rem',
-                          animation: shouldCountdownPulse(countdown ?? null) ? 'pulse 1s infinite' : 'none',
+                          animation: shouldCountdownPulse(countdown ?? null)
+                            ? 'pulse 1s infinite'
+                            : 'none',
                           '@keyframes pulse': {
                             '0%': { opacity: 1 },
                             '50%': { opacity: 0.7 },
@@ -208,7 +231,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       <Typography variant="caption" color="text.secondary">
                         {countdown !== null && countdown !== undefined
                           ? Math.round(
-                              getCountdownProgress(countdown, kpiDashboard.nextKpiDue?.frequency ?? 5)
+                              getCountdownProgress(
+                                countdown,
+                                kpiDashboard.nextKpiDue?.frequency ?? 5
+                              )
                             )
                           : 0}
                         %
@@ -227,7 +253,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                         backgroundColor: theme.palette.mode === 'light' ? 'grey.200' : 'grey.700',
                         '& .MuiLinearProgress-bar': {
                           borderRadius: 3,
-                          backgroundColor: (theme) =>
+                          backgroundColor: theme =>
                             countdown !== null && countdown !== undefined && countdown <= 300
                               ? theme.palette.warning.main
                               : theme.palette.primary.main,
@@ -274,15 +300,14 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                   {kpiDashboard?.activeKpis === 0
                     ? 'No active KPIs - add KPIs to start monitoring'
                     : kpiDashboard?.activeKpis === 1
-                    ? 'One KPI is active - check KPI management for scheduling'
-                    : 'All KPIs are inactive or have no schedule'
-                  }
+                      ? 'One KPI is active - check KPI management for scheduling'
+                      : 'All KPIs are inactive or have no schedule'}
                 </Typography>
               </Box>
             )}
           </Box>
         </CardContent>
-      </Card>
+      </UltimateCard>
     </Grid>
   );
 };

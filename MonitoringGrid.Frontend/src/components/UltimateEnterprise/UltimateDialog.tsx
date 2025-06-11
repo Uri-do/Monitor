@@ -82,28 +82,30 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
           border: `1px solid ${borderColorMap[gradient]}`,
           borderRadius: 3,
           boxShadow: `0 20px 40px ${shadowColorMap[gradient]}`,
-        }
+        },
       }}
       {...props}
     >
-      <DialogTitle sx={{ 
-        background: gradientMap[gradient],
-        color: 'white',
-        textAlign: 'center',
-        py: 3,
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100px',
-          height: '100px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '50%',
-          transform: 'translate(30px, -30px)',
-        }
-      }}>
+      <DialogTitle
+        sx={{
+          background: gradientMap[gradient],
+          color: 'white',
+          textAlign: 'center',
+          py: 3,
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '100px',
+            height: '100px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '50%',
+            transform: 'translate(30px, -30px)',
+          },
+        }}
+      >
         {showCloseButton && onClose && (
           <IconButton
             onClick={onClose}
@@ -115,14 +117,23 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              }
+              },
             }}
           >
             <CloseIcon />
           </IconButton>
         )}
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, position: 'relative', zIndex: 1 }}>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
           {icon && <Box sx={{ fontSize: 32 }}>{icon}</Box>}
           <Typography variant="h5" fontWeight="bold">
             {title}
@@ -134,17 +145,17 @@ export const UltimateDialog: React.FC<UltimateDialogProps> = ({
           </Typography>
         )}
       </DialogTitle>
-      
-      <DialogContent sx={{ p: 4 }}>
-        {children}
-      </DialogContent>
-      
+
+      <DialogContent sx={{ p: 4 }}>{children}</DialogContent>
+
       {actions && (
-        <DialogActions sx={{ 
-          p: 3, 
-          background: backgroundGradientMap[gradient],
-          gap: 2,
-        }}>
+        <DialogActions
+          sx={{
+            p: 3,
+            background: backgroundGradientMap[gradient],
+            gap: 2,
+          }}
+        >
           {actions}
         </DialogActions>
       )}

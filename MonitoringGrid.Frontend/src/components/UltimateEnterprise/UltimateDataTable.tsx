@@ -122,7 +122,9 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
     if (searchTerm) {
       filtered = filtered.filter(row =>
         columns.some(column =>
-          String(row[column.id] || '').toLowerCase().includes(searchTerm.toLowerCase())
+          String(row[column.id] || '')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
         )
       );
     }
@@ -133,7 +135,9 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
         filtered = filtered.filter(row => {
           const cellValue = row[columnId];
           if (typeof filterValue === 'string') {
-            return String(cellValue || '').toLowerCase().includes(filterValue.toLowerCase());
+            return String(cellValue || '')
+              .toLowerCase()
+              .includes(filterValue.toLowerCase());
           }
           return cellValue === filterValue;
         });
@@ -226,7 +230,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
               </Typography>
             )}
           </Box>
-          
+
           {/* Action Buttons */}
           <Stack direction="row" spacing={1}>
             {refreshable && (
@@ -240,14 +244,14 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                 Refresh
               </UltimateButton>
             )}
-            
+
             {exportable && (
               <>
                 <UltimateButton
                   variant="outlined"
                   gradient="success"
                   icon={<ExportIcon />}
-                  onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+                  onClick={e => setExportMenuAnchor(e.currentTarget)}
                 >
                   Export
                 </UltimateButton>
@@ -268,14 +272,14 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                 </Menu>
               </>
             )}
-            
+
             {selected.length > 0 && (
               <>
                 <UltimateButton
                   variant="outlined"
                   gradient="warning"
                   icon={<MoreIcon />}
-                  onClick={(e) => setBulkMenuAnchor(e.currentTarget)}
+                  onClick={e => setBulkMenuAnchor(e.currentTarget)}
                 >
                   Bulk Actions ({selected.length})
                 </UltimateButton>
@@ -303,7 +307,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
               <TextField
                 placeholder="Search across all columns..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -314,35 +318,41 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                 sx={{ minWidth: 300 }}
               />
             )}
-            
+
             {filterable && (
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {columns.filter(col => col.filterable).map(column => (
-                  <FormControl key={column.id} size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>{column.label}</InputLabel>
-                    {column.filterType === 'select' ? (
-                      <Select
-                        value={filters[column.id] || ''}
-                        onChange={(e) => setFilters(prev => ({ ...prev, [column.id]: e.target.value }))}
-                        label={column.label}
-                      >
-                        <MenuItem value="">All</MenuItem>
-                        {column.filterOptions?.map(option => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    ) : (
-                      <TextField
-                        size="small"
-                        value={filters[column.id] || ''}
-                        onChange={(e) => setFilters(prev => ({ ...prev, [column.id]: e.target.value }))}
-                        label={column.label}
-                      />
-                    )}
-                  </FormControl>
-                ))}
+                {columns
+                  .filter(col => col.filterable)
+                  .map(column => (
+                    <FormControl key={column.id} size="small" sx={{ minWidth: 120 }}>
+                      <InputLabel>{column.label}</InputLabel>
+                      {column.filterType === 'select' ? (
+                        <Select
+                          value={filters[column.id] || ''}
+                          onChange={e =>
+                            setFilters(prev => ({ ...prev, [column.id]: e.target.value }))
+                          }
+                          label={column.label}
+                        >
+                          <MenuItem value="">All</MenuItem>
+                          {column.filterOptions?.map(option => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        <TextField
+                          size="small"
+                          value={filters[column.id] || ''}
+                          onChange={e =>
+                            setFilters(prev => ({ ...prev, [column.id]: e.target.value }))
+                          }
+                          label={column.label}
+                        />
+                      )}
+                    </FormControl>
+                  ))}
               </Box>
             )}
           </Stack>
@@ -354,7 +364,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
         <TableContainer
           component={Paper}
           sx={{
-            maxHeight: maxHeight,
+            maxHeight,
             background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
             border: '1px solid rgba(0, 0, 0, 0.1)',
             borderRadius: 2,
@@ -370,24 +380,32 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                       checked={paginatedData.length > 0 && selected.length === paginatedData.length}
                       onChange={handleSelectAll}
                       sx={{
-                        color: gradient === 'primary' ? '#667eea' :
-                               gradient === 'secondary' ? '#f093fb' :
-                               gradient === 'success' ? '#43e97b' :
-                               gradient === 'warning' ? '#fa709a' :
-                               gradient === 'error' ? '#ff6b6b' : '#4facfe',
+                        color:
+                          gradient === 'primary'
+                            ? '#667eea'
+                            : gradient === 'secondary'
+                              ? '#f093fb'
+                              : gradient === 'success'
+                                ? '#43e97b'
+                                : gradient === 'warning'
+                                  ? '#fa709a'
+                                  : gradient === 'error'
+                                    ? '#ff6b6b'
+                                    : '#4facfe',
                       }}
                     />
                   </TableCell>
                 )}
 
-                {columns.map((column) => (
+                {columns.map(column => (
                   <TableCell
                     key={column.id}
                     align={column.align || 'left'}
                     style={{ width: column.width }}
                     sx={{
                       fontWeight: 'bold',
-                      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
                       borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
@@ -419,7 +437,8 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                     align="center"
                     sx={{
                       fontWeight: 'bold',
-                      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+                      background:
+                        'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
                       borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
@@ -432,7 +451,13 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length + (selectable ? 1 : 0) + ((onRowEdit || onRowDelete || onRowView) ? 1 : 0)}>
+                  <TableCell
+                    colSpan={
+                      columns.length +
+                      (selectable ? 1 : 0) +
+                      (onRowEdit || onRowDelete || onRowView ? 1 : 0)
+                    }
+                  >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                       <Typography>Loading...</Typography>
                     </Box>
@@ -440,7 +465,13 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                 </TableRow>
               ) : paginatedData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length + (selectable ? 1 : 0) + ((onRowEdit || onRowDelete || onRowView) ? 1 : 0)}>
+                  <TableCell
+                    colSpan={
+                      columns.length +
+                      (selectable ? 1 : 0) +
+                      (onRowEdit || onRowDelete || onRowView ? 1 : 0)
+                    }
+                  >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                       <Typography color="text.secondary">No data available</Typography>
                     </Box>
@@ -458,10 +489,12 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                       sx={{
                         cursor: onRowClick ? 'pointer' : 'default',
                         '&:hover': {
-                          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+                          background:
+                            'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
                         },
                         '&.Mui-selected': {
-                          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                          background:
+                            'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
                         },
                       }}
                     >
@@ -470,19 +503,26 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                           <Checkbox
                             checked={isItemSelected}
                             onChange={() => handleSelectRow(row)}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={e => e.stopPropagation()}
                             sx={{
-                              color: gradient === 'primary' ? '#667eea' :
-                                     gradient === 'secondary' ? '#f093fb' :
-                                     gradient === 'success' ? '#43e97b' :
-                                     gradient === 'warning' ? '#fa709a' :
-                                     gradient === 'error' ? '#ff6b6b' : '#4facfe',
+                              color:
+                                gradient === 'primary'
+                                  ? '#667eea'
+                                  : gradient === 'secondary'
+                                    ? '#f093fb'
+                                    : gradient === 'success'
+                                      ? '#43e97b'
+                                      : gradient === 'warning'
+                                        ? '#fa709a'
+                                        : gradient === 'error'
+                                          ? '#ff6b6b'
+                                          : '#4facfe',
                             }}
                           />
                         </TableCell>
                       )}
 
-                      {columns.map((column) => (
+                      {columns.map(column => (
                         <TableCell key={column.id} align={column.align || 'left'}>
                           {column.format ? column.format(row[column.id], row) : row[column.id]}
                         </TableCell>
@@ -496,7 +536,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                               <Tooltip title="View">
                                 <IconButton
                                   size="small"
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onRowView(row);
                                   }}
@@ -510,7 +550,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                               <Tooltip title="Edit">
                                 <IconButton
                                   size="small"
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onRowEdit(row);
                                   }}
@@ -524,7 +564,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
                               <Tooltip title="Delete">
                                 <IconButton
                                   size="small"
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onRowDelete(row);
                                   }}
@@ -547,9 +587,12 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
 
         {/* Pagination */}
         {pagination && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}
+          >
             <Typography variant="body2" color="text.secondary">
-              Showing {page * rowsPerPage + 1} to {Math.min((page + 1) * rowsPerPage, sortedData.length)} of {sortedData.length} entries
+              Showing {page * rowsPerPage + 1} to{' '}
+              {Math.min((page + 1) * rowsPerPage, sortedData.length)} of {sortedData.length} entries
               {searchTerm && ` (filtered from ${data.length} total entries)`}
             </Typography>
 
@@ -559,7 +602,7 @@ export const UltimateDataTable: React.FC<UltimateDataTableProps> = ({
               page={page}
               onPageChange={(_, newPage) => setPage(newPage)}
               rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(e) => {
+              onRowsPerPageChange={e => {
                 setRowsPerPage(parseInt(e.target.value, 10));
                 setPage(0);
               }}

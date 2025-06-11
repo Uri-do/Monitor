@@ -10,7 +10,7 @@ export const useRoles = () => {
   return useQuery({
     queryKey: queryKeys.roles.list(),
     queryFn: () => roleService.getRoles(),
-    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     refetchInterval: 10 * 60 * 1000, // Auto-refetch every 10 minutes
   });
@@ -36,7 +36,7 @@ export const usePermissions = () => {
   return useQuery({
     queryKey: queryKeys.permissions.list(),
     queryFn: () => roleService.getAllPermissions(),
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     staleTime: 10 * 60 * 1000, // Permissions change rarely, cache for 10 minutes
     refetchInterval: 30 * 60 * 1000, // Auto-refetch every 30 minutes
   });

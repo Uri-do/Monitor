@@ -29,7 +29,7 @@ import {
   Key as KeyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PageHeader } from '@/components/Common';
+import { UltimatePageHeader } from '@/components/UltimateEnterprise';
 import { SecuritySettings } from '../Settings/SecuritySettings';
 import ApiKeyManagement from './ApiKeyManagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -175,7 +175,7 @@ const Administration: React.FC = () => {
   if (isSecurityPage) {
     return (
       <Box>
-        <PageHeader
+        <UltimatePageHeader
           title="Security Settings"
           subtitle="Configure authentication, authorization, and security policies"
         />
@@ -191,7 +191,7 @@ const Administration: React.FC = () => {
   if (isAuditPage) {
     return (
       <Box>
-        <PageHeader
+        <UltimatePageHeader
           title="Security Audit Log"
           subtitle="View security events and authentication logs"
         />
@@ -204,7 +204,7 @@ const Administration: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="Administration"
         subtitle="Manage users, security, and system configuration"
       />

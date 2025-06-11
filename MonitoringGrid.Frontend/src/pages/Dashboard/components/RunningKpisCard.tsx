@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KpiDashboardDto } from '../../../types/api';
-import { RunningKpisDisplay, RunningKpi } from '../../../components/Common';
+import { RunningKpisDisplay, RunningKpi } from '@/components/Business';
 
 interface RealtimeRunningKpi {
   kpiId: number;
@@ -21,23 +21,22 @@ interface RunningKpisCardProps {
 
 const RunningKpisCard: React.FC<RunningKpisCardProps> = ({
   kpiDashboard,
-  realtimeRunningKpis = []
+  realtimeRunningKpis = [],
 }) => {
   const navigate = useNavigate();
 
   // Use real-time data if available, otherwise fall back to dashboard data
-  const runningKpis: RunningKpi[] = realtimeRunningKpis.length > 0
-    ? realtimeRunningKpis
-    : (kpiDashboard?.runningKpis || []).map(kpi => ({
-        kpiId: kpi.kpiId,
-        indicator: kpi.indicator,
-        owner: kpi.owner,
-        startTime: new Date().toISOString(), // Fallback since KpiStatusDto doesn't have startTime
-        progress: undefined,
-        estimatedCompletion: undefined,
-      }));
-
-
+  const runningKpis: RunningKpi[] =
+    realtimeRunningKpis.length > 0
+      ? realtimeRunningKpis
+      : (kpiDashboard?.runningKpis || []).map(kpi => ({
+          kpiId: kpi.kpiId,
+          indicator: kpi.indicator,
+          owner: kpi.owner,
+          startTime: new Date().toISOString(), // Fallback since KpiStatusDto doesn't have startTime
+          progress: undefined,
+          estimatedCompletion: undefined,
+        }));
 
   return (
     <RunningKpisDisplay

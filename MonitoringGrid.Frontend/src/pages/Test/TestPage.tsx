@@ -12,18 +12,10 @@ const TestPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Application Status
           </Typography>
-          <Typography variant="body1">
-            ✅ React is working
-          </Typography>
-          <Typography variant="body1">
-            ✅ Material-UI is working
-          </Typography>
-          <Typography variant="body1">
-            ✅ Routing is working
-          </Typography>
-          <Typography variant="body1">
-            ✅ TypeScript compilation is successful
-          </Typography>
+          <Typography variant="body1">✅ React is working</Typography>
+          <Typography variant="body1">✅ Material-UI is working</Typography>
+          <Typography variant="body1">✅ Routing is working</Typography>
+          <Typography variant="body1">✅ TypeScript compilation is successful</Typography>
         </CardContent>
       </Card>
     </Box>

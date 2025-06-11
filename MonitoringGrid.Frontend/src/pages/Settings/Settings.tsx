@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import {
   Box,
   Grid,
-  Card,
   CardContent,
   Typography,
-  TextField,
-  Button,
   Switch,
   FormControlLabel,
   Divider,
@@ -32,7 +29,15 @@ import {
 } from '@mui/icons-material';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
+import {
+  UltimatePageHeader,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+  UltimateCard,
+  UltimateInputField,
+  UltimateSelect,
+  UltimateButton
+} from '@/components/UltimateEnterprise';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -123,7 +128,7 @@ const Settings: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="User Settings"
         subtitle="Configure your personal preferences and notification settings"
       />
@@ -144,14 +149,14 @@ const Settings: React.FC = () => {
         <TabPanel value={activeTab} index={0}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Email Notification Preferences
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="SMTP Server"
                         value={emailSettings.smtpServer}
@@ -161,7 +166,7 @@ const Settings: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="Port"
                         type="number"
@@ -172,7 +177,7 @@ const Settings: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="Username"
                         value={emailSettings.username}
@@ -182,7 +187,7 @@ const Settings: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="Password"
                         type="password"
@@ -193,7 +198,7 @@ const Settings: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="From Address"
                         value={emailSettings.fromAddress}
@@ -203,7 +208,7 @@ const Settings: React.FC = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField
+                      <UltimateInputField
                         fullWidth
                         label="From Name"
                         value={emailSettings.fromName}
@@ -227,22 +232,26 @@ const Settings: React.FC = () => {
                     </Grid>
                   </Grid>
                   <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="contained"
+                    <UltimateButton
+                      gradient="primary"
                       startIcon={<SaveIcon />}
                       onClick={handleSaveEmailSettings}
                     >
                       Save Settings
-                    </Button>
-                    <Button variant="outlined" onClick={handleTestEmail}>
+                    </UltimateButton>
+                    <UltimateButton
+                      variant="outlined"
+                      gradient="info"
+                      onClick={handleTestEmail}
+                    >
                       Send Test Email
-                    </Button>
+                    </UltimateButton>
                   </Box>
                 </CardContent>
-              </Card>
+              </UltimateCard>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Email Status
@@ -251,7 +260,7 @@ const Settings: React.FC = () => {
                     <ListItem>
                       <ListItemText primary="Service Status" />
                       <ListItemSecondaryAction>
-                        <StatusChip status="success" />
+                        <UltimateStatusChip status="success" />
                       </ListItemSecondaryAction>
                     </ListItem>
                     <ListItem>
@@ -268,7 +277,7 @@ const Settings: React.FC = () => {
                     </ListItem>
                   </List>
                 </CardContent>
-              </Card>
+              </UltimateCard>
             </Grid>
           </Grid>
         </TabPanel>
@@ -277,7 +286,7 @@ const Settings: React.FC = () => {
         <TabPanel value={activeTab} index={1}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Personal Preferences
@@ -343,26 +352,27 @@ const Settings: React.FC = () => {
                     </Grid>
                   </Grid>
                   <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="contained"
+                    <UltimateButton
+                      gradient="primary"
                       startIcon={<SaveIcon />}
                       onClick={handleSaveSmsSettings}
                     >
                       Save Settings
-                    </Button>
-                    <Button
+                    </UltimateButton>
+                    <UltimateButton
                       variant="outlined"
+                      gradient="info"
                       onClick={handleTestSms}
                       disabled={!smsSettings.enabled}
                     >
                       Send Test SMS
-                    </Button>
+                    </UltimateButton>
                   </Box>
                 </CardContent>
-              </Card>
+              </UltimateCard>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     SMS Status
@@ -371,7 +381,7 @@ const Settings: React.FC = () => {
                     <ListItem>
                       <ListItemText primary="Service Status" />
                       <ListItemSecondaryAction>
-                        <StatusChip status={smsSettings.enabled ? 'success' : 'inactive'} />
+                        <UltimateStatusChip status={smsSettings.enabled ? 'success' : 'inactive'} />
                       </ListItemSecondaryAction>
                     </ListItem>
                     <ListItem>
@@ -388,7 +398,7 @@ const Settings: React.FC = () => {
                     </ListItem>
                   </List>
                 </CardContent>
-              </Card>
+              </UltimateCard>
             </Grid>
           </Grid>
         </TabPanel>
@@ -397,7 +407,7 @@ const Settings: React.FC = () => {
         <TabPanel value={activeTab} index={2}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     KPI Defaults
@@ -447,10 +457,10 @@ const Settings: React.FC = () => {
                     </Grid>
                   </Grid>
                 </CardContent>
-              </Card>
+              </UltimateCard>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card>
+              <UltimateCard>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Data Management

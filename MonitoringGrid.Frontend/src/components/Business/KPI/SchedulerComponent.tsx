@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Card,
   CardContent,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
   Grid,
   Chip,
-  Button,
   Alert,
   Accordion,
   AccordionSummary,
@@ -34,6 +27,7 @@ import {
   getScheduleDescription,
   COMMON_CRON_PRESETS,
 } from '@/utils/schedulerUtils';
+import { UltimateCard, UltimateInputField, UltimateSelect } from '@/components/UltimateEnterprise';
 
 interface SchedulerComponentProps {
   value: ScheduleConfiguration;
@@ -113,7 +107,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
   };
 
   return (
-    <Card>
+    <UltimateCard>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <ScheduleIcon color="primary" />
@@ -144,25 +138,25 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
             <>
               {/* Schedule Type Selection */}
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth disabled={disabled}>
-                  <InputLabel>Schedule Type</InputLabel>
-                  <Select
-                    value={value.scheduleType}
-                    onChange={e => handleScheduleTypeChange(e.target.value as ScheduleType)}
-                    label="Schedule Type"
-                  >
-                    <MenuItem value={ScheduleType.Interval}>Interval (Every X minutes)</MenuItem>
-                    <MenuItem value={ScheduleType.Cron}>Cron Expression</MenuItem>
-                    <MenuItem value={ScheduleType.OneTime}>One Time</MenuItem>
-                  </Select>
-                </FormControl>
+                <UltimateSelect
+                  fullWidth
+                  label="Schedule Type"
+                  value={value.scheduleType}
+                  onChange={e => handleScheduleTypeChange(e.target.value as ScheduleType)}
+                  disabled={disabled}
+                  options={[
+                    { value: ScheduleType.Interval, label: 'Interval (Every X minutes)' },
+                    { value: ScheduleType.Cron, label: 'Cron Expression' },
+                    { value: ScheduleType.OneTime, label: 'One Time' },
+                  ]}
+                />
               </Grid>
 
               {/* Interval Configuration */}
               {value.scheduleType === ScheduleType.Interval && (
                 <>
                   <Grid item xs={12} md={6}>
-                    <TextField
+                    <UltimateInputField
                       fullWidth
                       label="Interval (minutes)"
                       type="number"
@@ -202,7 +196,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
               {value.scheduleType === ScheduleType.Cron && (
                 <>
                   <Grid item xs={12}>
-                    <TextField
+                    <UltimateInputField
                       fullWidth
                       label="Cron Expression"
                       value={value.cronExpression || ''}
@@ -246,7 +240,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
               {/* One Time Configuration */}
               {value.scheduleType === ScheduleType.OneTime && (
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <UltimateInputField
                     fullWidth
                     label="Execution Date & Time"
                     type="datetime-local"
@@ -275,7 +269,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                     <AccordionDetails>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                          <TextField
+                          <UltimateInputField
                             fullWidth
                             label="Start Date"
                             type="datetime-local"
@@ -294,7 +288,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                           />
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField
+                          <UltimateInputField
                             fullWidth
                             label="End Date"
                             type="datetime-local"
@@ -313,7 +307,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
                           />
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField
+                          <UltimateInputField
                             fullWidth
                             label="Timezone"
                             value={value.timezone || 'UTC'}
@@ -356,7 +350,7 @@ export const SchedulerComponent: React.FC<SchedulerComponentProps> = ({
           )}
         </Grid>
       </CardContent>
-    </Card>
+    </UltimateCard>
   );
 };
 

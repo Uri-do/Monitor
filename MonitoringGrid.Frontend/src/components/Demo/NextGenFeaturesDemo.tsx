@@ -70,27 +70,17 @@ function TabPanel(props: TabPanelProps) {
 
 export const NextGenFeaturesDemo: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
-  
+
   // Store hooks
   const preferences = useAppSelectors.preferences();
-  const updatePreferences = useAppStore((state) => state.updatePreferences);
-  
+  const updatePreferences = useAppStore(state => state.updatePreferences);
+
   // Feature hooks
   const { announce, preferences: a11yPrefs } = useAccessibility();
   const { activeUsers, isCollaborationEnabled } = useCollaboration();
-  const { 
-    isInstallable, 
-    isInstalled, 
-    isOnline, 
-    isUpdateAvailable, 
-    install, 
-    update 
-  } = usePWA();
-  const { 
-    metrics, 
-    performanceScore, 
-    performanceStatus 
-  } = usePerformanceMonitor('NextGenFeaturesDemo');
+  const { isInstallable, isInstalled, isOnline, isUpdateAvailable, install, update } = usePWA();
+  const { metrics, performanceScore, performanceStatus } =
+    usePerformanceMonitor('NextGenFeaturesDemo');
 
   // Sample data for virtualized table
   const generateLargeDataset = (size: number) => {
@@ -121,11 +111,11 @@ export const NextGenFeaturesDemo: React.FC = () => {
   ];
 
   const virtualizedColumns = [
-    { field: 'id' as keyof typeof largeDataset[0], headerName: 'ID', width: 80 },
-    { field: 'name' as keyof typeof largeDataset[0], headerName: 'Name', width: 150 },
-    { field: 'value' as keyof typeof largeDataset[0], headerName: 'Value', width: 100 },
-    { field: 'category' as keyof typeof largeDataset[0], headerName: 'Category', width: 120 },
-    { field: 'status' as keyof typeof largeDataset[0], headerName: 'Status', width: 100 },
+    { field: 'id' as keyof (typeof largeDataset)[0], headerName: 'ID', width: 80 },
+    { field: 'name' as keyof (typeof largeDataset)[0], headerName: 'Name', width: 150 },
+    { field: 'value' as keyof (typeof largeDataset)[0], headerName: 'Value', width: 100 },
+    { field: 'category' as keyof (typeof largeDataset)[0], headerName: 'Category', width: 120 },
+    { field: 'status' as keyof (typeof largeDataset)[0], headerName: 'Status', width: 100 },
   ];
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -133,45 +123,66 @@ export const NextGenFeaturesDemo: React.FC = () => {
     announce(`Switched to tab ${newValue + 1}`);
   };
 
-  const handleAccessibilityToggle = (setting: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newPrefs = {
-      ...preferences,
-      accessibility: {
-        ...preferences.accessibility,
-        [setting]: event.target.checked,
-      },
+  const handleAccessibilityToggle =
+    (setting: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newPrefs = {
+        ...preferences,
+        accessibility: {
+          ...preferences.accessibility,
+          [setting]: event.target.checked,
+        },
+      };
+      updatePreferences(newPrefs);
+      announce(`${setting} ${event.target.checked ? 'enabled' : 'disabled'}`);
     };
-    updatePreferences(newPrefs);
-    announce(`${setting} ${event.target.checked ? 'enabled' : 'disabled'}`);
-  };
 
   const round3Features = [
     {
       title: 'Progressive Web App (PWA)',
       description: 'Full PWA capabilities with offline support and installability',
       icon: <PWAIcon color="primary" />,
-      benefits: ['Offline functionality', 'App-like experience', 'Push notifications', 'Background sync'],
+      benefits: [
+        'Offline functionality',
+        'App-like experience',
+        'Push notifications',
+        'Background sync',
+      ],
       status: isInstalled ? 'Installed' : isInstallable ? 'Installable' : 'Available',
     },
     {
       title: 'Advanced Virtualization',
       description: 'High-performance rendering for large datasets',
       icon: <VirtualizationIcon color="success" />,
-      benefits: ['10,000+ rows support', 'Smooth scrolling', 'Memory efficient', 'Real-time updates'],
+      benefits: [
+        '10,000+ rows support',
+        'Smooth scrolling',
+        'Memory efficient',
+        'Real-time updates',
+      ],
       status: 'Active',
     },
     {
       title: 'Accessibility (a11y)',
       description: 'Comprehensive accessibility features and WCAG compliance',
       icon: <AccessibilityIcon color="info" />,
-      benefits: ['Screen reader support', 'Keyboard navigation', 'High contrast mode', 'Focus management'],
+      benefits: [
+        'Screen reader support',
+        'Keyboard navigation',
+        'High contrast mode',
+        'Focus management',
+      ],
       status: 'Enhanced',
     },
     {
       title: 'Advanced State Management',
       description: 'Zustand-powered global state with persistence',
       icon: <StateIcon color="warning" />,
-      benefits: ['Persistent preferences', 'Performance tracking', 'Offline state', 'Real-time sync'],
+      benefits: [
+        'Persistent preferences',
+        'Performance tracking',
+        'Offline state',
+        'Real-time sync',
+      ],
       status: 'Optimized',
     },
     {
@@ -185,7 +196,12 @@ export const NextGenFeaturesDemo: React.FC = () => {
       title: 'Advanced Testing',
       description: 'Comprehensive testing utilities and accessibility testing',
       icon: <TestingIcon color="error" />,
-      benefits: ['Component testing', 'Accessibility testing', 'Performance testing', 'Mock utilities'],
+      benefits: [
+        'Component testing',
+        'Accessibility testing',
+        'Performance testing',
+        'Mock utilities',
+      ],
       status: 'Ready',
     },
   ];
@@ -195,11 +211,12 @@ export const NextGenFeaturesDemo: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Next-Generation Frontend Features - Round 3
       </Typography>
-      
+
       <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="h6">🚀 Round 3: Next-Gen Features Successfully Applied!</Typography>
         <Typography>
-          PWA capabilities, advanced virtualization, accessibility enhancements, and cutting-edge collaboration features are now active.
+          PWA capabilities, advanced virtualization, accessibility enhancements, and cutting-edge
+          collaboration features are now active.
         </Typography>
       </Alert>
 
@@ -213,9 +230,7 @@ export const NextGenFeaturesDemo: React.FC = () => {
               </Typography>
               <Stack direction="row" spacing={1} alignItems="center">
                 {isOnline ? <OnlineIcon color="success" /> : <OfflineIcon color="error" />}
-                <Typography variant="body2">
-                  {isOnline ? 'Online' : 'Offline'}
-                </Typography>
+                <Typography variant="body2">{isOnline ? 'Online' : 'Offline'}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                 {isInstalled && <Chip label="Installed" color="success" size="small" />}
@@ -244,9 +259,11 @@ export const NextGenFeaturesDemo: React.FC = () => {
                 <Typography variant="h3" color="primary">
                   {performanceScore}
                 </Typography>
-                <Chip 
+                <Chip
                   label={performanceStatus.toUpperCase()}
-                  color={performanceScore >= 90 ? 'success' : performanceScore >= 75 ? 'info' : 'warning'}
+                  color={
+                    performanceScore >= 90 ? 'success' : performanceScore >= 75 ? 'info' : 'warning'
+                  }
                   icon={<PerformanceIcon />}
                 />
               </Box>
@@ -267,9 +284,7 @@ export const NextGenFeaturesDemo: React.FC = () => {
                 <Badge badgeContent={activeUsers.length} color="primary">
                   <CollaborationIcon color={isCollaborationEnabled ? 'success' : 'disabled'} />
                 </Badge>
-                <Typography variant="body2">
-                  {activeUsers.length} active users
-                </Typography>
+                <Typography variant="body2">{activeUsers.length} active users</Typography>
               </Box>
               <Typography variant="caption" color="text.secondary">
                 {isCollaborationEnabled ? 'Connected' : 'Offline mode'}
@@ -328,7 +343,8 @@ export const NextGenFeaturesDemo: React.FC = () => {
             Virtualized Data Table - 10,000 Rows
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            High-performance virtualization handles large datasets with smooth scrolling and minimal memory usage.
+            High-performance virtualization handles large datasets with smooth scrolling and minimal
+            memory usage.
           </Typography>
           <VirtualizedDataTable
             data={largeDataset.slice(0, 1000)} // Show first 1000 for demo
@@ -346,7 +362,8 @@ export const NextGenFeaturesDemo: React.FC = () => {
             Advanced Chart Components
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Interactive charts with export capabilities, real-time updates, and accessibility features.
+            Interactive charts with export capabilities, real-time updates, and accessibility
+            features.
           </Typography>
           <AdvancedChart
             title="System Performance Metrics"
@@ -362,7 +379,7 @@ export const NextGenFeaturesDemo: React.FC = () => {
             enableFullscreen
             enableRefresh
             onRefresh={() => console.log('Refreshing chart...')}
-            onExport={(format) => console.log(`Exporting as ${format}`)}
+            onExport={format => console.log(`Exporting as ${format}`)}
             thresholds={[
               { value: 80, label: 'Target', color: '#4caf50' },
               { value: 60, label: 'Warning', color: '#ff9800' },
@@ -385,17 +402,19 @@ export const NextGenFeaturesDemo: React.FC = () => {
                     <ListItemIcon>
                       {isInstalled ? <InstallIcon color="success" /> : <InstallIcon />}
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="App Installation" 
-                      secondary={isInstalled ? 'Installed' : isInstallable ? 'Available' : 'Not available'}
+                    <ListItemText
+                      primary="App Installation"
+                      secondary={
+                        isInstalled ? 'Installed' : isInstallable ? 'Available' : 'Not available'
+                      }
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       {isOnline ? <OnlineIcon color="success" /> : <OfflineIcon color="error" />}
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Network Status" 
+                    <ListItemText
+                      primary="Network Status"
                       secondary={isOnline ? 'Online' : 'Offline'}
                     />
                   </ListItem>
@@ -403,8 +422,8 @@ export const NextGenFeaturesDemo: React.FC = () => {
                     <ListItemIcon>
                       {isUpdateAvailable ? <UpdateIcon color="warning" /> : <UpdateIcon />}
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Updates" 
+                    <ListItemText
+                      primary="Updates"
                       secondary={isUpdateAvailable ? 'Update available' : 'Up to date'}
                     />
                   </ListItem>
@@ -465,8 +484,8 @@ export const NextGenFeaturesDemo: React.FC = () => {
                     }
                     label="Reduced Motion"
                   />
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     onClick={() => announce('This is a test announcement for screen readers')}
                   >
                     Test Screen Reader Announcement
@@ -481,26 +500,26 @@ export const NextGenFeaturesDemo: React.FC = () => {
                 </Typography>
                 <List dense>
                   <ListItem>
-                    <ListItemText 
-                      primary="Skip Links" 
+                    <ListItemText
+                      primary="Skip Links"
                       secondary="Press Tab to see skip navigation links"
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Keyboard Navigation" 
+                    <ListItemText
+                      primary="Keyboard Navigation"
                       secondary="Full keyboard support for all interactions"
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Focus Management" 
+                    <ListItemText
+                      primary="Focus Management"
                       secondary="Automatic focus handling for dialogs and navigation"
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="ARIA Labels" 
+                    <ListItemText
+                      primary="ARIA Labels"
                       secondary="Comprehensive ARIA labeling for screen readers"
                     />
                   </ListItem>

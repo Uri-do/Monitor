@@ -120,40 +120,38 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       theme.palette.info.main,
       theme.palette.success.main,
     ];
-    
+
     return series.map((s, index) => s.color || baseColors[index % baseColors.length]);
   }, [series, theme]);
 
   // Custom tooltip component
-  const CustomTooltip = customTooltip || (({ active, payload, label }: any) => {
-    if (!active || !payload || !payload.length) return null;
+  const CustomTooltip =
+    customTooltip ||
+    (({ active, payload, label }: any) => {
+      if (!active || !payload || !payload.length) return null;
 
-    return (
-      <Card sx={{ p: 1, maxWidth: 300 }}>
-        <Typography variant="body2" fontWeight="bold">
-          {label}
-        </Typography>
-        {payload.map((entry: any, index: number) => (
-          <Typography
-            key={index}
-            variant="body2"
-            sx={{ color: entry.color }}
-          >
-            {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
+      return (
+        <Card sx={{ p: 1, maxWidth: 300 }}>
+          <Typography variant="body2" fontWeight="bold">
+            {label}
           </Typography>
-        ))}
-      </Card>
-    );
-  });
+          {payload.map((entry: any, index: number) => (
+            <Typography key={index} variant="body2" sx={{ color: entry.color }}>
+              {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
+            </Typography>
+          ))}
+        </Card>
+      );
+    });
 
   // Export functionality
   const handleExport = (format: 'png' | 'svg' | 'csv') => {
     if (format === 'csv') {
       const csvContent = [
         Object.keys(data[0] || {}).join(','),
-        ...data.map(row => Object.values(row).join(','))
+        ...data.map(row => Object.values(row).join(',')),
       ].join('\n');
-      
+
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -165,7 +163,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       // For PNG/SVG export, you would typically use a library like html2canvas
       console.log(`Exporting as ${format}`);
     }
-    
+
     onExport?.(format);
     setMenuAnchor(null);
   };
@@ -201,7 +199,12 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       case 'line':
         return (
           <LineChart {...commonProps}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.1)} />}
+            {showGrid && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.text.primary, 0.1)}
+              />
+            )}
             <XAxis dataKey="timestamp" stroke={theme.palette.text.secondary} />
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
@@ -227,14 +230,21 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
                 animationDuration={animations ? 1000 : 0}
               />
             ))}
-            {showBrush && <Brush dataKey="timestamp" height={30} stroke={theme.palette.primary.main} />}
+            {showBrush && (
+              <Brush dataKey="timestamp" height={30} stroke={theme.palette.primary.main} />
+            )}
           </LineChart>
         );
 
       case 'area':
         return (
           <AreaChart {...commonProps}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.1)} />}
+            {showGrid && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.text.primary, 0.1)}
+              />
+            )}
             <XAxis dataKey="timestamp" stroke={theme.palette.text.secondary} />
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
@@ -256,7 +266,12 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       case 'bar':
         return (
           <BarChart {...commonProps}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.1)} />}
+            {showGrid && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.text.primary, 0.1)}
+              />
+            )}
             <XAxis dataKey="timestamp" stroke={theme.palette.text.secondary} />
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
@@ -297,7 +312,12 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       case 'scatter':
         return (
           <ScatterChart {...commonProps}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.1)} />}
+            {showGrid && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.text.primary, 0.1)}
+              />
+            )}
             <XAxis dataKey="x" stroke={theme.palette.text.secondary} />
             <YAxis dataKey="y" stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
@@ -317,7 +337,12 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
       case 'composed':
         return (
           <ComposedChart {...commonProps}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.primary, 0.1)} />}
+            {showGrid && (
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.text.primary, 0.1)}
+              />
+            )}
             <XAxis dataKey="timestamp" stroke={theme.palette.text.secondary} />
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
@@ -370,7 +395,9 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
   if (loading) {
     return (
       <Card sx={{ height }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        <CardContent
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+        >
           <Typography>Loading chart...</Typography>
         </CardContent>
       </Card>
@@ -380,7 +407,9 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
   if (error) {
     return (
       <Card sx={{ height }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        <CardContent
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+        >
           <Typography color="error">{error}</Typography>
         </CardContent>
       </Card>
@@ -391,7 +420,9 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
     <Card ref={chartRef} sx={{ height: isFullscreen ? '100vh' : height }}>
       <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}
+        >
           <Box>
             {title && (
               <Typography variant="h6" component="h2">
@@ -415,7 +446,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
               </Tooltip>
             )}
             {enableFullscreen && (
-              <Tooltip title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+              <Tooltip title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
                 <IconButton size="small" onClick={toggleFullscreen}>
                   <FullscreenIcon />
                 </IconButton>
@@ -423,7 +454,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
             )}
             {enableExport && (
               <Tooltip title="Export">
-                <IconButton size="small" onClick={(e) => setMenuAnchor(e.currentTarget)}>
+                <IconButton size="small" onClick={e => setMenuAnchor(e.currentTarget)}>
                   <MoreIcon />
                 </IconButton>
               </Tooltip>
@@ -443,11 +474,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
         </Box>
 
         {/* Export Menu */}
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={() => setMenuAnchor(null)}
-        >
+        <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
           <MenuItem onClick={() => handleExport('png')}>
             <DownloadIcon sx={{ mr: 1 }} />
             Export as PNG

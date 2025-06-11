@@ -44,11 +44,11 @@ export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
   onClick,
 }) => {
   return (
-    <Card 
+    <Card
       elevation={4}
       onClick={onClick}
-      sx={{ 
-        background: gradientMap[gradient], 
+      sx={{
+        background: gradientMap[gradient],
         color: 'white',
         border: `1px solid ${gradientMap[gradient].replace('135deg', '135deg').replace('100%', '30%')}`,
         transition: 'all 0.3s ease-in-out',
@@ -56,7 +56,7 @@ export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: `0 12px 30px ${shadowColorMap[gradient]}`,
-        }
+        },
       }}
     >
       <CardContent sx={{ p: 3 }}>
@@ -66,13 +66,13 @@ export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
             {title}
           </Typography>
         </Box>
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
           <Typography variant="h3" fontWeight="bold">
             {value}
           </Typography>
           {chip && (
-            <Chip 
+            <Chip
               label={chip.label}
               color={chip.color || 'default'}
               sx={{
@@ -83,18 +83,14 @@ export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
             />
           )}
         </Box>
-        
+
         {subtitle && (
           <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
             {subtitle}
           </Typography>
         )}
-        
-        {action && (
-          <Box sx={{ mt: 2 }}>
-            {action}
-          </Box>
-        )}
+
+        {action && <Box sx={{ mt: 2 }}>{action}</Box>}
       </CardContent>
     </Card>
   );

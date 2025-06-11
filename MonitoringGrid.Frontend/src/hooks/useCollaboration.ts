@@ -67,8 +67,8 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
 
   const queryClient = useQueryClient();
   const { connection, isConnected } = useRealtime();
-  const currentPage = useAppStore((state) => state.currentPage);
-  const setConnectionState = useAppStore((state) => state.setConnectionState);
+  const currentPage = useAppStore(state => state.currentPage);
+  const setConnectionState = useAppStore(state => state.setConnectionState);
 
   const [activeUsers, setActiveUsers] = useState<CollaborationUser[]>([]);
   const [cursors, setCursors] = useState<Map<string, CollaborationCursor>>(new Map());
@@ -82,103 +82,133 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
   // Generate user color
   const generateUserColor = useCallback((userId: string) => {
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-      '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEAA7',
+      '#DDA0DD',
+      '#98D8C8',
+      '#F7DC6F',
+      '#BB8FCE',
+      '#85C1E9',
     ];
     const hash = userId.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
+      a = (a << 5) - a + b.charCodeAt(0);
       return a & a;
     }, 0);
     return colors[Math.abs(hash) % colors.length];
   }, []);
 
   // Send cursor position
-  const sendCursorPosition = useCallback((x: number, y: number) => {
-    if (!enableCursors || !isConnected || !connection) return;
+  const sendCursorPosition = useCallback(
+    (x: number, y: number) => {
+      if (!enableCursors || !isConnected || !connection) return;
 
-    const now = new Date();
-    if (now.getTime() - lastCursorUpdate.current.getTime() < cursorUpdateInterval) {
-      return;
-    }
+      const now = new Date();
+      if (now.getTime() - lastCursorUpdate.current.getTime() < cursorUpdateInterval) {
+        return;
+      }
 
-    lastCursorUpdate.current = now;
-    connection.invoke('UpdateCursor', { x, y, page: currentPage });
-  }, [enableCursors, isConnected, connection, currentPage, cursorUpdateInterval]);
+      lastCursorUpdate.current = now;
+      connection.invoke('UpdateCursor', { x, y, page: currentPage });
+    },
+    [enableCursors, isConnected, connection, currentPage, cursorUpdateInterval]
+  );
 
   // Send presence update
-  const sendPresenceUpdate = useCallback((action?: string) => {
-    if (!enablePresence || !isConnected || !connection) return;
+  const sendPresenceUpdate = useCallback(
+    (action?: string) => {
+      if (!enablePresence || !isConnected || !connection) return;
 
-    connection.invoke('UpdatePresence', {
-      page: currentPage,
-      action,
-      timestamp: new Date(),
-    });
-  }, [enablePresence, isConnected, connection, currentPage]);
+      connection.invoke('UpdatePresence', {
+        page: currentPage,
+        action,
+        timestamp: new Date(),
+      });
+    },
+    [enablePresence, isConnected, connection, currentPage]
+  );
 
   // Send edit notification
-  const sendEditNotification = useCallback((edit: Omit<CollaborationEdit, 'id' | 'userId' | 'timestamp'>) => {
-    if (!isConnected || !connection) return;
+  const sendEditNotification = useCallback(
+    (edit: Omit<CollaborationEdit, 'id' | 'userId' | 'timestamp'>) => {
+      if (!isConnected || !connection) return;
 
-    const editWithMetadata = {
-      ...edit,
-      id: crypto.randomUUID(),
-      timestamp: new Date(),
-    };
+      const editWithMetadata = {
+        ...edit,
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+      };
 
-    connection.invoke('NotifyEdit', editWithMetadata);
-    setActiveEdits(prev => [...prev, editWithMetadata as CollaborationEdit]);
-  }, [isConnected, connection]);
+      connection.invoke('NotifyEdit', editWithMetadata);
+      setActiveEdits(prev => [...prev, editWithMetadata as CollaborationEdit]);
+    },
+    [isConnected, connection]
+  );
 
   // Add comment
-  const addComment = useCallback((comment: Omit<CollaborationComment, 'id' | 'userId' | 'timestamp' | 'replies'>) => {
-    if (!enableComments || !isConnected || !connection) return;
+  const addComment = useCallback(
+    (comment: Omit<CollaborationComment, 'id' | 'userId' | 'timestamp' | 'replies'>) => {
+      if (!enableComments || !isConnected || !connection) return;
 
-    const commentWithMetadata = {
-      ...comment,
-      id: crypto.randomUUID(),
-      timestamp: new Date(),
-      replies: [],
-    };
+      const commentWithMetadata = {
+        ...comment,
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        replies: [],
+      };
 
-    connection.invoke('AddComment', commentWithMetadata);
-    setComments(prev => [...prev, commentWithMetadata as CollaborationComment]);
-  }, [enableComments, isConnected, connection]);
+      connection.invoke('AddComment', commentWithMetadata);
+      setComments(prev => [...prev, commentWithMetadata as CollaborationComment]);
+    },
+    [enableComments, isConnected, connection]
+  );
 
   // Resolve comment
-  const resolveComment = useCallback((commentId: string) => {
-    if (!enableComments || !isConnected || !connection) return;
+  const resolveComment = useCallback(
+    (commentId: string) => {
+      if (!enableComments || !isConnected || !connection) return;
 
-    connection.invoke('ResolveComment', commentId);
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId ? { ...comment, resolved: true } : comment
-    ));
-  }, [enableComments, isConnected, connection]);
+      connection.invoke('ResolveComment', commentId);
+      setComments(prev =>
+        prev.map(comment => (comment.id === commentId ? { ...comment, resolved: true } : comment))
+      );
+    },
+    [enableComments, isConnected, connection]
+  );
 
   // Detect conflicts
-  const detectConflict = useCallback((edit: CollaborationEdit) => {
-    if (!enableConflictDetection) return false;
+  const detectConflict = useCallback(
+    (edit: CollaborationEdit) => {
+      if (!enableConflictDetection) return false;
 
-    const recentEdits = activeEdits.filter(e => 
-      e.entityType === edit.entityType &&
-      e.entityId === edit.entityId &&
-      e.field === edit.field &&
-      e.userId !== edit.userId &&
-      new Date().getTime() - e.timestamp.getTime() < 30000 // 30 seconds
-    );
+      const recentEdits = activeEdits.filter(
+        e =>
+          e.entityType === edit.entityType &&
+          e.entityId === edit.entityId &&
+          e.field === edit.field &&
+          e.userId !== edit.userId &&
+          new Date().getTime() - e.timestamp.getTime() < 30000 // 30 seconds
+      );
 
-    return recentEdits.length > 0;
-  }, [enableConflictDetection, activeEdits]);
+      return recentEdits.length > 0;
+    },
+    [enableConflictDetection, activeEdits]
+  );
 
   // Mouse move handler for cursor tracking
-  const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (enableCursors) {
-      clearTimeout(cursorTimeoutRef.current);
-      cursorTimeoutRef.current = setTimeout(() => {
-        sendCursorPosition(event.clientX, event.clientY);
-      }, 16); // ~60fps
-    }
-  }, [enableCursors, sendCursorPosition]);
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (enableCursors) {
+        clearTimeout(cursorTimeoutRef.current);
+        cursorTimeoutRef.current = setTimeout(() => {
+          sendCursorPosition(event.clientX, event.clientY);
+        }, 16); // ~60fps
+      }
+    },
+    [enableCursors, sendCursorPosition]
+  );
 
   // Setup SignalR event handlers
   useEffect(() => {
@@ -189,16 +219,16 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       setActiveUsers(prev => {
         const existing = prev.find(u => u.id === user.id);
         if (existing) {
-          return prev.map(u => u.id === user.id ? { ...user, isOnline: true } : u);
+          return prev.map(u => (u.id === user.id ? { ...user, isOnline: true } : u));
         }
         return [...prev, { ...user, color: generateUserColor(user.id), isOnline: true }];
       });
     };
 
     const handleUserLeft = (userId: string) => {
-      setActiveUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, isOnline: false, lastSeen: new Date() } : u
-      ));
+      setActiveUsers(prev =>
+        prev.map(u => (u.id === userId ? { ...u, isOnline: false, lastSeen: new Date() } : u))
+      );
       setCursors(prev => {
         const newCursors = new Map(prev);
         newCursors.delete(userId);
@@ -207,20 +237,27 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
     };
 
     const handlePresenceUpdate = (userId: string, presence: { page: string; action?: string }) => {
-      setActiveUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, currentPage: presence.page, currentAction: presence.action } : u
-      ));
+      setActiveUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, currentPage: presence.page, currentAction: presence.action } : u
+        )
+      );
     };
 
     // Cursor events
     const handleCursorUpdate = (userId: string, cursor: { x: number; y: number }) => {
       if (enableCursors) {
-        setCursors(prev => new Map(prev.set(userId, {
-          userId,
-          x: cursor.x,
-          y: cursor.y,
-          timestamp: new Date(),
-        })));
+        setCursors(
+          prev =>
+            new Map(
+              prev.set(userId, {
+                userId,
+                x: cursor.x,
+                y: cursor.y,
+                timestamp: new Date(),
+              })
+            )
+        );
       }
     };
 
@@ -236,8 +273,8 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       }
 
       // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: [edit.entityType.toLowerCase(), edit.entityId] 
+      queryClient.invalidateQueries({
+        queryKey: [edit.entityType.toLowerCase(), edit.entityId],
       });
     };
 
@@ -250,9 +287,9 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
 
     const handleCommentResolved = (commentId: string) => {
       if (enableComments) {
-        setComments(prev => prev.map(comment => 
-          comment.id === commentId ? { ...comment, resolved: true } : comment
-        ));
+        setComments(prev =>
+          prev.map(comment => (comment.id === commentId ? { ...comment, resolved: true } : comment))
+        );
       }
     };
 
@@ -274,7 +311,15 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       connection.off('CommentAdded', handleCommentAdded);
       connection.off('CommentResolved', handleCommentResolved);
     };
-  }, [connection, isConnected, enableCursors, enableComments, detectConflict, generateUserColor, queryClient]);
+  }, [
+    connection,
+    isConnected,
+    enableCursors,
+    enableComments,
+    detectConflict,
+    generateUserColor,
+    queryClient,
+  ]);
 
   // Setup mouse tracking
   useEffect(() => {
@@ -299,7 +344,8 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
       setCursors(prev => {
         const newCursors = new Map();
         prev.forEach((cursor, userId) => {
-          if (now.getTime() - cursor.timestamp.getTime() < 5000) { // 5 seconds
+          if (now.getTime() - cursor.timestamp.getTime() < 5000) {
+            // 5 seconds
             newCursors.set(userId, cursor);
           }
         });
@@ -318,13 +364,13 @@ export const useCollaboration = (options: UseCollaborationOptions = {}) => {
     activeEdits,
     comments,
     conflicts,
-    
+
     // Actions
     sendPresenceUpdate,
     sendEditNotification,
     addComment,
     resolveComment,
-    
+
     // Utilities
     isCollaborationEnabled: isConnected,
     getUserColor: generateUserColor,

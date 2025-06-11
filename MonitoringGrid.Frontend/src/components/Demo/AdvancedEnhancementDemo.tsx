@@ -89,38 +89,44 @@ export const AdvancedEnhancementDemo: React.FC = () => {
     { id: 2, name: 'Modern Data Table', status: 'Complete', performance: 88, type: 'Component' },
     { id: 3, name: 'Error Boundary', status: 'Complete', performance: 92, type: 'Component' },
     { id: 4, name: 'Performance Monitor', status: 'Complete', performance: 90, type: 'Hook' },
-    { id: 5, name: 'Dashboard Optimization', status: 'Complete', performance: 85, type: 'Enhancement' },
+    {
+      id: 5,
+      name: 'Dashboard Optimization',
+      status: 'Complete',
+      performance: 85,
+      type: 'Enhancement',
+    },
   ];
 
   const columns: GridColDef[] = [
     { field: 'name', headerName: 'Enhancement', width: 200 },
-    { 
-      field: 'status', 
-      headerName: 'Status', 
+    {
+      field: 'status',
+      headerName: 'Status',
       width: 120,
-      renderCell: (params) => (
-        <Chip 
-          label={params.value} 
+      renderCell: params => (
+        <Chip
+          label={params.value}
           color={params.value === 'Complete' ? 'success' : 'warning'}
           size="small"
         />
-      )
+      ),
     },
-    { 
-      field: 'performance', 
-      headerName: 'Performance', 
+    {
+      field: 'performance',
+      headerName: 'Performance',
       width: 120,
-      renderCell: (params) => (
+      renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LinearProgress 
-            variant="determinate" 
-            value={params.value} 
+          <LinearProgress
+            variant="determinate"
+            value={params.value}
             sx={{ width: 60, height: 6 }}
             color={params.value >= 90 ? 'success' : params.value >= 80 ? 'warning' : 'error'}
           />
           <Typography variant="caption">{params.value}%</Typography>
         </Box>
-      )
+      ),
     },
     { field: 'type', headerName: 'Type', width: 120 },
   ];
@@ -144,11 +150,16 @@ export const AdvancedEnhancementDemo: React.FC = () => {
 
   const getPerformanceColor = (status: string) => {
     switch (status) {
-      case 'excellent': return 'success';
-      case 'good': return 'info';
-      case 'fair': return 'warning';
-      case 'poor': return 'error';
-      default: return 'default';
+      case 'excellent':
+        return 'success';
+      case 'good':
+        return 'info';
+      case 'fair':
+        return 'warning';
+      case 'poor':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -157,25 +168,45 @@ export const AdvancedEnhancementDemo: React.FC = () => {
       title: 'Enhanced Dashboard Hooks',
       description: 'Optimized real-time dashboard data fetching with intelligent caching',
       icon: <SpeedIcon color="primary" />,
-      benefits: ['5-second refresh intervals', 'Smart cache invalidation', 'Real-time optimization', 'Reduced API calls'],
+      benefits: [
+        '5-second refresh intervals',
+        'Smart cache invalidation',
+        'Real-time optimization',
+        'Reduced API calls',
+      ],
     },
     {
       title: 'Modern Data Table',
       description: 'Advanced DataGrid component with filtering, search, and export',
       icon: <TableIcon color="success" />,
-      benefits: ['Built-in search & filters', 'Column visibility control', 'Export functionality', 'Professional UI'],
+      benefits: [
+        'Built-in search & filters',
+        'Column visibility control',
+        'Export functionality',
+        'Professional UI',
+      ],
     },
     {
       title: 'Performance Monitoring',
       description: 'Real-time performance tracking and alerting system',
       icon: <AnalyticsIcon color="info" />,
-      benefits: ['Render time tracking', 'Memory usage monitoring', 'Cache hit rate analysis', 'Performance alerts'],
+      benefits: [
+        'Render time tracking',
+        'Memory usage monitoring',
+        'Cache hit rate analysis',
+        'Performance alerts',
+      ],
     },
     {
       title: 'Error Boundary System',
       description: 'Comprehensive error handling with recovery options',
       icon: <BugIcon color="warning" />,
-      benefits: ['Graceful error handling', 'Detailed error reporting', 'Retry mechanisms', 'User-friendly fallbacks'],
+      benefits: [
+        'Graceful error handling',
+        'Detailed error reporting',
+        'Retry mechanisms',
+        'User-friendly fallbacks',
+      ],
     },
   ];
 
@@ -184,11 +215,12 @@ export const AdvancedEnhancementDemo: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Advanced Frontend Enhancements - Round 2
       </Typography>
-      
+
       <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="h6">🚀 Round 2 Enhancements Successfully Applied!</Typography>
         <Typography>
-          Advanced performance monitoring, error handling, and modern data components are now active.
+          Advanced performance monitoring, error handling, and modern data components are now
+          active.
         </Typography>
       </Alert>
 
@@ -205,7 +237,7 @@ export const AdvancedEnhancementDemo: React.FC = () => {
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 30px rgba(102, 126, 234, 0.4)',
-              }
+              },
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -248,7 +280,7 @@ export const AdvancedEnhancementDemo: React.FC = () => {
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 30px rgba(79, 172, 254, 0.4)',
-              }
+              },
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -279,7 +311,7 @@ export const AdvancedEnhancementDemo: React.FC = () => {
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 30px rgba(67, 233, 123, 0.4)',
-              }
+              },
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -303,18 +335,20 @@ export const AdvancedEnhancementDemo: React.FC = () => {
           <Card
             elevation={4}
             sx={{
-              background: alerts.length > 0
-                ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)'
-                : 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+              background:
+                alerts.length > 0
+                  ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)'
+                  : 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
               color: alerts.length > 0 ? 'white' : 'black',
               border: `1px solid ${alerts.length > 0 ? 'rgba(255, 107, 107, 0.3)' : 'rgba(168, 237, 234, 0.3)'}`,
               transition: 'all 0.3s ease-in-out',
               '&:hover': {
                 transform: 'translateY(-4px)',
-                boxShadow: alerts.length > 0
-                  ? '0 12px 30px rgba(255, 107, 107, 0.4)'
-                  : '0 12px 30px rgba(168, 237, 234, 0.4)',
-              }
+                boxShadow:
+                  alerts.length > 0
+                    ? '0 12px 30px rgba(255, 107, 107, 0.4)'
+                    : '0 12px 30px rgba(168, 237, 234, 0.4)',
+              },
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -340,7 +374,7 @@ export const AdvancedEnhancementDemo: React.FC = () => {
                     color: 'white',
                     '&:hover': {
                       background: 'rgba(255, 255, 255, 0.3)',
-                    }
+                    },
                   }}
                 >
                   Clear Alerts
@@ -360,11 +394,14 @@ export const AdvancedEnhancementDemo: React.FC = () => {
           borderRadius: 3,
         }}
       >
-        <Box sx={{
-          borderBottom: 1,
-          borderColor: 'divider',
-          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-        }}>
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            background:
+              'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+          }}
+        >
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
@@ -374,14 +411,15 @@ export const AdvancedEnhancementDemo: React.FC = () => {
                 textTransform: 'none',
                 fontSize: '1rem',
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                  background:
+                    'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
                   color: '#667eea',
-                }
+                },
               },
               '& .MuiTabs-indicator': {
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 height: 3,
-              }
+              },
             }}
           >
             <Tab label="🚀 Ultimate Data Table" />
@@ -397,13 +435,24 @@ export const AdvancedEnhancementDemo: React.FC = () => {
           </Typography>
           {/* Demo: Modern Data Table (simplified for demo) */}
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>Round 2 Enhancements</Typography>
+            <Typography variant="h6" gutterBottom>
+              Round 2 Enhancements
+            </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               Advanced components and performance optimizations
             </Typography>
             <Box sx={{ mt: 2 }}>
-              {sampleData.map((item) => (
-                <Box key={item.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, borderBottom: '1px solid #eee' }}>
+              {sampleData.map(item => (
+                <Box
+                  key={item.id}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    py: 1,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <Typography>{item.name}</Typography>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Chip label={item.status} color="success" size="small" />
@@ -413,8 +462,12 @@ export const AdvancedEnhancementDemo: React.FC = () => {
               ))}
             </Box>
             <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-              <Button size="small" onClick={() => trackNetworkRequest()}>Refresh</Button>
-              <Button size="small" onClick={() => trackNetworkRequest()}>Export</Button>
+              <Button size="small" onClick={() => trackNetworkRequest()}>
+                Refresh
+              </Button>
+              <Button size="small" onClick={() => trackNetworkRequest()}>
+                Export
+              </Button>
             </Box>
           </Paper>
         </TabPanel>
@@ -431,17 +484,11 @@ export const AdvancedEnhancementDemo: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography>
-                  {errorTrigger ?
-                    "Demo Error: This shows how error boundaries work!" :
-                    "No error here! Click the button to trigger one."
-                  }
+                  {errorTrigger
+                    ? 'Demo Error: This shows how error boundaries work!'
+                    : 'No error here! Click the button to trigger one.'}
                 </Typography>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={triggerError}
-                  sx={{ mt: 2 }}
-                >
+                <Button variant="contained" color="error" onClick={triggerError} sx={{ mt: 2 }}>
                   Trigger Demo Error
                 </Button>
                 {errorTrigger && (
@@ -470,28 +517,19 @@ export const AdvancedEnhancementDemo: React.FC = () => {
                 </Typography>
                 <List dense>
                   <ListItem>
-                    <ListItemText 
-                      primary="Render Time" 
+                    <ListItemText
+                      primary="Render Time"
                       secondary={`${metrics.renderTime.toFixed(2)}ms`}
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Query Count" 
-                      secondary={metrics.queryCount}
-                    />
+                    <ListItemText primary="Query Count" secondary={metrics.queryCount} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Network Requests" 
-                      secondary={metrics.networkRequests}
-                    />
+                    <ListItemText primary="Network Requests" secondary={metrics.networkRequests} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Error Count" 
-                      secondary={metrics.errorCount}
-                    />
+                    <ListItemText primary="Error Count" secondary={metrics.errorCount} />
                   </ListItem>
                 </List>
               </Paper>
@@ -512,7 +550,7 @@ export const AdvancedEnhancementDemo: React.FC = () => {
                         <ListItemIcon>
                           <ErrorIcon color={alert.type === 'error' ? 'error' : 'warning'} />
                         </ListItemIcon>
-                        <ListItemText 
+                        <ListItemText
                           primary={alert.message}
                           secondary={`${alert.metric}: ${alert.value} (threshold: ${alert.threshold})`}
                         />

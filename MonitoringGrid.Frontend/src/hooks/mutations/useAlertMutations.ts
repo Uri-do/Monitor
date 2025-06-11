@@ -14,15 +14,15 @@ export const useResolveAlert = () => {
     mutationFn: (request: ResolveAlertRequest) => alertApi.resolveAlert(request),
     onSuccess: (_, variables) => {
       toast.success('Alert resolved successfully');
-      
+
       // Invalidate and refetch alert lists
       queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
-      
+
       // Update the specific alert in cache if we have the alertId
       if (variables.alertId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.alerts.detail(variables.alertId) });
       }
-      
+
       // Update dashboard data
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.alerts.statistics() });
@@ -44,7 +44,7 @@ export const useBulkResolveAlerts = () => {
     onSuccess: (_, variables) => {
       const count = variables.alertIds.length;
       toast.success(`${count} alert${count > 1 ? 's' : ''} resolved successfully`);
-      
+
       // Invalidate all alert-related queries
       queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
@@ -66,7 +66,7 @@ export const useCreateManualAlert = () => {
     mutationFn: alertApi.createManualAlert,
     onSuccess: () => {
       toast.success('Manual alert created successfully');
-      
+
       // Invalidate alert lists to show the new alert
       queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });

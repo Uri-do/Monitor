@@ -136,7 +136,11 @@ export interface LatticeBasedScheme {
  */
 class QuantumCryptoService {
   // Key Management
-  async generateQuantumKeyPair(algorithm: string, securityLevel: number, usage: string): Promise<QuantumKeyPair> {
+  async generateQuantumKeyPair(
+    algorithm: string,
+    securityLevel: number,
+    usage: string
+  ): Promise<QuantumKeyPair> {
     try {
       const response = await api.post('/quantum/keys/generate', {
         algorithm,
@@ -266,7 +270,10 @@ class QuantumCryptoService {
   }
 
   // Post-Quantum Certificates
-  async generatePostQuantumCertificate(subject: string, algorithm: string): Promise<PostQuantumCertificate> {
+  async generatePostQuantumCertificate(
+    subject: string,
+    algorithm: string
+  ): Promise<PostQuantumCertificate> {
     try {
       const response = await api.post('/quantum/certificates', {
         subject,
@@ -359,7 +366,10 @@ class QuantumCryptoService {
   }
 
   // Quantum Key Distribution
-  async establishQKDChannel(participants: string[], protocol: string): Promise<QuantumKeyDistribution> {
+  async establishQKDChannel(
+    participants: string[],
+    protocol: string
+  ): Promise<QuantumKeyDistribution> {
     try {
       const response = await api.post('/quantum/qkd/establish', {
         participants,
@@ -423,10 +433,10 @@ class QuantumCryptoService {
   // Mock data methods
   private getMockQuantumKeyPair(): QuantumKeyPair {
     return {
-      id: 'qkey-' + Date.now(),
+      id: `qkey-${Date.now()}`,
       algorithm: 'CRYSTALS-Kyber',
-      publicKey: 'quantum-public-key-' + Math.random().toString(36).substr(2, 20),
-      privateKeyId: 'qpriv-' + Math.random().toString(36).substr(2, 20),
+      publicKey: `quantum-public-key-${Math.random().toString(36).substr(2, 20)}`,
+      privateKeyId: `qpriv-${Math.random().toString(36).substr(2, 20)}`,
       keySize: 1568,
       securityLevel: 3,
       createdAt: new Date().toISOString(),
@@ -438,11 +448,11 @@ class QuantumCryptoService {
 
   private getMockQuantumSignature(): QuantumSignature {
     return {
-      id: 'qsig-' + Date.now(),
+      id: `qsig-${Date.now()}`,
       algorithm: 'CRYSTALS-Dilithium',
-      signature: 'quantum-signature-' + Math.random().toString(36).substr(2, 50),
+      signature: `quantum-signature-${Math.random().toString(36).substr(2, 50)}`,
       publicKeyId: 'qkey-123',
-      messageHash: 'sha3-256-hash-' + Math.random().toString(36).substr(2, 20),
+      messageHash: `sha3-256-hash-${Math.random().toString(36).substr(2, 20)}`,
       timestamp: new Date().toISOString(),
       verified: true,
       securityLevel: 3,
@@ -452,9 +462,9 @@ class QuantumCryptoService {
 
   private getMockQuantumEncryption(): QuantumEncryption {
     return {
-      id: 'qenc-' + Date.now(),
+      id: `qenc-${Date.now()}`,
       algorithm: 'CRYSTALS-Kyber',
-      ciphertext: 'quantum-ciphertext-' + Math.random().toString(36).substr(2, 100),
+      ciphertext: `quantum-ciphertext-${Math.random().toString(36).substr(2, 100)}`,
       publicKeyId: 'qkey-123',
       encryptedAt: new Date().toISOString(),
       keySize: 1568,
@@ -469,10 +479,14 @@ class QuantumCryptoService {
 
   private getMockQuantumRandomness(): QuantumRandomness {
     return {
-      id: 'qrand-' + Date.now(),
+      id: `qrand-${Date.now()}`,
       source: 'quantum_hardware',
       entropy: 7.98,
-      randomBytes: Array.from({ length: 32 }, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(''),
+      randomBytes: Array.from({ length: 32 }, () =>
+        Math.floor(Math.random() * 256)
+          .toString(16)
+          .padStart(2, '0')
+      ).join(''),
       timestamp: new Date().toISOString(),
       verified: true,
       tests: {
@@ -495,7 +509,7 @@ class QuantumCryptoService {
 
   private getMockPostQuantumCertificate(): PostQuantumCertificate {
     return {
-      id: 'qcert-' + Date.now(),
+      id: `qcert-${Date.now()}`,
       subject: 'CN=MonitoringGrid,O=Enterprise,C=US',
       issuer: 'CN=Quantum CA,O=Quantum Authority,C=US',
       serialNumber: Math.random().toString(16).substr(2, 16),
@@ -514,7 +528,7 @@ class QuantumCryptoService {
 
   private getMockQuantumThreatAssessment(): QuantumThreatAssessment {
     return {
-      id: 'qthreat-' + Date.now(),
+      id: `qthreat-${Date.now()}`,
       algorithm: 'RSA-2048',
       currentSecurity: 112,
       quantumThreat: {
@@ -532,7 +546,7 @@ class QuantumCryptoService {
 
   private getMockQuantumKeyDistribution(): QuantumKeyDistribution {
     return {
-      id: 'qkd-' + Date.now(),
+      id: `qkd-${Date.now()}`,
       protocol: 'BB84',
       participants: ['alice@example.com', 'bob@example.com'],
       keyLength: 256,
@@ -547,7 +561,7 @@ class QuantumCryptoService {
 
   private getMockLatticeBasedScheme(): LatticeBasedScheme {
     return {
-      id: 'lattice-' + Date.now(),
+      id: `lattice-${Date.now()}`,
       scheme: 'RLWE',
       parameters: {
         dimension: 1024,

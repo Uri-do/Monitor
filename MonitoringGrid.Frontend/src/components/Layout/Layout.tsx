@@ -32,7 +32,6 @@ import {
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
   AdminPanelSettings,
-
   History as HistoryIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -420,7 +419,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 lineHeight: 1,
               }}
             >
-              {isDemoMode ? 'Interactive demo - explore our features' : 'Real-time monitoring dashboard'}
+              {isDemoMode
+                ? 'Interactive demo - explore our features'
+                : 'Real-time monitoring dashboard'}
             </Typography>
           </Box>
 
@@ -598,8 +599,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               }
             >
               <Typography variant="body2">
-                <strong>Demo Mode:</strong> You're exploring MonitoringGrid's features.
-                Some functionality may be limited or simulated.
+                <strong>Demo Mode:</strong> You're exploring MonitoringGrid's features. Some
+                functionality may be limited or simulated.
               </Typography>
             </Alert>
           )}

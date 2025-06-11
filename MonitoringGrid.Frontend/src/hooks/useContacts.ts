@@ -11,7 +11,7 @@ export const useContacts = (filters?: { isActive?: boolean; search?: string }) =
   return useQuery({
     queryKey: queryKeys.contacts.list(filters || {}),
     queryFn: () => contactApi.getContacts(filters),
-    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
     refetchInterval: 5 * 60 * 1000, // Auto-refetch every 5 minutes
   });

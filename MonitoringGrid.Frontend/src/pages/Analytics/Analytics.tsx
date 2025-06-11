@@ -1,18 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
-  Stack,
-  Paper,
-} from '@mui/material';
+import { Box, Grid, CardContent, Typography, Chip, Stack, Paper } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
@@ -44,7 +31,14 @@ import {
 } from 'recharts';
 import { useAlertStatistics } from '@/hooks/useAlerts';
 import { useKpiDashboard } from '@/hooks/useKpis';
-import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
+import {
+  UltimatePageHeader,
+  UltimateLoadingSpinner,
+  UltimateStatusChip,
+  UltimateCard,
+  UltimateSelect,
+  UltimateMetricCard,
+} from '@/components/UltimateEnterprise';
 
 // Analytics data will be loaded from real API endpoints
 // No mock data - show empty state when no real data is available
@@ -60,15 +54,15 @@ const Analytics: React.FC = () => {
   const isLoading = alertStatsLoading || kpiLoading;
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading analytics..." />;
+    return <UltimateLoadingSpinner message="Loading analytics..." />;
   }
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="Analytics & Insights"
         subtitle="Comprehensive monitoring system analytics and performance metrics"
-        actions={[
+        secondaryActions={[
           {
             label: 'Export Report',
             icon: <Assessment />,
@@ -76,36 +70,36 @@ const Analytics: React.FC = () => {
               // TODO: Implement export functionality
               console.log('Export report');
             },
-            variant: 'outlined',
+            gradient: 'info',
           },
         ]}
       />
 
       {/* Time Range Selector */}
       <Box sx={{ mb: 3 }}>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Time Range</InputLabel>
-          <Select value={timeRange} label="Time Range" onChange={e => setTimeRange(e.target.value)}>
-            <MenuItem value="7d">Last 7 Days</MenuItem>
-            <MenuItem value="30d">Last 30 Days</MenuItem>
-            <MenuItem value="90d">Last 90 Days</MenuItem>
-          </Select>
-        </FormControl>
+        <UltimateSelect
+          label="Time Range"
+          value={timeRange}
+          onChange={e => setTimeRange(e.target.value)}
+          options={[
+            { value: '7d', label: 'Last 7 Days' },
+            { value: '30d', label: 'Last 30 Days' },
+            { value: '90d', label: 'Last 90 Days' },
+          ]}
+          sx={{ minWidth: 200 }}
+        />
       </Box>
 
       <Grid container spacing={3}>
         {/* Key Metrics Cards */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Assessment color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Total KPIs</Typography>
-              </Box>
-              <Typography variant="h3" color="primary">
-                {kpiDashboard?.totalKpis || 0}
-              </Typography>
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <UltimateMetricCard
+            title="Total KPIs"
+            value={(kpiDashboard?.totalKpis || 0).toString()}
+            icon={<Assessment />}
+            gradient="primary"
+            chip={
+              <Stack direction="row" spacing={1}>
                 <Chip
                   label={`${kpiDashboard?.activeKpis || 0} Active`}
                   color="success"
@@ -117,21 +111,18 @@ const Analytics: React.FC = () => {
                   size="small"
                 />
               </Stack>
-            </CardContent>
-          </Card>
+            }
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Warning color="warning" sx={{ mr: 1 }} />
-                <Typography variant="h6">Alerts Today</Typography>
-              </Box>
-              <Typography variant="h3" color="warning.main">
-                {alertStats?.alertsToday || 0}
-              </Typography>
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <UltimateMetricCard
+            title="Alerts Today"
+            value={(alertStats?.alertsToday || 0).toString()}
+            icon={<Warning />}
+            gradient="warning"
+            chip={
+              <Stack direction="row" spacing={1}>
                 <Chip
                   label={`${alertStats?.unresolvedAlerts || 0} Unresolved`}
                   color="error"
@@ -143,51 +134,33 @@ const Analytics: React.FC = () => {
                   size="small"
                 />
               </Stack>
-            </CardContent>
-          </Card>
+            }
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircle color="success" sx={{ mr: 1 }} />
-                <Typography variant="h6">Success Rate</Typography>
-              </Box>
-              <Typography variant="h3" color="success.main">
-                {alertStats?.successRate ? `${alertStats.successRate.toFixed(1)}%` : 'N/A'}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Based on recent executions
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <UltimateMetricCard
+            title="Success Rate"
+            value={alertStats?.successRate ? `${alertStats.successRate.toFixed(1)}%` : 'N/A'}
+            icon={<CheckCircle />}
+            gradient="success"
+            subtitle="Based on recent executions"
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Timeline color="info" sx={{ mr: 1 }} />
-                <Typography variant="h6">Avg Response</Typography>
-              </Box>
-              <Typography variant="h3" color="info.main">
-                {alertStats?.avgResponseTime ? `${alertStats.avgResponseTime}ms` : 'N/A'}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Average execution time
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+          <UltimateMetricCard
+            title="Avg Response"
+            value={alertStats?.avgResponseTime ? `${alertStats.avgResponseTime}ms` : 'N/A'}
+            icon={<Timeline />}
+            gradient="info"
+            subtitle="Average execution time"
+          />
         </Grid>
 
         {/* Alert Trends Chart */}
         <Grid item xs={12} lg={8}>
-          <Card>
+          <UltimateCard>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Alert Trends Over Time
@@ -220,7 +193,14 @@ const Analytics: React.FC = () => {
                     />
                   </AreaChart>
                 ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                    }}
+                  >
                     <Typography variant="body2" color="text.secondary">
                       No trend data available
                     </Typography>
@@ -228,12 +208,12 @@ const Analytics: React.FC = () => {
                 )}
               </ResponsiveContainer>
             </CardContent>
-          </Card>
+          </UltimateCard>
         </Grid>
 
         {/* Alert Severity Distribution */}
         <Grid item xs={12} lg={4}>
-          <Card>
+          <UltimateCard>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Alert Severity Distribution
@@ -256,7 +236,14 @@ const Analytics: React.FC = () => {
                     <Tooltip />
                   </RechartsPieChart>
                 ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                    }}
+                  >
                     <Typography variant="body2" color="text.secondary">
                       No severity data available
                     </Typography>
@@ -264,12 +251,12 @@ const Analytics: React.FC = () => {
                 )}
               </ResponsiveContainer>
             </CardContent>
-          </Card>
+          </UltimateCard>
         </Grid>
 
         {/* KPI Performance Table */}
         <Grid item xs={12}>
-          <Card>
+          <UltimateCard>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 KPI Performance Summary
@@ -289,14 +276,16 @@ const Analytics: React.FC = () => {
                     {kpiDashboard?.recentExecutions && kpiDashboard.recentExecutions.length > 0 ? (
                       kpiDashboard.recentExecutions.map((execution, index) => (
                         <tr key={index} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                          <td style={{ padding: '12px', fontWeight: 'medium' }}>{execution.indicator}</td>
+                          <td style={{ padding: '12px', fontWeight: 'medium' }}>
+                            {execution.indicator}
+                          </td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>1</td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>0</td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>
                             {execution.isSuccessful ? '100' : '0'}%
                           </td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>
-                            <StatusChip
+                            <UltimateStatusChip
                               status={execution.isSuccessful ? 'success' : 'error'}
                             />
                           </td>
@@ -315,7 +304,7 @@ const Analytics: React.FC = () => {
                 </table>
               </Box>
             </CardContent>
-          </Card>
+          </UltimateCard>
         </Grid>
       </Grid>
     </Box>

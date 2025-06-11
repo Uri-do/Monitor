@@ -151,7 +151,7 @@ class AIService {
       return response.data;
     } catch (error) {
       console.warn('AI training endpoint not available, returning mock response');
-      return { modelId: 'mock-model-' + Date.now(), status: 'training' };
+      return { modelId: `mock-model-${Date.now()}`, status: 'training' };
     }
   }
 
@@ -180,7 +180,11 @@ class AIService {
     }
   }
 
-  async generatePrediction(modelId: string, kpiId: number, inputData: Record<string, any>): Promise<Prediction> {
+  async generatePrediction(
+    modelId: string,
+    kpiId: number,
+    inputData: Record<string, any>
+  ): Promise<Prediction> {
     try {
       const response = await api.post('/ai/predictions', { modelId, kpiId, inputData });
       return response.data;
@@ -368,7 +372,8 @@ class AIService {
         id: 'insight-1',
         type: 'correlation',
         title: 'Strong correlation between KPI 1 and KPI 3',
-        description: 'Analysis shows a strong positive correlation (r=0.87) between these KPIs over the last 30 days',
+        description:
+          'Analysis shows a strong positive correlation (r=0.87) between these KPIs over the last 30 days',
         confidence: 0.87,
         impact: 'high',
         kpis: [1, 3],
@@ -416,7 +421,13 @@ class AIService {
     description: string;
     stages: Array<{
       name: string;
-      type: 'data_ingestion' | 'preprocessing' | 'feature_engineering' | 'training' | 'validation' | 'deployment';
+      type:
+        | 'data_ingestion'
+        | 'preprocessing'
+        | 'feature_engineering'
+        | 'training'
+        | 'validation'
+        | 'deployment';
       configuration: Record<string, any>;
     }>;
     schedule?: string;
@@ -427,19 +438,21 @@ class AIService {
       return response.data;
     } catch (error) {
       console.warn('ML pipeline creation endpoint not available, returning mock response');
-      return { pipelineId: 'pipeline-' + Date.now(), status: 'created' };
+      return { pipelineId: `pipeline-${Date.now()}`, status: 'created' };
     }
   }
 
-  async getMLPipelines(): Promise<Array<{
-    id: string;
-    name: string;
-    status: 'running' | 'completed' | 'failed' | 'paused';
-    lastRun: string;
-    nextRun?: string;
-    accuracy: number;
-    stages: number;
-  }>> {
+  async getMLPipelines(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      status: 'running' | 'completed' | 'failed' | 'paused';
+      lastRun: string;
+      nextRun?: string;
+      accuracy: number;
+      stages: number;
+    }>
+  > {
     try {
       const response = await api.get('/ai/pipelines');
       return response.data;
@@ -476,30 +489,56 @@ class AIService {
     } catch (error) {
       console.warn('AutoML endpoint not available, returning mock response');
       return {
-        experimentId: 'automl-' + Date.now(),
+        experimentId: `automl-${Date.now()}`,
         status: 'running',
         estimatedCompletion: new Date(Date.now() + config.timeLimit * 1000).toISOString(),
       };
     }
   }
 
-  async getFeatureImportance(modelId: string): Promise<Array<{
-    feature: string;
-    importance: number;
-    type: 'numerical' | 'categorical' | 'temporal';
-    correlation: number;
-    description: string;
-  }>> {
+  async getFeatureImportance(modelId: string): Promise<
+    Array<{
+      feature: string;
+      importance: number;
+      type: 'numerical' | 'categorical' | 'temporal';
+      correlation: number;
+      description: string;
+    }>
+  > {
     try {
       const response = await api.get(`/ai/models/${modelId}/feature-importance`);
       return response.data;
     } catch (error) {
       console.warn('Feature importance endpoint not available, returning mock data');
       return [
-        { feature: 'historical_average', importance: 0.35, type: 'numerical', correlation: 0.82, description: 'Historical average of KPI values' },
-        { feature: 'time_of_day', importance: 0.28, type: 'temporal', correlation: 0.65, description: 'Hour of day when KPI was measured' },
-        { feature: 'day_of_week', importance: 0.22, type: 'categorical', correlation: 0.58, description: 'Day of the week' },
-        { feature: 'seasonal_factor', importance: 0.15, type: 'numerical', correlation: 0.45, description: 'Seasonal adjustment factor' },
+        {
+          feature: 'historical_average',
+          importance: 0.35,
+          type: 'numerical',
+          correlation: 0.82,
+          description: 'Historical average of KPI values',
+        },
+        {
+          feature: 'time_of_day',
+          importance: 0.28,
+          type: 'temporal',
+          correlation: 0.65,
+          description: 'Hour of day when KPI was measured',
+        },
+        {
+          feature: 'day_of_week',
+          importance: 0.22,
+          type: 'categorical',
+          correlation: 0.58,
+          description: 'Day of the week',
+        },
+        {
+          feature: 'seasonal_factor',
+          importance: 0.15,
+          type: 'numerical',
+          correlation: 0.45,
+          description: 'Seasonal adjustment factor',
+        },
       ];
     }
   }
@@ -537,7 +576,12 @@ class AIService {
         confidence: 0.78,
         explanation: {
           topFactors: [
-            { factor: 'historical_trend', contribution: 0.45, value: 'increasing', impact: 'positive' },
+            {
+              factor: 'historical_trend',
+              contribution: 0.45,
+              value: 'increasing',
+              impact: 'positive',
+            },
             { factor: 'seasonal_factor', contribution: 0.32, value: 1.15, impact: 'positive' },
             { factor: 'day_of_week', contribution: -0.12, value: 'monday', impact: 'negative' },
           ],
@@ -550,18 +594,21 @@ class AIService {
         },
         alternatives: [
           { scenario: 'pessimistic', prediction: 78.2, probability: 0.15 },
-          { scenario: 'optimistic', prediction: 92.1, probability: 0.20 },
+          { scenario: 'optimistic', prediction: 92.1, probability: 0.2 },
         ],
       };
     }
   }
 
-  async performHyperparameterTuning(modelId: string, config: {
-    algorithm: 'grid_search' | 'random_search' | 'bayesian_optimization' | 'genetic_algorithm';
-    parameters: Record<string, any>;
-    maxIterations: number;
-    crossValidationFolds: number;
-  }): Promise<{
+  async performHyperparameterTuning(
+    modelId: string,
+    config: {
+      algorithm: 'grid_search' | 'random_search' | 'bayesian_optimization' | 'genetic_algorithm';
+      parameters: Record<string, any>;
+      maxIterations: number;
+      crossValidationFolds: number;
+    }
+  ): Promise<{
     tuningId: string;
     status: string;
     bestParameters?: Record<string, any>;
@@ -574,14 +621,17 @@ class AIService {
     } catch (error) {
       console.warn('Hyperparameter tuning endpoint not available, returning mock response');
       return {
-        tuningId: 'tune-' + Date.now(),
+        tuningId: `tune-${Date.now()}`,
         status: 'running',
         progress: 25,
       };
     }
   }
 
-  async getModelDrift(modelId: string, timeframe: string): Promise<{
+  async getModelDrift(
+    modelId: string,
+    timeframe: string
+  ): Promise<{
     driftDetected: boolean;
     driftScore: number;
     driftType: 'data_drift' | 'concept_drift' | 'prediction_drift';
@@ -630,14 +680,17 @@ class AIService {
     } catch (error) {
       console.warn('Ensemble model creation endpoint not available, returning mock response');
       return {
-        ensembleId: 'ensemble-' + Date.now(),
+        ensembleId: `ensemble-${Date.now()}`,
         status: 'training',
         expectedAccuracy: 0.91,
       };
     }
   }
 
-  async getRealtimeInference(modelId: string, features: Record<string, any>): Promise<{
+  async getRealtimeInference(
+    modelId: string,
+    features: Record<string, any>
+  ): Promise<{
     prediction: any;
     confidence: number;
     latency: number;

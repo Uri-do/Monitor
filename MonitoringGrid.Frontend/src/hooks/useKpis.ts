@@ -11,7 +11,7 @@ export const useKpis = (filters?: { isActive?: boolean; owner?: string; priority
   return useQuery({
     queryKey: queryKeys.kpis.list(filters || {}),
     queryFn: () => kpiApi.getKpis(filters),
-    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     refetchInterval: 2 * 60 * 1000, // Auto-refetch every 2 minutes for updated lastRun times
   });
@@ -62,7 +62,7 @@ export const useKpiDashboard = () => {
   return useQuery({
     queryKey: queryKeys.kpis.dashboard(),
     queryFn: kpiApi.getDashboard,
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     staleTime: 5 * 1000, // Consider data fresh for 5 seconds for real-time dashboard
     refetchInterval: 5 * 1000, // Auto-refetch every 5 seconds for real-time updates
     retry: 2,

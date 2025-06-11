@@ -18,7 +18,7 @@ const AuthTest: React.FC = () => {
     username: 'testuser',
     password: 'Test123!',
   });
-  
+
   const [results, setResults] = useState<{
     login?: any;
     dashboard?: any;
@@ -26,25 +26,25 @@ const AuthTest: React.FC = () => {
     alertDashboard?: any;
     error?: string;
   }>({});
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   const testLogin = async () => {
     setIsLoading(true);
     setResults({});
-    
+
     try {
       // Test 1: Login
       console.log('Testing login with:', credentials);
       const loginResponse = await securityApi.login(credentials);
       console.log('Login response:', loginResponse);
-      
+
       setResults(prev => ({ ...prev, login: loginResponse }));
-      
+
       if (loginResponse.isSuccess && loginResponse.token) {
         // Store token for subsequent requests
         localStorage.setItem('auth_token', loginResponse.token.accessToken);
-        
+
         // Test 2: Get Dashboard (protected endpoint)
         try {
           console.log('Testing dashboard access...');
@@ -53,18 +53,19 @@ const AuthTest: React.FC = () => {
           setResults(prev => ({ ...prev, dashboard: dashboardResponse }));
         } catch (dashboardError) {
           console.error('Dashboard error:', dashboardError);
-          setResults(prev => ({ 
-            ...prev, 
-            dashboard: { error: dashboardError instanceof Error ? dashboardError.message : 'Dashboard failed' }
+          setResults(prev => ({
+            ...prev,
+            dashboard: {
+              error: dashboardError instanceof Error ? dashboardError.message : 'Dashboard failed',
+            },
           }));
         }
       }
-      
     } catch (error) {
       console.error('Login error:', error);
-      setResults(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Login failed' 
+      setResults(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Login failed',
       }));
     } finally {
       setIsLoading(false);
@@ -81,22 +82,21 @@ const AuthTest: React.FC = () => {
       console.error('Health error:', error);
       setResults(prev => ({
         ...prev,
-        health: { error: error instanceof Error ? error.message : 'Health check failed' }
+        health: { error: error instanceof Error ? error.message : 'Health check failed' },
       }));
     }
   };
 
   const testAlertDashboard = async () => {
     try {
-      console.log('Testing alert dashboard endpoint...');
       const alertResponse = await kpiApi.getDashboard();
-      console.log('Alert dashboard response:', alertResponse);
       setResults(prev => ({ ...prev, alertDashboard: alertResponse }));
     } catch (error) {
-      console.error('Alert dashboard error:', error);
       setResults(prev => ({
         ...prev,
-        alertDashboard: { error: error instanceof Error ? error.message : 'Alert dashboard failed' }
+        alertDashboard: {
+          error: error instanceof Error ? error.message : 'Alert dashboard failed',
+        },
       }));
     }
   };
@@ -105,7 +105,6 @@ const AuthTest: React.FC = () => {
     setResults({});
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
-    console.log('Cleared all tokens and results');
   };
 
   return (
@@ -113,7 +112,7 @@ const AuthTest: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Authentication Flow Test
       </Typography>
-      
+
       <Grid container spacing={3}>
         {/* Test Controls */}
         <Grid item xs={12} md={4}>
@@ -122,62 +121,45 @@ const AuthTest: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Test Credentials
               </Typography>
-              
+
               <TextField
                 fullWidth
                 label="Username"
                 value={credentials.username}
-                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                onChange={e => setCredentials(prev => ({ ...prev, username: e.target.value }))}
                 margin="normal"
               />
-              
+
               <TextField
                 fullWidth
                 label="Password"
                 type="password"
                 value={credentials.password}
-                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                onChange={e => setCredentials(prev => ({ ...prev, password: e.target.value }))}
                 margin="normal"
               />
-              
+
               <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button
-                  variant="contained"
-                  onClick={testLogin}
-                  disabled={isLoading}
-                  fullWidth
-                >
+                <Button variant="contained" onClick={testLogin} disabled={isLoading} fullWidth>
                   {isLoading ? 'Testing...' : 'Test Login & Dashboard'}
                 </Button>
-                
-                <Button
-                  variant="outlined"
-                  onClick={testHealth}
-                  fullWidth
-                >
+
+                <Button variant="outlined" onClick={testHealth} fullWidth>
                   Test Health (Public)
                 </Button>
 
-                <Button
-                  variant="outlined"
-                  onClick={testAlertDashboard}
-                  fullWidth
-                >
+                <Button variant="outlined" onClick={testAlertDashboard} fullWidth>
                   Test Alert Dashboard
                 </Button>
-                
-                <Button
-                  variant="text"
-                  onClick={clearResults}
-                  fullWidth
-                >
+
+                <Button variant="text" onClick={clearResults} fullWidth>
                   Clear Results
                 </Button>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        
+
         {/* Test Results */}
         <Grid item xs={12} md={8}>
           <Card>
@@ -185,13 +167,13 @@ const AuthTest: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Test Results
               </Typography>
-              
+
               {results.error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <strong>Error:</strong> {results.error}
                 </Alert>
               )}
-              
+
               {results.login && (
                 <Paper sx={{ p: 2, mb: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>
@@ -202,7 +184,7 @@ const AuthTest: React.FC = () => {
                   </pre>
                 </Paper>
               )}
-              
+
               {results.dashboard && (
                 <Paper sx={{ p: 2, mb: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>
@@ -213,7 +195,7 @@ const AuthTest: React.FC = () => {
                   </pre>
                 </Paper>
               )}
-              
+
               {results.health && (
                 <Paper sx={{ p: 2, mb: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>
@@ -239,9 +221,9 @@ const AuthTest: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
-      
+
       <Divider sx={{ my: 3 }} />
-      
+
       <Typography variant="h6" gutterBottom>
         Test Instructions:
       </Typography>

@@ -84,10 +84,7 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   preloadedState?: any;
 }
 
-export const renderWithProviders = (
-  ui: ReactElement,
-  options: CustomRenderOptions = {}
-) => {
+export const renderWithProviders = (ui: ReactElement, options: CustomRenderOptions = {}) => {
   const {
     initialEntries = ['/'],
     queryClient = new QueryClient({
@@ -139,7 +136,7 @@ export const createTestQueryClient = () => {
 
 // Mock API responses
 export const mockApiResponse = <T,>(data: T, delay = 0) => {
-  return new Promise<T>((resolve) => {
+  return new Promise<T>(resolve => {
     setTimeout(() => resolve(data), delay);
   });
 };
@@ -178,9 +175,10 @@ export const checkAccessibility = async (container: HTMLElement) => {
   // Check for missing form labels
   const inputs = container.querySelectorAll('input, select, textarea');
   inputs.forEach((input, index) => {
-    const hasLabel = input.getAttribute('aria-label') || 
-                    input.getAttribute('aria-labelledby') ||
-                    container.querySelector(`label[for="${input.id}"]`);
+    const hasLabel =
+      input.getAttribute('aria-label') ||
+      input.getAttribute('aria-labelledby') ||
+      container.querySelector(`label[for="${input.id}"]`);
     if (!hasLabel) {
       issues.push(`Form input ${index + 1} missing label`);
     }
@@ -220,7 +218,7 @@ export const getTableData = (container: HTMLElement) => {
   if (!table) return null;
 
   const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent?.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+  const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
     Array.from(tr.querySelectorAll('td')).map(td => td.textContent?.trim())
   );
 
@@ -228,7 +226,10 @@ export const getTableData = (container: HTMLElement) => {
 };
 
 // Form testing utilities
-export const fillForm = async (user: ReturnType<typeof userEvent.setup>, formData: Record<string, string>) => {
+export const fillForm = async (
+  user: ReturnType<typeof userEvent.setup>,
+  formData: Record<string, string>
+) => {
   for (const [field, value] of Object.entries(formData)) {
     const input = screen.getByLabelText(new RegExp(field, 'i'));
     await user.clear(input);
@@ -236,13 +237,19 @@ export const fillForm = async (user: ReturnType<typeof userEvent.setup>, formDat
   }
 };
 
-export const submitForm = async (user: ReturnType<typeof userEvent.setup>, submitText = /submit/i) => {
+export const submitForm = async (
+  user: ReturnType<typeof userEvent.setup>,
+  submitText = /submit/i
+) => {
   const submitButton = screen.getByRole('button', { name: submitText });
   await user.click(submitButton);
 };
 
 // Dialog testing utilities
-export const openDialog = async (user: ReturnType<typeof userEvent.setup>, triggerText: string | RegExp) => {
+export const openDialog = async (
+  user: ReturnType<typeof userEvent.setup>,
+  triggerText: string | RegExp
+) => {
   const trigger = screen.getByRole('button', { name: triggerText });
   await user.click(trigger);
   return screen.getByRole('dialog');
@@ -254,7 +261,10 @@ export const closeDialog = async (user: ReturnType<typeof userEvent.setup>) => {
 };
 
 // Navigation testing utilities
-export const navigateToPage = async (user: ReturnType<typeof userEvent.setup>, linkText: string | RegExp) => {
+export const navigateToPage = async (
+  user: ReturnType<typeof userEvent.setup>,
+  linkText: string | RegExp
+) => {
   const link = screen.getByRole('link', { name: linkText });
   await user.click(link);
 };
@@ -278,7 +288,7 @@ export const waitForErrorToAppear = async (errorText?: string | RegExp) => {
 
 // Mock implementations
 export const mockIntersectionObserver = () => {
-  global.IntersectionObserver = jest.fn().mockImplementation((callback) => ({
+  global.IntersectionObserver = jest.fn().mockImplementation(callback => ({
     observe: jest.fn(),
     unobserve: jest.fn(),
     disconnect: jest.fn(),
@@ -289,7 +299,7 @@ export const mockIntersectionObserver = () => {
 };
 
 export const mockResizeObserver = () => {
-  global.ResizeObserver = jest.fn().mockImplementation((callback) => ({
+  global.ResizeObserver = jest.fn().mockImplementation(callback => ({
     observe: jest.fn(),
     unobserve: jest.fn(),
     disconnect: jest.fn(),
@@ -299,7 +309,7 @@ export const mockResizeObserver = () => {
 export const mockMatchMedia = (matches = false) => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation((query) => ({
+    value: jest.fn().mockImplementation(query => ({
       matches,
       media: query,
       onchange: null,
@@ -318,8 +328,8 @@ export const customMatchers = {
     const issues = await checkAccessibility(received);
     return {
       pass: issues.length === 0,
-      message: () => 
-        issues.length === 0 
+      message: () =>
+        issues.length === 0
           ? 'Element is accessible'
           : `Element has accessibility issues: ${issues.join(', ')}`,
     };

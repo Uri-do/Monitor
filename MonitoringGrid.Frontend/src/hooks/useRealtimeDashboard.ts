@@ -17,7 +17,7 @@ import { queryKeys } from '../utils/queryKeys';
 export interface RealtimeDashboardState {
   // Worker status
   workerStatus: WorkerStatusUpdate | null;
-  
+
   // KPI execution state
   runningKpis: Array<{
     kpiId: number;
@@ -29,7 +29,7 @@ export interface RealtimeDashboardState {
     currentStep?: string;
     elapsedTime?: number;
   }>;
-  
+
   // Countdown and scheduling
   countdown: number | null;
   nextKpiDue: {
@@ -39,10 +39,10 @@ export interface RealtimeDashboardState {
     scheduledTime: string;
     minutesUntilDue: number;
   } | null;
-  
+
   // Dashboard data
   dashboardData: KpiDashboardDto | null;
-  
+
   // Connection state
   isConnected: boolean;
   lastUpdate: Date;
@@ -126,26 +126,29 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
   }, []);
 
   // KPI execution completed handler
-  const handleKpiExecutionCompleted = useCallback((data: KpiExecutionCompleted) => {
-    setState(prev => ({
-      ...prev,
-      runningKpis: prev.runningKpis.filter(kpi => kpi.kpiId !== data.kpiId),
-      lastUpdate: new Date(),
-    }));
+  const handleKpiExecutionCompleted = useCallback(
+    (data: KpiExecutionCompleted) => {
+      setState(prev => ({
+        ...prev,
+        runningKpis: prev.runningKpis.filter(kpi => kpi.kpiId !== data.kpiId),
+        lastUpdate: new Date(),
+      }));
 
-    // Update TanStack Query cache with fresh data
-    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.detail(data.kpiId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.executions(data.kpiId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.analytics(data.kpiId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
-    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+      // Update TanStack Query cache with fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.detail(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.executions(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.analytics(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 
-    // If execution generated alerts, refresh alert data
-    if (data.alertsGenerated && data.alertsGenerated > 0) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.statistics() });
-    }
-  }, [queryClient]);
+      // If execution generated alerts, refresh alert data
+      if (data.alertsGenerated && data.alertsGenerated > 0) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.alerts.statistics() });
+      }
+    },
+    [queryClient]
+  );
 
   // Countdown update handler
   const handleCountdownUpdate = useCallback((data: CountdownUpdate) => {
@@ -217,7 +220,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
   // Unsubscribe from real-time updates
   const unsubscribeFromUpdates = useCallback(() => {
     leaveGroup('Dashboard');
-    
+
     off('onWorkerStatusUpdate');
     off('onKpiExecutionStarted');
     off('onKpiExecutionProgress');

@@ -32,7 +32,7 @@ import {
   Key as KeyIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { PageHeader } from '@/components/Common';
+import { UltimatePageHeader } from '@/components/UltimateEnterprise';
 import { securityService } from '@/services/securityService';
 import toast from 'react-hot-toast';
 
@@ -159,7 +159,7 @@ const ApiKeyManagement: React.FC = () => {
   if (loading) {
     return (
       <Box>
-        <PageHeader
+        <UltimatePageHeader
           title="API Key Management"
           subtitle="Create and manage API keys for system integration"
         />
@@ -170,7 +170,7 @@ const ApiKeyManagement: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="API Key Management"
         subtitle="Create and manage API keys for system integration"
       />

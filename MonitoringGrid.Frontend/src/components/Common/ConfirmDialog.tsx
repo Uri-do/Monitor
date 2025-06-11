@@ -1,20 +1,12 @@
 import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Box,
-  Alert,
-} from '@mui/material';
+import { Typography, Alert } from '@mui/material';
 import {
   Warning as WarningIcon,
   Delete as DeleteIcon,
   Check as CheckIcon,
   Cancel as CancelIcon,
 } from '@mui/icons-material';
+import { UltimateDialog, UltimateButton } from '@/components/UltimateEnterprise';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -54,64 +46,59 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     }
   };
 
-  const getColor = () => {
+  const getGradient = () => {
     switch (severity) {
       case 'error':
         return 'error';
       case 'warning':
         return 'warning';
       case 'info':
-        return 'primary';
+        return 'info';
       default:
         return 'warning';
     }
   };
 
   return (
-    <Dialog
+    <UltimateDialog
       open={open}
       onClose={loading ? undefined : onClose}
+      title={title}
+      icon={getIcon()}
+      gradient={getGradient()}
       maxWidth="sm"
-      fullWidth
+      actions={
+        <>
+          <UltimateButton
+            variant="outlined"
+            gradient="secondary"
+            startIcon={<CancelIcon />}
+            onClick={onClose}
+            disabled={loading}
+          >
+            {cancelText}
+          </UltimateButton>
+          <UltimateButton
+            gradient={getGradient()}
+            startIcon={severity === 'error' ? <DeleteIcon /> : <CheckIcon />}
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : confirmText}
+          </UltimateButton>
+        </>
+      }
     >
-      <DialogTitle>
-        <Box display="flex" alignItems="center" gap={2}>
-          {getIcon()}
-          <Typography variant="h6">{title}</Typography>
-        </Box>
-      </DialogTitle>
+      <Typography variant="body1" gutterBottom>
+        {message}
+      </Typography>
 
-      <DialogContent>
-        <Typography variant="body1" gutterBottom>
-          {message}
-        </Typography>
-        
-        {details && (
-          <Alert severity={severity} sx={{ mt: 2 }}>
-            <Typography variant="body2">{details}</Typography>
-          </Alert>
-        )}
-      </DialogContent>
-
-      <DialogActions>
-        <Button
-          onClick={onClose}
-          disabled={loading}
-          startIcon={<CancelIcon />}
-        >
-          {cancelText}
-        </Button>
-        <Button
-          onClick={onConfirm}
-          variant="contained"
-          color={getColor()}
-          disabled={loading}
-          startIcon={severity === 'error' ? <DeleteIcon /> : <CheckIcon />}
-        >
-          {loading ? 'Processing...' : confirmText}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      {details && (
+        <Alert severity={severity} sx={{ mt: 2 }}>
+          <Typography variant="body2">{details}</Typography>
+        </Alert>
+      )}
+    </UltimateDialog>
   );
 };
 

@@ -36,8 +36,8 @@ export const usePWA = (): PWAState & PWAActions => {
     installPrompt: null,
   });
 
-  const setOnlineStatus = useAppStore((state) => state.setOnlineStatus);
-  const addError = useAppStore((state) => state.addError);
+  const setOnlineStatus = useAppStore(state => state.setOnlineStatus);
+  const addError = useAppStore(state => state.addError);
 
   // Register service worker
   const registerServiceWorker = useCallback(async () => {
@@ -83,14 +83,14 @@ export const usePWA = (): PWAState & PWAActions => {
     try {
       await state.installPrompt.prompt();
       const choiceResult = await state.installPrompt.userChoice;
-      
+
       if (choiceResult.outcome === 'accepted') {
         console.log('[PWA] User accepted the install prompt');
-        setState(prev => ({ 
-          ...prev, 
-          isInstalled: true, 
+        setState(prev => ({
+          ...prev,
+          isInstalled: true,
           isInstallable: false,
-          installPrompt: null 
+          installPrompt: null,
         }));
         return true;
       } else {
@@ -129,7 +129,7 @@ export const usePWA = (): PWAState & PWAActions => {
 
     try {
       state.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      
+
       // Listen for controlling change
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         window.location.reload();
@@ -152,10 +152,10 @@ export const usePWA = (): PWAState & PWAActions => {
     try {
       const result = await state.registration.unregister();
       if (result) {
-        setState(prev => ({ 
-          ...prev, 
-          registration: null, 
-          isUpdateAvailable: false 
+        setState(prev => ({
+          ...prev,
+          registration: null,
+          isUpdateAvailable: false,
         }));
         console.log('[PWA] Service Worker unregistered');
       }
@@ -191,21 +191,21 @@ export const usePWA = (): PWAState & PWAActions => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       const installEvent = e as BeforeInstallPromptEvent;
-      setState(prev => ({ 
-        ...prev, 
-        isInstallable: true, 
-        installPrompt: installEvent 
+      setState(prev => ({
+        ...prev,
+        isInstallable: true,
+        installPrompt: installEvent,
       }));
       console.log('[PWA] Install prompt available');
     };
 
     // App installed detection
     const handleAppInstalled = () => {
-      setState(prev => ({ 
-        ...prev, 
-        isInstalled: true, 
+      setState(prev => ({
+        ...prev,
+        isInstalled: true,
         isInstallable: false,
-        installPrompt: null 
+        installPrompt: null,
       }));
       console.log('[PWA] App was installed');
     };
@@ -294,14 +294,14 @@ export const usePWA = (): PWAState & PWAActions => {
   return {
     // State
     ...state,
-    
+
     // Actions
     install,
     update,
     skipWaiting,
     unregister,
     showInstallPrompt,
-    
+
     // Additional utilities
     requestBackgroundSync,
     subscribeToPushNotifications,

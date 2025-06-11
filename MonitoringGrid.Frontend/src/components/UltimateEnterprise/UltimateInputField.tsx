@@ -40,18 +40,20 @@ export const UltimateInputField: React.FC<UltimateInputFieldProps> = ({
   ...props
 }) => {
   return (
-    <Box sx={{ 
-      p: 3, 
-      borderRadius: 2, 
-      background: gradientMap[gradient],
-      border: `1px solid ${borderColorMap[gradient]}`,
-      transition: 'all 0.3s ease-in-out',
-      ...(glowEffect && {
-        '&:hover': {
-          boxShadow: `0 4px 15px ${borderColorMap[gradient]}`,
-        }
-      })
-    }}>
+    <Box
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        background: gradientMap[gradient],
+        border: `1px solid ${borderColorMap[gradient]}`,
+        transition: 'all 0.3s ease-in-out',
+        ...(glowEffect && {
+          '&:hover': {
+            boxShadow: `0 4px 15px ${borderColorMap[gradient]}`,
+          },
+        }),
+      }}
+    >
       <TextField
         variant="outlined"
         fullWidth
@@ -68,14 +70,14 @@ export const UltimateInputField: React.FC<UltimateInputFieldProps> = ({
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
-              }
-            }
+              },
+            },
           },
           '& .MuiInputLabel-root': {
             fontWeight: 600,
             '&.Mui-focused': {
               color: focusColorMap[gradient],
-            }
+            },
           },
           ...sx,
         }}

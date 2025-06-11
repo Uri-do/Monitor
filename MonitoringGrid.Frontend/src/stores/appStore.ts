@@ -32,10 +32,10 @@ interface AppState {
   sidebarCollapsed: boolean;
   currentPage: string;
   breadcrumbs: Array<{ label: string; href?: string }>;
-  
+
   // User preferences
   preferences: UserPreferences;
-  
+
   // Performance monitoring
   performance: {
     renderTimes: number[];
@@ -43,7 +43,7 @@ interface AppState {
     errorCount: number;
     lastUpdate: Date;
   };
-  
+
   // Offline state
   isOnline: boolean;
   offlineActions: Array<{
@@ -52,15 +52,15 @@ interface AppState {
     payload: any;
     timestamp: Date;
   }>;
-  
+
   // Real-time connection state
   connectionState: 'connected' | 'disconnected' | 'reconnecting';
   lastConnectionTime: Date | null;
-  
+
   // Global loading states
   globalLoading: boolean;
   loadingOperations: Set<string>;
-  
+
   // Error handling
   globalError: string | null;
   errorHistory: Array<{
@@ -78,36 +78,36 @@ interface AppActions {
   setSidebarCollapsed: (collapsed: boolean) => void;
   setCurrentPage: (page: string) => void;
   setBreadcrumbs: (breadcrumbs: Array<{ label: string; href?: string }>) => void;
-  
+
   // Preferences Actions
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
   resetPreferences: () => void;
-  
+
   // Performance Actions
   addRenderTime: (time: number) => void;
   incrementApiCallCount: () => void;
   incrementErrorCount: () => void;
   resetPerformanceMetrics: () => void;
-  
+
   // Offline Actions
   setOnlineStatus: (online: boolean) => void;
   addOfflineAction: (action: { type: string; payload: any }) => void;
   clearOfflineActions: () => void;
-  
+
   // Connection Actions
   setConnectionState: (state: 'connected' | 'disconnected' | 'reconnecting') => void;
   updateLastConnectionTime: () => void;
-  
+
   // Loading Actions
   setGlobalLoading: (loading: boolean) => void;
   addLoadingOperation: (operation: string) => void;
   removeLoadingOperation: (operation: string) => void;
-  
+
   // Error Actions
   setGlobalError: (error: string | null) => void;
   addError: (message: string, context?: any) => void;
   clearErrors: () => void;
-  
+
   // Utility Actions
   resetStore: () => void;
 }
@@ -167,40 +167,40 @@ export const useAppStore = create<AppState & AppActions>()(
           ...initialState,
 
           // UI Actions
-          setSidebarOpen: (open) =>
-            set((state) => {
+          setSidebarOpen: open =>
+            set(state => {
               state.sidebarOpen = open;
             }),
 
-          setSidebarCollapsed: (collapsed) =>
-            set((state) => {
+          setSidebarCollapsed: collapsed =>
+            set(state => {
               state.sidebarCollapsed = collapsed;
             }),
 
-          setCurrentPage: (page) =>
-            set((state) => {
+          setCurrentPage: page =>
+            set(state => {
               state.currentPage = page;
             }),
 
-          setBreadcrumbs: (breadcrumbs) =>
-            set((state) => {
+          setBreadcrumbs: breadcrumbs =>
+            set(state => {
               state.breadcrumbs = breadcrumbs;
             }),
 
           // Preferences Actions
-          updatePreferences: (preferences) =>
-            set((state) => {
+          updatePreferences: preferences =>
+            set(state => {
               Object.assign(state.preferences, preferences);
             }),
 
           resetPreferences: () =>
-            set((state) => {
+            set(state => {
               state.preferences = defaultPreferences;
             }),
 
           // Performance Actions
-          addRenderTime: (time) =>
-            set((state) => {
+          addRenderTime: time =>
+            set(state => {
               state.performance.renderTimes.push(time);
               // Keep only last 100 render times
               if (state.performance.renderTimes.length > 100) {
@@ -210,19 +210,19 @@ export const useAppStore = create<AppState & AppActions>()(
             }),
 
           incrementApiCallCount: () =>
-            set((state) => {
+            set(state => {
               state.performance.apiCallCount++;
               state.performance.lastUpdate = new Date();
             }),
 
           incrementErrorCount: () =>
-            set((state) => {
+            set(state => {
               state.performance.errorCount++;
               state.performance.lastUpdate = new Date();
             }),
 
           resetPerformanceMetrics: () =>
-            set((state) => {
+            set(state => {
               state.performance = {
                 renderTimes: [],
                 apiCallCount: 0,
@@ -232,13 +232,13 @@ export const useAppStore = create<AppState & AppActions>()(
             }),
 
           // Offline Actions
-          setOnlineStatus: (online) =>
-            set((state) => {
+          setOnlineStatus: online =>
+            set(state => {
               state.isOnline = online;
             }),
 
-          addOfflineAction: (action) =>
-            set((state) => {
+          addOfflineAction: action =>
+            set(state => {
               state.offlineActions.push({
                 id: crypto.randomUUID(),
                 ...action,
@@ -247,13 +247,13 @@ export const useAppStore = create<AppState & AppActions>()(
             }),
 
           clearOfflineActions: () =>
-            set((state) => {
+            set(state => {
               state.offlineActions = [];
             }),
 
           // Connection Actions
-          setConnectionState: (connectionState) =>
-            set((state) => {
+          setConnectionState: connectionState =>
+            set(state => {
               state.connectionState = connectionState;
               if (connectionState === 'connected') {
                 state.lastConnectionTime = new Date();
@@ -261,36 +261,36 @@ export const useAppStore = create<AppState & AppActions>()(
             }),
 
           updateLastConnectionTime: () =>
-            set((state) => {
+            set(state => {
               state.lastConnectionTime = new Date();
             }),
 
           // Loading Actions
-          setGlobalLoading: (loading) =>
-            set((state) => {
+          setGlobalLoading: loading =>
+            set(state => {
               state.globalLoading = loading;
             }),
 
-          addLoadingOperation: (operation) =>
-            set((state) => {
+          addLoadingOperation: operation =>
+            set(state => {
               state.loadingOperations.add(operation);
               state.globalLoading = state.loadingOperations.size > 0;
             }),
 
-          removeLoadingOperation: (operation) =>
-            set((state) => {
+          removeLoadingOperation: operation =>
+            set(state => {
               state.loadingOperations.delete(operation);
               state.globalLoading = state.loadingOperations.size > 0;
             }),
 
           // Error Actions
-          setGlobalError: (error) =>
-            set((state) => {
+          setGlobalError: error =>
+            set(state => {
               state.globalError = error;
             }),
 
           addError: (message, context) =>
-            set((state) => {
+            set(state => {
               const error = {
                 id: crypto.randomUUID(),
                 message,
@@ -306,7 +306,7 @@ export const useAppStore = create<AppState & AppActions>()(
             }),
 
           clearErrors: () =>
-            set((state) => {
+            set(state => {
               state.globalError = null;
               state.errorHistory = [];
             }),
@@ -317,7 +317,7 @@ export const useAppStore = create<AppState & AppActions>()(
       ),
       {
         name: 'monitoring-grid-app-store',
-        partialize: (state) => ({
+        partialize: state => ({
           preferences: state.preferences,
           sidebarCollapsed: state.sidebarCollapsed,
         }),
@@ -332,46 +332,52 @@ export const useAppStore = create<AppState & AppActions>()(
 // Selectors for better performance
 export const useAppSelectors = {
   // UI Selectors
-  sidebar: () => useAppStore((state) => ({
-    open: state.sidebarOpen,
-    collapsed: state.sidebarCollapsed,
-  })),
-  
-  navigation: () => useAppStore((state) => ({
-    currentPage: state.currentPage,
-    breadcrumbs: state.breadcrumbs,
-  })),
-  
+  sidebar: () =>
+    useAppStore(state => ({
+      open: state.sidebarOpen,
+      collapsed: state.sidebarCollapsed,
+    })),
+
+  navigation: () =>
+    useAppStore(state => ({
+      currentPage: state.currentPage,
+      breadcrumbs: state.breadcrumbs,
+    })),
+
   // Performance Selectors
-  performance: () => useAppStore((state) => state.performance),
-  
-  averageRenderTime: () => useAppStore((state) => {
-    const times = state.performance.renderTimes;
-    return times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
-  }),
-  
+  performance: () => useAppStore(state => state.performance),
+
+  averageRenderTime: () =>
+    useAppStore(state => {
+      const times = state.performance.renderTimes;
+      return times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+    }),
+
   // Connection Selectors
-  connectionStatus: () => useAppStore((state) => ({
-    isOnline: state.isOnline,
-    connectionState: state.connectionState,
-    lastConnectionTime: state.lastConnectionTime,
-  })),
-  
+  connectionStatus: () =>
+    useAppStore(state => ({
+      isOnline: state.isOnline,
+      connectionState: state.connectionState,
+      lastConnectionTime: state.lastConnectionTime,
+    })),
+
   // Loading Selectors
-  loading: () => useAppStore((state) => ({
-    global: state.globalLoading,
-    operations: Array.from(state.loadingOperations),
-  })),
-  
+  loading: () =>
+    useAppStore(state => ({
+      global: state.globalLoading,
+      operations: Array.from(state.loadingOperations),
+    })),
+
   // Error Selectors
-  errors: () => useAppStore((state) => ({
-    current: state.globalError,
-    history: state.errorHistory,
-  })),
-  
+  errors: () =>
+    useAppStore(state => ({
+      current: state.globalError,
+      history: state.errorHistory,
+    })),
+
   // Preferences Selectors
-  preferences: () => useAppStore((state) => state.preferences),
-  theme: () => useAppStore((state) => state.preferences.theme),
-  notifications: () => useAppStore((state) => state.preferences.notifications),
-  accessibility: () => useAppStore((state) => state.preferences.accessibility),
+  preferences: () => useAppStore(state => state.preferences),
+  theme: () => useAppStore(state => state.preferences.theme),
+  notifications: () => useAppStore(state => state.preferences.notifications),
+  accessibility: () => useAppStore(state => state.preferences.accessibility),
 };

@@ -47,7 +47,7 @@ export const UltimateCard: React.FC<UltimateCardProps> = ({
     <Card
       elevation={4}
       sx={{
-        background: glowEffect 
+        background: glowEffect
           ? gradientMap[gradient]
           : 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
         border: `1px solid ${borderColorMap[gradient]}`,
@@ -60,7 +60,7 @@ export const UltimateCard: React.FC<UltimateCardProps> = ({
             transform: 'translateY(-4px)',
             boxShadow: `0 12px 30px ${shadowColorMap[gradient]}`,
             border: `1px solid ${borderColorMap[gradient].replace('0.2', '0.4')}`,
-          }
+          },
         }),
         ...(glowEffect && {
           color: 'white',
@@ -75,15 +75,13 @@ export const UltimateCard: React.FC<UltimateCardProps> = ({
             borderRadius: '50%',
             transform: 'translate(30px, -30px)',
             zIndex: 0,
-          }
+          },
         }),
         ...sx,
       }}
       {...props}
     >
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
-        {children}
-      </Box>
+      <Box sx={{ position: 'relative', zIndex: 1 }}>{children}</Box>
     </Card>
   );
 };

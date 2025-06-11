@@ -70,7 +70,11 @@ interface WorkerActionResult {
 }
 
 const WorkerManagement: React.FC = () => {
-  const { isEnabled: realtimeEnabled, isConnected: signalRConnected, toggleRealtime } = useRealtime();
+  const {
+    isEnabled: realtimeEnabled,
+    isConnected: signalRConnected,
+    toggleRealtime,
+  } = useRealtime();
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -100,8 +104,8 @@ const WorkerManagement: React.FC = () => {
         ...data,
         services: data.services.map((service: WorkerService) => ({
           ...service,
-          ...getWorkerActivityInfo(service.name, service.status === 'Running')
-        }))
+          ...getWorkerActivityInfo(service.name, service.status === 'Running'),
+        })),
       };
       setStatus(enhancedData);
     } catch (error) {
@@ -116,7 +120,10 @@ const WorkerManagement: React.FC = () => {
       const now = new Date();
 
       console.log('Fetched KPIs from API:', kpis);
-      console.log('Active KPIs:', kpis.filter((kpi: any) => kpi.isActive));
+      console.log(
+        'Active KPIs:',
+        kpis.filter((kpi: any) => kpi.isActive)
+      );
       console.log('Sample KPI structure:', kpis[0]);
 
       // Store all KPIs for worker activity info
@@ -137,11 +144,11 @@ const WorkerManagement: React.FC = () => {
             id: kpi.kpiId,
             indicator: kpi.indicator,
             owner: kpi.owner,
-            nextRun: nextRun,
+            nextRun,
             frequency: kpi.frequency,
             isCurrentlyRunning: kpi.isCurrentlyRunning || false,
-            lastRun: lastRun,
-            minutesUntilDue: Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60000))
+            lastRun,
+            minutesUntilDue: Math.max(0, Math.ceil((nextRun.getTime() - now.getTime()) / 60000)),
           };
         })
         .sort((a: any, b: any) => a.nextRun.getTime() - b.nextRun.getTime())
@@ -167,7 +174,7 @@ const WorkerManagement: React.FC = () => {
         processedCount: 0,
         lastProcessedItem: 'N/A',
         nextScheduledRun: 'N/A',
-        description: 'Service is not running'
+        description: 'Service is not running',
       };
     }
 
@@ -175,18 +182,19 @@ const WorkerManagement: React.FC = () => {
 
     // Get all KPIs for processed count (not just active ones)
     const allKpisWithLastRun = allKpis.filter((kpi: any) => kpi.lastRun);
-    const mostRecentKpi = allKpisWithLastRun
-      .sort((a: any, b: any) => new Date(b.lastRun).getTime() - new Date(a.lastRun).getTime())[0];
+    const mostRecentKpi = allKpisWithLastRun.sort(
+      (a: any, b: any) => new Date(b.lastRun).getTime() - new Date(a.lastRun).getTime()
+    )[0];
 
     const activities = {
-      'KpiMonitoringWorker': {
+      KpiMonitoringWorker: {
         currentActivity: 'Monitoring KPI schedules',
         processedCount: allKpisWithLastRun.length,
         lastProcessedItem: mostRecentKpi?.indicator || 'No recent executions',
         nextScheduledRun: upcomingKpis[0]?.nextRun?.toLocaleTimeString() || 'No scheduled KPIs',
-        description: 'Executes scheduled KPIs and monitors their performance'
+        description: 'Executes scheduled KPIs and monitors their performance',
       },
-      'ScheduledTaskWorker': {
+      ScheduledTaskWorker: {
         currentActivity: currentlyExecutingKpi
           ? `🚀 Executing: ${currentlyExecutingKpi}`
           : upcomingKpis.length > 0 && upcomingKpis[0]?.minutesUntilDue !== undefined
@@ -195,35 +203,36 @@ const WorkerManagement: React.FC = () => {
               : `⏳ Next: ${upcomingKpis[0].indicator} in ${upcomingKpis[0].minutesUntilDue}min`
             : 'Monitoring KPI schedules',
         processedCount: allKpisWithLastRun.length,
-        lastProcessedItem: currentlyExecutingKpi ||
-          mostRecentKpi?.indicator ||
-          'No recent executions',
+        lastProcessedItem:
+          currentlyExecutingKpi || mostRecentKpi?.indicator || 'No recent executions',
         nextScheduledRun: upcomingKpis[0]?.nextRun?.toLocaleTimeString() || 'No scheduled KPIs',
-        description: 'Schedules and executes KPIs at precise time intervals'
+        description: 'Schedules and executes KPIs at precise time intervals',
       },
-      'HealthCheckWorker': {
+      HealthCheckWorker: {
         currentActivity: 'Performing system health checks',
         processedCount: 0, // Will be populated from real health check data
         lastProcessedItem: 'Database connectivity check',
         nextScheduledRun: 'Every 5 minutes',
-        description: 'Monitors system health and database connectivity'
+        description: 'Monitors system health and database connectivity',
       },
-      'AlertProcessingWorker': {
+      AlertProcessingWorker: {
         currentActivity: 'Processing alert queue',
         processedCount: 0, // Will be populated from real alert data
         lastProcessedItem: 'No recent alerts',
         nextScheduledRun: 'Every 30 seconds',
-        description: 'Processes alerts and handles escalations'
-      }
+        description: 'Processes alerts and handles escalations',
+      },
     };
 
-    return activities[workerName as keyof typeof activities] || {
-      currentActivity: 'Processing tasks',
-      processedCount: Math.floor(Math.random() * 10),
-      lastProcessedItem: 'Unknown task',
-      nextScheduledRun: 'Unknown',
-      description: 'General worker service'
-    };
+    return (
+      activities[workerName as keyof typeof activities] || {
+        currentActivity: 'Processing tasks',
+        processedCount: Math.floor(Math.random() * 10),
+        lastProcessedItem: 'Unknown task',
+        nextScheduledRun: 'Unknown',
+        description: 'General worker service',
+      }
+    );
   };
 
   const performAction = async (action: string) => {
@@ -363,13 +372,17 @@ const WorkerManagement: React.FC = () => {
       // Refresh KPI data to get real execution status
       fetchUpcomingKpis();
 
-      setStatus(prev => prev ? {
-        ...prev,
-        services: prev.services.map(service => ({
-          ...service,
-          ...getWorkerActivityInfo(service.name, service.status === 'Running')
-        }))
-      } : null);
+      setStatus(prev =>
+        prev
+          ? {
+              ...prev,
+              services: prev.services.map(service => ({
+                ...service,
+                ...getWorkerActivityInfo(service.name, service.status === 'Running'),
+              })),
+            }
+          : null
+      );
     };
 
     // Update activity every 10 seconds when real-time is enabled
@@ -523,19 +536,26 @@ const WorkerManagement: React.FC = () => {
                       mb: 0.5,
                     }}
                   >
-                    <Schedule fontSize="small" sx={{
-                      color: status.isRunning ? 'success.main' : 'text.secondary',
-                      animation: status.isRunning && realtimeEnabled ? 'pulse 3s infinite' : 'none',
-                      '@keyframes pulse': {
-                        '0%': { opacity: 1 },
-                        '50%': { opacity: 0.7 },
-                        '100%': { opacity: 1 },
-                      },
-                    }} />
-                    <Typography variant="body2" sx={{
-                      fontWeight: status.isRunning ? 'medium' : 'normal',
-                      color: status.isRunning ? 'success.main' : 'text.primary'
-                    }}>
+                    <Schedule
+                      fontSize="small"
+                      sx={{
+                        color: status.isRunning ? 'success.main' : 'text.secondary',
+                        animation:
+                          status.isRunning && realtimeEnabled ? 'pulse 3s infinite' : 'none',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.7 },
+                          '100%': { opacity: 1 },
+                        },
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: status.isRunning ? 'medium' : 'normal',
+                        color: status.isRunning ? 'success.main' : 'text.primary',
+                      }}
+                    >
                       Uptime: {status.isRunning ? realtimeUptime : 'N/A'}
                     </Typography>
                     {status.isRunning && realtimeEnabled && (
@@ -604,8 +624,8 @@ const WorkerManagement: React.FC = () => {
 
             {/* Real-time Features Toggle */}
             <Button
-              variant={realtimeEnabled ? "contained" : "outlined"}
-              color={realtimeEnabled ? "primary" : "secondary"}
+              variant={realtimeEnabled ? 'contained' : 'outlined'}
+              color={realtimeEnabled ? 'primary' : 'secondary'}
               onClick={toggleRealtimeFeatures}
               disabled={!status.isRunning || status.mode === 'Integrated'}
               startIcon={realtimeEnabled ? <Wifi /> : <WifiOff />}
@@ -617,7 +637,7 @@ const WorkerManagement: React.FC = () => {
           {/* Real-time Features Status */}
           {status.isRunning && status.mode !== 'Integrated' && (
             <Alert
-              severity={realtimeEnabled ? "success" : "info"}
+              severity={realtimeEnabled ? 'success' : 'info'}
               sx={{ mb: 3 }}
               action={
                 <Button
@@ -633,8 +653,7 @@ const WorkerManagement: React.FC = () => {
               Real-time features are {realtimeEnabled ? 'enabled' : 'disabled'}.
               {realtimeEnabled
                 ? ' Dashboard will show live updates and countdown timers.'
-                : ' Enable to see live KPI execution status and countdown timers.'
-              }
+                : ' Enable to see live KPI execution status and countdown timers.'}
               {realtimeEnabled && (
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box
@@ -677,83 +696,107 @@ const WorkerManagement: React.FC = () => {
           {realtimeEnabled && realtimeConnected && (
             <>
               {/* Next KPI Execution Countdown */}
-              {(nextKpiDue || dashboardData?.nextKpiDue) && countdown !== null && countdown !== undefined && (
-                <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.50', border: 1, borderColor: 'primary.200' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Timer sx={{ color: 'primary.main' }} />
-                    <Typography variant="h6" color="primary.main">
-                      Next KPI Execution
-                    </Typography>
-                    <Chip
-                      label="LIVE"
-                      size="small"
-                      color="success"
-                      sx={{
-                        animation: 'pulse 2s infinite',
-                        '@keyframes pulse': {
-                          '0%': { opacity: 1 },
-                          '50%': { opacity: 0.7 },
-                          '100%': { opacity: 1 },
-                        },
-                      }}
-                    />
-                  </Box>
-
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={8}>
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight="medium">
-                          {nextKpiDue?.indicator || dashboardData?.nextKpiDue?.indicator}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Owner: {nextKpiDue?.owner || dashboardData?.nextKpiDue?.owner} •
-                          Frequency: {dashboardData?.nextKpiDue?.frequency || 30} min
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-                        <Chip
-                          label={countdown > 0 ? formatCountdown(countdown) : 'Due Now!'}
-                          color={countdown <= 300 ? 'warning' : 'primary'}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
-                          }}
-                        />
-                      </Box>
-                    </Grid>
-                  </Grid>
-
-                  {/* Progress Bar */}
-                  {countdown > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                        <Typography variant="caption" color="text.secondary">
-                          Progress to next execution
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {Math.round(getCountdownProgress(countdown, dashboardData?.nextKpiDue?.frequency || 30))}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={getCountdownProgress(countdown, dashboardData?.nextKpiDue?.frequency || 30)}
+              {(nextKpiDue || dashboardData?.nextKpiDue) &&
+                countdown !== null &&
+                countdown !== undefined && (
+                  <Paper
+                    sx={{
+                      p: 3,
+                      mb: 3,
+                      bgcolor: 'primary.50',
+                      border: 1,
+                      borderColor: 'primary.200',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Timer sx={{ color: 'primary.main' }} />
+                      <Typography variant="h6" color="primary.main">
+                        Next KPI Execution
+                      </Typography>
+                      <Chip
+                        label="LIVE"
+                        size="small"
+                        color="success"
                         sx={{
-                          height: 6,
-                          borderRadius: 3,
-                          bgcolor: 'grey.200',
-                          '& .MuiLinearProgress-bar': {
-                            borderRadius: 3,
-                            bgcolor: countdown <= 300 ? 'warning.main' : 'primary.main',
+                          animation: 'pulse 2s infinite',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                            '100%': { opacity: 1 },
                           },
                         }}
                       />
                     </Box>
-                  )}
-                </Paper>
-              )}
+
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={8}>
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="medium">
+                            {nextKpiDue?.indicator || dashboardData?.nextKpiDue?.indicator}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Owner: {nextKpiDue?.owner || dashboardData?.nextKpiDue?.owner} •
+                            Frequency: {dashboardData?.nextKpiDue?.frequency || 30} min
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                          <Chip
+                            label={countdown > 0 ? formatCountdown(countdown) : 'Due Now!'}
+                            color={countdown <= 300 ? 'warning' : 'primary'}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.9rem',
+                              animation: countdown <= 60 ? 'pulse 1s infinite' : 'none',
+                            }}
+                          />
+                        </Box>
+                      </Grid>
+                    </Grid>
+
+                    {/* Progress Bar */}
+                    {countdown > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            Progress to next execution
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {Math.round(
+                              getCountdownProgress(
+                                countdown,
+                                dashboardData?.nextKpiDue?.frequency || 30
+                              )
+                            )}
+                            %
+                          </Typography>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={getCountdownProgress(
+                            countdown,
+                            dashboardData?.nextKpiDue?.frequency || 30
+                          )}
+                          sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            bgcolor: 'grey.200',
+                            '& .MuiLinearProgress-bar': {
+                              borderRadius: 3,
+                              bgcolor: countdown <= 300 ? 'warning.main' : 'primary.main',
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Paper>
+                )}
 
               {/* Running KPIs */}
               {runningKpis.length > 0 ? (
@@ -772,15 +815,14 @@ const WorkerManagement: React.FC = () => {
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Real-time running KPIs: {runningKpis.length} |
-                    Real-time enabled: {realtimeEnabled ? 'Yes' : 'No'} |
-                    Connected: {realtimeConnected ? 'Yes' : 'No'}
+                    Real-time running KPIs: {runningKpis.length} | Real-time enabled:{' '}
+                    {realtimeEnabled ? 'Yes' : 'No'} | Connected: {realtimeConnected ? 'Yes' : 'No'}
                   </Typography>
                 </Paper>
               )}
 
               {/* Real-time Status Indicator when no data */}
-              {(!nextKpiDue && !dashboardData?.nextKpiDue && runningKpis.length === 0) && (
+              {!nextKpiDue && !dashboardData?.nextKpiDue && runningKpis.length === 0 && (
                 <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                     <AccessTime sx={{ color: 'info.main' }} />
@@ -802,7 +844,8 @@ const WorkerManagement: React.FC = () => {
                     />
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Waiting for KPI execution data... The system is monitoring for scheduled KPIs and will display countdown timers and execution status when available.
+                    Waiting for KPI execution data... The system is monitoring for scheduled KPIs
+                    and will display countdown timers and execution status when available.
                   </Typography>
                 </Paper>
               )}
@@ -814,7 +857,10 @@ const WorkerManagement: React.FC = () => {
           {/* Upcoming KPI Schedule - Only show if there are multiple KPIs or if real-time is disabled */}
           {status.isRunning && upcomingKpis.length > 1 && (
             <Paper sx={{ p: 3, mb: 3, bgcolor: 'info.50', border: 1, borderColor: 'info.200' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
                 <Schedule />
                 Upcoming KPI Executions
                 {realtimeEnabled && (
@@ -839,7 +885,8 @@ const WorkerManagement: React.FC = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {upcomingKpis.slice(0, 3).map((kpi, index) => {
                   const minutesUntil = kpi.minutesUntilDue || 0;
-                  const isExecuting = kpi.isCurrentlyRunning || currentlyExecutingKpi === kpi.indicator;
+                  const isExecuting =
+                    kpi.isCurrentlyRunning || currentlyExecutingKpi === kpi.indicator;
 
                   return (
                     <Box
@@ -866,7 +913,11 @@ const WorkerManagement: React.FC = () => {
                                 width: 8,
                                 height: 8,
                                 borderRadius: '50%',
-                                bgcolor: isExecuting ? 'success.main' : index === 0 ? 'warning.main' : 'info.main',
+                                bgcolor: isExecuting
+                                  ? 'success.main'
+                                  : index === 0
+                                    ? 'warning.main'
+                                    : 'info.main',
                                 animation: isExecuting ? 'pulse 1s infinite' : 'none',
                               }}
                             />
@@ -890,8 +941,16 @@ const WorkerManagement: React.FC = () => {
                         </Grid>
                         <Grid item xs={12} md={4}>
                           <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-                            <Typography variant="body2" fontWeight="medium" color={minutesUntil <= 2 ? 'warning.main' : 'text.primary'}>
-                              {isExecuting ? '🚀 Running now' : minutesUntil <= 0 ? '⚡ Due now' : `⏰ ${minutesUntil} min`}
+                            <Typography
+                              variant="body2"
+                              fontWeight="medium"
+                              color={minutesUntil <= 2 ? 'warning.main' : 'text.primary'}
+                            >
+                              {isExecuting
+                                ? '🚀 Running now'
+                                : minutesUntil <= 0
+                                  ? '⚡ Due now'
+                                  : `⏰ ${minutesUntil} min`}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {kpi.nextRun.toLocaleTimeString()}
@@ -909,14 +968,26 @@ const WorkerManagement: React.FC = () => {
           {/* Single KPI Information - Show when there's only one KPI and worker is running but real-time is disabled */}
           {status.isRunning && upcomingKpis.length === 1 && !realtimeEnabled && (
             <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50', border: 1, borderColor: 'grey.300' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
                 <Schedule />
                 KPI Schedule Information
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                There is currently 1 active KPI in the system. Enable real-time features to see live countdown and execution status.
+                There is currently 1 active KPI in the system. Enable real-time features to see live
+                countdown and execution status.
               </Typography>
-              <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1,
+                  border: 1,
+                  borderColor: 'divider',
+                }}
+              >
                 <Typography variant="subtitle1" fontWeight="medium">
                   {upcomingKpis[0]?.indicator}
                 </Typography>
@@ -937,7 +1008,8 @@ const WorkerManagement: React.FC = () => {
               Worker Services ({status.services.length})
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Background services that handle KPI monitoring, scheduled tasks, health checks, and alert processing
+              Background services that handle KPI monitoring, scheduled tasks, health checks, and
+              alert processing
             </Typography>
 
             {status.services.length > 0 ? (
@@ -953,8 +1025,8 @@ const WorkerManagement: React.FC = () => {
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         boxShadow: 2,
-                        transform: 'translateY(-1px)'
-                      }
+                        transform: 'translateY(-1px)',
+                      },
                     }}
                   >
                     <Grid container spacing={2} alignItems="center">
@@ -966,7 +1038,10 @@ const WorkerManagement: React.FC = () => {
                               height: 8,
                               borderRadius: '50%',
                               bgcolor: service.status === 'Running' ? 'success.main' : 'error.main',
-                              animation: service.status === 'Running' && realtimeEnabled ? 'pulse 2s infinite' : 'none',
+                              animation:
+                                service.status === 'Running' && realtimeEnabled
+                                  ? 'pulse 2s infinite'
+                                  : 'none',
                               '@keyframes pulse': {
                                 '0%': { opacity: 1, transform: 'scale(1)' },
                                 '50%': { opacity: 0.6, transform: 'scale(1.3)' },
@@ -1000,14 +1075,22 @@ const WorkerManagement: React.FC = () => {
 
                             {/* Service Description */}
                             {service.description && (
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: 'italic' }}>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 1, fontStyle: 'italic' }}
+                              >
                                 {service.description}
                               </Typography>
                             )}
 
                             {/* Current Activity */}
                             {service.currentActivity && (
-                              <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                              <Typography
+                                variant="body2"
+                                color="primary.main"
+                                sx={{ fontWeight: 'medium', mb: 0.5 }}
+                              >
                                 🔄 {service.currentActivity}
                               </Typography>
                             )}
@@ -1052,7 +1135,10 @@ const WorkerManagement: React.FC = () => {
                             size="small"
                             sx={{
                               mb: service.lastActivity ? 1 : 0,
-                              animation: service.status === 'Running' && realtimeEnabled ? 'pulse 4s infinite' : 'none',
+                              animation:
+                                service.status === 'Running' && realtimeEnabled
+                                  ? 'pulse 4s infinite'
+                                  : 'none',
                               '@keyframes pulse': {
                                 '0%': { opacity: 1 },
                                 '50%': { opacity: 0.8 },

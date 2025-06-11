@@ -29,18 +29,12 @@ const Dashboard: React.FC = () => {
     }
   }, [realtimeEnabled, enableRealtime]);
 
-
-
   // Always use real-time data since SignalR is working
   // TODO: Remove this temporary fix once RealtimeContext connection detection is fixed
   const dashboardState = realtimeDashboard;
 
   // Use enhanced hooks for dashboard data with optimized real-time updates
-  const {
-    data: kpiDashboard,
-    isLoading: kpiLoading,
-    refetch: refetchKpi,
-  } = useKpiDashboard();
+  const { data: kpiDashboard, isLoading: kpiLoading, refetch: refetchKpi } = useKpiDashboard();
 
   const {
     data: alertDashboard,
@@ -54,16 +48,17 @@ const Dashboard: React.FC = () => {
 
     return {
       ...kpiDashboard,
-      runningKpis: dashboardState.runningKpis.length > 0
-        ? dashboardState.runningKpis.map(kpi => ({
-            kpiId: kpi.kpiId,
-            indicator: kpi.indicator,
-            owner: kpi.owner,
-            startTime: kpi.startTime,
-            progress: kpi.progress,
-            estimatedCompletion: kpi.estimatedCompletion,
-          }))
-        : kpiDashboard.runningKpis,
+      runningKpis:
+        dashboardState.runningKpis.length > 0
+          ? dashboardState.runningKpis.map(kpi => ({
+              kpiId: kpi.kpiId,
+              indicator: kpi.indicator,
+              owner: kpi.owner,
+              startTime: kpi.startTime,
+              progress: kpi.progress,
+              estimatedCompletion: kpi.estimatedCompletion,
+            }))
+          : kpiDashboard.runningKpis,
       nextKpiDue: dashboardState.nextKpiDue || kpiDashboard.nextKpiDue,
     };
   }, [kpiDashboard, dashboardState.runningKpis, dashboardState.nextKpiDue]);
@@ -90,7 +85,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box sx={{ maxWidth: '1400px', margin: '0 auto' }}>
-
       {/* Header */}
       <DashboardHeader
         lastUpdate={kpiDashboard?.lastUpdate}

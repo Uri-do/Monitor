@@ -16,13 +16,13 @@ import { useDeleteContact } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  DataTable,
-  DataTableColumn,
-  PageHeader,
-  FilterPanel,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+  UltimateDataTable,
+  UltimateDataTableColumn,
+  UltimatePageHeader,
+  UltimateFilterPanel,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+} from '@/components/UltimateEnterprise';
 
 const ContactList: React.FC = () => {
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ const ContactList: React.FC = () => {
   }, [contacts, filters.search]);
 
   // Define table columns
-  const columns: DataTableColumn<ContactDto>[] = [
+  const columns: UltimateDataTableColumn<ContactDto>[] = [
     {
       id: 'name',
       label: 'Contact Name',
@@ -101,7 +101,7 @@ const ContactList: React.FC = () => {
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      render: value => <StatusChip status={value ? 'active' : 'inactive'} />,
+      render: value => <UltimateStatusChip status={value ? 'active' : 'inactive'} />,
     },
     {
       id: 'assignedKpis',
@@ -129,12 +129,12 @@ const ContactList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading contacts..." />;
+    return <UltimateLoadingSpinner message="Loading contacts..." />;
   }
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="Contact Management"
         subtitle={`Manage notification contacts and their KPI assignments (${filteredContacts.length} total)`}
         primaryAction={{
@@ -142,22 +142,27 @@ const ContactList: React.FC = () => {
           icon: <AddIcon />,
           onClick: () => navigate('/contacts/create'),
         }}
-        actions={[
+        secondaryActions={[
           {
             label: 'Bulk Assign',
             icon: <AssignIcon />,
             onClick: () => {
-              // TODO: Implement bulk assignment
-              toast('Bulk assignment feature coming soon', { icon: 'ℹ️' });
+              if (selectedRows.length === 0) {
+                toast.error('Please select contacts to assign');
+                return;
+              }
+              toast.info(
+                `Bulk assignment for ${selectedRows.length} contacts - Feature in development`
+              );
             },
-            disabled: selectedRows.length === 0,
+            gradient: 'info',
           },
         ]}
         onRefresh={refetch}
         refreshing={isLoading}
       />
 
-      <FilterPanel
+      <UltimateFilterPanel
         fields={[
           {
             name: 'isActive',
@@ -177,7 +182,7 @@ const ContactList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <DataTable
+      <UltimateDataTable
         columns={columns}
         data={filteredContacts}
         loading={isLoading}

@@ -61,7 +61,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
 
     // Check connection status periodically
     const interval = setInterval(checkConnection, 5000);
-    
+
     return () => clearInterval(interval);
   }, [isEnabled]);
 
@@ -73,11 +73,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     toggleRealtime,
   };
 
-  return (
-    <RealtimeContext.Provider value={value}>
-      {children}
-    </RealtimeContext.Provider>
-  );
+  return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>;
 };
 
 export const useRealtime = (): RealtimeContextType => {

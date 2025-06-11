@@ -42,7 +42,9 @@ const ExecutionHistoryDetail = React.lazy(
 const WorkerManagement = React.lazy(() => import('@/components/Worker/WorkerManagement'));
 const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
 const EnhancementDemo = React.lazy(() => import('@/components/Demo/EnhancementDemo'));
-const AdvancedEnhancementDemo = React.lazy(() => import('@/components/Demo/AdvancedEnhancementDemo'));
+const AdvancedEnhancementDemo = React.lazy(
+  () => import('@/components/Demo/AdvancedEnhancementDemo')
+);
 const NextGenFeaturesDemo = React.lazy(() => import('@/components/Demo/NextGenFeaturesDemo'));
 const EnterpriseFeaturesDemo = React.lazy(() => import('@/components/Demo/EnterpriseFeaturesDemo'));
 const UltimateEnterpriseDemo = React.lazy(() => import('@/components/Demo/UltimateEnterpriseDemo'));
@@ -201,337 +203,336 @@ function App() {
               <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                   {/* Demo Routes - Public Access */}
-                <Route
-                  path="/demo"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <EnhancementDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <EnhancementDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/advanced"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <AdvancedEnhancementDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/advanced"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <AdvancedEnhancementDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/nextgen"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <NextGenFeaturesDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/nextgen"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <NextGenFeaturesDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/enterprise"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <EnterpriseFeaturesDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/enterprise"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <EnterpriseFeaturesDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/ultimate"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <UltimateEnterpriseDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/ultimate"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <UltimateEnterpriseDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/components"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <UltimateComponentsDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/components"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <UltimateComponentsDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                <Route
-                  path="/demo/datatable"
-                  element={
-                    <DemoLayout>
-                      <Suspense fallback={<LoadingFallback />}>
-                        <UltimateDataTableDemo />
-                      </Suspense>
-                    </DemoLayout>
-                  }
-                />
+                  <Route
+                    path="/demo/datatable"
+                    element={
+                      <DemoLayout>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <UltimateDataTableDemo />
+                        </Suspense>
+                      </DemoLayout>
+                    }
+                  />
 
-                {/* Public Routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/auth-test" element={<AuthTest />} />
+                  {/* Public Routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/auth-test" element={<AuthTest />} />
 
-                {/* Authenticated Routes */}
-                <Route
-                  path="/*"
-                  element={
-                    <RealtimeProvider>
-                      <Routes>
+                  {/* Authenticated Routes */}
+                  <Route
+                    path="/*"
+                    element={
+                      <RealtimeProvider>
+                        <Routes>
+                          {/* Protected Routes */}
+                          <Route
+                            path="/"
+                            element={
+                              <ProtectedRoute>
+                                <Navigate to="/dashboard" replace />
+                              </ProtectedRoute>
+                            }
+                          />
 
-                {/* Protected Routes */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Navigate to="/dashboard" replace />
-                    </ProtectedRoute>
-                  }
-                />
+                          <Route
+                            path="/dashboard"
+                            element={
+                              <LazyRoute>
+                                <Dashboard />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/dashboard"
-                  element={
-                    <LazyRoute>
-                      <Dashboard />
-                    </LazyRoute>
-                  }
-                />
+                          {/* KPI Management */}
+                          <Route
+                            path="/kpis"
+                            element={
+                              <LazyRoute>
+                                <KpiList />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/kpis/create"
+                            element={
+                              <LazyRoute>
+                                <KpiCreate />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/kpis/:id"
+                            element={
+                              <LazyRoute>
+                                <KpiDetail />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/kpis/:id/edit"
+                            element={
+                              <LazyRoute>
+                                <KpiCreate />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* KPI Management */}
-                <Route
-                  path="/kpis"
-                  element={
-                    <LazyRoute>
-                      <KpiList />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/kpis/create"
-                  element={
-                    <LazyRoute>
-                      <KpiCreate />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/kpis/:id"
-                  element={
-                    <LazyRoute>
-                      <KpiDetail />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/kpis/:id/edit"
-                  element={
-                    <LazyRoute>
-                      <KpiCreate />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Contact Management */}
+                          <Route
+                            path="/contacts"
+                            element={
+                              <LazyRoute>
+                                <ContactList />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/contacts/create"
+                            element={
+                              <LazyRoute>
+                                <ContactCreate />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/contacts/:id"
+                            element={
+                              <LazyRoute>
+                                <ContactDetail />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/contacts/:id/edit"
+                            element={
+                              <LazyRoute>
+                                <ContactCreate />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Contact Management */}
-                <Route
-                  path="/contacts"
-                  element={
-                    <LazyRoute>
-                      <ContactList />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/contacts/create"
-                  element={
-                    <LazyRoute>
-                      <ContactCreate />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/contacts/:id"
-                  element={
-                    <LazyRoute>
-                      <ContactDetail />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/contacts/:id/edit"
-                  element={
-                    <LazyRoute>
-                      <ContactCreate />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Alert Management */}
+                          <Route
+                            path="/alerts"
+                            element={
+                              <LazyRoute>
+                                <AlertList />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/alerts/:id"
+                            element={
+                              <LazyRoute>
+                                <AlertDetail />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Alert Management */}
-                <Route
-                  path="/alerts"
-                  element={
-                    <LazyRoute>
-                      <AlertList />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/alerts/:id"
-                  element={
-                    <LazyRoute>
-                      <AlertDetail />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Analytics */}
+                          <Route
+                            path="/analytics"
+                            element={
+                              <LazyRoute>
+                                <Analytics />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Analytics */}
-                <Route
-                  path="/analytics"
-                  element={
-                    <LazyRoute>
-                      <Analytics />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Execution History */}
+                          <Route
+                            path="/execution-history"
+                            element={
+                              <LazyRoute>
+                                <ExecutionHistoryList />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/execution-history/:id"
+                            element={
+                              <LazyRoute>
+                                <ExecutionHistoryDetail />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Execution History */}
-                <Route
-                  path="/execution-history"
-                  element={
-                    <LazyRoute>
-                      <ExecutionHistoryList />
-                    </LazyRoute>
-                  }
-                />
-                <Route
-                  path="/execution-history/:id"
-                  element={
-                    <LazyRoute>
-                      <ExecutionHistoryDetail />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Worker Management */}
+                          <Route
+                            path="/worker"
+                            element={
+                              <LazyRoute>
+                                <WorkerManagement />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Worker Management */}
-                <Route
-                  path="/worker"
-                  element={
-                    <LazyRoute>
-                      <WorkerManagement />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Worker Debug */}
+                          <Route
+                            path="/worker-debug"
+                            element={
+                              <LazyRoute>
+                                <WorkerDebug />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Worker Debug */}
-                <Route
-                  path="/worker-debug"
-                  element={
-                    <LazyRoute>
-                      <WorkerDebug />
-                    </LazyRoute>
-                  }
-                />
+                          {/* User Profile */}
+                          <Route
+                            path="/profile"
+                            element={
+                              <LazyRoute>
+                                <UserProfile />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* User Profile */}
-                <Route
-                  path="/profile"
-                  element={
-                    <LazyRoute>
-                      <UserProfile />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Administration Routes */}
+                          <Route
+                            path="/administration"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
 
-                {/* Administration Routes */}
-                <Route
-                  path="/administration"
-                  element={
-                    <LazyRoute>
-                      <Administration />
-                    </LazyRoute>
-                  }
-                />
+                          <Route
+                            path="/administration/security"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/administration/security"
-                  element={
-                    <LazyRoute>
-                      <Administration />
-                    </LazyRoute>
-                  }
-                />
+                          <Route
+                            path="/administration/api-keys"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/administration/api-keys"
-                  element={
-                    <LazyRoute>
-                      <Administration />
-                    </LazyRoute>
-                  }
-                />
+                          <Route
+                            path="/administration/audit"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/administration/audit"
-                  element={
-                    <LazyRoute>
-                      <Administration />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Admin Routes - Redirect to Administration */}
+                          <Route
+                            path="/admin"
+                            element={<Navigate to="/administration" replace />}
+                          />
 
-                {/* Admin Routes - Redirect to Administration */}
-                <Route
-                  path="/admin"
-                  element={<Navigate to="/administration" replace />}
-                />
+                          <Route
+                            path="/admin/users"
+                            element={
+                              <LazyRoute requiredPermissions={['User:Read']}>
+                                <UserManagement />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/admin/users"
-                  element={
-                    <LazyRoute requiredPermissions={['User:Read']}>
-                      <UserManagement />
-                    </LazyRoute>
-                  }
-                />
+                          <Route
+                            path="/admin/roles"
+                            element={
+                              <LazyRoute requiredPermissions={['Role:Read']}>
+                                <RoleManagement />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/admin/roles"
-                  element={
-                    <LazyRoute requiredPermissions={['Role:Read']}>
-                      <RoleManagement />
-                    </LazyRoute>
-                  }
-                />
+                          <Route
+                            path="/admin/settings"
+                            element={
+                              <LazyRoute requiredPermissions={['System:Admin']}>
+                                <SystemSettings />
+                              </LazyRoute>
+                            }
+                          />
 
-                <Route
-                  path="/admin/settings"
-                  element={
-                    <LazyRoute requiredPermissions={['System:Admin']}>
-                      <SystemSettings />
-                    </LazyRoute>
-                  }
-                />
-
-                {/* Settings */}
-                <Route
-                  path="/settings"
-                  element={
-                    <LazyRoute>
-                      <Settings />
-                    </LazyRoute>
-                  }
-                />
+                          {/* Settings */}
+                          <Route
+                            path="/settings"
+                            element={
+                              <LazyRoute>
+                                <Settings />
+                              </LazyRoute>
+                            }
+                          />
 
                           {/* Test Page */}
                           <Route
@@ -554,9 +555,9 @@ function App() {
             </AuthProvider>
           </ErrorBoundary>
 
-        {/* Toast notifications */}
-        <ThemedToaster />
-      </CustomThemeProvider>
+          {/* Toast notifications */}
+          <ThemedToaster />
+        </CustomThemeProvider>
       </I18nextProvider>
     </QueryClientProvider>
   );

@@ -83,7 +83,7 @@ export const UltimateButton: React.FC<UltimateButtonProps> = ({
           '&:disabled': {
             background: 'linear-gradient(135deg, #ccc 0%, #999 100%)',
             color: 'white',
-          }
+          },
         }),
         ...(isOutlined && {
           borderColor: `${outlineColorMap[gradient]}40`,
@@ -96,7 +96,7 @@ export const UltimateButton: React.FC<UltimateButtonProps> = ({
             ...(glowEffect && {
               boxShadow: `0 4px 15px ${shadowColorMap[gradient]}`,
             }),
-          }
+          },
         }),
         py: 1.5,
         px: 3,
@@ -107,9 +107,7 @@ export const UltimateButton: React.FC<UltimateButtonProps> = ({
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {loading && loadingIcon ? (
-          <Box sx={{ animation: 'spin 1s linear infinite' }}>
-            {loadingIcon}
-          </Box>
+          <Box sx={{ animation: 'spin 1s linear infinite' }}>{loadingIcon}</Box>
         ) : icon ? (
           icon
         ) : null}

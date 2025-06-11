@@ -56,7 +56,7 @@ const UserMenu: React.FC = () => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Logout failed - continue with navigation
       // Force navigation even if logout fails
       navigate('/login');
     }

@@ -9,6 +9,10 @@ export { default as UltimateSelect } from './UltimateSelect';
 export { default as UltimateMetricCard } from './UltimateMetricCard';
 export { default as UltimateSnackbar } from './UltimateSnackbar';
 export { default as UltimateDataTable } from './UltimateDataTable';
+export { default as UltimatePageHeader } from './UltimatePageHeader';
+export { default as UltimateFilterPanel } from './UltimateFilterPanel';
+export { default as UltimateStatusChip } from './UltimateStatusChip';
+export { default as UltimateLoadingSpinner } from './UltimateLoadingSpinner';
 export type { UltimateDataTableColumn, UltimateDataTableProps } from './UltimateDataTable';
 
 // Re-export types if needed

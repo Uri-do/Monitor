@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  CardContent,
-  Stack,
-  MenuItem,
-  Divider,
-  Chip,
-} from '@mui/material';
+import { Box, Typography, Grid, CardContent, Stack, MenuItem, Divider, Chip } from '@mui/material';
 import {
   Speed as SpeedIcon,
   Security as SecurityIcon,
@@ -41,8 +32,10 @@ export const UltimateComponentsDemo: React.FC = () => {
   const [secondaryDialogOpen, setSecondaryDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
-  
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('success');
+
   // Form states
   const [formData, setFormData] = useState({
     name: '',
@@ -50,7 +43,7 @@ export const UltimateComponentsDemo: React.FC = () => {
     priority: 'Medium',
     category: 'Performance',
   });
-  
+
   // Live metrics
   const [liveMetrics, setLiveMetrics] = useState({
     performance: 94.2,
@@ -63,14 +56,86 @@ export const UltimateComponentsDemo: React.FC = () => {
 
   // Sample data for DataTable
   const sampleTableData = [
-    { id: 1, name: 'Ultimate KPI Monitor', status: 'Active', priority: 'High', owner: 'DevOps Team', lastRun: '2024-01-15 10:30', performance: 94.2, type: 'Performance' },
-    { id: 2, name: 'Database Health Check', status: 'Active', priority: 'Critical', owner: 'Database Team', lastRun: '2024-01-15 10:25', performance: 98.7, type: 'Database' },
-    { id: 3, name: 'API Response Monitor', status: 'Warning', priority: 'Medium', owner: 'API Team', lastRun: '2024-01-15 10:20', performance: 87.3, type: 'API' },
-    { id: 4, name: 'Security Audit Trail', status: 'Active', priority: 'Critical', owner: 'Security Team', lastRun: '2024-01-15 10:15', performance: 99.1, type: 'Security' },
-    { id: 5, name: 'Network Latency Check', status: 'Error', priority: 'High', owner: 'Network Team', lastRun: '2024-01-15 10:10', performance: 76.8, type: 'Network' },
-    { id: 6, name: 'Memory Usage Monitor', status: 'Active', priority: 'Medium', owner: 'Infrastructure', lastRun: '2024-01-15 10:05', performance: 91.5, type: 'Infrastructure' },
-    { id: 7, name: 'Disk Space Monitor', status: 'Active', priority: 'Low', owner: 'Infrastructure', lastRun: '2024-01-15 10:00', performance: 88.9, type: 'Infrastructure' },
-    { id: 8, name: 'User Authentication', status: 'Active', priority: 'Critical', owner: 'Security Team', lastRun: '2024-01-15 09:55', performance: 97.2, type: 'Security' },
+    {
+      id: 1,
+      name: 'Ultimate KPI Monitor',
+      status: 'Active',
+      priority: 'High',
+      owner: 'DevOps Team',
+      lastRun: '2024-01-15 10:30',
+      performance: 94.2,
+      type: 'Performance',
+    },
+    {
+      id: 2,
+      name: 'Database Health Check',
+      status: 'Active',
+      priority: 'Critical',
+      owner: 'Database Team',
+      lastRun: '2024-01-15 10:25',
+      performance: 98.7,
+      type: 'Database',
+    },
+    {
+      id: 3,
+      name: 'API Response Monitor',
+      status: 'Warning',
+      priority: 'Medium',
+      owner: 'API Team',
+      lastRun: '2024-01-15 10:20',
+      performance: 87.3,
+      type: 'API',
+    },
+    {
+      id: 4,
+      name: 'Security Audit Trail',
+      status: 'Active',
+      priority: 'Critical',
+      owner: 'Security Team',
+      lastRun: '2024-01-15 10:15',
+      performance: 99.1,
+      type: 'Security',
+    },
+    {
+      id: 5,
+      name: 'Network Latency Check',
+      status: 'Error',
+      priority: 'High',
+      owner: 'Network Team',
+      lastRun: '2024-01-15 10:10',
+      performance: 76.8,
+      type: 'Network',
+    },
+    {
+      id: 6,
+      name: 'Memory Usage Monitor',
+      status: 'Active',
+      priority: 'Medium',
+      owner: 'Infrastructure',
+      lastRun: '2024-01-15 10:05',
+      performance: 91.5,
+      type: 'Infrastructure',
+    },
+    {
+      id: 7,
+      name: 'Disk Space Monitor',
+      status: 'Active',
+      priority: 'Low',
+      owner: 'Infrastructure',
+      lastRun: '2024-01-15 10:00',
+      performance: 88.9,
+      type: 'Infrastructure',
+    },
+    {
+      id: 8,
+      name: 'User Authentication',
+      status: 'Active',
+      priority: 'Critical',
+      owner: 'Security Team',
+      lastRun: '2024-01-15 09:55',
+      performance: 97.2,
+      type: 'Security',
+    },
   ];
 
   const tableColumns: UltimateDataTableColumn[] = [
@@ -86,13 +151,13 @@ export const UltimateComponentsDemo: React.FC = () => {
         { label: 'Warning', value: 'Warning' },
         { label: 'Error', value: 'Error' },
       ],
-      format: (value) => (
+      format: value => (
         <Chip
           label={value}
           color={value === 'Active' ? 'success' : value === 'Warning' ? 'warning' : 'error'}
           size="small"
         />
-      )
+      ),
     },
     {
       id: 'priority',
@@ -106,14 +171,22 @@ export const UltimateComponentsDemo: React.FC = () => {
         { label: 'High', value: 'High' },
         { label: 'Critical', value: 'Critical' },
       ],
-      format: (value) => (
+      format: value => (
         <Chip
           label={value}
-          color={value === 'Critical' ? 'error' : value === 'High' ? 'warning' : value === 'Medium' ? 'info' : 'default'}
+          color={
+            value === 'Critical'
+              ? 'error'
+              : value === 'High'
+                ? 'warning'
+                : value === 'Medium'
+                  ? 'info'
+                  : 'default'
+          }
           size="small"
           variant="outlined"
         />
-      )
+      ),
     },
     { id: 'owner', label: 'Owner Team', sortable: true, filterable: true },
     { id: 'lastRun', label: 'Last Run', sortable: true, width: 150 },
@@ -122,7 +195,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       label: 'Performance %',
       sortable: true,
       align: 'right' as const,
-      format: (value) => `${value}%`
+      format: value => `${value}%`,
     },
     {
       id: 'type',
@@ -137,7 +210,7 @@ export const UltimateComponentsDemo: React.FC = () => {
         { label: 'Security', value: 'Security' },
         { label: 'Network', value: 'Network' },
         { label: 'Infrastructure', value: 'Infrastructure' },
-      ]
+      ],
     },
   ];
 
@@ -150,7 +223,10 @@ export const UltimateComponentsDemo: React.FC = () => {
         network: Math.max(80, Math.min(100, prev.network + (Math.random() - 0.5) * 2)),
         errors: Math.max(0, Math.min(10, prev.errors + Math.floor((Math.random() - 0.7) * 2))),
         uptime: Math.max(95, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.1)),
-        throughput: Math.max(10000, Math.min(20000, prev.throughput + Math.floor((Math.random() - 0.5) * 1000))),
+        throughput: Math.max(
+          10000,
+          Math.min(20000, prev.throughput + Math.floor((Math.random() - 0.5) * 1000))
+        ),
       }));
     }, 3000);
 
@@ -164,7 +240,7 @@ export const UltimateComponentsDemo: React.FC = () => {
       setSnackbarOpen(true);
       return;
     }
-    
+
     setPrimaryDialogOpen(false);
     setFormData({ name: '', description: '', priority: 'Medium', category: 'Performance' });
     setSnackbarMessage('Ultimate component created successfully! 🚀');
@@ -172,7 +248,10 @@ export const UltimateComponentsDemo: React.FC = () => {
     setSnackbarOpen(true);
   };
 
-  const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+  const showNotification = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info'
+  ) => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
     setSnackbarOpen(true);
@@ -206,7 +285,7 @@ export const UltimateComponentsDemo: React.FC = () => {
             onClick={() => showNotification('Performance metrics accessed!', 'info')}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <UltimateMetricCard
             title="Memory Usage"
@@ -218,7 +297,7 @@ export const UltimateComponentsDemo: React.FC = () => {
             onClick={() => showNotification('Memory stats viewed!', 'info')}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <UltimateMetricCard
             title="Network Health"
@@ -289,7 +368,9 @@ export const UltimateComponentsDemo: React.FC = () => {
                   gradient="success"
                   fullWidth
                   icon={<CheckIcon />}
-                  onClick={() => showNotification('Operation completed successfully! ✅', 'success')}
+                  onClick={() =>
+                    showNotification('Operation completed successfully! ✅', 'success')
+                  }
                 >
                   Execute Success Action
                 </UltimateButton>
@@ -319,14 +400,16 @@ export const UltimateComponentsDemo: React.FC = () => {
             value={liveMetrics.errors}
             subtitle="Enterprise error tracking"
             icon={<ErrorIcon />}
-            gradient={liveMetrics.errors > 5 ? "error" : "warning"}
-            chip={{ 
-              label: liveMetrics.errors > 5 ? 'CRITICAL' : liveMetrics.errors > 2 ? 'WARNING' : 'STABLE', 
-              color: liveMetrics.errors > 5 ? 'error' : liveMetrics.errors > 2 ? 'warning' : 'success' 
+            gradient={liveMetrics.errors > 5 ? 'error' : 'warning'}
+            chip={{
+              label:
+                liveMetrics.errors > 5 ? 'CRITICAL' : liveMetrics.errors > 2 ? 'WARNING' : 'STABLE',
+              color:
+                liveMetrics.errors > 5 ? 'error' : liveMetrics.errors > 2 ? 'warning' : 'success',
             }}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <UltimateMetricCard
             title="System Uptime"
@@ -337,7 +420,7 @@ export const UltimateComponentsDemo: React.FC = () => {
             chip={{ label: 'ENTERPRISE', color: 'secondary' }}
           />
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <UltimateMetricCard
             title="Throughput"
@@ -426,12 +509,16 @@ export const UltimateComponentsDemo: React.FC = () => {
         defaultRowsPerPage={5}
         maxHeight={400}
         onRefresh={() => showNotification('Data refreshed! 🔄', 'info')}
-        onExport={(data, format) => showNotification(`Exported ${data.length} rows as ${format.toUpperCase()}! 📊`, 'success')}
-        onRowClick={(row) => showNotification(`Clicked on: ${row.name}`, 'info')}
-        onRowView={(row) => showNotification(`Viewing details for: ${row.name} 👁️`, 'info')}
-        onRowEdit={(row) => showNotification(`Editing: ${row.name} ✏️`, 'warning')}
-        onRowDelete={(row) => showNotification(`Deleted: ${row.name} 🗑️`, 'error')}
-        onBulkAction={(rows, action) => showNotification(`Bulk ${action} on ${rows.length} items! 📦`, 'warning')}
+        onExport={(data, format) =>
+          showNotification(`Exported ${data.length} rows as ${format.toUpperCase()}! 📊`, 'success')
+        }
+        onRowClick={row => showNotification(`Clicked on: ${row.name}`, 'info')}
+        onRowView={row => showNotification(`Viewing details for: ${row.name} 👁️`, 'info')}
+        onRowEdit={row => showNotification(`Editing: ${row.name} ✏️`, 'warning')}
+        onRowDelete={row => showNotification(`Deleted: ${row.name} 🗑️`, 'error')}
+        onBulkAction={(rows, action) =>
+          showNotification(`Bulk ${action} on ${rows.length} items! 📦`, 'warning')
+        }
       />
 
       {/* Ultimate Dialogs */}
@@ -453,11 +540,7 @@ export const UltimateComponentsDemo: React.FC = () => {
             >
               Cancel
             </UltimateButton>
-            <UltimateButton
-              gradient="primary"
-              onClick={handleFormSubmit}
-              icon={<CheckIcon />}
-            >
+            <UltimateButton gradient="primary" onClick={handleFormSubmit} icon={<CheckIcon />}>
               Create Enterprise Item
             </UltimateButton>
           </>
@@ -467,7 +550,7 @@ export const UltimateComponentsDemo: React.FC = () => {
           <UltimateInputField
             label="Component Name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
             required
             placeholder="e.g., Ultimate Dashboard Widget"
             gradient="primary"
@@ -476,7 +559,7 @@ export const UltimateComponentsDemo: React.FC = () => {
           <UltimateInputField
             label="Description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
             required
             multiline
             rows={3}
@@ -489,7 +572,7 @@ export const UltimateComponentsDemo: React.FC = () => {
               <UltimateSelect
                 label="Priority Level"
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as string })}
+                onChange={e => setFormData({ ...formData, priority: e.target.value as string })}
                 gradient="success"
               >
                 <MenuItem value="Low">🟢 Low Priority</MenuItem>
@@ -503,7 +586,7 @@ export const UltimateComponentsDemo: React.FC = () => {
               <UltimateSelect
                 label="Category"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}
+                onChange={e => setFormData({ ...formData, category: e.target.value as string })}
                 gradient="info"
               >
                 <MenuItem value="Performance">⚡ Performance</MenuItem>
@@ -553,8 +636,8 @@ export const UltimateComponentsDemo: React.FC = () => {
             Enterprise Contact Management
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            This demo showcases the Ultimate Enterprise Dialog component with
-            advanced styling, animations, and professional presentation.
+            This demo showcases the Ultimate Enterprise Dialog component with advanced styling,
+            animations, and professional presentation.
           </Typography>
 
           <Divider sx={{ my: 3 }} />

@@ -17,7 +17,7 @@ export const useExecutionHistory = (filters?: {
   return useQuery({
     queryKey: queryKeys.executionHistory.list(filters || {}),
     queryFn: () => executionHistoryApi.getExecutionHistory(filters),
-    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     refetchInterval: 60 * 1000, // Auto-refetch every minute for recent executions
   });
@@ -55,8 +55,9 @@ export const useKpiExecutionHistory = (kpiId: number, limit?: number) => {
 export const useExecutionStatistics = (timeRangeDays: number = 30) => {
   return useQuery({
     queryKey: queryKeys.executionHistory.statistics(timeRangeDays),
-    queryFn: () => executionHistoryApi.getExecutionStatistics?.(timeRangeDays) || Promise.resolve(null),
-    placeholderData: (previousData) => previousData,
+    queryFn: () =>
+      executionHistoryApi.getExecutionStatistics?.(timeRangeDays) || Promise.resolve(null),
+    placeholderData: previousData => previousData,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     refetchInterval: 10 * 60 * 1000, // Auto-refetch every 10 minutes
     enabled: !!executionHistoryApi.getExecutionStatistics, // Only run if endpoint exists
@@ -70,7 +71,7 @@ export const useRecentExecutions = (limit: number = 10) => {
   return useQuery({
     queryKey: queryKeys.executionHistory.recent(limit),
     queryFn: () => executionHistoryApi.getRecentExecutions?.(limit) || Promise.resolve([]),
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     refetchInterval: 60 * 1000, // Auto-refetch every minute for real-time updates
     enabled: !!executionHistoryApi.getRecentExecutions, // Only run if endpoint exists

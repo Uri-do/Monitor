@@ -39,7 +39,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, executionHistoryApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { PageHeader, StatusChip, LoadingSpinner } from '@/components/Common';
+import {
+  UltimatePageHeader,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+} from '@/components/UltimateEnterprise';
 import { PaginatedExecutionHistoryDto } from '@/types/api';
 import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 import { getScheduleDescription } from '@/utils/schedulerUtils';
@@ -99,7 +103,7 @@ const KpiDetail: React.FC = () => {
   };
 
   if (kpiLoading) {
-    return <LoadingSpinner />;
+    return <UltimateLoadingSpinner />;
   }
 
   if (!kpi) {
@@ -128,7 +132,7 @@ const KpiDetail: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title={kpi.indicator}
         subtitle={`Owner: ${kpi.owner} • Priority: ${kpi.priorityName}`}
         breadcrumbs={[{ label: 'KPIs', href: '/kpis' }, { label: kpi.indicator }]}
@@ -136,13 +140,13 @@ const KpiDetail: React.FC = () => {
           label: 'Execute Now',
           icon: <ExecuteIcon />,
           onClick: () => setExecuteDialogOpen(true),
-          disabled: !kpi.isActive,
         }}
-        actions={[
+        secondaryActions={[
           {
             label: 'Edit',
             icon: <EditIcon />,
             onClick: () => navigate(`/kpis/${kpiId}/edit`),
+            gradient: 'info',
           },
         ]}
       />
@@ -160,7 +164,7 @@ const KpiDetail: React.FC = () => {
                   <Typography variant="body2" color="textSecondary">
                     Status
                   </Typography>
-                  <StatusChip status={kpi.isActive ? 'active' : 'inactive'} sx={{ mt: 0.5 }} />
+                  <UltimateStatusChip status={kpi.isActive ? 'active' : 'inactive'} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
@@ -301,10 +305,7 @@ const KpiDetail: React.FC = () => {
                       <Box key={contact.contactId} display="flex" alignItems="center" gap={1}>
                         <ContactsIcon fontSize="small" color="action" />
                         <Typography variant="body2">{contact.name}</Typography>
-                        <StatusChip
-                          status={contact.isActive ? 'active' : 'inactive'}
-                          size="small"
-                        />
+                        <UltimateStatusChip status={contact.isActive ? 'active' : 'inactive'} />
                       </Box>
                     ))}
                   </Stack>

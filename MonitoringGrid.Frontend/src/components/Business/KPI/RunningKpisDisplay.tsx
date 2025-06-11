@@ -6,7 +6,6 @@ import {
   LinearProgress,
   Chip,
   Paper,
-  Card,
   CardContent,
   List,
   ListItem,
@@ -18,6 +17,7 @@ import {
 } from '@mui/material';
 import { PlayCircle, PlayArrow, TrendingUp } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import { UltimateCard } from '@/components/UltimateEnterprise';
 
 export interface RunningKpi {
   kpiId: number;
@@ -79,10 +79,12 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
             borderColor: 'success.main',
             borderRadius: 1,
             backgroundColor: 'success.light',
-            color: 'success.contrastText'
+            color: 'success.contrastText',
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}
+          >
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {kpi.indicator}
             </Typography>
@@ -108,8 +110,8 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
                   borderRadius: 2,
                   backgroundColor: 'rgba(255,255,255,0.3)',
                   '& .MuiLinearProgress-bar': {
-                    backgroundColor: 'white'
-                  }
+                    backgroundColor: 'white',
+                  },
                 }}
               />
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
@@ -251,8 +253,8 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
                       backgroundColor: 'rgba(0, 0, 0, 0.1)',
                       '& .MuiLinearProgress-bar': {
                         borderRadius: 2,
-                        backgroundColor: 'primary.main'
-                      }
+                        backgroundColor: 'primary.main',
+                      },
                     }}
                   />
                 </Box>
@@ -261,11 +263,11 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           }
           primaryTypographyProps={{
             variant: 'subtitle2',
-            sx: { fontWeight: 600, mb: 0.5 }
+            sx: { fontWeight: 600, mb: 0.5 },
           }}
           secondaryTypographyProps={{
             component: 'div',
-            sx: { fontSize: '0.875rem', color: 'text.secondary' }
+            sx: { fontSize: '0.875rem', color: 'text.secondary' },
           }}
         />
       </ListItem>
@@ -333,7 +335,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
   // Card variant (default)
   return (
     <Grid item xs={12} md={6}>
-      <Card sx={{ height: '100%' }}>
+      <UltimateCard sx={{ height: '100%' }}>
         <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
@@ -367,15 +369,13 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
             {runningKpis.length > 0 ? (
-              <List sx={{ p: 0 }}>
-                {displayKpis.map(renderKpiItem)}
-              </List>
+              <List sx={{ p: 0 }}>{displayKpis.map(renderKpiItem)}</List>
             ) : (
               renderEmptyState()
             )}
           </Box>
         </CardContent>
-      </Card>
+      </UltimateCard>
     </Grid>
   );
 };

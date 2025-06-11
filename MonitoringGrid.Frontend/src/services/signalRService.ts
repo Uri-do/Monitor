@@ -8,7 +8,7 @@ export interface WorkerStatusUpdate {
   isRunning: boolean;
   mode: string;
   processId?: number;
-  services: Array<{ name: string; status: string; }>;
+  services: Array<{ name: string; status: string }>;
   lastHeartbeat: string;
   uptime: string;
 }

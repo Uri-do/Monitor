@@ -72,8 +72,6 @@ const api = axios.create({
   },
 });
 
-
-
 // Request interceptor for authentication
 api.interceptors.request.use(
   config => {
@@ -107,9 +105,8 @@ api.interceptors.response.use(
 
       // Redirect to login page if not already there or in demo mode
       const currentPath = window.location.pathname;
-      const isPublicPath = currentPath === '/login' ||
-                          currentPath === '/auth-test' ||
-                          currentPath.startsWith('/demo');
+      const isPublicPath =
+        currentPath === '/login' || currentPath === '/auth-test' || currentPath.startsWith('/demo');
 
       if (!isPublicPath) {
         window.location.href = '/login';
@@ -239,17 +236,23 @@ export const contactApi = {
   // Assign contact to KPIs
   assignToKpis: async (id: number, kpiIds: number[]): Promise<{ message: string }> => {
     // Updated to use KPI controller's contact endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post(`/kpi/contacts/${id}/assign`, {
-      contactId: id,
-      kpiIds,
-    });
+    const response: AxiosResponse<{ message: string }> = await api.post(
+      `/kpi/contacts/${id}/assign`,
+      {
+        contactId: id,
+        kpiIds,
+      }
+    );
     return response.data;
   },
 
   // Bulk operations
   bulkOperation: async (request: BulkContactOperationRequest): Promise<{ message: string }> => {
     // Updated to use KPI controller's contact endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post('/kpi/contacts/bulk', request);
+    const response: AxiosResponse<{ message: string }> = await api.post(
+      '/kpi/contacts/bulk',
+      request
+    );
     return response.data;
   },
 };
@@ -271,7 +274,7 @@ export const alertApi = {
           totalCount: 0,
           page: filter.page || 1,
           pageSize: filter.pageSize || 20,
-          totalPages: 0
+          totalPages: 0,
         };
       }
       throw error;
@@ -333,7 +336,7 @@ export const alertApi = {
       criticalAlerts: 0,
       averageResolutionTimeHours: 0,
       dailyTrend: [],
-      topAlertingKpis: []
+      topAlertingKpis: [],
     };
   },
 
@@ -353,7 +356,7 @@ export const alertApi = {
           alertTrendPercentage: 0,
           recentAlerts: [],
           topAlertingKpis: [],
-          hourlyTrend: []
+          hourlyTrend: [],
         };
       }
       // Return empty dashboard for other errors too
@@ -365,7 +368,7 @@ export const alertApi = {
         alertTrendPercentage: 0,
         recentAlerts: [],
         topAlertingKpis: [],
-        hourlyTrend: []
+        hourlyTrend: [],
       };
     }
   },
@@ -404,7 +407,7 @@ export const alertApi = {
       // Return mock response until manual alert endpoint is implemented
       return {
         message: 'Manual alert functionality not yet implemented',
-        alertId: 0
+        alertId: 0,
       };
     } catch (error: any) {
       if (error.response?.status === 503) {
@@ -567,12 +570,13 @@ export const realtimeApi = {
   },
 };
 
-
-
 // Security API endpoints (consolidated authentication, authorization, and security management)
 export const securityApi = {
   // Authentication endpoints
-  login: async (credentials: { username: string; password: string }): Promise<{
+  login: async (credentials: {
+    username: string;
+    password: string;
+  }): Promise<{
     isSuccess: boolean;
     token?: any;
     user?: any;
@@ -648,10 +652,13 @@ export const securityApi = {
     return response.data;
   },
 
-  getUserSecurityEvents: async (userId: string, params?: {
-    startDate?: string;
-    endDate?: string;
-  }): Promise<any[]> => {
+  getUserSecurityEvents: async (
+    userId: string,
+    params?: {
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<any[]> => {
     const response = await api.get(`/security/events/user/${userId}`, { params });
     return response.data;
   },

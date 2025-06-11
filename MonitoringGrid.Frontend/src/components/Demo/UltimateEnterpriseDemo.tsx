@@ -134,10 +134,16 @@ export const UltimateEnterpriseDemo: React.FC = () => {
     const interval = setInterval(() => {
       setLiveMetrics(prev => ({
         edgeLatency: Math.max(8, Math.min(20, prev.edgeLatency + (Math.random() - 0.5) * 2)),
-        blockchainTps: Math.max(2000, Math.min(3000, prev.blockchainTps + (Math.random() - 0.5) * 100)),
+        blockchainTps: Math.max(
+          2000,
+          Math.min(3000, prev.blockchainTps + (Math.random() - 0.5) * 100)
+        ),
         quantumScore: Math.max(80, Math.min(95, prev.quantumScore + (Math.random() - 0.5) * 2)),
         mlAccuracy: Math.max(90, Math.min(98, prev.mlAccuracy + (Math.random() - 0.5) * 0.5)),
-        eventThroughput: Math.max(4000, Math.min(6000, prev.eventThroughput + (Math.random() - 0.5) * 200)),
+        eventThroughput: Math.max(
+          4000,
+          Math.min(6000, prev.eventThroughput + (Math.random() - 0.5) * 200)
+        ),
         serverlessInvocations: prev.serverlessInvocations + Math.floor(Math.random() * 1000),
       }));
     }, 3000);
@@ -177,9 +183,9 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       icon: <BlockchainIcon color="secondary" />,
       metrics: {
         'Block Height': blockchainMetrics.blockHeight || 1234567,
-        'Consensus': blockchainMetrics.consensusAlgorithm || 'PoS',
-        'Validators': blockchainMetrics.validators?.length || 12,
-        'Finality': '12.5s',
+        Consensus: blockchainMetrics.consensusAlgorithm || 'PoS',
+        Validators: blockchainMetrics.validators?.length || 12,
+        Finality: '12.5s',
       },
       capabilities: [
         'Immutable audit logging',
@@ -237,9 +243,9 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       icon: <EventMeshIcon color="info" />,
       metrics: {
         'Event Streams': eventStreams.length,
-        'Throughput': '5K msg/s',
-        'Latency': '15ms',
-        'Patterns': '24 Active',
+        Throughput: '5K msg/s',
+        Latency: '15ms',
+        Patterns: '24 Active',
       },
       capabilities: [
         'Real-time event streaming',
@@ -256,8 +262,8 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       description: 'Function-as-a-Service with auto-scaling',
       icon: <ServerlessIcon color="primary" />,
       metrics: {
-        'Functions': '48 Active',
-        'Invocations': '2.5M/day',
+        Functions: '48 Active',
+        Invocations: '2.5M/day',
         'Cold Start': '50ms',
         'Cost Savings': '65%',
       },
@@ -278,28 +284,44 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <LaunchIcon sx={{ fontSize: 40, color: 'primary.main' }} />
         <Box>
-          <Typography variant="h3" gutterBottom sx={{ background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <Typography
+            variant="h3"
+            gutterBottom
+            sx={{
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             🚀 Round 5: Ultimate Enterprise Architecture
           </Typography>
           <Typography variant="h6" color="text.secondary">
-            The most advanced enterprise features possible - Edge Computing, Blockchain, Quantum-Ready Security, Advanced AI/ML, and Real-time Event Mesh
+            The most advanced enterprise features possible - Edge Computing, Blockchain,
+            Quantum-Ready Security, Advanced AI/ML, and Real-time Event Mesh
           </Typography>
         </Box>
       </Box>
-      
-      <Alert severity="success" sx={{ mb: 3, background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)' }}>
+
+      <Alert
+        severity="success"
+        sx={{ mb: 3, background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)' }}
+      >
         <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
           🌟 Ultimate Enterprise Architecture Successfully Deployed!
         </Typography>
         <Typography sx={{ color: 'white' }}>
-          Cutting-edge technologies including Edge Computing, Blockchain/DLT, Quantum-Ready Cryptography, Advanced ML Pipelines, Real-time Event Mesh, and Serverless Integration are now operational.
+          Cutting-edge technologies including Edge Computing, Blockchain/DLT, Quantum-Ready
+          Cryptography, Advanced ML Pipelines, Real-time Event Mesh, and Serverless Integration are
+          now operational.
         </Typography>
       </Alert>
 
       {/* Ultimate Status Overview */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <EdgeIcon />
@@ -312,20 +334,30 @@ export const UltimateEnterpriseDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <BlockchainIcon />
                 <Typography variant="h6">Blockchain</Typography>
               </Box>
-              <Typography variant="h3">{blockchainMetrics.blockHeight ? Math.floor(blockchainMetrics.blockHeight / 1000) + 'K' : '1.2M'}</Typography>
-              <Typography variant="caption">{liveMetrics.blockchainTps.toLocaleString()} TPS</Typography>
+              <Typography variant="h3">
+                {blockchainMetrics.blockHeight
+                  ? `${Math.floor(blockchainMetrics.blockHeight / 1000)}K`
+                  : '1.2M'}
+              </Typography>
+              <Typography variant="caption">
+                {liveMetrics.blockchainTps.toLocaleString()} TPS
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <QuantumIcon />
@@ -338,7 +370,9 @@ export const UltimateEnterpriseDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <AIIcon />
@@ -351,20 +385,26 @@ export const UltimateEnterpriseDemo: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <EventMeshIcon />
                 <Typography variant="h6">Events</Typography>
               </Box>
-              <Typography variant="h3">{(liveMetrics.eventThroughput / 1000).toFixed(1)}K</Typography>
+              <Typography variant="h3">
+                {(liveMetrics.eventThroughput / 1000).toFixed(1)}K
+              </Typography>
               <Typography variant="caption">msg/sec</Typography>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Card sx={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', color: 'black' }}>
+          <Card
+            sx={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', color: 'black' }}
+          >
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <ServerlessIcon />
@@ -378,7 +418,11 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       </Grid>
 
       {/* Ultimate Enterprise Features Grid */}
-      <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <StarIcon color="primary" />
         Ultimate Enterprise Features
       </Typography>
@@ -386,10 +430,10 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       <Grid container spacing={3}>
         {ultimateFeatures.map((feature, index) => (
           <Grid item xs={12} md={6} lg={4} key={index}>
-            <Card 
-              elevation={4} 
-              sx={{ 
-                height: '100%', 
+            <Card
+              elevation={4}
+              sx={{
+                height: '100%',
                 transition: 'all 0.3s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-4px)',
@@ -402,12 +446,15 @@ export const UltimateEnterpriseDemo: React.FC = () => {
               <CardContent sx={{ p: 3 }}>
                 {/* Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Box sx={{ 
-                    p: 1.5, 
-                    borderRadius: 2, 
-                    background: 'linear-gradient(45deg, rgba(33, 150, 243, 0.1) 30%, rgba(33, 203, 243, 0.1) 90%)',
-                    border: '1px solid rgba(33, 150, 243, 0.2)',
-                  }}>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      background:
+                        'linear-gradient(45deg, rgba(33, 150, 243, 0.1) 30%, rgba(33, 203, 243, 0.1) 90%)',
+                      border: '1px solid rgba(33, 150, 243, 0.2)',
+                    }}
+                  >
                     {feature.icon}
                   </Box>
                   <Box sx={{ flex: 1 }}>
@@ -415,15 +462,15 @@ export const UltimateEnterpriseDemo: React.FC = () => {
                       {feature.title}
                     </Typography>
                     <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-                      <Chip 
-                        label={feature.status} 
-                        size="small" 
+                      <Chip
+                        label={feature.status}
+                        size="small"
                         color="success"
                         icon={<VerifiedIcon />}
                       />
-                      <Chip 
-                        label={feature.maturityLevel} 
-                        size="small" 
+                      <Chip
+                        label={feature.maturityLevel}
+                        size="small"
                         variant="outlined"
                         color="primary"
                       />
@@ -444,13 +491,15 @@ export const UltimateEnterpriseDemo: React.FC = () => {
                   <Grid container spacing={1}>
                     {Object.entries(feature.metrics).map(([key, value]) => (
                       <Grid item xs={6} key={key}>
-                        <Box sx={{ 
-                          textAlign: 'center', 
-                          p: 1, 
-                          borderRadius: 1, 
-                          background: 'rgba(33, 150, 243, 0.05)',
-                          border: '1px solid rgba(33, 150, 243, 0.1)',
-                        }}>
+                        <Box
+                          sx={{
+                            textAlign: 'center',
+                            p: 1,
+                            borderRadius: 1,
+                            background: 'rgba(33, 150, 243, 0.05)',
+                            border: '1px solid rgba(33, 150, 243, 0.1)',
+                          }}
+                        >
                           <Typography variant="h6" color="primary" fontWeight="bold">
                             {value}
                           </Typography>
@@ -477,7 +526,7 @@ export const UltimateEnterpriseDemo: React.FC = () => {
                           <ListItemIcon sx={{ minWidth: 32 }}>
                             <TrendingUpIcon color="success" fontSize="small" />
                           </ListItemIcon>
-                          <ListItemText 
+                          <ListItemText
                             primary={capability}
                             primaryTypographyProps={{ variant: 'body2' }}
                           />
@@ -493,50 +542,64 @@ export const UltimateEnterpriseDemo: React.FC = () => {
       </Grid>
 
       {/* Ultimate Architecture Summary */}
-      <Card sx={{ mt: 4, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+      <Card
+        sx={{
+          mt: 4,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+        }}
+      >
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+          >
             <LaunchIcon sx={{ fontSize: 40 }} />
             Ultimate Enterprise Architecture Achieved
           </Typography>
-          
+
           <Grid container spacing={4} sx={{ mt: 2 }}>
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 🌐 Global Scale
               </Typography>
               <Typography variant="body1">
-                Edge computing nodes deployed globally with intelligent routing, ensuring sub-20ms latency worldwide.
+                Edge computing nodes deployed globally with intelligent routing, ensuring sub-20ms
+                latency worldwide.
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 🔒 Quantum-Safe Security
               </Typography>
               <Typography variant="body1">
-                Post-quantum cryptography implementation with blockchain-based immutable audit trails.
+                Post-quantum cryptography implementation with blockchain-based immutable audit
+                trails.
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 🤖 AI-Driven Intelligence
               </Typography>
               <Typography variant="body1">
-                Advanced ML pipelines with AutoML, real-time inference, and explainable AI capabilities.
+                Advanced ML pipelines with AutoML, real-time inference, and explainable AI
+                capabilities.
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 ⚡ Real-Time Processing
               </Typography>
               <Typography variant="body1">
-                Event mesh architecture processing 5K+ messages per second with complex event patterns.
+                Event mesh architecture processing 5K+ messages per second with complex event
+                patterns.
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 ☁️ Serverless Architecture
@@ -545,13 +608,14 @@ export const UltimateEnterpriseDemo: React.FC = () => {
                 Function-as-a-Service with auto-scaling, reducing operational costs by 65%.
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Typography variant="h6" gutterBottom>
                 📊 Enterprise Observability
               </Typography>
               <Typography variant="body1">
-                Comprehensive monitoring with distributed tracing, metrics, and business intelligence.
+                Comprehensive monitoring with distributed tracing, metrics, and business
+                intelligence.
               </Typography>
             </Grid>
           </Grid>
@@ -566,12 +630,42 @@ export const UltimateEnterpriseDemo: React.FC = () => {
               A complete, future-ready enterprise monitoring solution with cutting-edge technologies
             </Typography>
             <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
-              <Chip label="Edge Computing" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-              <Chip label="Blockchain/DLT" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-              <Chip label="Quantum-Ready" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-              <Chip label="Advanced AI/ML" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-              <Chip label="Event Mesh" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-              <Chip label="Serverless" color="primary" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
+              <Chip
+                label="Edge Computing"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
+              <Chip
+                label="Blockchain/DLT"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
+              <Chip
+                label="Quantum-Ready"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
+              <Chip
+                label="Advanced AI/ML"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
+              <Chip
+                label="Event Mesh"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
+              <Chip
+                label="Serverless"
+                color="primary"
+                variant="outlined"
+                sx={{ color: 'white', borderColor: 'white' }}
+              />
             </Stack>
           </Box>
         </CardContent>

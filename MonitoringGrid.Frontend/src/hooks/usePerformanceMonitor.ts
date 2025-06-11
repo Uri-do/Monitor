@@ -65,14 +65,20 @@ export const usePerformanceMonitor = (
   // Monitor render performance
   useEffect(() => {
     renderStartTime.current = performance.now();
-    
+
     return () => {
       const renderTime = performance.now() - renderStartTime.current;
       setMetrics(prev => ({ ...prev, renderTime, lastUpdate: new Date() }));
-      
+
       // Check render time threshold
       if (renderTime > finalThresholds.renderTime) {
-        addAlert('warning', 'Slow render detected', 'renderTime', renderTime, finalThresholds.renderTime);
+        addAlert(
+          'warning',
+          'Slow render detected',
+          'renderTime',
+          renderTime,
+          finalThresholds.renderTime
+        );
       }
     };
   });
@@ -82,11 +88,11 @@ export const usePerformanceMonitor = (
     const updateQueryMetrics = () => {
       const cache = queryClient.getQueryCache();
       const queries = cache.getAll();
-      
+
       const queryCount = queries.length;
       const staleQueries = queries.filter(query => query.isStale()).length;
       const cacheHitRate = queryCount > 0 ? ((queryCount - staleQueries) / queryCount) * 100 : 100;
-      
+
       setMetrics(prev => ({
         ...prev,
         queryCount,
@@ -96,17 +102,29 @@ export const usePerformanceMonitor = (
 
       // Check thresholds
       if (queryCount > finalThresholds.queryCount) {
-        addAlert('warning', 'High query count detected', 'queryCount', queryCount, finalThresholds.queryCount);
+        addAlert(
+          'warning',
+          'High query count detected',
+          'queryCount',
+          queryCount,
+          finalThresholds.queryCount
+        );
       }
-      
+
       if (cacheHitRate < finalThresholds.cacheHitRate) {
-        addAlert('warning', 'Low cache hit rate', 'cacheHitRate', cacheHitRate, finalThresholds.cacheHitRate);
+        addAlert(
+          'warning',
+          'Low cache hit rate',
+          'cacheHitRate',
+          cacheHitRate,
+          finalThresholds.cacheHitRate
+        );
       }
     };
 
     updateQueryMetrics();
     const interval = setInterval(updateQueryMetrics, 5000); // Update every 5 seconds
-    
+
     return () => clearInterval(interval);
   }, [queryClient, finalThresholds]);
 
@@ -116,7 +134,7 @@ export const usePerformanceMonitor = (
       if ('memory' in performance) {
         const memory = (performance as any).memory;
         const memoryUsage = memory.usedJSHeapSize / (1024 * 1024); // Convert to MB
-        
+
         setMetrics(prev => ({
           ...prev,
           memoryUsage,
@@ -124,14 +142,20 @@ export const usePerformanceMonitor = (
         }));
 
         if (memoryUsage > finalThresholds.memoryUsage) {
-          addAlert('error', 'High memory usage detected', 'memoryUsage', memoryUsage, finalThresholds.memoryUsage);
+          addAlert(
+            'error',
+            'High memory usage detected',
+            'memoryUsage',
+            memoryUsage,
+            finalThresholds.memoryUsage
+          );
         }
       }
     };
 
     updateMemoryMetrics();
     const interval = setInterval(updateMemoryMetrics, 10000); // Update every 10 seconds
-    
+
     return () => clearInterval(interval);
   }, [finalThresholds]);
 
@@ -145,7 +169,13 @@ export const usePerformanceMonitor = (
     }));
 
     if (networkRequestCount.current > finalThresholds.networkRequests) {
-      addAlert('warning', 'High network request count', 'networkRequests', networkRequestCount.current, finalThresholds.networkRequests);
+      addAlert(
+        'warning',
+        'High network request count',
+        'networkRequests',
+        networkRequestCount.current,
+        finalThresholds.networkRequests
+      );
     }
   };
 
@@ -159,7 +189,13 @@ export const usePerformanceMonitor = (
     }));
 
     if (errorCount.current > finalThresholds.errorCount) {
-      addAlert('error', 'High error count detected', 'errorCount', errorCount.current, finalThresholds.errorCount);
+      addAlert(
+        'error',
+        'High error count detected',
+        'errorCount',
+        errorCount.current,
+        finalThresholds.errorCount
+      );
     }
 
     // Log error for debugging
@@ -185,12 +221,11 @@ export const usePerformanceMonitor = (
     setAlerts(prev => {
       // Prevent duplicate alerts for the same metric within 30 seconds
       const recentAlert = prev.find(
-        a => a.metric === metric && 
-        Date.now() - a.timestamp.getTime() < 30000
+        a => a.metric === metric && Date.now() - a.timestamp.getTime() < 30000
       );
-      
+
       if (recentAlert) return prev;
-      
+
       // Keep only last 10 alerts
       return [alert, ...prev.slice(0, 9)];
     });

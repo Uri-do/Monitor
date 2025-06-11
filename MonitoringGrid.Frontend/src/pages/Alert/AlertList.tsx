@@ -15,13 +15,13 @@ import { AlertLogDto } from '@/types/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  DataTable,
-  DataTableColumn,
-  PageHeader,
-  FilterPanel,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+  UltimateDataTable,
+  UltimateDataTableColumn,
+  UltimatePageHeader,
+  UltimateFilterPanel,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+} from '@/components/UltimateEnterprise';
 
 const AlertList: React.FC = () => {
   const navigate = useNavigate();
@@ -125,7 +125,7 @@ const AlertList: React.FC = () => {
   }, [alertsData?.alerts, filters.search]);
 
   // Define table columns
-  const columns: DataTableColumn<AlertLogDto>[] = [
+  const columns: UltimateDataTableColumn<AlertLogDto>[] = [
     {
       id: 'triggerTime',
       label: 'Triggered',
@@ -147,7 +147,7 @@ const AlertList: React.FC = () => {
       label: 'Severity',
       sortable: true,
       minWidth: 100,
-      render: value => <StatusChip status={value} />,
+      render: value => <UltimateStatusChip status={value} />,
     },
     {
       id: 'kpiIndicator',
@@ -203,7 +203,7 @@ const AlertList: React.FC = () => {
       minWidth: 120,
       render: (value, row) => (
         <Box>
-          <StatusChip status={value ? 'resolved' : 'unresolved'} />
+          <UltimateStatusChip status={value ? 'resolved' : 'unresolved'} />
           {value && row.resolvedTime && (
             <Typography variant="caption" color="text.secondary" display="block">
               {format(new Date(row.resolvedTime), 'MMM dd, HH:mm')}
@@ -215,34 +215,33 @@ const AlertList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading alerts..." />;
+    return <UltimateLoadingSpinner message="Loading alerts..." />;
   }
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="Alert Management"
         subtitle={`Monitor and manage system alerts (${filteredAlerts.length} total)`}
-        actions={[
+        secondaryActions={[
           {
             label: 'Bulk Resolve',
             icon: <ResolveIcon />,
             onClick: handleBulkResolve,
-            disabled: selectedRows.length === 0,
-            color: 'success',
+            gradient: 'success',
           },
           {
             label: 'Export',
             icon: <ExportIcon />,
             onClick: () => toast('Export feature coming soon', { icon: 'ℹ️' }),
-            variant: 'outlined',
+            gradient: 'info',
           },
         ]}
         onRefresh={refetch}
         refreshing={isLoading}
       />
 
-      <FilterPanel
+      <UltimateFilterPanel
         fields={[
           {
             name: 'isResolved',
@@ -294,7 +293,7 @@ const AlertList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <DataTable
+      <UltimateDataTable
         columns={columns}
         data={filteredAlerts}
         loading={isLoading}

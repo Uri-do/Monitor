@@ -82,17 +82,11 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
 
   // Store hooks
   const preferences = useAppSelectors.preferences();
-  const updatePreferences = useAppStore((state) => state.updatePreferences);
-  
+  const updatePreferences = useAppStore(state => state.updatePreferences);
+
   // Observability hook
-  const {
-    recordMetric,
-    recordBusinessMetric,
-    logEvent,
-    trackUserInteraction,
-    sessionId,
-    traceId,
-  } = useObservability('EnterpriseFeaturesDemo');
+  const { recordMetric, recordBusinessMetric, logEvent, trackUserInteraction, sessionId, traceId } =
+    useObservability('EnterpriseFeaturesDemo');
 
   // Load enterprise data
   useEffect(() => {
@@ -145,7 +139,7 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
     try {
       await changeLanguage(languageCode);
       setCurrentLanguage(languageCode);
-      
+
       recordBusinessMetric({
         name: 'language_changed',
         value: 1,
@@ -165,16 +159,18 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
         timestamp: new Date().toISOString(),
         context: 'demo',
       });
-      
+
       setAiPredictions(prev => [prediction, ...prev.slice(0, 4)]);
-      
+
       recordBusinessMetric({
         name: 'ai_prediction_generated',
         value: 1,
         timestamp: new Date(),
       });
 
-      logEvent('AI prediction generated successfully', 'info', undefined, { predictionId: prediction.id });
+      logEvent('AI prediction generated successfully', 'info', undefined, {
+        predictionId: prediction.id,
+      });
     } catch (error) {
       logEvent('Failed to generate AI prediction', 'error', undefined, { error });
     }
@@ -185,12 +181,17 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
       title: 'Enterprise Security',
       description: 'Advanced security features with threat detection and compliance',
       icon: <SecurityIcon color="error" />,
-      benefits: ['Threat detection', 'Compliance reporting', 'Audit logs', 'Multi-factor authentication'],
+      benefits: [
+        'Threat detection',
+        'Compliance reporting',
+        'Audit logs',
+        'Multi-factor authentication',
+      ],
       status: 'Active',
       metrics: {
         'Security Score': securityMetrics.riskScore || 85,
         'Active Threats': securityMetrics.activeThreats || 0,
-        'Compliance': '98%',
+        Compliance: '98%',
       },
     },
     {
@@ -200,9 +201,9 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
       benefits: ['9 languages supported', 'RTL support', 'Dynamic loading', 'Cultural formatting'],
       status: 'Active',
       metrics: {
-        'Languages': supportedLanguages.length,
-        'Current': currentLanguage.toUpperCase(),
-        'Coverage': '95%',
+        Languages: supportedLanguages.length,
+        Current: currentLanguage.toUpperCase(),
+        Coverage: '95%',
       },
     },
     {
@@ -212,9 +213,9 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
       benefits: ['Predictive models', 'Anomaly detection', 'Trend analysis', 'Smart insights'],
       status: 'Active',
       metrics: {
-        'Models': 2,
-        'Predictions': aiPredictions.length,
-        'Accuracy': '87%',
+        Models: 2,
+        Predictions: aiPredictions.length,
+        Accuracy: '87%',
       },
     },
     {
@@ -225,30 +226,40 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
       status: 'Active',
       metrics: {
         'Feature Flags': featureFlags.length,
-        'Environments': 3,
-        'Rollouts': '100%',
+        Environments: 3,
+        Rollouts: '100%',
       },
     },
     {
       title: 'Observability & Monitoring',
       description: 'Comprehensive monitoring and distributed tracing',
       icon: <ObservabilityIcon color="success" />,
-      benefits: ['Distributed tracing', 'Performance metrics', 'Error tracking', 'Business metrics'],
+      benefits: [
+        'Distributed tracing',
+        'Performance metrics',
+        'Error tracking',
+        'Business metrics',
+      ],
       status: 'Active',
       metrics: {
-        'Session ID': sessionId.slice(0, 8) + '...',
-        'Trace ID': traceId?.slice(0, 8) + '...' || 'N/A',
-        'Uptime': '99.9%',
+        'Session ID': `${sessionId.slice(0, 8)}...`,
+        'Trace ID': `${traceId?.slice(0, 8)}...` || 'N/A',
+        Uptime: '99.9%',
       },
     },
     {
       title: 'Micro-Frontend Ready',
       description: 'Module federation and micro-frontend architecture',
       icon: <MicroFrontendIcon color="warning" />,
-      benefits: ['Module federation', 'Independent deployments', 'Shared dependencies', 'Scalable architecture'],
+      benefits: [
+        'Module federation',
+        'Independent deployments',
+        'Shared dependencies',
+        'Scalable architecture',
+      ],
       status: 'Ready',
       metrics: {
-        'Modules': 1,
+        Modules: 1,
         'Shared Deps': 5,
         'Bundle Size': '2.1MB',
       },
@@ -260,11 +271,12 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         {t('Enterprise-Grade Advanced Features - Round 4')}
       </Typography>
-      
+
       <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="h6">🏢 Round 4: Enterprise Features Successfully Applied!</Typography>
         <Typography>
-          Advanced security, internationalization, AI/ML integration, configuration management, and enterprise observability are now active.
+          Advanced security, internationalization, AI/ML integration, configuration management, and
+          enterprise observability are now active.
         </Typography>
       </Alert>
 
@@ -300,11 +312,7 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                 <Typography variant="h3" color="secondary">
                   {aiPredictions.length}
                 </Typography>
-                <Chip 
-                  label="87% Accuracy"
-                  color="success"
-                  icon={<AIIcon />}
-                />
+                <Chip label="87% Accuracy" color="success" icon={<AIIcon />} />
               </Box>
               <Button size="small" onClick={triggerAIPrediction} sx={{ mt: 1 }}>
                 Generate Prediction
@@ -323,10 +331,10 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                 <InputLabel>Language</InputLabel>
                 <Select
                   value={currentLanguage}
-                  onChange={(e) => handleLanguageChange(e.target.value)}
+                  onChange={e => handleLanguageChange(e.target.value)}
                   label="Language"
                 >
-                  {supportedLanguages.map((lang) => (
+                  {supportedLanguages.map(lang => (
                     <MenuItem key={lang.code} value={lang.code}>
                       {lang.flag} {lang.nativeName}
                     </MenuItem>
@@ -390,8 +398,8 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                     <ListItemIcon>
                       <Shield sx={{ color: 'success.main' }} />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Security Score" 
+                    <ListItemText
+                      primary="Security Score"
                       secondary={`${securityMetrics.riskScore || 85}/100`}
                     />
                   </ListItem>
@@ -399,8 +407,8 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                     <ListItemIcon>
                       <SecurityIcon color="info" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Active Threats" 
+                    <ListItemText
+                      primary="Active Threats"
                       secondary={securityMetrics.activeThreats || 0}
                     />
                   </ListItem>
@@ -408,19 +416,13 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                     <ListItemIcon>
                       <ComplianceIcon color="success" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Compliance Status" 
-                      secondary="98% Compliant"
-                    />
+                    <ListItemText primary="Compliance Status" secondary="98% Compliant" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <CertificationIcon color="primary" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Certifications" 
-                      secondary="SOC 2, ISO 27001, GDPR"
-                    />
+                    <ListItemText primary="Certifications" secondary="SOC 2, ISO 27001, GDPR" />
                   </ListItem>
                 </List>
               </Paper>
@@ -439,14 +441,8 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                     control={<Switch checked disabled />}
                     label="Threat Detection"
                   />
-                  <FormControlLabel
-                    control={<Switch checked disabled />}
-                    label="Audit Logging"
-                  />
-                  <FormControlLabel
-                    control={<Switch checked disabled />}
-                    label="Data Encryption"
-                  />
+                  <FormControlLabel control={<Switch checked disabled />} label="Audit Logging" />
+                  <FormControlLabel control={<Switch checked disabled />} label="Data Encryption" />
                   <FormControlLabel
                     control={<Switch checked disabled />}
                     label="Compliance Monitoring"
@@ -478,7 +474,7 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                           primary={`KPI ${prediction.kpiId} Prediction`}
                           secondary={`Value: ${prediction.predictedValue?.toFixed(2)} | Confidence: ${(prediction.confidence * 100)?.toFixed(1)}%`}
                         />
-                        <Chip 
+                        <Chip
                           label={`${(prediction.confidence * 100)?.toFixed(0)}%`}
                           size="small"
                           color={prediction.confidence > 0.8 ? 'success' : 'warning'}
@@ -539,18 +535,13 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                         <ListItemIcon>
                           <ConfigIcon color={flag.enabled ? 'success' : 'disabled'} />
                         </ListItemIcon>
-                        <ListItemText
-                          primary={flag.name}
-                          secondary={flag.description}
-                        />
+                        <ListItemText primary={flag.name} secondary={flag.description} />
                         <Switch checked={flag.enabled} disabled />
                       </ListItem>
                     ))}
                   </List>
                 ) : (
-                  <Typography color="text.secondary">
-                    Loading feature flags...
-                  </Typography>
+                  <Typography color="text.secondary">Loading feature flags...</Typography>
                 )}
               </Paper>
             </Grid>
@@ -596,28 +587,16 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                 </Typography>
                 <List dense>
                   <ListItem>
-                    <ListItemText 
-                      primary="Session ID" 
-                      secondary={sessionId}
-                    />
+                    <ListItemText primary="Session ID" secondary={sessionId} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Trace ID" 
-                      secondary={traceId || 'No active trace'}
-                    />
+                    <ListItemText primary="Trace ID" secondary={traceId || 'No active trace'} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Component" 
-                      secondary="EnterpriseFeaturesDemo"
-                    />
+                    <ListItemText primary="Component" secondary="EnterpriseFeaturesDemo" />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
-                      primary="Language" 
-                      secondary={currentLanguage.toUpperCase()}
-                    />
+                    <ListItemText primary="Language" secondary={currentLanguage.toUpperCase()} />
                   </ListItem>
                 </List>
               </Paper>
@@ -636,10 +615,7 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                     control={<Switch checked disabled />}
                     label="Performance Metrics"
                   />
-                  <FormControlLabel
-                    control={<Switch checked disabled />}
-                    label="Error Tracking"
-                  />
+                  <FormControlLabel control={<Switch checked disabled />} label="Error Tracking" />
                   <FormControlLabel
                     control={<Switch checked disabled />}
                     label="Business Metrics"
@@ -672,7 +648,7 @@ export const EnterpriseFeaturesDemo: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" mb={2}>
                     {feature.description}
                   </Typography>
-                  
+
                   {/* Metrics */}
                   <Box mb={2}>
                     <Typography variant="subtitle2" gutterBottom>

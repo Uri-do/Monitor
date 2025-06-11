@@ -14,11 +14,7 @@ export {
 } from './useKpiMutations';
 
 // Alert mutations
-export {
-  useResolveAlert,
-  useBulkResolveAlerts,
-  useCreateManualAlert,
-} from './useAlertMutations';
+export { useResolveAlert, useBulkResolveAlerts, useCreateManualAlert } from './useAlertMutations';
 
 // Contact mutations
 export {

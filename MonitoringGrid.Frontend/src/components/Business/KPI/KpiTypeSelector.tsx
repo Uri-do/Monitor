@@ -1,17 +1,11 @@
 import React from 'react';
 import {
   Box,
-  Card,
   CardContent,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Grid,
   Alert,
   Chip,
-  TextField,
   Tooltip,
   IconButton,
 } from '@mui/material';
@@ -24,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { KpiType } from '@/types/api';
 import { KPI_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/kpiTypeUtils';
+import { UltimateCard, UltimateInputField, UltimateSelect } from '@/components/UltimateEnterprise';
 
 interface KpiTypeSelectorProps {
   selectedType: KpiType;
@@ -65,7 +60,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
   const requiresOperator = selectedDefinition?.requiredFields.includes('comparisonOperator');
 
   return (
-    <Card>
+    <UltimateCard>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           {getKpiTypeIconComponent(selectedType)}
@@ -80,30 +75,19 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
         <Grid container spacing={3}>
           {/* KPI Type Selection */}
           <Grid item xs={12}>
-            <FormControl fullWidth disabled={disabled}>
-              <InputLabel>KPI Type</InputLabel>
-              <Select
-                value={selectedType}
-                onChange={e => onTypeChange(e.target.value as KpiType)}
-                label="KPI Type"
-              >
-                {KPI_TYPE_DEFINITIONS.map(definition => (
-                  <MenuItem key={definition.type} value={definition.type}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      {getKpiTypeIconComponent(definition.type)}
-                      <Box>
-                        <Typography variant="body2" fontWeight="medium">
-                          {definition.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {definition.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <UltimateSelect
+              fullWidth
+              label="KPI Type"
+              value={selectedType}
+              onChange={e => onTypeChange(e.target.value as KpiType)}
+              disabled={disabled}
+              options={KPI_TYPE_DEFINITIONS.map(definition => ({
+                value: definition.type,
+                label: definition.name,
+                description: definition.description,
+                icon: getKpiTypeIconComponent(definition.type),
+              }))}
+            />
           </Grid>
 
           {/* Type Description */}
@@ -137,7 +121,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
           {requiresThreshold && (
             <>
               <Grid item xs={12} md={6}>
-                <TextField
+                <UltimateInputField
                   fullWidth
                   label="Threshold Value"
                   type="number"
@@ -151,25 +135,18 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
 
               {requiresOperator && (
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth disabled={disabled}>
-                    <InputLabel>Comparison Operator</InputLabel>
-                    <Select
-                      value={comparisonOperator}
-                      onChange={e => onOperatorChange?.(e.target.value as any)}
-                      label="Comparison Operator"
-                    >
-                      {COMPARISON_OPERATORS.map(op => (
-                        <MenuItem key={op.value} value={op.value}>
-                          <Box>
-                            <Typography variant="body2">{op.label}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {op.description}
-                            </Typography>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <UltimateSelect
+                    fullWidth
+                    label="Comparison Operator"
+                    value={comparisonOperator}
+                    onChange={e => onOperatorChange?.(e.target.value as any)}
+                    disabled={disabled}
+                    options={COMPARISON_OPERATORS.map(op => ({
+                      value: op.value,
+                      label: op.label,
+                      description: op.description,
+                    }))}
+                  />
                 </Grid>
               )}
             </>
@@ -213,7 +190,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
           </Grid>
         </Grid>
       </CardContent>
-    </Card>
+    </UltimateCard>
   );
 };
 

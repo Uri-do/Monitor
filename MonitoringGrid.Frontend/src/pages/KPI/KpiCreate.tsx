@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Card,
   CardContent,
   Grid,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormControlLabel,
   Switch,
-  Button,
   Typography,
   Alert,
   Chip,
@@ -38,11 +31,14 @@ import {
 } from '@/types/api';
 import toast from 'react-hot-toast';
 import {
-  PageHeader,
-  LoadingSpinner,
-  SchedulerComponent,
-  KpiTypeSelector,
-} from '@/components/Common';
+  UltimatePageHeader,
+  UltimateLoadingSpinner,
+  UltimateCard,
+  UltimateInputField,
+  UltimateSelect,
+  UltimateButton,
+} from '@/components/UltimateEnterprise';
+import { SchedulerComponent, KpiTypeSelector } from '@/components/Common';
 
 // Validation schema
 const kpiSchema = yup.object({
@@ -300,26 +296,28 @@ const KpiCreate: React.FC = () => {
   };
 
   if (kpiLoading || contactsLoading) {
-    return <LoadingSpinner />;
+    return <UltimateLoadingSpinner />;
   }
 
   const selectedPriority = priorityOptions.find(p => p.value === watchedPriority);
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title={isEdit ? 'Edit KPI' : 'Create KPI'}
         subtitle={isEdit ? `Editing: ${kpi?.indicator}` : 'Create a new Key Performance Indicator'}
-        breadcrumbs={[{ label: 'KPIs', href: '/kpis' }, { label: isEdit ? 'Edit' : 'Create' }]}
-        actions={
+        breadcrumbs={[
+          { label: 'KPIs', onClick: () => navigate('/kpis') },
+          { label: isEdit ? 'Edit' : 'Create' },
+        ]}
+        secondaryActions={
           isEdit
             ? [
                 {
                   label: 'Test KPI',
                   icon: <TestIcon />,
                   onClick: handleTest,
-                  disabled: testMutation.isPending,
-                  variant: 'outlined',
+                  gradient: 'info',
                 },
               ]
             : []
@@ -330,7 +328,7 @@ const KpiCreate: React.FC = () => {
         <Grid container spacing={3}>
           {/* Basic Information */}
           <Grid item xs={12}>
-            <Card>
+            <UltimateCard>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Basic Information
@@ -341,7 +339,7 @@ const KpiCreate: React.FC = () => {
                       name="indicator"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="KPI Indicator"
                           fullWidth
@@ -357,7 +355,7 @@ const KpiCreate: React.FC = () => {
                       name="owner"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Owner"
                           fullWidth
@@ -373,25 +371,23 @@ const KpiCreate: React.FC = () => {
                       name="priority"
                       control={control}
                       render={({ field }) => (
-                        <FormControl fullWidth error={!!errors.priority}>
-                          <InputLabel>Priority</InputLabel>
-                          <Select {...field} label="Priority">
-                            {priorityOptions.map(option => (
-                              <MenuItem key={option.value} value={option.value}>
-                                <Box display="flex" alignItems="center" gap={1}>
-                                  <Chip label={option.label} color={option.color} size="small" />
-                                </Box>
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors.priority && (
-                            <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                              {errors.priority.message}
-                            </Typography>
-                          )}
-                        </FormControl>
+                        <UltimateSelect
+                          {...field}
+                          label="Priority"
+                          fullWidth
+                          error={!!errors.priority}
+                          options={priorityOptions.map(option => ({
+                            value: option.value,
+                            label: option.label,
+                          }))}
+                        />
                       )}
                     />
+                    {errors.priority && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {errors.priority.message}
+                      </Typography>
+                    )}
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Controller
@@ -408,7 +404,7 @@ const KpiCreate: React.FC = () => {
                   </Grid>
                 </Grid>
               </CardContent>
-            </Card>
+            </UltimateCard>
           </Grid>
 
           {/* KPI Type Configuration */}
@@ -434,7 +430,7 @@ const KpiCreate: React.FC = () => {
 
           {/* Monitoring Configuration */}
           <Grid item xs={12}>
-            <Card>
+            <UltimateCard>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Monitoring Configuration
@@ -445,7 +441,7 @@ const KpiCreate: React.FC = () => {
                       name="frequency"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Frequency (minutes)"
                           type="number"
@@ -465,7 +461,7 @@ const KpiCreate: React.FC = () => {
                       name="lastMinutes"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Data Window (minutes)"
                           type="number"
@@ -485,7 +481,7 @@ const KpiCreate: React.FC = () => {
                       name="deviation"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Deviation Threshold (%)"
                           type="number"
@@ -505,7 +501,7 @@ const KpiCreate: React.FC = () => {
                       name="cooldownMinutes"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Cooldown Period (minutes)"
                           type="number"
@@ -524,7 +520,7 @@ const KpiCreate: React.FC = () => {
                       name="spName"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Stored Procedure Name"
                           fullWidth
@@ -542,7 +538,7 @@ const KpiCreate: React.FC = () => {
                       name="minimumThreshold"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Minimum Threshold (optional)"
                           type="number"
@@ -563,12 +559,12 @@ const KpiCreate: React.FC = () => {
                   </Grid>
                 </Grid>
               </CardContent>
-            </Card>
+            </UltimateCard>
           </Grid>
 
           {/* Notification Templates */}
           <Grid item xs={12}>
-            <Card>
+            <UltimateCard>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Notification Templates
@@ -579,7 +575,7 @@ const KpiCreate: React.FC = () => {
                       name="subjectTemplate"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Subject Template"
                           fullWidth
@@ -597,7 +593,7 @@ const KpiCreate: React.FC = () => {
                       name="descriptionTemplate"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <UltimateInputField
                           {...field}
                           label="Description Template"
                           fullWidth
@@ -614,12 +610,12 @@ const KpiCreate: React.FC = () => {
                   </Grid>
                 </Grid>
               </CardContent>
-            </Card>
+            </UltimateCard>
           </Grid>
 
           {/* Contact Assignment */}
           <Grid item xs={12}>
-            <Card>
+            <UltimateCard>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Contact Assignment
@@ -661,33 +657,34 @@ const KpiCreate: React.FC = () => {
                   )}
                 />
               </CardContent>
-            </Card>
+            </UltimateCard>
           </Grid>
 
           {/* Form Actions */}
           <Grid item xs={12}>
-            <Card>
+            <UltimateCard>
               <CardContent>
                 <Stack direction="row" spacing={2} justifyContent="flex-end">
-                  <Button
+                  <UltimateButton
                     variant="outlined"
+                    gradient="secondary"
                     startIcon={<CancelIcon />}
                     onClick={() => navigate('/kpis')}
                     disabled={isSubmitting}
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </UltimateButton>
+                  <UltimateButton
                     type="submit"
-                    variant="contained"
+                    gradient="primary"
                     startIcon={<SaveIcon />}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Saving...' : isEdit ? 'Update KPI' : 'Create KPI'}
-                  </Button>
+                  </UltimateButton>
                 </Stack>
               </CardContent>
-            </Card>
+            </UltimateCard>
           </Grid>
         </Grid>
       </form>

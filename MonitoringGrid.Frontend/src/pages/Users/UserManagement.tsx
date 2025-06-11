@@ -36,7 +36,7 @@ import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { PageHeader } from '../../components/Common';
+import { UltimatePageHeader } from '@/components/UltimateEnterprise';
 import {
   userService,
   CreateUserRequest,
@@ -340,18 +340,14 @@ export const UserManagement: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="User Management"
         subtitle="Manage system users and their permissions"
-        icon={<Security />}
-        actions={[
-          {
-            label: 'Add User',
-            icon: <PersonAdd />,
-            onClick: handleCreateUser,
-            variant: 'contained' as const,
-          },
-        ]}
+        primaryAction={{
+          label: 'Add User',
+          icon: <PersonAdd />,
+          onClick: handleCreateUser,
+        }}
       />
 
       {error && (

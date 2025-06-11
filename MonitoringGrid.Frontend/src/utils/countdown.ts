@@ -5,10 +5,10 @@
 /**
  * Formats countdown seconds into a human-readable string
  * Shows minutes until the last minute, then switches to seconds
- * 
+ *
  * @param seconds - Number of seconds remaining
  * @returns Formatted countdown string
- * 
+ *
  * Examples:
  * - 3661 seconds -> "1h 1m"
  * - 125 seconds -> "2m"
@@ -42,28 +42,30 @@ export const formatCountdown = (seconds: number | null): string => {
 
 /**
  * Formats countdown with additional context for accessibility
- * 
+ *
  * @param seconds - Number of seconds remaining
  * @returns Object with formatted string and accessibility text
  */
-export const formatCountdownWithContext = (seconds: number | null): {
+export const formatCountdownWithContext = (
+  seconds: number | null
+): {
   display: string;
   ariaLabel: string;
   isUrgent: boolean;
 } => {
   const display = formatCountdown(seconds);
-  
+
   if (seconds === null || seconds <= 0) {
     return {
       display,
       ariaLabel: 'KPI execution is due now',
-      isUrgent: true
+      isUrgent: true,
     };
   }
 
   const isUrgent = seconds < 60;
   const mins = Math.floor(seconds / 60);
-  
+
   let ariaLabel: string;
   if (isUrgent) {
     ariaLabel = `KPI execution in ${seconds} seconds`;
@@ -76,26 +78,26 @@ export const formatCountdownWithContext = (seconds: number | null): {
   return {
     display,
     ariaLabel,
-    isUrgent
+    isUrgent,
   };
 };
 
 /**
  * Gets the appropriate color/severity based on countdown time
- * 
+ *
  * @param seconds - Number of seconds remaining
  * @returns Color severity level
  */
 export const getCountdownSeverity = (seconds: number | null): 'success' | 'warning' | 'error' => {
   if (seconds === null || seconds <= 0) return 'error';
-  if (seconds < 60) return 'error';  // Less than 1 minute - urgent
+  if (seconds < 60) return 'error'; // Less than 1 minute - urgent
   if (seconds < 300) return 'warning'; // Less than 5 minutes - warning
   return 'success'; // 5+ minutes - normal
 };
 
 /**
  * Determines if countdown should have pulsing animation
- * 
+ *
  * @param seconds - Number of seconds remaining
  * @returns Whether countdown should pulse
  */

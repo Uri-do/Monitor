@@ -135,7 +135,9 @@ class ConfigService {
     }
   }
 
-  async createFeatureFlag(flag: Omit<FeatureFlag, 'createdAt' | 'updatedAt' | 'createdBy'>): Promise<FeatureFlag> {
+  async createFeatureFlag(
+    flag: Omit<FeatureFlag, 'createdAt' | 'updatedAt' | 'createdBy'>
+  ): Promise<FeatureFlag> {
     try {
       const response = await api.post('/config/feature-flags', flag);
       return response.data;
@@ -167,7 +169,10 @@ class ConfigService {
     }
   }
 
-  async getConfigurationByCategory(category: string, environment?: string): Promise<SystemConfiguration[]> {
+  async getConfigurationByCategory(
+    category: string,
+    environment?: string
+  ): Promise<SystemConfiguration[]> {
     try {
       const response = await api.get(`/config/system/category/${category}`, {
         params: { environment },
@@ -179,7 +184,11 @@ class ConfigService {
     }
   }
 
-  async updateConfiguration(key: string, value: any, reason?: string): Promise<SystemConfiguration> {
+  async updateConfiguration(
+    key: string,
+    value: any,
+    reason?: string
+  ): Promise<SystemConfiguration> {
     try {
       const response = await api.patch(`/config/system/${key}`, {
         value,
@@ -223,7 +232,10 @@ class ConfigService {
     }
   }
 
-  async updateEnvironment(name: string, updates: Partial<EnvironmentConfig>): Promise<EnvironmentConfig> {
+  async updateEnvironment(
+    name: string,
+    updates: Partial<EnvironmentConfig>
+  ): Promise<EnvironmentConfig> {
     try {
       const response = await api.patch(`/config/environments/${name}`, updates);
       return response.data;
@@ -280,7 +292,7 @@ class ConfigService {
     // This would typically check against cached feature flags
     const defaultFlags = this.getDefaultFeatureFlags();
     const flag = defaultFlags.find(f => f.key === key);
-    
+
     if (!flag || !flag.enabled) {
       return false;
     }
@@ -288,7 +300,7 @@ class ConfigService {
     // Check rollout percentage
     if (flag.rolloutPercentage < 100) {
       const hash = this.hashString(key + (userId || ''));
-      if ((hash % 100) >= flag.rolloutPercentage) {
+      if (hash % 100 >= flag.rolloutPercentage) {
         return false;
       }
     }
@@ -329,7 +341,7 @@ class ConfigService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);

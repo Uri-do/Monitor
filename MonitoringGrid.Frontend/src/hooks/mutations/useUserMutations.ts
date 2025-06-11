@@ -11,12 +11,12 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: userService.createUser,
-    onSuccess: (newUser) => {
+    onSuccess: newUser => {
       toast.success('User created successfully');
-      
+
       // Invalidate user lists to show the new user
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-      
+
       // Optionally set the new user in cache
       queryClient.setQueryData(queryKeys.users.detail(newUser.id), newUser);
     },
@@ -36,13 +36,13 @@ export const useUpdateUser = () => {
     mutationFn: userService.updateUser,
     onSuccess: (updatedUser, variables) => {
       toast.success('User updated successfully');
-      
+
       // Update the specific user in cache
       queryClient.setQueryData(queryKeys.users.detail(variables.id), updatedUser);
-      
+
       // Invalidate user lists to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-      
+
       // If this is the current user, update profile cache
       queryClient.invalidateQueries({ queryKey: queryKeys.users.profile() });
     },
@@ -62,10 +62,10 @@ export const useDeleteUser = () => {
     mutationFn: (userId: string) => userService.deleteUser(userId),
     onSuccess: (_, userId) => {
       toast.success('User deleted successfully');
-      
+
       // Remove the user from cache
       queryClient.removeQueries({ queryKey: queryKeys.users.detail(userId) });
-      
+
       // Invalidate user lists
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
     },
@@ -100,12 +100,12 @@ export const useCreateRole = () => {
 
   return useMutation({
     mutationFn: roleService.createRole,
-    onSuccess: (newRole) => {
+    onSuccess: newRole => {
       toast.success('Role created successfully');
-      
+
       // Invalidate roles to show the new role
       queryClient.invalidateQueries({ queryKey: queryKeys.users.roles() });
-      
+
       // Optionally set the new role in cache
       queryClient.setQueryData(['role', newRole.id], newRole);
     },
@@ -125,13 +125,13 @@ export const useUpdateRole = () => {
     mutationFn: roleService.updateRole,
     onSuccess: (updatedRole, variables) => {
       toast.success('Role updated successfully');
-      
+
       // Update the specific role in cache
       queryClient.setQueryData(['role', variables.id], updatedRole);
-      
+
       // Invalidate roles list to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.users.roles() });
-      
+
       // Invalidate user lists as role changes affect user data
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
     },
@@ -151,13 +151,13 @@ export const useDeleteRole = () => {
     mutationFn: (roleId: string) => roleService.deleteRole(roleId),
     onSuccess: (_, roleId) => {
       toast.success('Role deleted successfully');
-      
+
       // Remove the role from cache
       queryClient.removeQueries({ queryKey: ['role', roleId] });
-      
+
       // Invalidate roles list
       queryClient.invalidateQueries({ queryKey: queryKeys.users.roles() });
-      
+
       // Invalidate user lists as role deletion affects user data
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
     },

@@ -36,13 +36,16 @@ import toast from 'react-hot-toast';
 import { executionHistoryApi } from '@/services/api';
 import { ExecutionHistoryDto, ExecutionHistoryDetailDto } from '@/types/api';
 import {
-  PageHeader,
-  DataTable,
-  DataTableColumn,
-  FilterPanel,
-  LoadingSpinner,
-  StatusChip,
-} from '@/components/Common';
+  UltimatePageHeader,
+  UltimateDataTable,
+  UltimateDataTableColumn,
+  UltimateFilterPanel,
+  UltimateLoadingSpinner,
+  UltimateStatusChip,
+  UltimateDialog,
+  UltimateButton,
+  UltimateCard,
+} from '@/components/UltimateEnterprise';
 
 interface ExecutionHistoryFilters {
   kpiId?: number;
@@ -130,7 +133,7 @@ const ExecutionHistoryList: React.FC = () => {
   };
 
   // Define table columns
-  const columns: DataTableColumn<ExecutionHistoryDto>[] = [
+  const columns: UltimateDataTableColumn<ExecutionHistoryDto>[] = [
     {
       id: 'timestamp',
       label: 'Execution Time',
@@ -168,12 +171,7 @@ const ExecutionHistoryList: React.FC = () => {
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      render: (value, row) => (
-        <StatusChip
-          status={value ? 'success' : 'error'}
-          icon={value ? <SuccessIcon /> : <ErrorIcon />}
-        />
-      ),
+      render: (value, row) => <UltimateStatusChip status={value ? 'success' : 'error'} />,
     },
     {
       id: 'currentValue',
@@ -250,39 +248,33 @@ const ExecutionHistoryList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading execution history..." />;
+    return <UltimateLoadingSpinner message="Loading execution history..." />;
   }
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="Execution History"
         subtitle={`View detailed execution logs and performance metrics (${historyData?.totalCount || 0} total executions)`}
-        onRefresh={() => {
-          console.log('🔄 Manual refresh triggered');
-          refetch();
-        }}
+        onRefresh={refetch}
         refreshing={isLoading}
-        actions={[
+        secondaryActions={[
           {
             label: 'Test DB',
             onClick: async () => {
               try {
-                console.log('🧪 Testing database connection...');
                 const result = await executionHistoryApi.testDatabaseConnection();
-                toast.success('Database test completed - check console');
+                toast.success('Database connection test completed successfully');
               } catch (error) {
-                console.error('Database test failed:', error);
-                toast.error('Database test failed - check console');
+                toast.error('Database connection test failed');
               }
             },
-            variant: 'outlined' as const,
-            color: 'warning' as const,
+            gradient: 'warning',
           },
         ]}
       />
 
-      <FilterPanel
+      <UltimateFilterPanel
         fields={[
           {
             name: 'isSuccessful',
@@ -338,7 +330,7 @@ const ExecutionHistoryList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <DataTable
+      <UltimateDataTable
         columns={columns}
         data={executions}
         loading={isLoading}
@@ -374,25 +366,21 @@ const ExecutionHistoryList: React.FC = () => {
       />
 
       {/* Execution Detail Dialog */}
-      <Dialog
+      <UltimateDialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false })}
+        title="Execution Details"
+        icon={<ViewIcon />}
+        gradient="info"
         maxWidth="lg"
-        fullWidth
+        actions={
+          <UltimateButton gradient="secondary" onClick={() => setDetailDialog({ open: false })}>
+            Close
+          </UltimateButton>
+        }
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <ViewIcon />
-            Execution Details
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          {detailDialog.execution && <ExecutionDetailView execution={detailDialog.execution} />}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDetailDialog({ open: false })}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        {detailDialog.execution && <ExecutionDetailView execution={detailDialog.execution} />}
+      </UltimateDialog>
     </Box>
   );
 };
@@ -404,7 +392,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
       <Grid container spacing={3}>
         {/* Basic Information */}
         <Grid item xs={12} md={6}>
-          <Card>
+          <UltimateCard>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -431,12 +419,12 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 </Box>
               </Box>
             </CardContent>
-          </Card>
+          </UltimateCard>
         </Grid>
 
         {/* Performance Metrics */}
         <Grid item xs={12} md={6}>
-          <Card>
+          <UltimateCard>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <TimerIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -476,7 +464,7 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                 </Box>
               </Box>
             </CardContent>
-          </Card>
+          </UltimateCard>
         </Grid>
 
         {/* Technical Details */}

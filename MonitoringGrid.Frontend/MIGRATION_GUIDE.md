@@ -75,18 +75,25 @@ import {
   useExecuteKpi,
 } from '@/hooks/mutations';
 
-// UI Components
-import { KpiFormDialog } from '@/components/KPI/KpiFormDialog';
-import { ContactFormDialog } from '@/components/Contact/ContactFormDialog';
-import { ConfirmDialog } from '@/components/Common/ConfirmDialog';
-import { EnhancedDataTable } from '@/components/Common/EnhancedDataTable';
+// Ultimate Enterprise Components
+import {
+  UltimateCard,
+  UltimateButton,
+  UltimateDialog,
+  UltimateInputField,
+  UltimateSelect,
+  UltimateDataTable,
+  UltimatePageHeader,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+} from '@/components/UltimateEnterprise';
 ```
 
 #### Remove Old Imports
 ```tsx
-// Remove these
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+// These have been removed during deep cleanup
+import { DataTable, PageHeader, StatusChip, LoadingSpinner, FilterPanel } from '@/components/Common';
+import { EnhancedDataTable, ModernDataTable, VirtualizedDataTable } from '@/components/Common';
 ```
 
 ## 📋 Component Migration Examples

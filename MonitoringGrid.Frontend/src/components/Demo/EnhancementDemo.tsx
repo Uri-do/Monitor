@@ -118,25 +118,45 @@ export const EnhancementDemo: React.FC = () => {
       title: 'Enhanced Data Fetching',
       description: 'TanStack Query integration with automatic caching and background updates',
       icon: <StorageIcon color="primary" />,
-      benefits: ['70% less boilerplate code', 'Automatic caching', 'Background refetching', 'Smart stale time management'],
+      benefits: [
+        '70% less boilerplate code',
+        'Automatic caching',
+        'Background refetching',
+        'Smart stale time management',
+      ],
     },
     {
       title: 'Centralized Mutations',
       description: 'Reusable mutation hooks with consistent error handling',
       icon: <CodeIcon color="success" />,
-      benefits: ['Consistent error handling', 'Automatic cache invalidation', 'Reusable across components', 'Better separation of concerns'],
+      benefits: [
+        'Consistent error handling',
+        'Automatic cache invalidation',
+        'Reusable across components',
+        'Better separation of concerns',
+      ],
     },
     {
       title: 'Real-time Integration',
       description: 'SignalR events integrated with TanStack Query cache',
       icon: <RealTimeIcon color="info" />,
-      benefits: ['Data consistency', 'Real-time updates', '60% fewer API calls', 'Optimized performance'],
+      benefits: [
+        'Data consistency',
+        'Real-time updates',
+        '60% fewer API calls',
+        'Optimized performance',
+      ],
     },
     {
       title: 'Reusable Components',
       description: 'Professional dialog components with built-in validation',
       icon: <CheckIcon color="warning" />,
-      benefits: ['Consistent UI/UX', 'Built-in validation', 'Responsive design', 'Type-safe interfaces'],
+      benefits: [
+        'Consistent UI/UX',
+        'Built-in validation',
+        'Responsive design',
+        'Type-safe interfaces',
+      ],
     },
   ];
 
@@ -241,7 +261,8 @@ export const EnhancementDemo: React.FC = () => {
       <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="h6">🎉 Welcome to MonitoringGrid Demo!</Typography>
         <Typography>
-          Explore our comprehensive monitoring platform with interactive demos showcasing different feature tiers.
+          Explore our comprehensive monitoring platform with interactive demos showcasing different
+          feature tiers.
         </Typography>
       </Alert>
 
@@ -337,12 +358,15 @@ export const EnhancementDemo: React.FC = () => {
           <UltimateCard gradient="primary" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  background: 'linear-gradient(45deg, rgba(102, 126, 234, 0.1) 30%, rgba(118, 75, 162, 0.1) 90%)',
-                  border: '1px solid rgba(102, 126, 234, 0.2)',
-                }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    background:
+                      'linear-gradient(45deg, rgba(102, 126, 234, 0.1) 30%, rgba(118, 75, 162, 0.1) 90%)',
+                    border: '1px solid rgba(102, 126, 234, 0.2)',
+                  }}
+                >
                   <CodeIcon sx={{ color: '#667eea' }} />
                 </Box>
                 <Typography variant="h6" fontWeight="bold">
@@ -379,12 +403,15 @@ export const EnhancementDemo: React.FC = () => {
           <UltimateCard gradient="secondary" sx={{ height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  background: 'linear-gradient(45deg, rgba(240, 147, 251, 0.1) 30%, rgba(245, 87, 108, 0.1) 90%)',
-                  border: '1px solid rgba(240, 147, 251, 0.2)',
-                }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    background:
+                      'linear-gradient(45deg, rgba(240, 147, 251, 0.1) 30%, rgba(245, 87, 108, 0.1) 90%)',
+                    border: '1px solid rgba(240, 147, 251, 0.2)',
+                  }}
+                >
                   <CheckIcon sx={{ color: '#f093fb' }} />
                 </Box>
                 <Typography variant="h6" fontWeight="bold">
@@ -419,7 +446,7 @@ export const EnhancementDemo: React.FC = () => {
       <Typography variant="h5" gutterBottom>
         Enhancement Details
       </Typography>
-      
+
       <Grid container spacing={3}>
         {enhancements.map((enhancement, index) => (
           <Grid item xs={12} md={6} key={index}>
@@ -482,7 +509,7 @@ export const EnhancementDemo: React.FC = () => {
           <UltimateInputField
             label="KPI Name"
             value={kpiForm.name}
-            onChange={(e) => setKpiForm({ ...kpiForm, name: e.target.value })}
+            onChange={e => setKpiForm({ ...kpiForm, name: e.target.value })}
             required
             placeholder="e.g., Database Response Time"
             gradient="primary"
@@ -491,7 +518,7 @@ export const EnhancementDemo: React.FC = () => {
           <UltimateInputField
             label="Description"
             value={kpiForm.description}
-            onChange={(e) => setKpiForm({ ...kpiForm, description: e.target.value })}
+            onChange={e => setKpiForm({ ...kpiForm, description: e.target.value })}
             required
             multiline
             rows={3}
@@ -504,7 +531,7 @@ export const EnhancementDemo: React.FC = () => {
               <UltimateSelect
                 label="Priority Level"
                 value={kpiForm.priority}
-                onChange={(e) => setKpiForm({ ...kpiForm, priority: e.target.value })}
+                onChange={e => setKpiForm({ ...kpiForm, priority: e.target.value })}
                 gradient="success"
               >
                 <MenuItem value="Low">🟢 Low Priority</MenuItem>
@@ -518,7 +545,7 @@ export const EnhancementDemo: React.FC = () => {
               <UltimateInputField
                 label="Owner / Team"
                 value={kpiForm.owner}
-                onChange={(e) => setKpiForm({ ...kpiForm, owner: e.target.value })}
+                onChange={e => setKpiForm({ ...kpiForm, owner: e.target.value })}
                 placeholder="e.g., DevOps Team, Platform Engineering"
                 gradient="info"
               />
@@ -539,27 +566,29 @@ export const EnhancementDemo: React.FC = () => {
             border: '1px solid rgba(244, 67, 54, 0.2)',
             borderRadius: 3,
             boxShadow: '0 20px 40px rgba(244, 67, 54, 0.15)',
-          }
+          },
         }}
       >
-        <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          color: 'white',
-          textAlign: 'center',
-          py: 3,
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '100px',
-            height: '100px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '50%',
-            transform: 'translate(30px, -30px)',
-          }
-        }}>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            color: 'white',
+            textAlign: 'center',
+            py: 3,
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '100px',
+              height: '100px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              transform: 'translate(30px, -30px)',
+            },
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
             <ContactIcon sx={{ fontSize: 32 }} />
             <Typography variant="h5" fontWeight="bold">
@@ -573,17 +602,20 @@ export const EnhancementDemo: React.FC = () => {
         <DialogContent sx={{ p: 4 }}>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <Box sx={{
-                p: 3,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, rgba(240, 147, 251, 0.05) 30%, rgba(245, 87, 108, 0.05) 90%)',
-                border: '1px solid rgba(240, 147, 251, 0.1)',
-                height: '100%',
-              }}>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  background:
+                    'linear-gradient(45deg, rgba(240, 147, 251, 0.05) 30%, rgba(245, 87, 108, 0.05) 90%)',
+                  border: '1px solid rgba(240, 147, 251, 0.1)',
+                  height: '100%',
+                }}
+              >
                 <TextField
                   label="Full Name"
                   value={contactForm.name}
-                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
                   fullWidth
                   required
                   placeholder="e.g., John Smith"
@@ -596,26 +628,29 @@ export const EnhancementDemo: React.FC = () => {
                       },
                       '&.Mui-focused': {
                         background: 'white',
-                      }
-                    }
+                      },
+                    },
                   }}
                 />
               </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Box sx={{
-                p: 3,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, rgba(245, 87, 108, 0.05) 30%, rgba(240, 147, 251, 0.05) 90%)',
-                border: '1px solid rgba(245, 87, 108, 0.1)',
-                height: '100%',
-              }}>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  background:
+                    'linear-gradient(45deg, rgba(245, 87, 108, 0.05) 30%, rgba(240, 147, 251, 0.05) 90%)',
+                  border: '1px solid rgba(245, 87, 108, 0.1)',
+                  height: '100%',
+                }}
+              >
                 <TextField
                   label="Email Address"
                   type="email"
                   value={contactForm.email}
-                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
                   fullWidth
                   required
                   placeholder="e.g., john.smith@company.com"
@@ -628,25 +663,28 @@ export const EnhancementDemo: React.FC = () => {
                       },
                       '&.Mui-focused': {
                         background: 'white',
-                      }
-                    }
+                      },
+                    },
                   }}
                 />
               </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Box sx={{
-                p: 3,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, rgba(76, 175, 80, 0.05) 30%, rgba(139, 195, 74, 0.05) 90%)',
-                border: '1px solid rgba(76, 175, 80, 0.1)',
-                height: '100%',
-              }}>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  background:
+                    'linear-gradient(45deg, rgba(76, 175, 80, 0.05) 30%, rgba(139, 195, 74, 0.05) 90%)',
+                  border: '1px solid rgba(76, 175, 80, 0.1)',
+                  height: '100%',
+                }}
+              >
                 <TextField
                   label="Phone Number"
                   value={contactForm.phone}
-                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  onChange={e => setContactForm({ ...contactForm, phone: e.target.value })}
                   fullWidth
                   placeholder="e.g., +1 (555) 123-4567"
                   variant="outlined"
@@ -658,26 +696,29 @@ export const EnhancementDemo: React.FC = () => {
                       },
                       '&.Mui-focused': {
                         background: 'white',
-                      }
-                    }
+                      },
+                    },
                   }}
                 />
               </Box>
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Box sx={{
-                p: 3,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, rgba(33, 150, 243, 0.05) 30%, rgba(33, 203, 243, 0.05) 90%)',
-                border: '1px solid rgba(33, 150, 243, 0.1)',
-                height: '100%',
-              }}>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  background:
+                    'linear-gradient(45deg, rgba(33, 150, 243, 0.05) 30%, rgba(33, 203, 243, 0.05) 90%)',
+                  border: '1px solid rgba(33, 150, 243, 0.1)',
+                  height: '100%',
+                }}
+              >
                 <FormControl fullWidth>
                   <InputLabel>Enterprise Role</InputLabel>
                   <Select
                     value={contactForm.role}
-                    onChange={(e) => setContactForm({ ...contactForm, role: e.target.value })}
+                    onChange={e => setContactForm({ ...contactForm, role: e.target.value })}
                     label="Enterprise Role"
                     sx={{
                       background: 'rgba(255, 255, 255, 0.8)',
@@ -686,7 +727,7 @@ export const EnhancementDemo: React.FC = () => {
                       },
                       '&.Mui-focused': {
                         background: 'white',
-                      }
+                      },
                     }}
                   >
                     <MenuItem value="Developer">👨‍💻 Software Developer</MenuItem>
@@ -701,11 +742,14 @@ export const EnhancementDemo: React.FC = () => {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{
-          p: 3,
-          background: 'linear-gradient(135deg, rgba(240, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%)',
-          gap: 2,
-        }}>
+        <DialogActions
+          sx={{
+            p: 3,
+            background:
+              'linear-gradient(135deg, rgba(240, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%)',
+            gap: 2,
+          }}
+        >
           <Button
             onClick={() => setContactDialogOpen(false)}
             variant="outlined"
@@ -715,7 +759,7 @@ export const EnhancementDemo: React.FC = () => {
               '&:hover': {
                 borderColor: '#f093fb',
                 background: 'rgba(240, 147, 251, 0.1)',
-              }
+              },
             }}
           >
             Cancel
@@ -729,7 +773,7 @@ export const EnhancementDemo: React.FC = () => {
               '&:hover': {
                 background: 'linear-gradient(135deg, #e081e9 0%, #e3455a 100%)',
                 boxShadow: '0 6px 20px rgba(240, 147, 251, 0.6)',
-              }
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -751,27 +795,29 @@ export const EnhancementDemo: React.FC = () => {
             border: '1px solid rgba(244, 67, 54, 0.2)',
             borderRadius: 3,
             boxShadow: '0 20px 40px rgba(244, 67, 54, 0.15)',
-          }
+          },
         }}
       >
-        <DialogTitle sx={{
-          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-          color: 'white',
-          textAlign: 'center',
-          py: 3,
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '80px',
-            height: '80px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '50%',
-            transform: 'translate(25px, -25px)',
-          }
-        }}>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+            color: 'white',
+            textAlign: 'center',
+            py: 3,
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '80px',
+              height: '80px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              transform: 'translate(25px, -25px)',
+            },
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
             <SecurityIcon sx={{ fontSize: 32 }} />
             <Typography variant="h5" fontWeight="bold">
@@ -783,20 +829,26 @@ export const EnhancementDemo: React.FC = () => {
           </Typography>
         </DialogTitle>
         <DialogContent sx={{ p: 4 }}>
-          <Box sx={{
-            p: 3,
-            borderRadius: 2,
-            background: 'linear-gradient(45deg, rgba(255, 107, 107, 0.05) 30%, rgba(238, 90, 36, 0.05) 90%)',
-            border: '1px solid rgba(255, 107, 107, 0.1)',
-            textAlign: 'center',
-          }}>
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              background:
+                'linear-gradient(45deg, rgba(255, 107, 107, 0.05) 30%, rgba(238, 90, 36, 0.05) 90%)',
+              border: '1px solid rgba(255, 107, 107, 0.1)',
+              textAlign: 'center',
+            }}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-              <Box sx={{
-                p: 2,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(238, 90, 36, 0.1) 100%)',
-                border: '2px solid rgba(255, 107, 107, 0.2)',
-              }}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: '50%',
+                  background:
+                    'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(238, 90, 36, 0.1) 100%)',
+                  border: '2px solid rgba(255, 107, 107, 0.2)',
+                }}
+              >
                 <SecurityIcon sx={{ fontSize: 40, color: '#ff6b6b' }} />
               </Box>
             </Box>
@@ -804,31 +856,37 @@ export const EnhancementDemo: React.FC = () => {
               Confirm Enterprise Action
             </Typography>
             <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
-              This is a demo of the reusable confirmation dialog component with enterprise-grade security features.
+              This is a demo of the reusable confirmation dialog component with enterprise-grade
+              security features.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This dialog can be customized for different types of confirmations and includes audit logging,
-              role-based permissions, and security validation.
+              This dialog can be customized for different types of confirmations and includes audit
+              logging, role-based permissions, and security validation.
             </Typography>
 
-            <Box sx={{
-              mt: 3,
-              p: 2,
-              borderRadius: 1,
-              background: 'rgba(255, 107, 107, 0.05)',
-              border: '1px dashed rgba(255, 107, 107, 0.2)',
-            }}>
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                borderRadius: 1,
+                background: 'rgba(255, 107, 107, 0.05)',
+                border: '1px dashed rgba(255, 107, 107, 0.2)',
+              }}
+            >
               <Typography variant="caption" color="text.secondary">
                 🔒 This action will be logged in the enterprise audit trail
               </Typography>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{
-          p: 3,
-          background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(238, 90, 36, 0.05) 100%)',
-          gap: 2,
-        }}>
+        <DialogActions
+          sx={{
+            p: 3,
+            background:
+              'linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(238, 90, 36, 0.05) 100%)',
+            gap: 2,
+          }}
+        >
           <Button
             onClick={() => setConfirmDialogOpen(false)}
             variant="outlined"
@@ -838,7 +896,7 @@ export const EnhancementDemo: React.FC = () => {
               '&:hover': {
                 borderColor: '#667eea',
                 background: 'rgba(102, 126, 234, 0.1)',
-              }
+              },
             }}
           >
             Cancel
@@ -852,7 +910,7 @@ export const EnhancementDemo: React.FC = () => {
               '&:hover': {
                 background: 'linear-gradient(135deg, #ff5252 0%, #d84315 100%)',
                 boxShadow: '0 6px 20px rgba(255, 107, 107, 0.6)',
-              }
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -883,7 +941,7 @@ export const EnhancementDemo: React.FC = () => {
             '& .MuiAlert-message': {
               color: 'white',
               fontWeight: 500,
-            }
+            },
           }}
         >
           {snackbarMessage}

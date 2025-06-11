@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     // Generate unique error ID for tracking
     const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Reset error boundary when specified props change
     if (hasError && resetOnPropsChange && resetKeys) {
       const hasResetKeyChanged = resetKeys.some(
-        (key, index) => key !== (prevProps.resetKeys?.[index])
+        (key, index) => key !== prevProps.resetKeys?.[index]
       );
 
       if (hasResetKeyChanged) {
@@ -119,10 +119,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorId: this.state.errorId,
     };
 
-    // Example: Send to monitoring service
-    // errorTrackingService.captureException(errorReport);
-    
-    console.log('Error report:', errorReport);
+    // Send to monitoring service in production
+    if (process.env.NODE_ENV === 'production') {
+      // errorTrackingService.captureException(errorReport);
+    }
   };
 
   private resetErrorBoundary = () => {
@@ -164,24 +164,28 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   private getErrorSeverity = (error: Error): 'low' | 'medium' | 'high' => {
     const errorMessage = error.message.toLowerCase();
-    
+
     if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
       return 'medium';
     }
-    
+
     if (errorMessage.includes('chunk') || errorMessage.includes('loading')) {
       return 'low';
     }
-    
+
     return 'high';
   };
 
   private getSeverityColor = (severity: 'low' | 'medium' | 'high') => {
     switch (severity) {
-      case 'low': return 'warning';
-      case 'medium': return 'error';
-      case 'high': return 'error';
-      default: return 'error';
+      case 'low':
+        return 'warning';
+      case 'medium':
+        return 'error';
+      case 'high':
+        return 'error';
+      default:
+        return 'error';
     }
   };
 
@@ -229,11 +233,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   color={this.getSeverityColor(severity)}
                   size="small"
                 />
-                <Chip
-                  label={`Retry: ${retryCount}/${maxRetries}`}
-                  color="default"
-                  size="small"
-                />
+                <Chip label={`Retry: ${retryCount}/${maxRetries}`} color="default" size="small" />
               </Stack>
 
               <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -246,18 +246,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     Try Again
                   </Button>
                 )}
-                <Button
-                  variant="outlined"
-                  startIcon={<HomeIcon />}
-                  onClick={this.handleGoHome}
-                >
+                <Button variant="outlined" startIcon={<HomeIcon />} onClick={this.handleGoHome}>
                   Go Home
                 </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<RefreshIcon />}
-                  onClick={this.handleReload}
-                >
+                <Button variant="outlined" startIcon={<RefreshIcon />} onClick={this.handleReload}>
                   Reload Page
                 </Button>
               </Stack>
@@ -335,6 +327,6 @@ export const withErrorBoundary = <P extends object>(
   );
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };

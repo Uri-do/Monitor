@@ -32,7 +32,11 @@ import { executionHistoryApi, kpiApi } from '@/services/api';
 import { useExecutionDetail } from '@/hooks/useExecutionHistory';
 import { useKpi } from '@/hooks/useKpis';
 import { ExecutionHistoryDetailDto } from '@/types/api';
-import { PageHeader, LoadingSpinner, StatusChip } from '@/components/Common';
+import {
+  UltimatePageHeader,
+  UltimateLoadingSpinner,
+  UltimateStatusChip,
+} from '@/components/UltimateEnterprise';
 
 const ExecutionHistoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,11 +50,7 @@ const ExecutionHistoryDetail: React.FC = () => {
   const kpiId = location.state?.kpiId;
 
   // Use enhanced hooks for data fetching
-  const {
-    data: execution,
-    isLoading,
-    error,
-  } = useExecutionDetail(historicalId);
+  const { data: execution, isLoading, error } = useExecutionDetail(historicalId);
 
   // Fetch KPI details if we came from KPI page and have execution data
   const { data: kpiData } = useKpi(execution?.kpiId || kpiId, {

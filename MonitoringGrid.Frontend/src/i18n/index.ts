@@ -91,7 +91,7 @@ i18n
     resources,
     fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',
-    
+
     // Language detection options
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
@@ -136,7 +136,7 @@ i18n
           const rtf = new Intl.RelativeTimeFormat(lng, { numeric: 'auto' });
           const diff = (new Date(value).getTime() - Date.now()) / 1000;
           const absDiff = Math.abs(diff);
-          
+
           if (absDiff < 60) return rtf.format(Math.round(diff), 'second');
           if (absDiff < 3600) return rtf.format(Math.round(diff / 60), 'minute');
           if (absDiff < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
@@ -167,7 +167,7 @@ i18n
     // Performance
     load: 'languageOnly',
     preload: ['en'],
-    
+
     // Error handling
     missingKeyHandler: (lng, ns, key, fallbackValue) => {
       if (process.env.NODE_ENV === 'development') {
@@ -208,14 +208,14 @@ export const isRTL = (lng?: string) => {
 
 export const changeLanguage = async (lng: string) => {
   await i18n.changeLanguage(lng);
-  
+
   // Update document direction for RTL languages
   document.dir = isRTL(lng) ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
-  
+
   // Update theme direction if needed
-  const event = new CustomEvent('languageChanged', { 
-    detail: { language: lng, isRTL: isRTL(lng) } 
+  const event = new CustomEvent('languageChanged', {
+    detail: { language: lng, isRTL: isRTL(lng) },
   });
   window.dispatchEvent(event);
 };
@@ -228,11 +228,11 @@ export const formatters = {
       currency,
     }).format(value);
   },
-  
+
   number: (value: number, lng?: string) => {
     return new Intl.NumberFormat(lng || getCurrentLanguage()).format(value);
   },
-  
+
   percentage: (value: number, lng?: string) => {
     return new Intl.NumberFormat(lng || getCurrentLanguage(), {
       style: 'percent',
@@ -240,11 +240,11 @@ export const formatters = {
       maximumFractionDigits: 2,
     }).format(value / 100);
   },
-  
+
   date: (value: Date | string, lng?: string) => {
     return new Intl.DateTimeFormat(lng || getCurrentLanguage()).format(new Date(value));
   },
-  
+
   datetime: (value: Date | string, lng?: string) => {
     return new Intl.DateTimeFormat(lng || getCurrentLanguage(), {
       year: 'numeric',
@@ -254,12 +254,12 @@ export const formatters = {
       minute: '2-digit',
     }).format(new Date(value));
   },
-  
+
   relative: (value: Date | string, lng?: string) => {
     const rtf = new Intl.RelativeTimeFormat(lng || getCurrentLanguage(), { numeric: 'auto' });
     const diff = (new Date(value).getTime() - Date.now()) / 1000;
     const absDiff = Math.abs(diff);
-    
+
     if (absDiff < 60) return rtf.format(Math.round(diff), 'second');
     if (absDiff < 3600) return rtf.format(Math.round(diff / 60), 'minute');
     if (absDiff < 86400) return rtf.format(Math.round(diff / 3600), 'hour');

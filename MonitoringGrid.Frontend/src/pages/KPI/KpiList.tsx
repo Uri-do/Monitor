@@ -15,13 +15,13 @@ import { useDeleteKpi, useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  DataTable,
-  DataTableColumn,
-  PageHeader,
-  FilterPanel,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/Common';
+  UltimateDataTable,
+  UltimateDataTableColumn,
+  UltimatePageHeader,
+  UltimateFilterPanel,
+  UltimateStatusChip,
+  UltimateLoadingSpinner,
+} from '@/components/UltimateEnterprise';
 import ExecutionProgressDialog from '@/components/KPI/ExecutionProgressDialog';
 
 const KpiList: React.FC = () => {
@@ -64,7 +64,7 @@ const KpiList: React.FC = () => {
     ...executeKpiMutation,
     mutate: (request: TestKpiRequest) => {
       executeKpiMutation.mutate(request, {
-        onSuccess: (result) => {
+        onSuccess: result => {
           // Show detailed execution results
           const executionTime = result.executionTimeMs ? `${result.executionTimeMs}ms` : 'N/A';
           const statusMessage = result.isSuccessful
@@ -131,7 +131,7 @@ const KpiList: React.FC = () => {
   }, [kpis, filters.search]);
 
   // Define table columns
-  const columns: DataTableColumn<KpiDto>[] = [
+  const columns: UltimateDataTableColumn<KpiDto>[] = [
     {
       id: 'indicator',
       label: 'KPI Indicator',
@@ -155,14 +155,14 @@ const KpiList: React.FC = () => {
       label: 'Priority',
       sortable: true,
       minWidth: 100,
-      render: (value, row) => <StatusChip status={row.priorityName} />,
+      render: (value, row) => <UltimateStatusChip status={row.priorityName} />,
     },
     {
       id: 'isActive',
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      render: (value, row) => <StatusChip status={getKpiStatus(row)} />,
+      render: (value, row) => <UltimateStatusChip status={getKpiStatus(row)} />,
     },
     {
       id: 'frequency',
@@ -202,12 +202,12 @@ const KpiList: React.FC = () => {
   ];
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading KPIs..." />;
+    return <UltimateLoadingSpinner message="Loading KPIs..." />;
   }
 
   return (
     <Box>
-      <PageHeader
+      <UltimatePageHeader
         title="KPI Management"
         subtitle={`Manage and monitor your Key Performance Indicators (${filteredKpis.length} total)`}
         primaryAction={{
@@ -219,7 +219,7 @@ const KpiList: React.FC = () => {
         refreshing={isLoading}
       />
 
-      <FilterPanel
+      <UltimateFilterPanel
         fields={[
           {
             name: 'isActive',
@@ -255,7 +255,7 @@ const KpiList: React.FC = () => {
         defaultExpanded={false}
       />
 
-      <DataTable
+      <UltimateDataTable
         columns={columns}
         data={filteredKpis}
         loading={isLoading}

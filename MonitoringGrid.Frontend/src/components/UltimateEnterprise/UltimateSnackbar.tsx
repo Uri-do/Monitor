@@ -42,9 +42,9 @@ export const UltimateSnackbar: React.FC<UltimateSnackbarProps> = ({
       onClose={onClose}
       anchorOrigin={position}
     >
-      <Alert 
-        onClose={onClose} 
-        severity={severity} 
+      <Alert
+        onClose={onClose}
+        severity={severity}
         variant="filled"
         sx={{
           background: gradientMap[severity],
@@ -60,8 +60,8 @@ export const UltimateSnackbar: React.FC<UltimateSnackbarProps> = ({
           '& .MuiAlert-action': {
             '& .MuiIconButton-root': {
               color: 'white',
-            }
-          }
+            },
+          },
         }}
       >
         {message}

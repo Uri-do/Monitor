@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Grid,
-  Card,
   CardContent,
   Typography,
   Box,
@@ -14,6 +13,7 @@ import {
 import { Error } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AlertDashboardDto } from '../../../types/api';
+import { UltimateCard } from '@/components/UltimateEnterprise';
 
 interface TopAlertingKpisCardProps {
   alertDashboard?: AlertDashboardDto;
@@ -29,15 +29,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
 
   return (
     <Grid item xs={12}>
-      <Card
-        sx={{
-          background:
-            theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #ff5722 0%, #d84315 100%)'
-              : 'linear-gradient(135deg, rgba(244, 67, 54, 0.8) 0%, rgba(211, 47, 47, 0.8) 100%)',
-          color: 'white',
-        }}
-      >
+      <UltimateCard gradient="error" glowEffect={true}>
         <CardContent>
           <Box display="flex" alignItems="center" gap={1} mb={3}>
             <Error sx={{ fontSize: 28 }} />
@@ -114,7 +106,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
             ))}
           </List>
         </CardContent>
-      </Card>
+      </UltimateCard>
     </Grid>
   );
 };

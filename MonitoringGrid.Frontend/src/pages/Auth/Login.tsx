@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Card,
   CardContent,
-  TextField,
-  Button,
   Typography,
   Alert,
   Checkbox,
@@ -22,6 +19,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { UltimateCard, UltimateInputField, UltimateButton } from '@/components/UltimateEnterprise';
 
 const loginSchema = yup.object({
   username: yup.string().required('Username is required'),
@@ -112,7 +110,7 @@ export const Login: React.FC = () => {
         padding: 2,
       }}
     >
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
+      <UltimateCard sx={{ maxWidth: 400, width: '100%' }} glowEffect={true}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
             <Box
@@ -142,7 +140,7 @@ export const Login: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
+            <UltimateInputField
               {...register('username')}
               fullWidth
               label="Username"
@@ -154,7 +152,7 @@ export const Login: React.FC = () => {
               autoFocus
             />
 
-            <TextField
+            <UltimateInputField
               {...register('password')}
               fullWidth
               label="Password"
@@ -180,7 +178,7 @@ export const Login: React.FC = () => {
             />
 
             {requiresTwoFactor && (
-              <TextField
+              <UltimateInputField
                 {...register('twoFactorCode')}
                 fullWidth
                 label="Two-Factor Code"
@@ -199,16 +197,16 @@ export const Login: React.FC = () => {
               sx={{ mt: 1, mb: 2 }}
             />
 
-            <Button
+            <UltimateButton
               type="submit"
               fullWidth
-              variant="contained"
+              gradient="primary"
               size="large"
               disabled={isLoading}
               sx={{ mb: 2 }}
             >
               {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
-            </Button>
+            </UltimateButton>
 
             <Box sx={{ textAlign: 'center', mb: 2 }}>
               <Link
@@ -245,24 +243,26 @@ export const Login: React.FC = () => {
             </Divider>
 
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
+              <UltimateButton
                 fullWidth
                 variant="outlined"
+                gradient="info"
                 startIcon={<Microsoft />}
                 onClick={() => handleSsoLogin('microsoft')}
                 disabled={isLoading}
               >
                 Microsoft
-              </Button>
-              <Button
+              </UltimateButton>
+              <UltimateButton
                 fullWidth
                 variant="outlined"
+                gradient="warning"
                 startIcon={<Google />}
                 onClick={() => handleSsoLogin('google')}
                 disabled={isLoading}
               >
                 Google
-              </Button>
+              </UltimateButton>
             </Box>
 
             <Divider sx={{ my: 2 }}>
@@ -271,29 +271,20 @@ export const Login: React.FC = () => {
               </Typography>
             </Divider>
 
-            <Button
+            <UltimateButton
               fullWidth
               variant="outlined"
-              color="secondary"
+              gradient="secondary"
               size="large"
               startIcon={<PlayArrow />}
               onClick={handleDemoMode}
               disabled={isLoading}
-              sx={{
-                borderColor: 'secondary.main',
-                color: 'secondary.main',
-                '&:hover': {
-                  borderColor: 'secondary.dark',
-                  backgroundColor: 'secondary.main',
-                  color: 'white',
-                },
-              }}
             >
               Try Demo Mode
-            </Button>
+            </UltimateButton>
           </form>
         </CardContent>
-      </Card>
+      </UltimateCard>
     </Box>
   );
 };

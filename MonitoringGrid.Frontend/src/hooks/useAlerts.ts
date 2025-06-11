@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { alertApi } from '@/services/api';
-import {
-  AlertLogDto,
-  AlertFilterDto,
-  PaginatedAlertsDto,
-} from '@/types/api';
+import { AlertLogDto, AlertFilterDto, PaginatedAlertsDto } from '@/types/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
@@ -15,7 +11,7 @@ export const useAlerts = (filters: AlertFilterDto) => {
   return useQuery({
     queryKey: queryKeys.alerts.list(filters),
     queryFn: () => alertApi.getAlerts(filters),
-    placeholderData: (previousData) => previousData, // Prevents UI flickering during refetch
+    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     refetchInterval: 60 * 1000, // Auto-refetch every minute for real-time updates
   });
@@ -28,7 +24,7 @@ export const useAlertStatistics = (timeRangeDays: number) => {
   return useQuery({
     queryKey: queryKeys.alerts.statistics(timeRangeDays),
     queryFn: () => alertApi.getStatistics(timeRangeDays),
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     refetchInterval: 10 * 60 * 1000, // Auto-refetch every 10 minutes
   });
@@ -41,7 +37,7 @@ export const useAlertDashboard = () => {
   return useQuery({
     queryKey: queryKeys.alerts.dashboard(),
     queryFn: alertApi.getDashboard,
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
     staleTime: 10 * 1000, // Consider data fresh for 10 seconds for real-time dashboard
     refetchInterval: 10 * 1000, // Auto-refetch every 10 seconds for real-time updates
     retry: 2,

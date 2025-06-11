@@ -21,7 +21,8 @@ export const queryKeys = {
     list: (filters: any) => [...queryKeys.alerts.lists(), filters] as const,
     details: () => [...queryKeys.alerts.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.alerts.details(), id] as const,
-    statistics: (timeRangeDays?: number) => [...queryKeys.alerts.all, 'statistics', timeRangeDays] as const,
+    statistics: (timeRangeDays?: number) =>
+      [...queryKeys.alerts.all, 'statistics', timeRangeDays] as const,
     dashboard: () => [...queryKeys.alerts.all, 'dashboard'] as const,
   },
 
@@ -68,8 +69,10 @@ export const queryKeys = {
     list: (filters: any) => [...queryKeys.executionHistory.lists(), filters] as const,
     details: () => [...queryKeys.executionHistory.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.executionHistory.details(), id] as const,
-    byKpi: (kpiId: number, limit?: number) => [...queryKeys.executionHistory.all, 'byKpi', kpiId, limit] as const,
-    statistics: (timeRangeDays: number) => [...queryKeys.executionHistory.all, 'statistics', timeRangeDays] as const,
+    byKpi: (kpiId: number, limit?: number) =>
+      [...queryKeys.executionHistory.all, 'byKpi', kpiId, limit] as const,
+    statistics: (timeRangeDays: number) =>
+      [...queryKeys.executionHistory.all, 'statistics', timeRangeDays] as const,
     recent: (limit: number) => [...queryKeys.executionHistory.all, 'recent', limit] as const,
   },
 

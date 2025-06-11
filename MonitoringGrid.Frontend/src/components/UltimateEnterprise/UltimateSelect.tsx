@@ -44,26 +44,28 @@ export const UltimateSelect: React.FC<UltimateSelectProps> = ({
   ...props
 }) => {
   return (
-    <Box sx={{ 
-      p: 3, 
-      borderRadius: 2, 
-      background: gradientMap[gradient],
-      border: `1px solid ${borderColorMap[gradient]}`,
-      height: '100%',
-      transition: 'all 0.3s ease-in-out',
-      ...(glowEffect && {
-        '&:hover': {
-          boxShadow: `0 4px 15px ${borderColorMap[gradient]}`,
-        }
-      })
-    }}>
+    <Box
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        background: gradientMap[gradient],
+        border: `1px solid ${borderColorMap[gradient]}`,
+        height: '100%',
+        transition: 'all 0.3s ease-in-out',
+        ...(glowEffect && {
+          '&:hover': {
+            boxShadow: `0 4px 15px ${borderColorMap[gradient]}`,
+          },
+        }),
+      }}
+    >
       <FormControl fullWidth>
-        <InputLabel 
-          sx={{ 
+        <InputLabel
+          sx={{
             fontWeight: 600,
             '&.Mui-focused': {
               color: focusColorMap[gradient],
-            }
+            },
           }}
         >
           {label}
@@ -82,7 +84,7 @@ export const UltimateSelect: React.FC<UltimateSelectProps> = ({
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
-              }
+              },
             },
             ...sx,
           }}

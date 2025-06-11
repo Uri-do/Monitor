@@ -199,7 +199,9 @@ export interface ComplexEventPattern {
  */
 class EventMeshService {
   // Stream Management
-  async createEventStream(stream: Omit<EventStream, 'id' | 'metrics' | 'status' | 'createdAt' | 'updatedAt'>): Promise<EventStream> {
+  async createEventStream(
+    stream: Omit<EventStream, 'id' | 'metrics' | 'status' | 'createdAt' | 'updatedAt'>
+  ): Promise<EventStream> {
     try {
       const response = await api.post('/event-mesh/streams', stream);
       return response.data;
@@ -232,7 +234,9 @@ class EventMeshService {
   }
 
   // Event Processing
-  async createEventProcessor(processor: Omit<EventProcessor, 'id' | 'performance' | 'status' | 'createdAt' | 'deployedAt'>): Promise<EventProcessor> {
+  async createEventProcessor(
+    processor: Omit<EventProcessor, 'id' | 'performance' | 'status' | 'createdAt' | 'deployedAt'>
+  ): Promise<EventProcessor> {
     try {
       const response = await api.post('/event-mesh/processors', processor);
       return response.data;
@@ -248,7 +252,7 @@ class EventMeshService {
       return response.data;
     } catch (error) {
       console.warn('Deploy processor endpoint not available, returning mock response');
-      return { deploymentId: 'deploy-' + Date.now(), status: 'deploying' };
+      return { deploymentId: `deploy-${Date.now()}`, status: 'deploying' };
     }
   }
 
@@ -261,7 +265,9 @@ class EventMeshService {
   }
 
   // Event Mesh Topology
-  async createTopology(topology: Omit<EventMeshTopology, 'id' | 'metrics' | 'createdAt' | 'updatedAt'>): Promise<EventMeshTopology> {
+  async createTopology(
+    topology: Omit<EventMeshTopology, 'id' | 'metrics' | 'createdAt' | 'updatedAt'>
+  ): Promise<EventMeshTopology> {
     try {
       const response = await api.post('/event-mesh/topologies', topology);
       return response.data;
@@ -302,7 +308,9 @@ class EventMeshService {
   }
 
   // Event Replay
-  async createEventReplay(replay: Omit<EventReplay, 'id' | 'status' | 'progress' | 'createdAt'>): Promise<EventReplay> {
+  async createEventReplay(
+    replay: Omit<EventReplay, 'id' | 'status' | 'progress' | 'createdAt'>
+  ): Promise<EventReplay> {
     try {
       const response = await api.post('/event-mesh/replay', replay);
       return response.data;
@@ -331,7 +339,9 @@ class EventMeshService {
   }
 
   // Complex Event Processing
-  async createEventPattern(pattern: Omit<ComplexEventPattern, 'id' | 'matches' | 'status' | 'createdAt' | 'lastTriggered'>): Promise<ComplexEventPattern> {
+  async createEventPattern(
+    pattern: Omit<ComplexEventPattern, 'id' | 'matches' | 'status' | 'createdAt' | 'lastTriggered'>
+  ): Promise<ComplexEventPattern> {
     try {
       const response = await api.post('/event-mesh/patterns', pattern);
       return response.data;
@@ -351,7 +361,10 @@ class EventMeshService {
     }
   }
 
-  async testEventPattern(patternId: string, testEvents: any[]): Promise<{
+  async testEventPattern(
+    patternId: string,
+    testEvents: any[]
+  ): Promise<{
     matches: boolean;
     matchedEvents: any[];
     executionTime: number;
@@ -372,12 +385,15 @@ class EventMeshService {
   }
 
   // Real-time Event Publishing
-  async publishEvent(streamId: string, event: {
-    type: string;
-    data: any;
-    metadata?: Record<string, any>;
-    timestamp?: string;
-  }): Promise<{
+  async publishEvent(
+    streamId: string,
+    event: {
+      type: string;
+      data: any;
+      metadata?: Record<string, any>;
+      timestamp?: string;
+    }
+  ): Promise<{
     eventId: string;
     partition: number;
     offset: number;
@@ -389,7 +405,7 @@ class EventMeshService {
     } catch (error) {
       console.warn('Publish event endpoint not available, returning mock response');
       return {
-        eventId: 'event-' + Date.now(),
+        eventId: `event-${Date.now()}`,
         partition: 0,
         offset: Math.floor(Math.random() * 1000000),
         timestamp: new Date().toISOString(),
@@ -397,7 +413,10 @@ class EventMeshService {
     }
   }
 
-  async batchPublishEvents(streamId: string, events: any[]): Promise<{
+  async batchPublishEvents(
+    streamId: string,
+    events: any[]
+  ): Promise<{
     successCount: number;
     failureCount: number;
     results: Array<{
@@ -415,7 +434,7 @@ class EventMeshService {
         successCount: events.length,
         failureCount: 0,
         results: events.map((_, i) => ({
-          eventId: 'event-' + (Date.now() + i),
+          eventId: `event-${Date.now() + i}`,
           status: 'success' as const,
         })),
       };
@@ -447,11 +466,14 @@ class EventMeshService {
         overall: 'healthy',
         streams: [
           { id: 'stream-1', name: 'KPI Events', status: 'healthy', issues: [] },
-          { id: 'stream-2', name: 'Alert Events', status: 'degraded', issues: ['High consumer lag'] },
+          {
+            id: 'stream-2',
+            name: 'Alert Events',
+            status: 'degraded',
+            issues: ['High consumer lag'],
+          },
         ],
-        processors: [
-          { id: 'proc-1', name: 'KPI Processor', status: 'healthy', issues: [] },
-        ],
+        processors: [{ id: 'proc-1', name: 'KPI Processor', status: 'healthy', issues: [] }],
       };
     }
   }
@@ -459,7 +481,7 @@ class EventMeshService {
   // Mock data methods
   private getMockEventStream(): EventStream {
     return {
-      id: 'stream-' + Date.now(),
+      id: `stream-${Date.now()}`,
       name: 'KPI Events Stream',
       description: 'Real-time KPI execution and monitoring events',
       type: 'kafka',
@@ -473,7 +495,8 @@ class EventMeshService {
       },
       schema: {
         format: 'avro',
-        definition: '{"type":"record","name":"KpiEvent","fields":[{"name":"kpiId","type":"int"},{"name":"value","type":"double"}]}',
+        definition:
+          '{"type":"record","name":"KpiEvent","fields":[{"name":"kpiId","type":"int"},{"name":"value","type":"double"}]}',
         version: '1.0.0',
         compatibility: 'backward',
       },
@@ -492,7 +515,7 @@ class EventMeshService {
 
   private getMockEventProcessor(): EventProcessor {
     return {
-      id: 'processor-' + Date.now(),
+      id: `processor-${Date.now()}`,
       name: 'KPI Anomaly Detector',
       description: 'Real-time anomaly detection for KPI values',
       inputStreams: ['kpi-events'],
@@ -525,17 +548,56 @@ class EventMeshService {
 
   private getMockEventMeshTopology(): EventMeshTopology {
     return {
-      id: 'topology-' + Date.now(),
+      id: `topology-${Date.now()}`,
       name: 'MonitoringGrid Event Mesh',
       description: 'Complete event processing topology for monitoring system',
       nodes: [
-        { id: 'producer-1', type: 'producer', name: 'KPI Producer', configuration: {}, position: { x: 100, y: 100 }, status: 'healthy' },
-        { id: 'processor-1', type: 'processor', name: 'Anomaly Detector', configuration: {}, position: { x: 300, y: 100 }, status: 'healthy' },
-        { id: 'consumer-1', type: 'consumer', name: 'Alert Consumer', configuration: {}, position: { x: 500, y: 100 }, status: 'healthy' },
+        {
+          id: 'producer-1',
+          type: 'producer',
+          name: 'KPI Producer',
+          configuration: {},
+          position: { x: 100, y: 100 },
+          status: 'healthy',
+        },
+        {
+          id: 'processor-1',
+          type: 'processor',
+          name: 'Anomaly Detector',
+          configuration: {},
+          position: { x: 300, y: 100 },
+          status: 'healthy',
+        },
+        {
+          id: 'consumer-1',
+          type: 'consumer',
+          name: 'Alert Consumer',
+          configuration: {},
+          position: { x: 500, y: 100 },
+          status: 'healthy',
+        },
       ],
       connections: [
-        { id: 'conn-1', source: 'producer-1', target: 'processor-1', streamId: 'kpi-events', protocol: 'kafka', qos: 'at_least_once', encryption: true, compression: true },
-        { id: 'conn-2', source: 'processor-1', target: 'consumer-1', streamId: 'anomaly-alerts', protocol: 'kafka', qos: 'exactly_once', encryption: true, compression: true },
+        {
+          id: 'conn-1',
+          source: 'producer-1',
+          target: 'processor-1',
+          streamId: 'kpi-events',
+          protocol: 'kafka',
+          qos: 'at_least_once',
+          encryption: true,
+          compression: true,
+        },
+        {
+          id: 'conn-2',
+          source: 'processor-1',
+          target: 'consumer-1',
+          streamId: 'anomaly-alerts',
+          protocol: 'kafka',
+          qos: 'exactly_once',
+          encryption: true,
+          compression: true,
+        },
       ],
       policies: {
         routing: { strategy: 'round_robin' },
@@ -572,7 +634,13 @@ class EventMeshService {
         },
       },
       patterns: [
-        { type: 'spike', description: 'Traffic spike detected at 14:30', timestamp: new Date().toISOString(), severity: 'medium', impact: 'Increased latency' },
+        {
+          type: 'spike',
+          description: 'Traffic spike detected at 14:30',
+          timestamp: new Date().toISOString(),
+          severity: 'medium',
+          impact: 'Increased latency',
+        },
       ],
       topProducers: [
         { id: 'producer-1', messageCount: 750000, percentage: 60 },
@@ -587,15 +655,13 @@ class EventMeshService {
 
   private getMockEventReplay(): EventReplay {
     return {
-      id: 'replay-' + Date.now(),
+      id: `replay-${Date.now()}`,
       streamId: 'stream-1',
       timeRange: {
         start: new Date(Date.now() - 86400000).toISOString(),
         end: new Date().toISOString(),
       },
-      filters: [
-        { field: 'kpiId', operator: 'equals', value: 123 },
-      ],
+      filters: [{ field: 'kpiId', operator: 'equals', value: 123 }],
       destination: {
         type: 'stream',
         configuration: { streamId: 'replay-stream' },
@@ -614,7 +680,7 @@ class EventMeshService {
 
   private getMockComplexEventPattern(): ComplexEventPattern {
     return {
-      id: 'pattern-' + Date.now(),
+      id: `pattern-${Date.now()}`,
       name: 'KPI Threshold Breach Pattern',
       description: 'Detects when KPI exceeds threshold followed by alert creation',
       pattern: {
@@ -626,8 +692,14 @@ class EventMeshService {
         timeWindow: { duration: 5, unit: 'minutes' },
       },
       actions: [
-        { type: 'webhook', configuration: { url: 'https://api.example.com/webhook', method: 'POST' } },
-        { type: 'alert', configuration: { severity: 'high', message: 'KPI threshold breach pattern detected' } },
+        {
+          type: 'webhook',
+          configuration: { url: 'https://api.example.com/webhook', method: 'POST' },
+        },
+        {
+          type: 'alert',
+          configuration: { severity: 'high', message: 'KPI threshold breach pattern detected' },
+        },
       ],
       matches: {
         total: 156,

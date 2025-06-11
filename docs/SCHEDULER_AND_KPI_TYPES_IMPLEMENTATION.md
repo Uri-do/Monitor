@@ -7,7 +7,7 @@ This implementation adds comprehensive scheduling capabilities and multiple KPI 
 ## 🚀 **What's Been Implemented**
 
 ### 1. **Generic Scheduler Component** ✅
-- **Location**: `src/components/Common/SchedulerComponent.tsx`
+- **Location**: `src/components/Business/KPI/SchedulerComponent.tsx`
 - **Features**:
   - Multiple schedule types: Interval, Cron, One-time
   - Visual cron expression builder with presets
@@ -17,7 +17,7 @@ This implementation adds comprehensive scheduling capabilities and multiple KPI 
   - Next execution time calculation
 
 ### 2. **KPI Type Selector Component** ✅
-- **Location**: `src/components/Common/KpiTypeSelector.tsx`
+- **Location**: `src/components/Business/KPI/KpiTypeSelector.tsx`
 - **Features**:
   - Four KPI types with detailed descriptions
   - Dynamic configuration based on selected type

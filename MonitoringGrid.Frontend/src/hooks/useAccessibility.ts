@@ -30,9 +30,9 @@ export const useAccessibility = (options: AccessibilityOptions = {}) => {
   } = options;
 
   const preferences = useAppSelectors.accessibility();
-  const currentPage = useAppStore((state) => state.currentPage);
-  const globalError = useAppStore((state) => state.globalError);
-  const globalLoading = useAppStore((state) => state.globalLoading);
+  const currentPage = useAppStore(state => state.currentPage);
+  const globalError = useAppStore(state => state.globalError);
+  const globalLoading = useAppStore(state => state.globalLoading);
 
   const announcementRef = useRef<HTMLDivElement | null>(null);
   const focusTrapRef = useRef<HTMLElement | null>(null);
@@ -62,182 +62,198 @@ export const useAccessibility = (options: AccessibilityOptions = {}) => {
   }, []);
 
   // Announce messages to screen readers
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const liveRegion = getLiveRegion();
-    liveRegion.setAttribute('aria-live', priority);
-    
-    // Clear and then set the message to ensure it's announced
-    liveRegion.textContent = '';
-    setTimeout(() => {
-      liveRegion.textContent = message;
-    }, 100);
-  }, [getLiveRegion]);
+  const announce = useCallback(
+    (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+      const liveRegion = getLiveRegion();
+      liveRegion.setAttribute('aria-live', priority);
+
+      // Clear and then set the message to ensure it's announced
+      liveRegion.textContent = '';
+      setTimeout(() => {
+        liveRegion.textContent = message;
+      }, 100);
+    },
+    [getLiveRegion]
+  );
 
   // Focus management utilities
-  const focusElement = useCallback((element: HTMLElement | string) => {
-    const target = typeof element === 'string' 
-      ? document.querySelector(element) as HTMLElement
-      : element;
-    
-    if (target && manageFocus) {
-      target.focus();
-      
-      // Announce focus change for screen readers
-      const label = target.getAttribute('aria-label') || 
-                   target.getAttribute('title') || 
-                   target.textContent || 
-                   'Element';
-      announce(`Focused on ${label}`, 'polite');
-    }
-  }, [manageFocus, announce]);
+  const focusElement = useCallback(
+    (element: HTMLElement | string) => {
+      const target =
+        typeof element === 'string' ? (document.querySelector(element) as HTMLElement) : element;
+
+      if (target && manageFocus) {
+        target.focus();
+
+        // Announce focus change for screen readers
+        const label =
+          target.getAttribute('aria-label') ||
+          target.getAttribute('title') ||
+          target.textContent ||
+          'Element';
+        announce(`Focused on ${label}`, 'polite');
+      }
+    },
+    [manageFocus, announce]
+  );
 
   // Focus trap implementation
-  const createFocusTrap = useCallback((container: HTMLElement, options: FocusTrapOptions = {}) => {
-    if (!trapFocus) return () => {};
+  const createFocusTrap = useCallback(
+    (container: HTMLElement, options: FocusTrapOptions = {}) => {
+      if (!trapFocus) return () => {};
 
-    const focusableElements = container.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    ) as NodeListOf<HTMLElement>;
+      const focusableElements = container.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      ) as NodeListOf<HTMLElement>;
 
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
 
-    // Store previous focus
-    previousFocusRef.current = document.activeElement as HTMLElement;
+      // Store previous focus
+      previousFocusRef.current = document.activeElement as HTMLElement;
 
-    // Focus initial element
-    if (options.initialFocus) {
-      const initialTarget = typeof options.initialFocus === 'string'
-        ? container.querySelector(options.initialFocus) as HTMLElement
-        : options.initialFocus;
-      initialTarget?.focus();
-    } else {
-      firstElement?.focus();
-    }
-
-    const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement?.focus();
-        }
+      // Focus initial element
+      if (options.initialFocus) {
+        const initialTarget =
+          typeof options.initialFocus === 'string'
+            ? (container.querySelector(options.initialFocus) as HTMLElement)
+            : options.initialFocus;
+        initialTarget?.focus();
       } else {
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement?.focus();
+        firstElement?.focus();
+      }
+
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement?.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement?.focus();
+          }
         }
-      }
-    };
+      };
 
-    const handleEscapeKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
+      const handleEscapeKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          returnFocus();
+        }
+      };
+
+      const returnFocus = () => {
+        if (options.returnFocus) {
+          options.returnFocus.focus();
+        } else if (previousFocusRef.current) {
+          previousFocusRef.current.focus();
+        }
+      };
+
+      container.addEventListener('keydown', handleTabKey);
+      container.addEventListener('keydown', handleEscapeKey);
+
+      return () => {
+        container.removeEventListener('keydown', handleTabKey);
+        container.removeEventListener('keydown', handleEscapeKey);
         returnFocus();
-      }
-    };
-
-    const returnFocus = () => {
-      if (options.returnFocus) {
-        options.returnFocus.focus();
-      } else if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-      }
-    };
-
-    container.addEventListener('keydown', handleTabKey);
-    container.addEventListener('keydown', handleEscapeKey);
-
-    return () => {
-      container.removeEventListener('keydown', handleTabKey);
-      container.removeEventListener('keydown', handleEscapeKey);
-      returnFocus();
-    };
-  }, [trapFocus]);
+      };
+    },
+    [trapFocus]
+  );
 
   // Keyboard navigation helpers
-  const addKeyboardNavigation = useCallback((
-    container: HTMLElement,
-    options: {
-      arrowKeys?: boolean;
-      homeEnd?: boolean;
-      typeAhead?: boolean;
-    } = {}
-  ) => {
-    if (!keyboardNavigation) return () => {};
+  const addKeyboardNavigation = useCallback(
+    (
+      container: HTMLElement,
+      options: {
+        arrowKeys?: boolean;
+        homeEnd?: boolean;
+        typeAhead?: boolean;
+      } = {}
+    ) => {
+      if (!keyboardNavigation) return () => {};
 
-    const { arrowKeys = true, homeEnd = true, typeAhead = false } = options;
-    let typeAheadString = '';
-    let typeAheadTimeout: NodeJS.Timeout;
+      const { arrowKeys = true, homeEnd = true, typeAhead = false } = options;
+      let typeAheadString = '';
+      let typeAheadTimeout: NodeJS.Timeout;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const focusableElements = Array.from(
-        container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
-      ) as HTMLElement[];
+      const handleKeyDown = (e: KeyboardEvent) => {
+        const focusableElements = Array.from(
+          container.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ) as HTMLElement[];
 
-      const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
+        const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
 
-      switch (e.key) {
-        case 'ArrowDown':
-        case 'ArrowRight':
-          if (arrowKeys) {
-            e.preventDefault();
-            const nextIndex = (currentIndex + 1) % focusableElements.length;
-            focusableElements[nextIndex]?.focus();
-          }
-          break;
-
-        case 'ArrowUp':
-        case 'ArrowLeft':
-          if (arrowKeys) {
-            e.preventDefault();
-            const prevIndex = currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
-            focusableElements[prevIndex]?.focus();
-          }
-          break;
-
-        case 'Home':
-          if (homeEnd) {
-            e.preventDefault();
-            focusableElements[0]?.focus();
-          }
-          break;
-
-        case 'End':
-          if (homeEnd) {
-            e.preventDefault();
-            focusableElements[focusableElements.length - 1]?.focus();
-          }
-          break;
-
-        default:
-          if (typeAhead && e.key.length === 1) {
-            clearTimeout(typeAheadTimeout);
-            typeAheadString += e.key.toLowerCase();
-            
-            const matchingElement = focusableElements.find(el => 
-              el.textContent?.toLowerCase().startsWith(typeAheadString)
-            );
-            
-            if (matchingElement) {
-              matchingElement.focus();
+        switch (e.key) {
+          case 'ArrowDown':
+          case 'ArrowRight':
+            if (arrowKeys) {
+              e.preventDefault();
+              const nextIndex = (currentIndex + 1) % focusableElements.length;
+              focusableElements[nextIndex]?.focus();
             }
+            break;
 
-            typeAheadTimeout = setTimeout(() => {
-              typeAheadString = '';
-            }, 1000);
-          }
-          break;
-      }
-    };
+          case 'ArrowUp':
+          case 'ArrowLeft':
+            if (arrowKeys) {
+              e.preventDefault();
+              const prevIndex =
+                currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
+              focusableElements[prevIndex]?.focus();
+            }
+            break;
 
-    container.addEventListener('keydown', handleKeyDown);
-    return () => {
-      container.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(typeAheadTimeout);
-    };
-  }, [keyboardNavigation]);
+          case 'Home':
+            if (homeEnd) {
+              e.preventDefault();
+              focusableElements[0]?.focus();
+            }
+            break;
+
+          case 'End':
+            if (homeEnd) {
+              e.preventDefault();
+              focusableElements[focusableElements.length - 1]?.focus();
+            }
+            break;
+
+          default:
+            if (typeAhead && e.key.length === 1) {
+              clearTimeout(typeAheadTimeout);
+              typeAheadString += e.key.toLowerCase();
+
+              const matchingElement = focusableElements.find(el =>
+                el.textContent?.toLowerCase().startsWith(typeAheadString)
+              );
+
+              if (matchingElement) {
+                matchingElement.focus();
+              }
+
+              typeAheadTimeout = setTimeout(() => {
+                typeAheadString = '';
+              }, 1000);
+            }
+            break;
+        }
+      };
+
+      container.addEventListener('keydown', handleKeyDown);
+      return () => {
+        container.removeEventListener('keydown', handleKeyDown);
+        clearTimeout(typeAheadTimeout);
+      };
+    },
+    [keyboardNavigation]
+  );
 
   // Skip link functionality
   const addSkipLinks = useCallback(() => {

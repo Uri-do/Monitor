@@ -415,9 +415,9 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({ children }) => {
         <Toolbar />
         <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
           {/* Demo Mode Banner */}
-          <Alert 
-            severity="info" 
-            sx={{ 
+          <Alert
+            severity="info"
+            sx={{
               mb: 3,
               backgroundColor: 'rgba(255, 107, 107, 0.1)',
               borderColor: 'rgba(255, 107, 107, 0.3)',
@@ -426,9 +426,9 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({ children }) => {
               },
             }}
             action={
-              <Button 
-                color="inherit" 
-                size="small" 
+              <Button
+                color="inherit"
+                size="small"
                 onClick={() => navigate('/login')}
                 sx={{ color: '#ff6b6b' }}
               >
@@ -437,8 +437,8 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({ children }) => {
             }
           >
             <Typography variant="body2">
-              <strong>Demo Mode:</strong> You're exploring MonitoringGrid's features. 
-              Some functionality may be limited or simulated.
+              <strong>Demo Mode:</strong> You're exploring MonitoringGrid's features. Some
+              functionality may be limited or simulated.
             </Typography>
           </Alert>
           {children}

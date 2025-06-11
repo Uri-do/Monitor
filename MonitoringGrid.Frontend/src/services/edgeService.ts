@@ -178,17 +178,29 @@ class EdgeService {
     }
   }
 
-  async createEdgeFunction(func: Omit<EdgeFunction, 'id' | 'status' | 'metrics' | 'createdAt' | 'updatedAt'>): Promise<EdgeFunction> {
+  async createEdgeFunction(
+    func: Omit<EdgeFunction, 'id' | 'status' | 'metrics' | 'createdAt' | 'updatedAt'>
+  ): Promise<EdgeFunction> {
     try {
       const response = await api.post('/edge/functions', func);
       return response.data;
     } catch (error) {
       console.warn('Create edge function endpoint not available, returning mock data');
-      return { ...func, id: 'mock-func-' + Date.now(), status: 'deployed', metrics: { invocations: 0, averageLatency: 0, errorRate: 0, lastInvocation: '' }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as EdgeFunction;
+      return {
+        ...func,
+        id: `mock-func-${Date.now()}`,
+        status: 'deployed',
+        metrics: { invocations: 0, averageLatency: 0, errorRate: 0, lastInvocation: '' },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as EdgeFunction;
     }
   }
 
-  async deployEdgeFunction(functionId: string, deployment: Omit<EdgeDeployment, 'id' | 'status' | 'progress' | 'logs' | 'createdAt'>): Promise<EdgeDeployment> {
+  async deployEdgeFunction(
+    functionId: string,
+    deployment: Omit<EdgeDeployment, 'id' | 'status' | 'progress' | 'logs' | 'createdAt'>
+  ): Promise<EdgeDeployment> {
     try {
       const response = await api.post(`/edge/functions/${functionId}/deploy`, deployment);
       return response.data;
@@ -209,13 +221,15 @@ class EdgeService {
     }
   }
 
-  async createCDNConfiguration(config: Omit<CDNConfiguration, 'id' | 'status'>): Promise<CDNConfiguration> {
+  async createCDNConfiguration(
+    config: Omit<CDNConfiguration, 'id' | 'status'>
+  ): Promise<CDNConfiguration> {
     try {
       const response = await api.post('/edge/cdn', config);
       return response.data;
     } catch (error) {
       console.warn('Create CDN configuration endpoint not available, returning mock data');
-      return { ...config, id: 'mock-cdn-' + Date.now(), status: 'active' } as CDNConfiguration;
+      return { ...config, id: `mock-cdn-${Date.now()}`, status: 'active' } as CDNConfiguration;
     }
   }
 
@@ -265,7 +279,11 @@ class EdgeService {
   }
 
   // Edge Computing Utilities
-  async executeEdgeFunction(functionId: string, input: any, nodeId?: string): Promise<{
+  async executeEdgeFunction(
+    functionId: string,
+    input: any,
+    nodeId?: string
+  ): Promise<{
     result: any;
     executionTime: number;
     nodeId: string;
@@ -289,7 +307,9 @@ class EdgeService {
   }
 
   // Geographic optimization
-  async getOptimalCDNStrategy(userDistribution: Array<{ country: string; percentage: number }>): Promise<{
+  async getOptimalCDNStrategy(
+    userDistribution: Array<{ country: string; percentage: number }>
+  ): Promise<{
     recommendedNodes: string[];
     cachingStrategy: Record<string, number>;
     estimatedPerformance: {
@@ -304,7 +324,9 @@ class EdgeService {
     } catch (error) {
       console.warn('CDN optimization endpoint not available, returning mock data');
       return {
-        recommendedNodes: this.getMockEdgeNodes().slice(0, 3).map(n => n.id),
+        recommendedNodes: this.getMockEdgeNodes()
+          .slice(0, 3)
+          .map(n => n.id),
         cachingStrategy: {
           '/api/': 300,
           '/static/': 86400,
@@ -405,13 +427,15 @@ class EdgeService {
         id: 'cdn-monitoring-grid',
         name: 'MonitoringGrid CDN',
         domains: ['cdn.monitoringgrid.com', 'assets.monitoringgrid.com'],
-        origins: [
-          { url: 'https://api.monitoringgrid.com', weight: 100, healthCheck: true },
-        ],
+        origins: [{ url: 'https://api.monitoringgrid.com', weight: 100, healthCheck: true }],
         caching: {
           rules: [
             { pattern: '/api/*', ttl: 300, headers: { 'Cache-Control': 'public, max-age=300' } },
-            { pattern: '/static/*', ttl: 86400, headers: { 'Cache-Control': 'public, max-age=86400' } },
+            {
+              pattern: '/static/*',
+              ttl: 86400,
+              headers: { 'Cache-Control': 'public, max-age=86400' },
+            },
           ],
           compression: true,
           minify: true,
@@ -459,7 +483,7 @@ class EdgeService {
 
   private getMockEdgeDeployment(): EdgeDeployment {
     return {
-      id: 'deploy-' + Date.now(),
+      id: `deploy-${Date.now()}`,
       functionId: 'func-kpi-processor',
       nodeIds: ['edge-us-east-1', 'edge-eu-west-1'],
       strategy: 'performance',
@@ -468,7 +492,12 @@ class EdgeService {
       progress: 75,
       logs: [
         { timestamp: new Date().toISOString(), level: 'info', message: 'Deployment started' },
-        { timestamp: new Date().toISOString(), level: 'info', message: 'Deploying to edge-us-east-1', nodeId: 'edge-us-east-1' },
+        {
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: 'Deploying to edge-us-east-1',
+          nodeId: 'edge-us-east-1',
+        },
       ],
       createdAt: new Date().toISOString(),
     };

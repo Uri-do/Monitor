@@ -106,7 +106,11 @@ export interface ConsensusMetrics {
     lastSeen: string;
     reputation: number;
   }>;
-  consensusAlgorithm: 'proof_of_work' | 'proof_of_stake' | 'proof_of_authority' | 'delegated_proof_of_stake';
+  consensusAlgorithm:
+    | 'proof_of_work'
+    | 'proof_of_stake'
+    | 'proof_of_authority'
+    | 'delegated_proof_of_stake';
   finality: {
     probabilistic: boolean;
     confirmations: number;
@@ -155,7 +159,12 @@ export interface ZeroKnowledgeProof {
  */
 class BlockchainService {
   // Transaction Management
-  async createTransaction(transaction: Omit<BlockchainTransaction, 'id' | 'hash' | 'blockNumber' | 'blockHash' | 'confirmations' | 'status'>): Promise<BlockchainTransaction> {
+  async createTransaction(
+    transaction: Omit<
+      BlockchainTransaction,
+      'id' | 'hash' | 'blockNumber' | 'blockHash' | 'confirmations' | 'status'
+    >
+  ): Promise<BlockchainTransaction> {
     try {
       const response = await api.post('/blockchain/transactions', transaction);
       return response.data;
@@ -175,7 +184,10 @@ class BlockchainService {
     }
   }
 
-  async getTransactionsByEntity(entityType: string, entityId: string): Promise<BlockchainTransaction[]> {
+  async getTransactionsByEntity(
+    entityType: string,
+    entityId: string
+  ): Promise<BlockchainTransaction[]> {
     try {
       const response = await api.get('/blockchain/transactions', {
         params: { entityType, entityId },
@@ -209,7 +221,9 @@ class BlockchainService {
   }
 
   // Smart Contracts
-  async deployContract(contract: Omit<SmartContract, 'address' | 'deployedAt' | 'deployedBy' | 'verified'>): Promise<SmartContract> {
+  async deployContract(
+    contract: Omit<SmartContract, 'address' | 'deployedAt' | 'deployedBy' | 'verified'>
+  ): Promise<SmartContract> {
     try {
       const response = await api.post('/blockchain/contracts', contract);
       return response.data;
@@ -219,7 +233,11 @@ class BlockchainService {
     }
   }
 
-  async callContract(address: string, functionName: string, params: any[]): Promise<{
+  async callContract(
+    address: string,
+    functionName: string,
+    params: any[]
+  ): Promise<{
     result: any;
     gasUsed: number;
     transactionHash?: string;
@@ -235,13 +253,15 @@ class BlockchainService {
       return {
         result: { success: true, data: 'Mock contract call result' },
         gasUsed: 21000,
-        transactionHash: '0x' + Math.random().toString(16).substr(2, 64),
+        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`,
       };
     }
   }
 
   // Digital Identity
-  async createDigitalIdentity(identity: Omit<DigitalIdentity, 'id' | 'address' | 'reputation' | 'createdAt' | 'updatedAt'>): Promise<DigitalIdentity> {
+  async createDigitalIdentity(
+    identity: Omit<DigitalIdentity, 'id' | 'address' | 'reputation' | 'createdAt' | 'updatedAt'>
+  ): Promise<DigitalIdentity> {
     try {
       const response = await api.post('/blockchain/identity', identity);
       return response.data;
@@ -274,7 +294,18 @@ class BlockchainService {
   }
 
   // Audit Trail
-  async createAuditEntry(entry: Omit<AuditTrail, 'id' | 'blockchainTxHash' | 'merkleProof' | 'verified' | 'immutable' | 'signature' | 'witnesses'>): Promise<AuditTrail> {
+  async createAuditEntry(
+    entry: Omit<
+      AuditTrail,
+      | 'id'
+      | 'blockchainTxHash'
+      | 'merkleProof'
+      | 'verified'
+      | 'immutable'
+      | 'signature'
+      | 'witnesses'
+    >
+  ): Promise<AuditTrail> {
     try {
       const response = await api.post('/blockchain/audit', entry);
       return response.data;
@@ -321,7 +352,11 @@ class BlockchainService {
   }
 
   // Zero-Knowledge Proofs
-  async generateZKProof(type: string, statement: string, witness: any): Promise<ZeroKnowledgeProof> {
+  async generateZKProof(
+    type: string,
+    statement: string,
+    witness: any
+  ): Promise<ZeroKnowledgeProof> {
     try {
       const response = await api.post('/blockchain/zk/generate', {
         type,
@@ -414,12 +449,12 @@ class BlockchainService {
   // Mock data methods
   private getMockTransaction(): BlockchainTransaction {
     return {
-      id: 'tx-' + Date.now(),
-      hash: '0x' + Math.random().toString(16).substr(2, 64),
+      id: `tx-${Date.now()}`,
+      hash: `0x${Math.random().toString(16).substr(2, 64)}`,
       blockNumber: 1234567,
-      blockHash: '0x' + Math.random().toString(16).substr(2, 64),
+      blockHash: `0x${Math.random().toString(16).substr(2, 64)}`,
       timestamp: new Date().toISOString(),
-      from: '0x' + Math.random().toString(16).substr(2, 40),
+      from: `0x${Math.random().toString(16).substr(2, 40)}`,
       type: 'audit_log',
       data: {
         action: 'kpi_executed',
@@ -428,7 +463,7 @@ class BlockchainService {
         userId: 'user-456',
         metadata: { result: 'success', value: 85.5 },
       },
-      signature: '0x' + Math.random().toString(16).substr(2, 130),
+      signature: `0x${Math.random().toString(16).substr(2, 130)}`,
       confirmations: 12,
       gasUsed: 21000,
       status: 'confirmed',
@@ -439,28 +474,31 @@ class BlockchainService {
   private getMockBlock(): Block {
     return {
       number: 1234567,
-      hash: '0x' + Math.random().toString(16).substr(2, 64),
-      parentHash: '0x' + Math.random().toString(16).substr(2, 64),
+      hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      parentHash: `0x${Math.random().toString(16).substr(2, 64)}`,
       timestamp: new Date().toISOString(),
-      miner: '0x' + Math.random().toString(16).substr(2, 40),
+      miner: `0x${Math.random().toString(16).substr(2, 40)}`,
       difficulty: 15000000000000000,
       totalDifficulty: 25000000000000000000,
       size: 2048,
       gasLimit: 8000000,
       gasUsed: 6500000,
       transactionCount: 156,
-      transactions: Array.from({ length: 5 }, () => '0x' + Math.random().toString(16).substr(2, 64)),
-      merkleRoot: '0x' + Math.random().toString(16).substr(2, 64),
-      stateRoot: '0x' + Math.random().toString(16).substr(2, 64),
-      receiptsRoot: '0x' + Math.random().toString(16).substr(2, 64),
-      nonce: '0x' + Math.random().toString(16).substr(2, 16),
+      transactions: Array.from(
+        { length: 5 },
+        () => `0x${Math.random().toString(16).substr(2, 64)}`
+      ),
+      merkleRoot: `0x${Math.random().toString(16).substr(2, 64)}`,
+      stateRoot: `0x${Math.random().toString(16).substr(2, 64)}`,
+      receiptsRoot: `0x${Math.random().toString(16).substr(2, 64)}`,
+      nonce: `0x${Math.random().toString(16).substr(2, 16)}`,
       extraData: '0x',
     };
   }
 
   private getMockSmartContract(): SmartContract {
     return {
-      address: '0x' + Math.random().toString(16).substr(2, 40),
+      address: `0x${Math.random().toString(16).substr(2, 40)}`,
       name: 'MonitoringAudit',
       description: 'Smart contract for immutable audit logging',
       abi: [],
@@ -469,7 +507,7 @@ class BlockchainService {
       compiler: 'solc',
       version: '0.8.19',
       deployedAt: new Date().toISOString(),
-      deployedBy: '0x' + Math.random().toString(16).substr(2, 40),
+      deployedBy: `0x${Math.random().toString(16).substr(2, 40)}`,
       verified: true,
       functions: [
         {
@@ -485,9 +523,9 @@ class BlockchainService {
 
   private getMockDigitalIdentity(): DigitalIdentity {
     return {
-      id: 'did:example:' + Math.random().toString(36).substr(2, 9),
-      publicKey: '0x' + Math.random().toString(16).substr(2, 64),
-      address: '0x' + Math.random().toString(16).substr(2, 40),
+      id: `did:example:${Math.random().toString(36).substr(2, 9)}`,
+      publicKey: `0x${Math.random().toString(16).substr(2, 64)}`,
+      address: `0x${Math.random().toString(16).substr(2, 40)}`,
       type: 'user',
       attributes: { name: 'John Doe', role: 'admin' },
       credentials: [],
@@ -504,13 +542,13 @@ class BlockchainService {
 
   private getMockAuditTrail(): AuditTrail {
     return {
-      id: 'audit-' + Date.now(),
+      id: `audit-${Date.now()}`,
       entityType: 'kpi',
       entityId: '123',
       action: 'executed',
       userId: 'user-456',
       timestamp: new Date().toISOString(),
-      blockchainTxHash: '0x' + Math.random().toString(16).substr(2, 64),
+      blockchainTxHash: `0x${Math.random().toString(16).substr(2, 64)}`,
       merkleProof: ['0xabc123', '0xdef456'],
       verified: true,
       immutable: true,
@@ -519,17 +557,17 @@ class BlockchainService {
         after: { status: 'completed', result: 85.5 },
         metadata: { executionTime: 1250 },
       },
-      signature: '0x' + Math.random().toString(16).substr(2, 130),
-      witnesses: ['0x' + Math.random().toString(16).substr(2, 40)],
+      signature: `0x${Math.random().toString(16).substr(2, 130)}`,
+      witnesses: [`0x${Math.random().toString(16).substr(2, 40)}`],
     };
   }
 
   private getMockZKProof(): ZeroKnowledgeProof {
     return {
-      id: 'zk-' + Date.now(),
+      id: `zk-${Date.now()}`,
       type: 'membership',
       statement: 'User has admin privileges without revealing identity',
-      proof: '0x' + Math.random().toString(16).substr(2, 256),
+      proof: `0x${Math.random().toString(16).substr(2, 256)}`,
       publicInputs: [42],
       verified: true,
       circuit: {
@@ -544,7 +582,7 @@ class BlockchainService {
 
   private getMockConsensusMetrics(): ConsensusMetrics {
     return {
-      networkHash: '0x' + Math.random().toString(16).substr(2, 64),
+      networkHash: `0x${Math.random().toString(16).substr(2, 64)}`,
       blockHeight: 1234567,
       difficulty: 15000000000000000,
       networkHashRate: 150000000000000,
@@ -552,7 +590,7 @@ class BlockchainService {
       pendingTransactions: 128,
       validators: [
         {
-          address: '0x' + Math.random().toString(16).substr(2, 40),
+          address: `0x${Math.random().toString(16).substr(2, 40)}`,
           stake: 32000000,
           uptime: 0.998,
           lastSeen: new Date().toISOString(),

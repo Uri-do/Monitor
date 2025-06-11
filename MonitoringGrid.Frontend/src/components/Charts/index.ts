@@ -2,8 +2,4 @@
 export { AdvancedChart } from './AdvancedChart';
 
 // Chart types and interfaces
-export type {
-  ChartDataPoint,
-  ChartSeries,
-  AdvancedChartProps,
-} from './AdvancedChart';
+export type { ChartDataPoint, ChartSeries, AdvancedChartProps } from './AdvancedChart';
