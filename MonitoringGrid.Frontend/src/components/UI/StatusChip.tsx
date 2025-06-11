@@ -10,7 +10,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 
-interface UltimateStatusChipProps extends Omit<ChipProps, 'color'> {
+interface StatusChipProps extends Omit<ChipProps, 'color'> {
   status: string;
   animated?: boolean;
 }
@@ -93,7 +93,7 @@ const statusConfig = {
   },
 };
 
-export const UltimateStatusChip: React.FC<UltimateStatusChipProps> = ({
+export const StatusChip: React.FC<StatusChipProps> = ({
   status,
   animated = true,
   sx,
@@ -147,4 +147,4 @@ export const UltimateStatusChip: React.FC<UltimateStatusChipProps> = ({
   );
 };
 
-export default UltimateStatusChip;
+export default StatusChip;

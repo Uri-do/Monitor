@@ -21,7 +21,7 @@ import {
   FilterPanel,
   StatusChip,
   LoadingSpinner,
-} from '@/components/UltimateEnterprise';
+} from '@/components/UI';
 
 const AlertList: React.FC = () => {
   const navigate = useNavigate();

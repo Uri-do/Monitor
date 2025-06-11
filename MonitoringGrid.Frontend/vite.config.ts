@@ -46,6 +46,8 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     target: 'esnext',
+    minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -58,24 +60,22 @@ export default defineConfig({
           state: ['zustand'],
           i18n: ['react-i18next', 'i18next'],
         },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000,
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     __COMMIT_HASH__: JSON.stringify(process.env.COMMIT_HASH || 'dev'),
     __FEATURE_FLAGS__: JSON.stringify({
-      enableMicroFrontends: false,
-      enableAI: true,
       enableAdvancedAnalytics: true,
-      enableCollaboration: true,
-      enableEdgeComputing: true,
-      enableBlockchain: true,
-      enableQuantumCrypto: true,
-      enableEventMesh: true,
-      enableServerless: true,
-      enableUltimateEnterprise: true,
+      enableRealTimeUpdates: true,
+      enableDataVisualization: true,
     }),
   },
   optimizeDeps: {

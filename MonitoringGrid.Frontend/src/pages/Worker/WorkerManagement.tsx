@@ -39,7 +39,7 @@ import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import RunningKpisDisplay, { RunningKpi } from '@/components/Business/KPI/RunningKpisDisplay';
 import { workerApi, kpiApi } from '@/services/api';
-import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UltimateEnterprise';
+import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
 
 interface WorkerService {
   name: string;

@@ -20,7 +20,7 @@ interface FilterField {
   defaultValue?: any;
 }
 
-interface UltimateFilterPanelProps {
+interface FilterPanelProps {
   fields: FilterField[];
   onFilterChange: (filters: Record<string, any>) => void;
   onClear: () => void;
@@ -30,7 +30,7 @@ interface UltimateFilterPanelProps {
   showFilterCount?: boolean;
 }
 
-export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
+export const FilterPanel: React.FC<FilterPanelProps> = ({
   fields,
   onFilterChange,
   onClear,
@@ -184,4 +184,4 @@ export const UltimateFilterPanel: React.FC<UltimateFilterPanelProps> = ({
   );
 };
 
-export default UltimateFilterPanel;
+export default FilterPanel;

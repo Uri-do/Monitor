@@ -9,7 +9,6 @@ import i18n from '@/i18n';
 
 // Core Components (not lazy loaded for better initial performance)
 import Layout from '@/components/Layout/Layout';
-import DemoLayout from '@/components/Layout/DemoLayout';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import Login from '@/pages/Auth/Login';
 import Register from '@/pages/Auth/Register';
@@ -32,7 +31,7 @@ const UserManagement = React.lazy(() => import('@/pages/Users/UserManagement'));
 const RoleManagement = React.lazy(() => import('@/pages/Admin/RoleManagement'));
 
 const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
-const Administration = React.lazy(() => import('@/pages/Administration/Administration'));
+const Administration = React.lazy(() => import('@/pages/Admin/Administration'));
 const ExecutionHistoryList = React.lazy(
   () => import('@/pages/ExecutionHistory/ExecutionHistoryList')
 );
@@ -40,17 +39,6 @@ const ExecutionHistoryDetail = React.lazy(
   () => import('@/pages/ExecutionHistory/ExecutionHistoryDetail')
 );
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
-const WorkerDebug = React.lazy(() => import('@/pages/Debug/WorkerDebug'));
-const EnhancementDemo = React.lazy(() => import('@/components/Demo/EnhancementDemo'));
-const AdvancedEnhancementDemo = React.lazy(
-  () => import('@/components/Demo/AdvancedEnhancementDemo')
-);
-const NextGenFeaturesDemo = React.lazy(() => import('@/components/Demo/NextGenFeaturesDemo'));
-const EnterpriseFeaturesDemo = React.lazy(() => import('@/components/Demo/EnterpriseFeaturesDemo'));
-const UltimateEnterpriseDemo = React.lazy(() => import('@/components/Demo/UltimateEnterpriseDemo'));
-const UltimateComponentsDemo = React.lazy(() => import('@/components/Demo/UltimateComponentsDemo'));
-const UltimateDataTableDemo = React.lazy(() => import('@/components/Demo/UltimateDataTableDemo'));
-const TestPage = React.lazy(() => import('@/pages/Test/TestPage'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -202,84 +190,6 @@ function App() {
             <AuthProvider>
               <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
-                  {/* Demo Routes - Public Access */}
-                  <Route
-                    path="/demo"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <EnhancementDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/advanced"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <AdvancedEnhancementDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/nextgen"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <NextGenFeaturesDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/enterprise"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <EnterpriseFeaturesDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/ultimate"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <UltimateEnterpriseDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/components"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <UltimateComponentsDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
-                  <Route
-                    path="/demo/datatable"
-                    element={
-                      <DemoLayout>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <UltimateDataTableDemo />
-                        </Suspense>
-                      </DemoLayout>
-                    }
-                  />
-
                   {/* Public Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
@@ -434,16 +344,6 @@ function App() {
                             }
                           />
 
-                          {/* Worker Debug */}
-                          <Route
-                            path="/worker-debug"
-                            element={
-                              <LazyRoute>
-                                <WorkerDebug />
-                              </LazyRoute>
-                            }
-                          />
-
                           {/* User Profile */}
                           <Route
                             path="/profile"
@@ -456,45 +356,45 @@ function App() {
 
                           {/* Administration Routes */}
                           <Route
-                            path="/administration"
-                            element={
-                              <LazyRoute>
-                                <Administration />
-                              </LazyRoute>
-                            }
-                          />
-
-                          <Route
-                            path="/administration/security"
-                            element={
-                              <LazyRoute>
-                                <Administration />
-                              </LazyRoute>
-                            }
-                          />
-
-                          <Route
-                            path="/administration/api-keys"
-                            element={
-                              <LazyRoute>
-                                <Administration />
-                              </LazyRoute>
-                            }
-                          />
-
-                          <Route
-                            path="/administration/audit"
-                            element={
-                              <LazyRoute>
-                                <Administration />
-                              </LazyRoute>
-                            }
-                          />
-
-                          {/* Admin Routes - Redirect to Administration */}
-                          <Route
                             path="/admin"
-                            element={<Navigate to="/administration" replace />}
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/admin/security"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/admin/api-keys"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/admin/audit"
+                            element={
+                              <LazyRoute>
+                                <Administration />
+                              </LazyRoute>
+                            }
+                          />
+
+                          {/* Legacy administration route redirect */}
+                          <Route
+                            path="/administration"
+                            element={<Navigate to="/admin" replace />}
                           />
 
                           <Route
@@ -530,16 +430,6 @@ function App() {
                             element={
                               <LazyRoute>
                                 <Settings />
-                              </LazyRoute>
-                            }
-                          />
-
-                          {/* Test Page */}
-                          <Route
-                            path="/test"
-                            element={
-                              <LazyRoute>
-                                <TestPage />
                               </LazyRoute>
                             }
                           />

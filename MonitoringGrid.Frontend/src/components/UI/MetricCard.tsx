@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
 
-interface UltimateMetricCardProps {
+interface MetricCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
@@ -33,7 +33,7 @@ const shadowColorMap = {
   info: 'rgba(79, 172, 254, 0.4)',
 };
 
-export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
+export const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
   subtitle,
@@ -96,4 +96,4 @@ export const UltimateMetricCard: React.FC<UltimateMetricCardProps> = ({
   );
 };
 
-export default UltimateMetricCard;
+export default MetricCard;

@@ -29,7 +29,7 @@ import {
   Key as KeyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PageHeader } from '@/components/UltimateEnterprise';
+import { PageHeader } from '@/components/UI';
 import { SecuritySettings } from '../Settings/SecuritySettings';
 import ApiKeyManagement from './ApiKeyManagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -105,7 +105,7 @@ const Administration: React.FC = () => {
       title: 'Security Settings',
       description: 'Password policies, session settings, and authentication',
       icon: <SecurityIcon />,
-      path: '/administration/security',
+      path: '/admin/security',
       requiredPermissions: ['System:Admin'],
       status: 'active',
     },
@@ -114,7 +114,7 @@ const Administration: React.FC = () => {
       title: 'API Key Management',
       description: 'Create and manage API keys for system integration',
       icon: <ApiKeyIcon />,
-      path: '/administration/api-keys',
+      path: '/admin/api-keys',
       requiredPermissions: ['System:Admin'],
       status: 'active',
       count: 3,
@@ -124,7 +124,7 @@ const Administration: React.FC = () => {
       title: 'Security Audit Log',
       description: 'View security events and authentication logs',
       icon: <AuditIcon />,
-      path: '/administration/audit',
+      path: '/admin/audit',
       requiredPermissions: ['System:Admin'],
       status: 'active',
     },
@@ -142,11 +142,6 @@ const Administration: React.FC = () => {
   const filteredSections = adminSections.filter(section =>
     hasPermission(section.requiredPermissions)
   );
-
-  // Debug information
-  console.log('User:', user);
-  console.log('Filtered sections:', filteredSections);
-  console.log('All sections:', adminSections);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -170,9 +165,9 @@ const Administration: React.FC = () => {
   };
 
   // Check which sub-page we're on
-  const isSecurityPage = location.pathname === '/administration/security';
-  const isApiKeysPage = location.pathname === '/administration/api-keys';
-  const isAuditPage = location.pathname === '/administration/audit';
+  const isSecurityPage = location.pathname === '/admin/security';
+  const isApiKeysPage = location.pathname === '/admin/api-keys';
+  const isAuditPage = location.pathname === '/admin/audit';
 
   if (isSecurityPage) {
     return (
@@ -366,14 +361,6 @@ const Administration: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
-            {filteredSections.filter(section => ['audit'].includes(section.id)).length === 0 && (
-              <Grid item xs={12}>
-                <Alert severity="info">
-                  Monitoring and logging features include security audit logs, system event tracking,
-                  and performance monitoring. These features provide comprehensive oversight of system activities.
-                </Alert>
-              </Grid>
-            )}
           </Grid>
         </TabPanel>
       </Paper>

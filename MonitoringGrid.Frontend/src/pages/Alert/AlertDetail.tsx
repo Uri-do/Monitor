@@ -40,7 +40,7 @@ import {
   PageHeader,
   StatusChip,
   LoadingSpinner,
-} from '@/components/UltimateEnterprise';
+} from '@/components/UI';
 
 const AlertDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

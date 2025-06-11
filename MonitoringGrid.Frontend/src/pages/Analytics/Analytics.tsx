@@ -38,7 +38,7 @@ import {
   Card,
   Select,
   MetricCard,
-} from '@/components/UltimateEnterprise';
+} from '@/components/UI';
 
 // Analytics data will be loaded from real API endpoints
 // No mock data - show empty state when no real data is available

@@ -149,82 +149,6 @@ export const mockApiError = (message = 'API Error', status = 500, delay = 0) => 
   });
 };
 
-// Performance testing utilities
-export const measureRenderTime = async (renderFn: () => void) => {
-  const start = performance.now();
-  renderFn();
-  await waitFor(() => {
-    // Wait for render to complete
-  });
-  const end = performance.now();
-  return end - start;
-};
-
-// Accessibility testing helpers
-export const checkAccessibility = async (container: HTMLElement) => {
-  const issues: string[] = [];
-
-  // Check for missing alt text on images
-  const images = container.querySelectorAll('img');
-  images.forEach((img, index) => {
-    if (!img.alt && !img.getAttribute('aria-label')) {
-      issues.push(`Image ${index + 1} missing alt text`);
-    }
-  });
-
-  // Check for missing form labels
-  const inputs = container.querySelectorAll('input, select, textarea');
-  inputs.forEach((input, index) => {
-    const hasLabel =
-      input.getAttribute('aria-label') ||
-      input.getAttribute('aria-labelledby') ||
-      container.querySelector(`label[for="${input.id}"]`);
-    if (!hasLabel) {
-      issues.push(`Form input ${index + 1} missing label`);
-    }
-  });
-
-  // Check for missing headings hierarchy
-  const headings = Array.from(container.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-  let lastLevel = 0;
-  headings.forEach((heading, index) => {
-    const level = parseInt(heading.tagName.charAt(1));
-    if (index === 0 && level !== 1) {
-      issues.push('Page should start with h1');
-    }
-    if (level > lastLevel + 1) {
-      issues.push(`Heading level skipped: ${heading.tagName} after h${lastLevel}`);
-    }
-    lastLevel = level;
-  });
-
-  // Check for missing focus indicators
-  const focusableElements = container.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
-  focusableElements.forEach((element, index) => {
-    const styles = window.getComputedStyle(element);
-    if (styles.outline === 'none' && !styles.boxShadow.includes('focus')) {
-      issues.push(`Focusable element ${index + 1} missing focus indicator`);
-    }
-  });
-
-  return issues;
-};
-
-// Data table testing utilities
-export const getTableData = (container: HTMLElement) => {
-  const table = container.querySelector('table');
-  if (!table) return null;
-
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent?.trim());
-  const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
-    Array.from(tr.querySelectorAll('td')).map(td => td.textContent?.trim())
-  );
-
-  return { headers, rows };
-};
-
 // Form testing utilities
 export const fillForm = async (
   user: ReturnType<typeof userEvent.setup>,
@@ -243,30 +167,6 @@ export const submitForm = async (
 ) => {
   const submitButton = screen.getByRole('button', { name: submitText });
   await user.click(submitButton);
-};
-
-// Dialog testing utilities
-export const openDialog = async (
-  user: ReturnType<typeof userEvent.setup>,
-  triggerText: string | RegExp
-) => {
-  const trigger = screen.getByRole('button', { name: triggerText });
-  await user.click(trigger);
-  return screen.getByRole('dialog');
-};
-
-export const closeDialog = async (user: ReturnType<typeof userEvent.setup>) => {
-  const closeButton = screen.getByRole('button', { name: /close|cancel/i });
-  await user.click(closeButton);
-};
-
-// Navigation testing utilities
-export const navigateToPage = async (
-  user: ReturnType<typeof userEvent.setup>,
-  linkText: string | RegExp
-) => {
-  const link = screen.getByRole('link', { name: linkText });
-  await user.click(link);
 };
 
 // Wait utilities
@@ -320,20 +220,6 @@ export const mockMatchMedia = (matches = false) => {
       dispatchEvent: jest.fn(),
     })),
   });
-};
-
-// Custom matchers
-export const customMatchers = {
-  toBeAccessible: async (received: HTMLElement) => {
-    const issues = await checkAccessibility(received);
-    return {
-      pass: issues.length === 0,
-      message: () =>
-        issues.length === 0
-          ? 'Element is accessible'
-          : `Element has accessibility issues: ${issues.join(', ')}`,
-    };
-  },
 };
 
 // Re-export everything from testing-library

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, CircularProgress, Typography, Stack } from '@mui/material';
 import Card from './Card';
 
-interface UltimateLoadingSpinnerProps {
+interface LoadingSpinnerProps {
   message?: string;
   size?: number;
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
@@ -19,7 +19,7 @@ const gradientColors = {
   info: '#4facfe',
 };
 
-export const UltimateLoadingSpinner: React.FC<UltimateLoadingSpinnerProps> = ({
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message = 'Loading...',
   size = 60,
   gradient = 'primary',
@@ -140,4 +140,4 @@ export const UltimateLoadingSpinner: React.FC<UltimateLoadingSpinnerProps> = ({
   return <Card sx={{ p: 4, textAlign: 'center' }}>{SpinnerContent}</Card>;
 };
 
-export default UltimateLoadingSpinner;
+export default LoadingSpinner;

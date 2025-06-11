@@ -9,7 +9,7 @@ export { CustomInputField as InputField } from './InputField';
 export { CustomSelect as Select } from './Select';
 
 // Data Display Components
-export { DataTable, default as UltimateDataTable } from './DataTable';
+export { default as DataTable } from './DataTable';
 export { default as MetricCard } from './MetricCard';
 export { default as StatusChip } from './StatusChip';
 

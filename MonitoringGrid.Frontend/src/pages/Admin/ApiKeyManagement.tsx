@@ -32,7 +32,7 @@ import {
   Key as KeyIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { PageHeader } from '@/components/UltimateEnterprise';
+import { PageHeader } from '@/components/UI';
 import { securityService } from '@/services/securityService';
 import toast from 'react-hot-toast';
 

@@ -98,8 +98,8 @@ export interface DataTableProps {
   rowKey?: string;
 }
 
-export const UltimateDataTable: React.FC<DataTableProps> = ({
-  title = 'Ultimate Data Table',
+export const DataTable: React.FC<DataTableProps> = ({
+  title = 'Data Table',
   subtitle,
   data = [],
   columns = [],
@@ -864,4 +864,4 @@ export const DataTable: React.FC<DataTableProps> = ({
   );
 };
 
-export default UltimateDataTable;
+export default DataTable;

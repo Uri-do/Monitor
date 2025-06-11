@@ -4,5 +4,5 @@
 // Error boundary utility
 export { ErrorBoundary, withErrorBoundary } from './ErrorBoundary';
 
-// Legacy ConfirmDialog - will be removed after migration to UltimateDialog
+// Legacy ConfirmDialog - will be removed after migration to Dialog
 export { default as ConfirmDialog } from './ConfirmDialog';

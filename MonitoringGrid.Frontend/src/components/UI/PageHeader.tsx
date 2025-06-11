@@ -228,6 +228,4 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
 export default PageHeader;
 
-// Keep Ultimate export for backward compatibility during migration
-export { PageHeader as UltimatePageHeader };
-export type { PageHeaderProps as UltimatePageHeaderProps };
+

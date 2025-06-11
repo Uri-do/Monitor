@@ -1,7 +1,7 @@
 import React from 'react';
 import { Snackbar, Alert } from '@mui/material';
 
-interface UltimateSnackbarProps {
+interface SnackbarProps {
   open: boolean;
   message: string;
   severity?: 'success' | 'error' | 'warning' | 'info';
@@ -27,7 +27,7 @@ const shadowColorMap = {
   info: 'rgba(33, 150, 243, 0.3)',
 };
 
-export const UltimateSnackbar: React.FC<UltimateSnackbarProps> = ({
+export const Snackbar: React.FC<SnackbarProps> = ({
   open,
   message,
   severity = 'success',
@@ -70,4 +70,4 @@ export const UltimateSnackbar: React.FC<UltimateSnackbarProps> = ({
   );
 };
 
-export default UltimateSnackbar;
+export default Snackbar;

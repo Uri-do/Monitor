@@ -1,28 +1,17 @@
 # Assets Directory
 
-This directory contains static assets for the MonitoringGrid frontend application.
+Static assets for the MonitoringGrid frontend application.
 
 ## Structure
-- `images/` - Logo files, icons, and other image assets
-- `fonts/` - Custom font files (if needed)
-- `icons/` - SVG icons and icon assets
+- `images/` - Logo files and image assets
 
 ## Usage
-Import assets using relative paths:
 ```typescript
-import logo from '../assets/images/logo.png';
+import logo from '@/assets/images/mglogo.png';
 ```
 
-Or using absolute imports (if configured):
-```typescript
-import logo from '@/assets/images/logo.png';
-```
-
-## Login Page Logo
-Place your login page logo in the `images/` directory. Recommended formats:
-- PNG with transparent background
-- SVG for scalability
-- Recommended size: 200-300px width for optimal display
+## Current Assets
+- `mglogo.png` - Main application logo
 
 ## File Naming Convention
 - Use lowercase with hyphens: `company-logo.png`
