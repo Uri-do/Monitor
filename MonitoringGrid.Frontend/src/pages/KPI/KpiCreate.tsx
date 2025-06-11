@@ -31,14 +31,7 @@ import {
   ScheduleType,
 } from '@/types/api';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  LoadingSpinner,
-  Card,
-  InputField,
-  Select,
-  Button,
-} from '@/components';
+import { PageHeader, LoadingSpinner, Card, InputField, Select, Button } from '@/components';
 import { SchedulerComponent, KpiTypeSelector } from '@/components/Business';
 
 // Validation schema

@@ -169,7 +169,7 @@ i18n
     preload: ['en'],
 
     // Error handling
-    missingKeyHandler: (lng, ns, key, fallbackValue) => {
+    missingKeyHandler: (lng, ns, key, _fallbackValue) => {
       if (process.env.NODE_ENV === 'development') {
         console.warn(`Missing translation key: ${ns}:${key} for language: ${lng}`);
       }

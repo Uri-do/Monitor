@@ -1,5 +1,5 @@
 import React from 'react';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar as MuiSnackbar, Alert } from '@mui/material';
 
 interface SnackbarProps {
   open: boolean;
@@ -36,7 +36,7 @@ export const Snackbar: React.FC<SnackbarProps> = ({
   position = { vertical: 'top', horizontal: 'right' },
 }) => {
   return (
-    <Snackbar
+    <MuiSnackbar
       open={open}
       autoHideDuration={autoHideDuration}
       onClose={onClose}
@@ -66,7 +66,7 @@ export const Snackbar: React.FC<SnackbarProps> = ({
       >
         {message}
       </Alert>
-    </Snackbar>
+    </MuiSnackbar>
   );
 };
 

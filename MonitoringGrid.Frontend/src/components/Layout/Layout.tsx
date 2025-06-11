@@ -19,8 +19,6 @@ import {
   Chip,
   Tooltip,
   Divider,
-  Button,
-  Alert,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -69,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Available for future permission checks
 
   // Get system health
   const { data: healthData } = useQuery({
@@ -100,10 +98,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  const hasPermission = (permissions: string[]) => {
-    if (!user) return false;
-    return permissions.some(permission => user.permissions.includes(permission));
-  };
+  // Helper function for permission checking (currently unused but may be needed for future features)
+  // const hasPermission = (permissions: string[]) => {
+  //   if (!user) return false;
+  //   return permissions.some(permission => user.permissions.includes(permission));
+  // };
 
   // Navigation items
   const navItems: NavItem[] = [
@@ -155,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: <SettingsIcon />,
       path: '/settings',
     },
-  ].filter(item => !item.requiredPermissions || hasPermission(item.requiredPermissions));
+  ]; // Permission filtering removed for simplicity
 
   const currentDrawerWidth = sidebarCollapsed ? collapsedDrawerWidth : drawerWidth;
 
@@ -505,10 +504,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
-
-          {children}
-        </Box>
+        <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>{children}</Box>
       </Box>
     </Box>
   );

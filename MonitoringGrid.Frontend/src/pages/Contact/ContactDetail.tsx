@@ -37,11 +37,7 @@ import { useKpis } from '@/hooks/useKpis';
 import { useExecuteKpi } from '@/hooks/mutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components';
 
 const ContactDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

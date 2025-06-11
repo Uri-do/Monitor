@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -30,7 +30,8 @@ import { CreateRoleRequest, UpdateRoleRequest } from '../../services/roleService
 import { useRoles, usePermissions } from '@/hooks/useRoles';
 import { useCreateRole, useUpdateRole, useDeleteRole } from '@/hooks/mutations/useRoleMutations';
 import { PageHeader } from '@/components';
-import toast from 'react-hot-toast';
+// toast available for future use
+// import toast from 'react-hot-toast';
 
 const roleSchema = yup.object({
   name: yup

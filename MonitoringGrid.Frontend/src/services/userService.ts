@@ -89,7 +89,11 @@ class UserService {
     return response.json();
   }
 
-  async updatePassword(data: { userId: string; currentPassword: string; newPassword: string }): Promise<void> {
+  async updatePassword(data: {
+    userId: string;
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> {
     const response = await fetch(`${this.baseUrl}/${data.userId}/password`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),

@@ -39,11 +39,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { kpiApi, executionHistoryApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components';
 import { PaginatedExecutionHistoryDto } from '@/types/api';
 import ExecutionProgressDialog from '@/components/Business/KPI/ExecutionProgressDialog';
 import { getScheduleDescription } from '@/utils/schedulerUtils';

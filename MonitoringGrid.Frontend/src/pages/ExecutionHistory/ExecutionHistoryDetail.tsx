@@ -27,16 +27,11 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-
 import { executionHistoryApi, kpiApi } from '@/services/api';
 import { useExecutionDetail } from '@/hooks/useExecutionHistory';
 import { useKpi } from '@/hooks/useKpis';
 import { ExecutionHistoryDetailDto } from '@/types/api';
-import {
-  PageHeader,
-  LoadingSpinner,
-  StatusChip,
-} from '@/components';
+import { PageHeader, LoadingSpinner, StatusChip } from '@/components';
 
 const ExecutionHistoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -195,7 +190,8 @@ const ExecutionHistoryDetail: React.FC = () => {
                   <strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%
                 </Box>
                 <Box>
-                  <strong>Execution Time:</strong> {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
+                  <strong>Execution Time:</strong>{' '}
+                  {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
                 </Box>
                 <Box>
                   <strong>Performance:</strong>

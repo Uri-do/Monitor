@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { render, RenderOptions, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { theme } from '@/theme/theme';
@@ -104,12 +104,12 @@ export const renderWithProviders = (ui: ReactElement, options: CustomRenderOptio
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <MemoryRouter initialEntries={initialEntries}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {children}
         </ThemeProvider>
-      </BrowserRouter>
+      </MemoryRouter>
     </QueryClientProvider>
   );
 
@@ -141,7 +141,7 @@ export const mockApiResponse = <T,>(data: T, delay = 0) => {
   });
 };
 
-export const mockApiError = (message = 'API Error', status = 500, delay = 0) => {
+export const mockApiError = (message = 'API Error', _status = 500, delay = 0) => {
   return new Promise((_, reject) => {
     setTimeout(() => {
       reject(new Error(message));
@@ -188,7 +188,7 @@ export const waitForErrorToAppear = async (errorText?: string | RegExp) => {
 
 // Mock implementations
 export const mockIntersectionObserver = () => {
-  global.IntersectionObserver = jest.fn().mockImplementation(callback => ({
+  global.IntersectionObserver = jest.fn().mockImplementation((_callback: any) => ({
     observe: jest.fn(),
     unobserve: jest.fn(),
     disconnect: jest.fn(),
@@ -199,7 +199,7 @@ export const mockIntersectionObserver = () => {
 };
 
 export const mockResizeObserver = () => {
-  global.ResizeObserver = jest.fn().mockImplementation(callback => ({
+  global.ResizeObserver = jest.fn().mockImplementation((_callback: any) => ({
     observe: jest.fn(),
     unobserve: jest.fn(),
     disconnect: jest.fn(),

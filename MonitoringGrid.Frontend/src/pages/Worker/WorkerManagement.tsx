@@ -203,7 +203,8 @@ const WorkerManagement: React.FC = () => {
         secondaryActions={[
           {
             label: 'Restart',
-            icon: actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
+            icon:
+              actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
             onClick: () => performAction('restart'),
             gradient: 'warning',
           },
@@ -217,7 +218,11 @@ const WorkerManagement: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <CheckCircle />
                 Worker Status
               </Typography>
@@ -268,7 +273,11 @@ const WorkerManagement: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 {signalRConnected ? <Wifi /> : <WifiOff />}
                 Real-time Connection
               </Typography>
@@ -277,11 +286,7 @@ const WorkerManagement: React.FC = () => {
                   <StatusChip status={signalRConnected ? 'Connected' : 'Disconnected'} />
                   <FormControlLabel
                     control={
-                      <Switch
-                        checked={realtimeEnabled}
-                        onChange={toggleRealtime}
-                        color="primary"
-                      />
+                      <Switch checked={realtimeEnabled} onChange={toggleRealtime} color="primary" />
                     }
                     label="Enable Real-time"
                   />
@@ -301,7 +306,11 @@ const WorkerManagement: React.FC = () => {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <TrendingUp />
                   Currently Running KPIs ({runningKpis.length})
                 </Typography>
@@ -314,8 +323,19 @@ const WorkerManagement: React.FC = () => {
         {/* Next KPI Due */}
         {nextKpiDue && (
           <Grid item xs={12}>
-            <Paper sx={{ p: 3, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.light' }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Paper
+              sx={{
+                p: 3,
+                bgcolor: 'warning.50',
+                border: '1px solid',
+                borderColor: 'warning.light',
+              }}
+            >
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <Timer />
                 Next KPI Execution
                 {countdown !== null && countdown !== undefined && countdown > 0 && (
@@ -330,7 +350,7 @@ const WorkerManagement: React.FC = () => {
                 {nextKpiDue.indicator}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Owner: {nextKpiDue.owner} • Frequency: {nextKpiDue.frequency} min
+                Owner: {nextKpiDue.owner} • Due in: {nextKpiDue.minutesUntilDue} min
               </Typography>
             </Paper>
           </Grid>
@@ -340,12 +360,17 @@ const WorkerManagement: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <Memory />
                 Worker Services ({status.services.length})
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Background services that handle KPI monitoring, scheduled tasks, health checks, and alert processing
+                Background services that handle KPI monitoring, scheduled tasks, health checks, and
+                alert processing
               </Typography>
 
               {status.services.length > 0 ? (
@@ -360,7 +385,14 @@ const WorkerManagement: React.FC = () => {
                         bgcolor: service.status === 'Running' ? 'success.50' : 'background.paper',
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          mb: 1,
+                        }}
+                      >
                         <Typography variant="subtitle1" fontWeight="medium">
                           {service.name}
                         </Typography>
@@ -390,7 +422,11 @@ const WorkerManagement: React.FC = () => {
                   ))}
                 </Stack>
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: 'center', py: 4 }}
+                >
                   No worker services running
                 </Typography>
               )}

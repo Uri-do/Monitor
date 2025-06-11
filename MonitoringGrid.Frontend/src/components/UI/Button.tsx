@@ -102,7 +102,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
         }),
         py: 1.5,
         px: 3,
-        borderRadius: 1,
+        borderRadius: 2,
         ...sx,
       }}
       {...props}

@@ -36,7 +36,7 @@ import {
   Card,
   InputField,
   Select,
-  Button
+  Button,
 } from '@/components';
 
 interface TabPanelProps {
@@ -239,11 +239,7 @@ const Settings: React.FC = () => {
                     >
                       Save Settings
                     </Button>
-                    <Button
-                      variant="outlined"
-                      gradient="info"
-                      onClick={handleTestEmail}
-                    >
+                    <Button variant="outlined" gradient="info" onClick={handleTestEmail}>
                       Send Test Email
                     </Button>
                   </Box>

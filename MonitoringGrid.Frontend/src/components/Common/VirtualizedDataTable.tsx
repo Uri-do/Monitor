@@ -12,8 +12,8 @@ export interface VirtualizedDataTableProps extends DataTableProps {
 }
 
 export const VirtualizedDataTable: React.FC<VirtualizedDataTableProps> = ({
-  itemHeight = 50,
-  overscan = 5,
+  itemHeight: _itemHeight = 50,
+  overscan: _overscan = 5,
   ...props
 }) => {
   // For now, this is just a wrapper around the regular DataTable

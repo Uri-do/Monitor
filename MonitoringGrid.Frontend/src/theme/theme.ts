@@ -1,4 +1,5 @@
-import { createTheme, Theme, PaletteMode } from '@mui/material/styles';
+import { createTheme, Theme } from '@mui/material/styles';
+import type { PaletteMode } from '@mui/material';
 import { designTokens } from './designTokens';
 
 export const createAppTheme = (mode: PaletteMode): Theme => {
@@ -104,9 +105,10 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
           root: {
             borderRadius: designTokens.borderRadius.base,
             boxShadow: designTokens.shadows.md,
-            border: mode === 'light' 
-              ? '1px solid rgba(0, 0, 0, 0.04)' 
-              : '1px solid rgba(255, 255, 255, 0.08)',
+            border:
+              mode === 'light'
+                ? '1px solid rgba(0, 0, 0, 0.04)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
           },
         },
       },
@@ -132,18 +134,17 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
         styleOverrides: {
           root: {
             backgroundColor: mode === 'light' ? '#ffffff' : '#1a1d29',
-            border: mode === 'light'
-              ? '1px solid rgba(0, 0, 0, 0.1)'
-              : '1px solid rgba(255, 255, 255, 0.08)',
+            border:
+              mode === 'light'
+                ? '1px solid rgba(0, 0, 0, 0.1)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
           },
         },
       },
       MuiTableHead: {
         styleOverrides: {
           root: {
-            backgroundColor: mode === 'light'
-              ? 'rgba(0, 0, 0, 0.02)'
-              : 'rgba(255, 255, 255, 0.02)',
+            backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)',
           },
         },
       },
@@ -151,14 +152,12 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
         styleOverrides: {
           root: {
             '&:nth-of-type(even)': {
-              backgroundColor: mode === 'light'
-                ? 'rgba(0, 0, 0, 0.01)'
-                : 'rgba(255, 255, 255, 0.01)',
+              backgroundColor:
+                mode === 'light' ? 'rgba(0, 0, 0, 0.01)' : 'rgba(255, 255, 255, 0.01)',
             },
             '&:hover': {
-              backgroundColor: mode === 'light'
-                ? 'rgba(0, 0, 0, 0.04)'
-                : 'rgba(255, 255, 255, 0.04)',
+              backgroundColor:
+                mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)',
             },
           },
         },
@@ -166,9 +165,7 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
       MuiTableCell: {
         styleOverrides: {
           root: {
-            borderColor: mode === 'light'
-              ? 'rgba(0, 0, 0, 0.08)'
-              : 'rgba(255, 255, 255, 0.08)',
+            borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
           },
           head: {
             fontWeight: designTokens.typography.fontWeight.semibold,
@@ -181,9 +178,7 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
             '& .MuiOutlinedInput-root': {
               backgroundColor: mode === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.02)',
               '& fieldset': {
-                borderColor: mode === 'light'
-                  ? 'rgba(0, 0, 0, 0.12)'
-                  : 'rgba(255, 255, 255, 0.12)',
+                borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
               },
             },
           },

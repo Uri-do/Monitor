@@ -15,9 +15,6 @@ import {
   DialogActions,
   TextField,
   Paper,
-  Divider,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   CheckCircle as ResolveIcon,
@@ -36,11 +33,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertApi } from '@/services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components/UI';
+import { PageHeader, StatusChip, LoadingSpinner } from '@/components/UI';
 
 const AlertDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

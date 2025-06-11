@@ -70,7 +70,10 @@ export const useExecutionStatistics = (timeRangeDays: number = 30) => {
 export const useRecentExecutions = (limit: number = 10) => {
   return useQuery({
     queryKey: queryKeys.executionHistory.recent(limit),
-    queryFn: () => executionHistoryApi.getExecutionHistory({ pageSize: limit }).then(data => data.executions || []),
+    queryFn: () =>
+      executionHistoryApi
+        .getExecutionHistory({ pageSize: limit })
+        .then(data => data.executions || []),
     placeholderData: previousData => previousData,
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     refetchInterval: 60 * 1000, // Auto-refetch every minute for real-time updates

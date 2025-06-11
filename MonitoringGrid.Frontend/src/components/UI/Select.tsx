@@ -1,5 +1,13 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, SelectProps, Box, MenuItem, useTheme } from '@mui/material';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  SelectProps,
+  Box,
+  MenuItem,
+  useTheme,
+} from '@mui/material';
 
 interface SelectOption {
   value: any;
@@ -84,20 +92,20 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <Select
           label={label}
           sx={{
-            background: theme.palette.mode === 'light'
-              ? 'rgba(255, 255, 255, 0.8)'
-              : 'rgba(255, 255, 255, 0.05)',
+            background:
+              theme.palette.mode === 'light'
+                ? 'rgba(255, 255, 255, 0.8)'
+                : 'rgba(255, 255, 255, 0.05)',
             borderRadius: 1,
             transition: 'all 0.3s ease-in-out',
             '&:hover': {
-              background: theme.palette.mode === 'light'
-                ? 'rgba(255, 255, 255, 0.9)'
-                : 'rgba(255, 255, 255, 0.08)',
+              background:
+                theme.palette.mode === 'light'
+                  ? 'rgba(255, 255, 255, 0.9)'
+                  : 'rgba(255, 255, 255, 0.08)',
             },
             '&.Mui-focused': {
-              background: theme.palette.mode === 'light'
-                ? 'white'
-                : 'rgba(255, 255, 255, 0.1)',
+              background: theme.palette.mode === 'light' ? 'white' : 'rgba(255, 255, 255, 0.1)',
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
@@ -108,7 +116,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           {...props}
         >
           {options
-            ? options.map((option) => (
+            ? options.map(option => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>

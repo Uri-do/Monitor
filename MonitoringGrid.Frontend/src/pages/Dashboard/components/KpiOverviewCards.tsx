@@ -23,11 +23,11 @@ const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
           title="Total KPIs"
-          value={kpiLoading ? "..." : (kpiDashboard?.totalKpis || 0).toString()}
+          value={kpiLoading ? '...' : (kpiDashboard?.totalKpis || 0).toString()}
           gradient="primary"
           chip={{
             label: `${kpiDashboard?.activeKpis || 0} Active`,
-            color: 'primary'
+            color: 'primary',
           }}
         />
       </Grid>
@@ -36,11 +36,11 @@ const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
           title="KPIs Due"
-          value={kpiLoading ? "..." : (kpiDashboard?.kpisDue || 0).toString()}
+          value={kpiLoading ? '...' : (kpiDashboard?.kpisDue || 0).toString()}
           gradient={kpiDashboard?.kpisDue ? 'warning' : 'success'}
           chip={{
-            label: kpiDashboard?.kpisDue ? "Needs Attention" : "All Up to Date",
-            color: kpiDashboard?.kpisDue ? 'warning' : 'success'
+            label: kpiDashboard?.kpisDue ? 'Needs Attention' : 'All Up to Date',
+            color: kpiDashboard?.kpisDue ? 'warning' : 'success',
           }}
         />
       </Grid>
@@ -49,11 +49,11 @@ const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
           title="KPIs Running"
-          value={kpiLoading ? "..." : (kpiDashboard?.kpisRunning || 0).toString()}
+          value={kpiLoading ? '...' : (kpiDashboard?.kpisRunning || 0).toString()}
           gradient={kpiDashboard?.kpisRunning ? 'info' : 'secondary'}
           chip={{
-            label: kpiDashboard?.kpisRunning ? "Executing Now" : "All Idle",
-            color: kpiDashboard?.kpisRunning ? 'info' : 'secondary'
+            label: kpiDashboard?.kpisRunning ? 'Executing Now' : 'All Idle',
+            color: kpiDashboard?.kpisRunning ? 'info' : 'secondary',
           }}
         />
       </Grid>
@@ -62,12 +62,16 @@ const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
           title="Alerts Today"
-          value={alertLoading ? "..." : (alertDashboard?.totalAlertsToday || 0).toString()}
+          value={alertLoading ? '...' : (alertDashboard?.totalAlertsToday || 0).toString()}
           gradient="error"
-          chip={alertDashboard?.alertTrendPercentage !== undefined ? {
-            label: `${alertDashboard.alertTrendPercentage > 0 ? '+' : ''}${alertDashboard.alertTrendPercentage.toFixed(1)}%`,
-            color: alertDashboard.alertTrendPercentage > 0 ? 'error' : 'success'
-          } : undefined}
+          chip={
+            alertDashboard?.alertTrendPercentage !== undefined
+              ? {
+                  label: `${alertDashboard.alertTrendPercentage > 0 ? '+' : ''}${alertDashboard.alertTrendPercentage.toFixed(1)}%`,
+                  color: alertDashboard.alertTrendPercentage > 0 ? 'error' : 'success',
+                }
+              : undefined
+          }
         />
       </Grid>
     </>

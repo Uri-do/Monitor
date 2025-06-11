@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Box, Chip, Stack, Typography, Tooltip } from '@mui/material';
+import { Box, Chip, Typography, Tooltip } from '@mui/material';
 import {
   CheckCircle as ResolveIcon,
-  Visibility as ViewIcon,
-  FilterList as FilterIcon,
   Download as ExportIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,

@@ -179,15 +179,18 @@ export const UserManagement: React.FC = () => {
         roleIds: data.roles,
         isActive: data.isActive,
       };
-      updateUserMutation.mutate({ id: editingUser.userId, ...updateRequest }, {
-        onSuccess: () => {
-          setDialogOpen(false);
-          setSuccess('User updated successfully');
-        },
-        onError: (err: any) => {
-          setError(err.message || 'Failed to update user');
-        },
-      });
+      updateUserMutation.mutate(
+        { id: editingUser.userId, ...updateRequest },
+        {
+          onSuccess: () => {
+            setDialogOpen(false);
+            setSuccess('User updated successfully');
+          },
+          onError: (err: any) => {
+            setError(err.message || 'Failed to update user');
+          },
+        }
+      );
     } else {
       const createRequest: CreateUserRequest = {
         username: data.username,

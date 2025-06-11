@@ -31,14 +31,7 @@ import {
 } from 'recharts';
 import { useAlertStatistics } from '@/hooks/useAlerts';
 import { useKpiDashboard } from '@/hooks/useKpis';
-import {
-  PageHeader,
-  LoadingSpinner,
-  StatusChip,
-  Card,
-  Select,
-  MetricCard,
-} from '@/components/UI';
+import { PageHeader, LoadingSpinner, StatusChip, Card, Select, MetricCard } from '@/components/UI';
 
 // Analytics data will be loaded from real API endpoints
 // No mock data - show empty state when no real data is available
@@ -100,7 +93,7 @@ const Analytics: React.FC = () => {
             gradient="primary"
             chip={{
               label: `${kpiDashboard?.activeKpis || 0} Active`,
-              color: 'success'
+              color: 'success',
             }}
           />
         </Grid>
@@ -113,7 +106,7 @@ const Analytics: React.FC = () => {
             gradient="warning"
             chip={{
               label: `${alertStats?.unresolvedAlerts || 0} Unresolved`,
-              color: 'error'
+              color: 'error',
             }}
           />
         </Grid>
@@ -265,9 +258,7 @@ const Analytics: React.FC = () => {
                             {execution.isSuccessful ? '100' : '0'}%
                           </td>
                           <td style={{ textAlign: 'center', padding: '12px' }}>
-                            <StatusChip
-                              status={execution.isSuccessful ? 'success' : 'error'}
-                            />
+                            <StatusChip status={execution.isSuccessful ? 'success' : 'error'} />
                           </td>
                         </tr>
                       ))

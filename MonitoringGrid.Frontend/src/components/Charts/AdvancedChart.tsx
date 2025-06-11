@@ -16,7 +16,6 @@ import {
   Download as DownloadIcon,
   Fullscreen as FullscreenIcon,
   Refresh as RefreshIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import {
   LineChart,

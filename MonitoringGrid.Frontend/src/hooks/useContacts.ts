@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { contactApi } from '@/services/api';
-import { ContactDto } from '@/types/api';
+// ContactDto available for future use
+// import { ContactDto } from '@/types/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**

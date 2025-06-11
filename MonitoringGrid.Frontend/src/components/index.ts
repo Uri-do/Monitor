@@ -36,7 +36,7 @@ export {
 // ===== LAYOUT COMPONENTS =====
 // Application layout and structure
 export { default as Layout } from './Layout/Layout';
-export { default as DemoLayout } from './Layout/DemoLayout';
+// DemoLayout removed - using main Layout component
 
 // ===== AUTHENTICATION COMPONENTS =====
 // User authentication and authorization
@@ -50,8 +50,6 @@ export { default as AdvancedChart } from './Charts/AdvancedChart';
 // ===== COMMON UTILITIES =====
 // Truly reusable utility components
 export { ErrorBoundary, withErrorBoundary, ConfirmDialog } from './Common';
-
-
 
 // ===== TYPE EXPORTS =====
 // Re-export important types for convenience

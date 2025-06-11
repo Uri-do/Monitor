@@ -8,12 +8,9 @@ import {
   Tabs,
   Tab,
   Paper,
-  List,
-  ListItem,
   ListItemText,
   ListItemIcon,
   ListItemButton,
-  Divider,
   Chip,
   Alert,
 } from '@mui/material';
@@ -25,8 +22,6 @@ import {
   VpnKey as ApiKeyIcon,
   History as AuditIcon,
   Shield as ShieldIcon,
-  Lock as LockIcon,
-  Key as KeyIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '@/components/UI';
@@ -258,12 +253,14 @@ const Administration: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
-            {filteredSections.filter(section => ['users', 'roles', 'security', 'api-keys'].includes(section.id)).length === 0 && (
+            {filteredSections.filter(section =>
+              ['users', 'roles', 'security', 'api-keys'].includes(section.id)
+            ).length === 0 && (
               <Grid item xs={12}>
                 <Alert severity="info">
                   Security and access management features are available with proper authentication.
-                  Please log in with administrative privileges to access user management, role configuration,
-                  security settings, and API key management.
+                  Please log in with administrative privileges to access user management, role
+                  configuration, security settings, and API key management.
                 </Alert>
               </Grid>
             )}

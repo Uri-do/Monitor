@@ -109,19 +109,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   private reportError = (error: Error, errorInfo: ErrorInfo) => {
     // Here you would typically send the error to a monitoring service
     // like Sentry, LogRocket, or your own error tracking system
-    const errorReport = {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      errorId: this.state.errorId,
-    };
 
     // Send to monitoring service in production
     if (process.env.NODE_ENV === 'production') {
+      const errorReport = {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        errorId: this.state.errorId,
+      };
       // errorTrackingService.captureException(errorReport);
+      console.error('Error Report:', errorReport);
     }
   };
 

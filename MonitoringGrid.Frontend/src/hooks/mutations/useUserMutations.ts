@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, roleService } from '@/services';
-import { CreateUserRequest, UpdateUserRequest } from '@/services/userService';
+import { UpdateUserRequest } from '@/services/userService';
+// CreateUserRequest available for future use
 import { UpdateRoleRequest } from '@/services/roleService';
 import { queryKeys } from '@/utils/queryKeys';
 import toast from 'react-hot-toast';
@@ -81,8 +82,6 @@ export const useDeleteUser = () => {
  * Hook for updating user password
  */
 export const useUpdateUserPassword = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: userService.updatePassword,
     onSuccess: () => {
@@ -124,7 +123,8 @@ export const useUpdateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { id: string; request: UpdateRoleRequest }) => roleService.updateRole(data.id, data.request),
+    mutationFn: (data: { id: string; request: UpdateRoleRequest }) =>
+      roleService.updateRole(data.id, data.request),
     onSuccess: (updatedRole, variables) => {
       toast.success('Role updated successfully');
 

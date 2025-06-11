@@ -9,12 +9,7 @@ import {
   TextField,
   Button,
   Grid,
-  Divider,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   Chip,
   Dialog,
   DialogTitle,
@@ -31,13 +26,10 @@ import {
 import {
   Settings,
   Security,
-  Notifications,
-  Storage,
   Wifi as Network,
   Monitor,
   Add,
   Delete,
-  Edit,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -151,7 +143,7 @@ const SystemSettings: React.FC = () => {
     },
   });
 
-  const onSubmit = async (data: SystemConfig) => {
+  const onSubmit = async (_data: SystemConfig) => {
     setLoading(true);
     setError(null);
 

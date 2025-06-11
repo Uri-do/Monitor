@@ -402,7 +402,9 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                             <Chip
                               label={`${executionResult.deviationPercent?.toFixed(2) || 'N/A'}%`}
                               size="small"
-                              color={(executionResult.deviationPercent ?? 0) > 10 ? 'warning' : 'default'}
+                              color={
+                                (executionResult.deviationPercent ?? 0) > 10 ? 'warning' : 'default'
+                              }
                             />
                           </Box>
                           {executionResult.executionTimeMs && (
@@ -668,45 +670,43 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {executionResult.executionSteps.map(
-                          (step: any, index: number) => (
-                            <TableRow key={index}>
-                              <TableCell>
-                                <Typography variant="body2" fontWeight="medium">
-                                  {step.stepName}
+                        {executionResult.executionSteps.map((step: any, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {step.stepName}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={step.status}
+                                size="small"
+                                color={
+                                  step.status === 'Success'
+                                    ? 'success'
+                                    : step.status === 'Error'
+                                      ? 'error'
+                                      : 'default'
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" fontFamily="monospace">
+                                {step.durationMs}ms
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {step.details || '-'}
+                              </Typography>
+                              {step.errorMessage && (
+                                <Typography variant="body2" color="error">
+                                  Error: {step.errorMessage}
                                 </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={step.status}
-                                  size="small"
-                                  color={
-                                    step.status === 'Success'
-                                      ? 'success'
-                                      : step.status === 'Error'
-                                        ? 'error'
-                                        : 'default'
-                                  }
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" fontFamily="monospace">
-                                  {step.durationMs}ms
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" color="text.secondary">
-                                  {step.details || '-'}
-                                </Typography>
-                                {step.errorMessage && (
-                                  <Typography variant="body2" color="error">
-                                    Error: {step.errorMessage}
-                                  </Typography>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          )
-                        )}
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </TableContainer>

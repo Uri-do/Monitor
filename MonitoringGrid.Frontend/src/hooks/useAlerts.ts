@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { alertApi } from '@/services/api';
-import { AlertLogDto, AlertFilterDto, PaginatedAlertsDto } from '@/types/api';
+import { AlertFilterDto } from '@/types/api';
+// PaginatedAlertsDto available for future use
 import { queryKeys } from '@/utils/queryKeys';
 
 /**

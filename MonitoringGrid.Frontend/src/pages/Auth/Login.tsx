@@ -7,12 +7,11 @@ import {
   Checkbox,
   FormControlLabel,
   Link,
-  Divider,
   IconButton,
   InputAdornment,
   CircularProgress,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Microsoft, Google, PlayArrow } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import mgLogo from '../../assets/images/mglogo.png';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -82,23 +81,6 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleSsoLogin = async (provider: 'microsoft' | 'google') => {
-    setIsLoading(true);
-    try {
-      // SSO functionality to be implemented
-      setError(`${provider} SSO login coming soon`);
-    } catch (err) {
-      setError(`Failed to initiate ${provider} login`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoMode = () => {
-    // Navigate directly to demo without authentication
-    navigate('/demo');
-  };
-
   return (
     <Box
       sx={{
@@ -115,7 +97,8 @@ export const Login: React.FC = () => {
           maxWidth: 380,
           width: '100%',
           backgroundColor: 'background.paper',
-          boxShadow: 3
+          boxShadow: 3,
+          borderRadius: 3,
         }}
       >
         <CardContent sx={{ p: 3 }}>
@@ -246,54 +229,6 @@ export const Login: React.FC = () => {
                 </Link>
               </Typography>
             </Box>
-
-            <Divider sx={{ my: 1.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                Or continue with
-              </Typography>
-            </Divider>
-
-            <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                gradient="info"
-                startIcon={<Microsoft />}
-                onClick={() => handleSsoLogin('microsoft')}
-                disabled={isLoading}
-                size="small"
-              >
-                Microsoft
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                gradient="warning"
-                startIcon={<Google />}
-                onClick={() => handleSsoLogin('google')}
-                disabled={isLoading}
-                size="small"
-              >
-                Google
-              </Button>
-            </Box>
-
-            <Divider sx={{ my: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Or explore without signing in
-              </Typography>
-            </Divider>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              gradient="secondary"
-              startIcon={<PlayArrow />}
-              onClick={handleDemoMode}
-              disabled={isLoading}
-            >
-              Try Demo Mode
-            </Button>
           </form>
         </CardContent>
       </Card>

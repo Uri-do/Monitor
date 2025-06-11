@@ -1,19 +1,20 @@
 import React from 'react';
-import { TextField, TextFieldProps, Box, useTheme } from '@mui/material';
+import { TextField, TextFieldProps } from '@mui/material';
 
 interface CustomInputFieldProps extends Omit<TextFieldProps, 'color'> {
   gradient?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
   glowEffect?: boolean;
 }
 
-const gradientMap = {
-  primary: 'linear-gradient(45deg, rgba(102, 126, 234, 0.05) 30%, rgba(118, 75, 162, 0.05) 90%)',
-  secondary: 'linear-gradient(45deg, rgba(240, 147, 251, 0.05) 30%, rgba(245, 87, 108, 0.05) 90%)',
-  success: 'linear-gradient(45deg, rgba(67, 233, 123, 0.05) 30%, rgba(56, 249, 215, 0.05) 90%)',
-  warning: 'linear-gradient(45deg, rgba(250, 112, 154, 0.05) 30%, rgba(254, 225, 64, 0.05) 90%)',
-  error: 'linear-gradient(45deg, rgba(255, 107, 107, 0.05) 30%, rgba(238, 90, 36, 0.05) 90%)',
-  info: 'linear-gradient(45deg, rgba(79, 172, 254, 0.05) 30%, rgba(0, 242, 254, 0.05) 90%)',
-};
+// Gradient map for future use with enhanced input styling
+// const gradientMap = {
+//   primary: 'linear-gradient(45deg, rgba(102, 126, 234, 0.05) 30%, rgba(118, 75, 162, 0.05) 90%)',
+//   secondary: 'linear-gradient(45deg, rgba(240, 147, 251, 0.05) 30%, rgba(245, 87, 108, 0.05) 90%)',
+//   success: 'linear-gradient(45deg, rgba(67, 233, 123, 0.05) 30%, rgba(56, 249, 215, 0.05) 90%)',
+//   warning: 'linear-gradient(45deg, rgba(250, 112, 154, 0.05) 30%, rgba(254, 225, 64, 0.05) 90%)',
+//   error: 'linear-gradient(45deg, rgba(255, 107, 107, 0.05) 30%, rgba(238, 90, 36, 0.05) 90%)',
+//   info: 'linear-gradient(45deg, rgba(79, 172, 254, 0.05) 30%, rgba(0, 242, 254, 0.05) 90%)',
+// };
 
 const borderColorMap = {
   primary: 'rgba(102, 126, 234, 0.1)',
@@ -35,57 +36,33 @@ const focusColorMap = {
 
 export type { CustomInputFieldProps };
 
-export const CustomInputField = React.forwardRef<HTMLDivElement, CustomInputFieldProps>(({
-  gradient = 'primary',
-  glowEffect = true,
-  sx,
-  ...props
-}, ref) => {
-  const theme = useTheme();
+export const CustomInputField = React.forwardRef<HTMLDivElement, CustomInputFieldProps>(
+  ({ gradient = 'primary', glowEffect = true, sx, ...props }, ref) => {
+    // const theme = useTheme(); // Available for future theming enhancements
 
-  return (
-    <Box
-      sx={{
-        p: 3,
-        borderRadius: 1,
-        background: gradientMap[gradient],
-        border: `1px solid ${borderColorMap[gradient]}`,
-        transition: 'all 0.3s ease-in-out',
-        ...(glowEffect && {
-          '&:hover': {
-            boxShadow: `0 4px 15px ${borderColorMap[gradient]}`,
-          },
-        }),
-      }}
-    >
+    return (
       <TextField
         ref={ref}
         variant="outlined"
         fullWidth
         sx={{
           '& .MuiOutlinedInput-root': {
-            background: theme.palette.mode === 'light'
-              ? 'rgba(255, 255, 255, 0.8)'
-              : 'rgba(255, 255, 255, 0.05)',
-            borderRadius: 1,
+            borderRadius: 2, // More rounded corners
             transition: 'all 0.3s ease-in-out',
-            '&:hover': {
-              background: theme.palette.mode === 'light'
-                ? 'rgba(255, 255, 255, 0.9)'
-                : 'rgba(255, 255, 255, 0.08)',
-            },
             '&.Mui-focused': {
-              background: theme.palette.mode === 'light'
-                ? 'white'
-                : 'rgba(255, 255, 255, 0.1)',
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: focusColorMap[gradient],
                 borderWidth: 2,
               },
             },
+            ...(glowEffect && {
+              '&:hover': {
+                boxShadow: `0 2px 8px ${borderColorMap[gradient]}`,
+              },
+            }),
           },
           '& .MuiInputLabel-root': {
-            fontWeight: 600,
+            fontWeight: 500,
             '&.Mui-focused': {
               color: focusColorMap[gradient],
             },
@@ -94,9 +71,9 @@ export const CustomInputField = React.forwardRef<HTMLDivElement, CustomInputFiel
         }}
         {...props}
       />
-    </Box>
-  );
-});
+    );
+  }
+);
 
 CustomInputField.displayName = 'CustomInputField';
 

@@ -36,7 +36,7 @@ export const createMutationHook = <TData, TVariables>(
     const mutation = useMutation({
       mutationFn: mergedOptions.mutationFn,
       mutationKey: mergedOptions.mutationKey,
-      onSuccess: (data, variables) => {
+      onSuccess: (_data, _variables) => {
         // Show success toast if enabled
         if (mergedOptions.showSuccessToast !== false) {
           toast.success(mergedOptions.successMessage || 'Operation completed successfully');

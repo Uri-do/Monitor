@@ -51,11 +51,9 @@ export const CustomCard: React.FC<CustomCardProps> = ({
     <Card
       elevation={4}
       sx={{
-        background: glowEffect
-          ? gradientMap[gradient]
-          : theme.palette.background.paper,
+        background: glowEffect ? gradientMap[gradient] : theme.palette.background.paper,
         border: `1px solid ${borderColorMap[gradient]}`,
-        borderRadius: 1,
+        borderRadius: 2,
         transition: 'all 0.3s ease-in-out',
         position: 'relative',
         overflow: 'hidden',

@@ -120,10 +120,7 @@ const UserProfile: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
-        title="My Profile"
-        subtitle="Manage your account settings and preferences"
-      />
+      <PageHeader title="My Profile" subtitle="Manage your account settings and preferences" />
 
       <Grid container spacing={3}>
         {/* Profile Overview */}

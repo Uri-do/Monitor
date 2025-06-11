@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 // User preferences and settings
@@ -75,52 +75,52 @@ const initialState: AppState = {
 export const useAppStore = create<AppState & AppActions>()(
   devtools(
     persist(
-      immer((set) => ({
+      immer(set => ({
         ...initialState,
 
         // UI Actions
-        setSidebarOpen: (open) =>
-          set((state) => {
+        setSidebarOpen: open =>
+          set(state => {
             state.sidebarOpen = open;
           }),
 
-        setSidebarCollapsed: (collapsed) =>
-          set((state) => {
+        setSidebarCollapsed: collapsed =>
+          set(state => {
             state.sidebarCollapsed = collapsed;
           }),
 
-        setCurrentPage: (page) =>
-          set((state) => {
+        setCurrentPage: page =>
+          set(state => {
             state.currentPage = page;
           }),
 
         // Preferences Actions
-        updatePreferences: (preferences) =>
-          set((state) => {
+        updatePreferences: preferences =>
+          set(state => {
             Object.assign(state.preferences, preferences);
           }),
 
         // Connection Actions
-        setConnectionState: (connectionState) =>
-          set((state) => {
+        setConnectionState: connectionState =>
+          set(state => {
             state.connectionState = connectionState;
           }),
 
         // Loading Actions
-        setGlobalLoading: (loading) =>
-          set((state) => {
+        setGlobalLoading: loading =>
+          set(state => {
             state.globalLoading = loading;
           }),
 
         // Error Actions
-        setGlobalError: (error) =>
-          set((state) => {
+        setGlobalError: error =>
+          set(state => {
             state.globalError = error;
           }),
       })),
       {
         name: 'monitoring-grid-app-store',
-        partialize: (state) => ({
+        partialize: state => ({
           preferences: state.preferences,
           sidebarCollapsed: state.sidebarCollapsed,
         }),

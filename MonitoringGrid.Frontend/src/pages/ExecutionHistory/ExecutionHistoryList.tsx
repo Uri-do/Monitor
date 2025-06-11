@@ -339,13 +339,11 @@ const ExecutionHistoryList: React.FC = () => {
             label: 'View KPI',
             icon: <KpiIcon />,
             onClick: handleViewKpi,
-
           },
           {
             label: 'View Details',
             icon: <ViewIcon />,
             onClick: handleViewDetail,
-
           },
         ]}
         pagination={{
@@ -437,7 +435,8 @@ const ExecutionDetailView: React.FC<{ execution: ExecutionHistoryDetailDto }> = 
                   <strong>Deviation:</strong> {execution.deviationPercent?.toFixed(2) || 'N/A'}%
                 </Box>
                 <Box>
-                  <strong>Execution Time:</strong> {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
+                  <strong>Execution Time:</strong>{' '}
+                  {execution.executionTimeMs ? `${execution.executionTimeMs}ms` : 'N/A'}
                 </Box>
                 <Box>
                   <strong>Performance:</strong>

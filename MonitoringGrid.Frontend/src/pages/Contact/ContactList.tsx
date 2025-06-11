@@ -203,7 +203,6 @@ const ContactList: React.FC = () => {
               // TODO: Implement KPI assignment
               toast('KPI assignment feature coming soon', { icon: 'ℹ️' });
             },
-
           },
         ]}
         emptyMessage="No contacts found. Add your first contact to get started."
