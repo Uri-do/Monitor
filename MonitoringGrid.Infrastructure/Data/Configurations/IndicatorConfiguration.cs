@@ -91,7 +91,8 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
         builder.Property(i => i.AverageLastDays);
 
         builder.Property(i => i.AverageOfCurrHour)
-            .HasColumnType("decimal(18,2)");
+            .IsRequired()
+            .HasDefaultValue(false);
 
         builder.Property(i => i.IsCurrentlyRunning)
             .IsRequired()

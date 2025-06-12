@@ -11,19 +11,19 @@ public interface IIndicatorExecutionService
     /// <summary>
     /// Execute a single indicator
     /// </summary>
-    Task<IndicatorExecutionResult> ExecuteIndicatorAsync(int indicatorId, string executionContext = "Manual", 
+    Task<IndicatorExecutionResult> ExecuteIndicatorAsync(long indicatorId, string executionContext = "Manual",
         bool saveResults = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Execute multiple indicators
     /// </summary>
-    Task<List<IndicatorExecutionResult>> ExecuteIndicatorsAsync(List<int> indicatorIds, string executionContext = "Scheduled", 
+    Task<List<IndicatorExecutionResult>> ExecuteIndicatorsAsync(List<long> indicatorIds, string executionContext = "Scheduled",
         bool saveResults = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Test indicator execution without saving results
     /// </summary>
-    Task<IndicatorExecutionResult> TestIndicatorAsync(int indicatorId, int? overrideLastMinutes = null, 
+    Task<IndicatorExecutionResult> TestIndicatorAsync(long indicatorId, int? overrideLastMinutes = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -35,18 +35,18 @@ public interface IIndicatorExecutionService
     /// <summary>
     /// Get indicator execution status
     /// </summary>
-    Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(int indicatorId, 
+    Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(long indicatorId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Cancel indicator execution if running
     /// </summary>
-    Task<bool> CancelIndicatorExecutionAsync(int indicatorId, CancellationToken cancellationToken = default);
+    Task<bool> CancelIndicatorExecutionAsync(long indicatorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get execution history for an indicator
     /// </summary>
-    Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(int indicatorId, int days = 30, 
+    Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
         CancellationToken cancellationToken = default);
 }
 
@@ -55,7 +55,7 @@ public interface IIndicatorExecutionService
 /// </summary>
 public class IndicatorExecutionResult
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool WasSuccessful { get; set; }
     public decimal? CurrentValue { get; set; }
@@ -75,7 +75,7 @@ public class IndicatorExecutionResult
 /// </summary>
 public class IndicatorExecutionStatus
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool IsCurrentlyRunning { get; set; }
     public DateTime? ExecutionStartTime { get; set; }
@@ -92,7 +92,7 @@ public class IndicatorExecutionStatus
 public class IndicatorExecutionHistory
 {
     public int HistoryId { get; set; }
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public DateTime ExecutionTime { get; set; }
     public bool WasSuccessful { get; set; }
     public decimal? Value { get; set; }

@@ -31,7 +31,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         _logger = logger;
     }
 
-    public async Task<IndicatorExecutionResult> ExecuteIndicatorAsync(int indicatorId, string executionContext = "Manual", 
+    public async Task<IndicatorExecutionResult> ExecuteIndicatorAsync(long indicatorId, string executionContext = "Manual",
         bool saveResults = true, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -167,7 +167,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         }
     }
 
-    public async Task<List<IndicatorExecutionResult>> ExecuteIndicatorsAsync(List<int> indicatorIds, 
+    public async Task<List<IndicatorExecutionResult>> ExecuteIndicatorsAsync(List<long> indicatorIds,
         string executionContext = "Scheduled", bool saveResults = true, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Executing {Count} indicators with context {ExecutionContext}", 
@@ -187,7 +187,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         return results;
     }
 
-    public async Task<IndicatorExecutionResult> TestIndicatorAsync(int indicatorId, int? overrideLastMinutes = null, 
+    public async Task<IndicatorExecutionResult> TestIndicatorAsync(long indicatorId, int? overrideLastMinutes = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Testing indicator {IndicatorId}", indicatorId);
@@ -203,7 +203,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         return await ExecuteIndicatorAsync(indicatorId, "Test", saveResults: false, cancellationToken);
     }
 
-    public async Task<List<IndicatorExecutionResult>> ExecuteDueIndicatorsAsync(string executionContext = "Scheduled", 
+    public async Task<List<IndicatorExecutionResult>> ExecuteDueIndicatorsAsync(string executionContext = "Scheduled",
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Executing due indicators with context {ExecutionContext}", executionContext);
@@ -216,7 +216,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         return await ExecuteIndicatorsAsync(indicatorIds, executionContext, saveResults: true, cancellationToken);
     }
 
-    public async Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(int indicatorId, 
+    public async Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(long indicatorId,
         CancellationToken cancellationToken = default)
     {
         var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
@@ -244,7 +244,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         };
     }
 
-    public async Task<bool> CancelIndicatorExecutionAsync(int indicatorId, CancellationToken cancellationToken = default)
+    public async Task<bool> CancelIndicatorExecutionAsync(long indicatorId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -269,7 +269,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         }
     }
 
-    public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(int indicatorId, int days = 30, 
+    public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
         CancellationToken cancellationToken = default)
     {
         var startDate = DateTime.UtcNow.AddDays(-days);
@@ -341,7 +341,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     {
         return new IndicatorExecutionResult
         {
-            IndicatorId = indicator?.IndicatorId ?? 0,
+            IndicatorId = indicator?.IndicatorId ?? 0L,
             IndicatorName = indicator?.IndicatorName ?? "Unknown",
             WasSuccessful = false,
             ErrorMessage = errorMessage,
@@ -365,7 +365,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             {
                 var historicalData = new HistoricalData
                 {
-                    KpiId = indicator.IndicatorId,
+                    KpiId = (int)indicator.IndicatorId,
                     Timestamp = result.ExecutionTime,
                     Value = result.CurrentValue.Value,
                     MetricKey = indicator.IndicatorName,
@@ -393,7 +393,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             // Create alert log
             var alertLog = new AlertLog
             {
-                KpiId = indicator.IndicatorId,
+                KpiId = (int)indicator.IndicatorId,
                 TriggerTime = result.ExecutionTime,
                 Message = $"Indicator '{indicator.IndicatorName}' threshold breached. " +
                          $"Current value: {result.CurrentValue}, Threshold: {result.ThresholdValue}",

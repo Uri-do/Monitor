@@ -75,11 +75,11 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Get indicator by ID
     /// </summary>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(IndicatorDto), 200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetIndicator(int id)
+    public async Task<IActionResult> GetIndicator(long id)
     {
         try
         {
@@ -143,12 +143,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Update an existing indicator
     /// </summary>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(IndicatorDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> UpdateIndicator(int id, [FromBody] UpdateIndicatorRequest request)
+    public async Task<IActionResult> UpdateIndicator(long id, [FromBody] UpdateIndicatorRequest request)
     {
         try
         {
@@ -183,12 +183,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Delete an indicator
     /// </summary>
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> DeleteIndicator(int id)
+    public async Task<IActionResult> DeleteIndicator(long id)
     {
         try
         {
@@ -218,12 +218,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Execute an indicator manually
     /// </summary>
-    [HttpPost("{id:int}/execute")]
+    [HttpPost("{id:long}/execute")]
     [ProducesResponseType(typeof(IndicatorExecutionResultDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> ExecuteIndicator(int id, [FromBody] ExecuteIndicatorRequest? request = null)
+    public async Task<IActionResult> ExecuteIndicator(long id, [FromBody] ExecuteIndicatorRequest? request = null)
     {
         try
         {
@@ -257,12 +257,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Test an indicator without saving results
     /// </summary>
-    [HttpPost("{id:int}/test")]
+    [HttpPost("{id:long}/test")]
     [ProducesResponseType(typeof(IndicatorExecutionResultDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> TestIndicator(int id, [FromBody] TestIndicatorRequest? request = null)
+    public async Task<IActionResult> TestIndicator(long id, [FromBody] TestIndicatorRequest? request = null)
     {
         try
         {

@@ -8,9 +8,9 @@ namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 /// </summary>
 public class DeleteIndicatorCommand : IRequest<Result<bool>>
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
 
-    public DeleteIndicatorCommand(int indicatorId)
+    public DeleteIndicatorCommand(long indicatorId)
     {
         IndicatorId = indicatorId;
     }

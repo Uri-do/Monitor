@@ -16,7 +16,7 @@ public interface IIndicatorService
     /// <summary>
     /// Get indicator by ID
     /// </summary>
-    Task<Indicator?> GetIndicatorByIdAsync(int indicatorId, CancellationToken cancellationToken = default);
+    Task<Indicator?> GetIndicatorByIdAsync(long indicatorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get active indicators
@@ -51,22 +51,22 @@ public interface IIndicatorService
     /// <summary>
     /// Delete an indicator
     /// </summary>
-    Task<bool> DeleteIndicatorAsync(int indicatorId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteIndicatorAsync(long indicatorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Add contacts to an indicator
     /// </summary>
-    Task<bool> AddContactsToIndicatorAsync(int indicatorId, List<int> contactIds, CancellationToken cancellationToken = default);
+    Task<bool> AddContactsToIndicatorAsync(long indicatorId, List<int> contactIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Remove contacts from an indicator
     /// </summary>
-    Task<bool> RemoveContactsFromIndicatorAsync(int indicatorId, List<int> contactIds, CancellationToken cancellationToken = default);
+    Task<bool> RemoveContactsFromIndicatorAsync(long indicatorId, List<int> contactIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get indicator execution history
     /// </summary>
-    Task<List<HistoricalData>> GetIndicatorHistoryAsync(int indicatorId, int days = 30, CancellationToken cancellationToken = default);
+    Task<List<HistoricalData>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get indicator dashboard data
@@ -76,12 +76,12 @@ public interface IIndicatorService
     /// <summary>
     /// Test indicator execution without saving results
     /// </summary>
-    Task<IndicatorTestResult> TestIndicatorAsync(int indicatorId, CancellationToken cancellationToken = default);
+    Task<IndicatorTestResult> TestIndicatorAsync(long indicatorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get indicator statistics
     /// </summary>
-    Task<IndicatorStatistics> GetIndicatorStatisticsAsync(int indicatorId, int days = 30, CancellationToken cancellationToken = default);
+    Task<IndicatorStatistics> GetIndicatorStatisticsAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -140,7 +140,7 @@ public class IndicatorTestResult
 /// </summary>
 public class IndicatorStatistics
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public int TotalExecutions { get; set; }
     public int SuccessfulExecutions { get; set; }

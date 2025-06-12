@@ -94,7 +94,7 @@ public class IndicatorMappingProfile : Profile
         CreateMap<IndicatorFilterRequest, GetIndicatorsQuery>();
 
         // Bulk operation mappings
-        CreateMap<BulkIndicatorOperationRequest, List<int>>()
+        CreateMap<BulkIndicatorOperationRequest, List<long>>()
             .ConvertUsing(src => src.IndicatorIds);
     }
 }

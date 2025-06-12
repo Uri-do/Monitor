@@ -5,7 +5,7 @@ namespace MonitoringGrid.Api.DTOs;
 /// </summary>
 public class IndicatorExecutionStartedDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
@@ -18,7 +18,7 @@ public class IndicatorExecutionStartedDto
 /// </summary>
 public class IndicatorExecutionCompletedDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool Success { get; set; }
     public decimal? Value { get; set; }
@@ -34,7 +34,7 @@ public class IndicatorExecutionCompletedDto
 /// </summary>
 public class IndicatorCountdownUpdateDto
 {
-    public int NextIndicatorId { get; set; }
+    public long NextIndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int SecondsUntilDue { get; set; }
@@ -46,7 +46,7 @@ public class IndicatorCountdownUpdateDto
 /// </summary>
 public class IndicatorStatusUpdateDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsCurrentlyRunning { get; set; }
@@ -63,7 +63,7 @@ public class IndicatorStatusUpdateDto
 /// </summary>
 public class IndicatorAlertDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string AlertType { get; set; } = string.Empty; // "Threshold", "Error", "Warning"
@@ -116,7 +116,7 @@ public class RunningIndicatorsUpdateDto
 /// </summary>
 public class RunningIndicatorDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
@@ -139,7 +139,7 @@ public class NextIndicatorsScheduleUpdateDto
 /// </summary>
 public class NextIndicatorDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public DateTime ScheduledTime { get; set; }
@@ -153,7 +153,7 @@ public class NextIndicatorDto
 /// </summary>
 public class IndicatorExecutionProgressDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public int Progress { get; set; } // 0-100 percentage
     public string CurrentStep { get; set; } = string.Empty;
@@ -167,7 +167,7 @@ public class IndicatorExecutionProgressDto
 /// </summary>
 public class IndicatorThresholdBreachDto
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public decimal CurrentValue { get; set; }

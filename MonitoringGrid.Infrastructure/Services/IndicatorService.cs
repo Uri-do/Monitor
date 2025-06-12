@@ -33,10 +33,10 @@ public class IndicatorService : IIndicatorService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Indicator?> GetIndicatorByIdAsync(int indicatorId, CancellationToken cancellationToken = default)
+    public async Task<Indicator?> GetIndicatorByIdAsync(long indicatorId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving indicator with ID {IndicatorId}", indicatorId);
-        
+
         return await _context.Indicators
             .Include(i => i.IndicatorContacts)
                 .ThenInclude(ic => ic.Contact)
@@ -122,7 +122,7 @@ public class IndicatorService : IIndicatorService
         return indicator;
     }
 
-    public async Task<bool> DeleteIndicatorAsync(int indicatorId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteIndicatorAsync(long indicatorId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Deleting indicator {IndicatorId}", indicatorId);
         
@@ -142,7 +142,7 @@ public class IndicatorService : IIndicatorService
         return true;
     }
 
-    public async Task<bool> AddContactsToIndicatorAsync(int indicatorId, List<int> contactIds, CancellationToken cancellationToken = default)
+    public async Task<bool> AddContactsToIndicatorAsync(long indicatorId, List<int> contactIds, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Adding {Count} contacts to indicator {IndicatorId}", contactIds.Count, indicatorId);
         
@@ -174,7 +174,7 @@ public class IndicatorService : IIndicatorService
         return true;
     }
 
-    public async Task<bool> RemoveContactsFromIndicatorAsync(int indicatorId, List<int> contactIds, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveContactsFromIndicatorAsync(long indicatorId, List<int> contactIds, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Removing {Count} contacts from indicator {IndicatorId}", contactIds.Count, indicatorId);
         
@@ -191,7 +191,7 @@ public class IndicatorService : IIndicatorService
         return true;
     }
 
-    public async Task<List<HistoricalData>> GetIndicatorHistoryAsync(int indicatorId, int days = 30, CancellationToken cancellationToken = default)
+    public async Task<List<HistoricalData>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving history for indicator {IndicatorId}, last {Days} days", indicatorId, days);
         
@@ -245,7 +245,7 @@ public class IndicatorService : IIndicatorService
         return dashboard;
     }
 
-    public async Task<IndicatorTestResult> TestIndicatorAsync(int indicatorId, CancellationToken cancellationToken = default)
+    public async Task<IndicatorTestResult> TestIndicatorAsync(long indicatorId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Testing indicator {IndicatorId}", indicatorId);
         
@@ -271,7 +271,7 @@ public class IndicatorService : IIndicatorService
         };
     }
 
-    public async Task<IndicatorStatistics> GetIndicatorStatisticsAsync(int indicatorId, int days = 30, CancellationToken cancellationToken = default)
+    public async Task<IndicatorStatistics> GetIndicatorStatisticsAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving statistics for indicator {IndicatorId}, last {Days} days", indicatorId, days);
         

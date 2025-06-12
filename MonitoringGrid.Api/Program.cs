@@ -106,15 +106,18 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
 });
 
 // Add DbContextFactory for thread-safe operations (fixes concurrency issues)
-builder.Services.AddDbContextFactory<MonitoringContext>(options =>
+// Use a custom factory registration to avoid singleton/scoped conflicts
+builder.Services.AddSingleton<IDbContextFactory<MonitoringContext>>(provider =>
 {
+    var optionsBuilder = new DbContextOptionsBuilder<MonitoringContext>();
+
     if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString))
     {
-        options.UseInMemoryDatabase("MonitoringGrid_Dev");
+        optionsBuilder.UseInMemoryDatabase("MonitoringGrid_Dev");
     }
     else
     {
-        options.UseSqlServer(connectionString, sqlOptions =>
+        optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
         {
             sqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 3,
@@ -123,6 +126,8 @@ builder.Services.AddDbContextFactory<MonitoringContext>(options =>
             sqlOptions.CommandTimeout(30);
         });
     }
+
+    return new CustomDbContextFactory(optionsBuilder.Options);
 });
 
 // Database seeding not needed for real database

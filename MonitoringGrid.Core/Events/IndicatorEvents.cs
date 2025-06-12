@@ -8,12 +8,12 @@ namespace MonitoringGrid.Core.Events;
 /// </summary>
 public record IndicatorExecutionStartedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
     public string ExecutionContext { get; }
 
-    public IndicatorExecutionStartedEvent(int indicatorId, string indicatorName, string owner, string executionContext)
+    public IndicatorExecutionStartedEvent(long indicatorId, string indicatorName, string owner, string executionContext)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -27,11 +27,11 @@ public record IndicatorExecutionStartedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorExecutionCompletedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
 
-    public IndicatorExecutionCompletedEvent(int indicatorId, string indicatorName, string owner)
+    public IndicatorExecutionCompletedEvent(long indicatorId, string indicatorName, string owner)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -44,7 +44,7 @@ public record IndicatorExecutionCompletedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorExecutedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
     public bool WasSuccessful { get; }
@@ -52,7 +52,7 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
     public decimal? HistoricalValue { get; }
     public string? ErrorMessage { get; }
 
-    public IndicatorExecutedEvent(int indicatorId, string indicatorName, string owner, bool wasSuccessful,
+    public IndicatorExecutedEvent(long indicatorId, string indicatorName, string owner, bool wasSuccessful,
         decimal? currentValue = null, decimal? historicalValue = null, string? errorMessage = null)
     {
         IndicatorId = indicatorId;
@@ -70,7 +70,7 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorThresholdBreachedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
     public decimal CurrentValue { get; }
@@ -78,7 +78,7 @@ public record IndicatorThresholdBreachedEvent : DomainEvent, INotification
     public string ThresholdComparison { get; }
     public string Priority { get; }
 
-    public IndicatorThresholdBreachedEvent(int indicatorId, string indicatorName, string owner,
+    public IndicatorThresholdBreachedEvent(long indicatorId, string indicatorName, string owner,
         decimal currentValue, decimal thresholdValue, string thresholdComparison, string priority)
     {
         IndicatorId = indicatorId;
@@ -96,11 +96,11 @@ public record IndicatorThresholdBreachedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorCreatedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
 
-    public IndicatorCreatedEvent(int indicatorId, string indicatorName, string owner)
+    public IndicatorCreatedEvent(long indicatorId, string indicatorName, string owner)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -113,11 +113,11 @@ public record IndicatorCreatedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorUpdatedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
 
-    public IndicatorUpdatedEvent(int indicatorId, string indicatorName, string owner)
+    public IndicatorUpdatedEvent(long indicatorId, string indicatorName, string owner)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -130,11 +130,11 @@ public record IndicatorUpdatedEvent : DomainEvent, INotification
 /// </summary>
 public record IndicatorDeletedEvent : DomainEvent, INotification
 {
-    public int IndicatorId { get; }
+    public long IndicatorId { get; }
     public string IndicatorName { get; }
     public string Owner { get; }
 
-    public IndicatorDeletedEvent(int indicatorId, string indicatorName, string owner)
+    public IndicatorDeletedEvent(long indicatorId, string indicatorName, string owner)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;

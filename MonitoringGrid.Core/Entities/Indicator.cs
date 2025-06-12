@@ -10,7 +10,7 @@ namespace MonitoringGrid.Core.Entities;
 /// </summary>
 public class Indicator : AggregateRoot
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -104,7 +104,7 @@ public class Indicator : AggregateRoot
     /// <summary>
     /// Average of current hour for comparison
     /// </summary>
-    public decimal? AverageOfCurrHour { get; set; }
+    public bool AverageOfCurrHour { get; set; }
 
     /// <summary>
     /// Execution state tracking for real-time monitoring

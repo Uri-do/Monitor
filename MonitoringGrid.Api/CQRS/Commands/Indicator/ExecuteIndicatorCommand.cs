@@ -9,11 +9,11 @@ namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 /// </summary>
 public class ExecuteIndicatorCommand : IRequest<Result<IndicatorExecutionResultDto>>
 {
-    public int IndicatorId { get; set; }
+    public long IndicatorId { get; set; }
     public string ExecutionContext { get; set; } = "Manual";
     public bool SaveResults { get; set; } = true;
 
-    public ExecuteIndicatorCommand(int indicatorId, string executionContext = "Manual", bool saveResults = true)
+    public ExecuteIndicatorCommand(long indicatorId, string executionContext = "Manual", bool saveResults = true)
     {
         IndicatorId = indicatorId;
         ExecutionContext = executionContext;
