@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Interfaces;
@@ -32,6 +33,7 @@ public class MonitorStatisticsController : ControllerBase
     /// Get all active statistics collectors
     /// </summary>
     [HttpGet("collectors")]
+    [AllowAnonymous]
     public async Task<ActionResult<Result<List<MonitorStatisticsCollectorDto>>>> GetActiveCollectors(
         [FromQuery] bool activeOnly = true,
         CancellationToken cancellationToken = default)
@@ -49,6 +51,7 @@ public class MonitorStatisticsController : ControllerBase
     /// Get collector by ID
     /// </summary>
     [HttpGet("collectors/{collectorId}")]
+    [AllowAnonymous]
     public async Task<ActionResult<Result<MonitorStatisticsCollectorDto>>> GetCollector(long collectorId, CancellationToken cancellationToken = default)
     {
         try
@@ -90,6 +93,7 @@ public class MonitorStatisticsController : ControllerBase
     /// Get item names for a specific collector
     /// </summary>
     [HttpGet("collectors/{collectorId}/items")]
+    [AllowAnonymous]
     public async Task<ActionResult<Result<List<string>>>> GetCollectorItemNames(long collectorId, CancellationToken cancellationToken = default)
     {
         var query = new GetCollectorItemNamesQuery(collectorId);
@@ -105,6 +109,7 @@ public class MonitorStatisticsController : ControllerBase
     /// Get statistics for a collector
     /// </summary>
     [HttpGet("collectors/{collectorId}/statistics")]
+    [AllowAnonymous]
     public async Task<ActionResult<Result<List<MonitorStatisticsDto>>>> GetStatistics(
         long collectorId,
         [FromQuery] DateTime? fromDate = null,

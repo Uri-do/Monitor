@@ -44,23 +44,29 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
         {
             _logger.LogDebug("Creating indicator: {IndicatorName}", request.IndicatorName);
 
-            // Validate collector exists and is active
-            var collector = await _statisticsService.GetCollectorByCollectorIdAsync(request.CollectorID, cancellationToken);
-            if (collector == null)
+            // Validate collector exists and is active (only if CollectorID is provided)
+            if (request.CollectorID.HasValue)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
-            }
+                var collector = await _statisticsService.GetCollectorByCollectorIdAsync(request.CollectorID.Value, cancellationToken);
+                if (collector == null)
+                {
+                    return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
+                }
 
-            if (!(collector.IsActive ?? false))
-            {
-                return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
-            }
+                if (!(collector.IsActive ?? false))
+                {
+                    return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
+                }
 
-            // Validate collector item name exists
-            var availableItems = await _statisticsService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
-            if (!availableItems.Contains(request.CollectorItemName))
-            {
-                return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
+                // Validate collector item name exists
+                if (!string.IsNullOrEmpty(request.CollectorItemName))
+                {
+                    var availableItems = await _statisticsService.GetCollectorItemNamesAsync(request.CollectorID.Value, cancellationToken);
+                    if (!availableItems.Contains(request.CollectorItemName))
+                    {
+                        return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
+                    }
+                }
             }
 
             // Validate owner contact exists

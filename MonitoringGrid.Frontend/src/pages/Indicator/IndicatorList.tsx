@@ -66,7 +66,7 @@ const IndicatorList: React.FC = () => {
   // Handle delete
   const handleDelete = (indicator: IndicatorDto) => {
     if (window.confirm(`Are you sure you want to delete "${indicator.indicatorName}"?`)) {
-      deleteIndicatorMutation.mutate(indicator.indicatorId);
+      deleteIndicatorMutation.mutate(indicator.indicatorID);
     }
   };
 
@@ -78,7 +78,7 @@ const IndicatorList: React.FC = () => {
     }
 
     const request: TestIndicatorRequest = {
-      indicatorId: indicator.indicatorId,
+      indicatorID: indicator.indicatorID,
     };
 
     executeIndicatorMutation.mutate(request);
@@ -198,8 +198,8 @@ const IndicatorList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: indicator => navigate(`/indicators/${indicator.indicatorId}`),
-          edit: indicator => navigate(`/indicators/${indicator.indicatorId}/edit`),
+          view: indicator => navigate(`/indicators/${indicator.indicatorID}`),
+          edit: indicator => navigate(`/indicators/${indicator.indicatorID}/edit`),
           delete: handleDelete,
         }}
         actions={[
@@ -211,7 +211,7 @@ const IndicatorList: React.FC = () => {
           },
         ]}
         emptyMessage="No indicators found. Create your first indicator to get started."
-        rowKey="indicatorId"
+        rowKey="indicatorID"
       />
     </Box>
   );

@@ -1,17 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Label } from './ui/label';
-import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, Database, Clock, Activity } from 'lucide-react';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  AlertTitle,
+  Box,
+  Typography,
+  CircularProgress,
+  Grid,
+  Chip,
+  SelectChangeEvent,
+  Button,
+  Collapse,
+  IconButton,
+  Tooltip
+} from '@mui/material';
+import {
+  Database,
+  Clock,
+  Activity,
+  BarChart3 as BarChart3Icon,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { useActiveCollectors, useCollectorItemNames } from '../hooks/useMonitorStatistics';
+import { useQueryClient } from '@tanstack/react-query';
+import CollectorStatisticsViewer from './CollectorStatisticsViewer';
+import StatisticsBrowserButton from './StatisticsBrowserButton';
 
 interface CollectorSelectorProps {
   selectedCollectorId?: number;
   selectedItemName?: string;
-  onCollectorChange: (collectorId: number) => void;
+  onCollectorChange: (collectorId: number | undefined) => void;
   onItemNameChange: (itemName: string) => void;
   disabled?: boolean;
   className?: string;
+  required?: boolean;
+  showStatistics?: boolean; // New prop to enable statistics viewing
 }
 
 export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
@@ -21,8 +48,12 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   onItemNameChange,
   disabled = false,
   className = '',
+  required = false,
+  showStatistics = false,
 }) => {
   const [internalCollectorId, setInternalCollectorId] = useState<number | undefined>(selectedCollectorId);
+  const [showStatsPanel, setShowStatsPanel] = useState(false);
+  const queryClient = useQueryClient();
   
   const {
     data: collectors,
@@ -38,150 +69,264 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
 
   // Update internal state when props change
   useEffect(() => {
-    setInternalCollectorId(selectedCollectorId);
-  }, [selectedCollectorId]);
+    if (selectedCollectorId !== internalCollectorId) {
+      console.log(`CollectorSelector: Collector ID changed from ${internalCollectorId} to ${selectedCollectorId}`);
 
-  const handleCollectorChange = (value: string) => {
-    const collectorId = parseInt(value, 10);
-    setInternalCollectorId(collectorId);
-    onCollectorChange(collectorId);
+      // Invalidate the old collector's item names cache
+      if (internalCollectorId) {
+        queryClient.invalidateQueries({
+          queryKey: ['monitor-statistics', 'collectors', internalCollectorId, 'items']
+        });
+      }
+
+      setInternalCollectorId(selectedCollectorId);
+
+      // If the collector changed and we have a selected item name that doesn't match the new collector,
+      // clear it to avoid showing stale data
+      if (selectedItemName) {
+        console.log('Collector changed, clearing item name to avoid stale data');
+        onItemNameChange('');
+      }
+
+      // Invalidate the new collector's item names cache to force fresh data
+      if (selectedCollectorId) {
+        queryClient.invalidateQueries({
+          queryKey: ['monitor-statistics', 'collectors', selectedCollectorId, 'items']
+        });
+      }
+    }
+  }, [selectedCollectorId, internalCollectorId, selectedItemName, onItemNameChange, queryClient]);
+
+  const handleCollectorChange = (event: SelectChangeEvent<string>) => {
+    const value = event.target.value;
+
+    // Invalidate current collector's cache before changing
+    if (internalCollectorId) {
+      queryClient.invalidateQueries({
+        queryKey: ['monitor-statistics', 'collectors', internalCollectorId, 'items']
+      });
+    }
+
+    if (value === '') {
+      setInternalCollectorId(undefined);
+      onCollectorChange(undefined);
+    } else {
+      const collectorId = parseInt(value, 10);
+      if (!isNaN(collectorId)) {
+        setInternalCollectorId(collectorId);
+        onCollectorChange(collectorId);
+
+        // Invalidate new collector's cache to force fresh data
+        queryClient.invalidateQueries({
+          queryKey: ['monitor-statistics', 'collectors', collectorId, 'items']
+        });
+      }
+    }
     // Clear item name when collector changes
     onItemNameChange('');
   };
 
-  const handleItemNameChange = (value: string) => {
+  const handleItemNameChange = (event: SelectChangeEvent<string>) => {
+    const value = event.target.value;
     onItemNameChange(value);
   };
 
   const selectedCollector = collectors?.find(c => c.collectorID === internalCollectorId);
 
+  // Debug logging to understand the selection issue
+  useEffect(() => {
+    console.log('CollectorSelector Debug:', {
+      selectedCollectorId,
+      internalCollectorId,
+      selectedItemName,
+      itemNames,
+      itemNamesLoading,
+      itemNamesError,
+      selectedCollector: selectedCollector?.displayName
+    });
+  }, [selectedCollectorId, internalCollectorId, selectedItemName, itemNames, itemNamesLoading, itemNamesError, selectedCollector]);
+
   if (collectorsError) {
     return (
-      <Alert variant="destructive" className={className}>
-        <AlertDescription>
-          Failed to load collectors: {collectorsError.message}
-        </AlertDescription>
+      <Alert severity="error" className={className}>
+        <AlertTitle>Error</AlertTitle>
+        Failed to load collectors: {collectorsError.message}
       </Alert>
     );
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <Box className={className} sx={{ mb: 2 }}>
       {/* Collector Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="collector-select" className="text-sm font-medium">
-          <Database className="inline w-4 h-4 mr-1" />
-          Data Collector
-        </Label>
-        <Select
-          value={internalCollectorId?.toString() || ''}
-          onValueChange={handleCollectorChange}
-          disabled={disabled || collectorsLoading}
-        >
-          <SelectTrigger id="collector-select" className="w-full">
-            <SelectValue placeholder={
-              collectorsLoading ? (
-                <span className="flex items-center">
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Loading collectors...
-                </span>
-              ) : (
-                "Select a data collector"
-              )
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {collectors?.map((collector) => (
-              <SelectItem key={collector.collectorID} value={collector.collectorID.toString()}>
-                <div className="flex flex-col">
-                  <span className="font-medium">{collector.displayName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ID: {collector.collectorID} • {collector.frequencyDisplay}
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        {/* Collector Details */}
-        {selectedCollector && (
-          <div className="p-3 bg-muted rounded-md text-sm">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center">
-                <Activity className="w-3 h-3 mr-1" />
-                <span className="text-muted-foreground">Status:</span>
-                <span className={`ml-1 font-medium ${
-                  selectedCollector.isActiveStatus ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {selectedCollector.statusDisplay}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="w-3 h-3 mr-1" />
-                <span className="text-muted-foreground">Last Run:</span>
-                <span className="ml-1 font-medium">{selectedCollector.lastRunDisplay}</span>
-              </div>
-            </div>
-            {selectedCollector.collectorDesc && (
-              <div className="mt-2 text-muted-foreground">
-                {selectedCollector.collectorDesc}
-              </div>
+      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+        <FormControl fullWidth>
+          <InputLabel id="collector-select-label">
+            Data Collector {required && <span style={{ color: 'red' }}>*</span>}
+          </InputLabel>
+          <Select
+            labelId="collector-select-label"
+            value={internalCollectorId ? internalCollectorId.toString() : ''}
+            onChange={handleCollectorChange}
+            disabled={disabled || collectorsLoading}
+            label={`Data Collector ${required ? '*' : ''}`}
+          >
+            {!required && (
+              <MenuItem value="">
+                <Typography color="text.secondary">No collector (optional)</Typography>
+              </MenuItem>
             )}
-          </div>
-        )}
-      </div>
+            {collectors?.map((collector) => (
+              <MenuItem key={collector.collectorID} value={collector.collectorID.toString()}>
+                <Box>
+                  <Typography variant="body2" fontWeight="medium">
+                    {collector.displayName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    ID: {collector.collectorID} • {collector.frequencyDisplay}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Statistics Browser Button */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+          <StatisticsBrowserButton
+            collectorId={internalCollectorId}
+            itemName={selectedItemName}
+            variant="icon"
+            size="medium"
+            disabled={disabled}
+            tooltip="Browse All Statistics"
+          />
+        </Box>
+      </Box>
+
+      {/* Collector Details */}
+      {selectedCollector && (
+        <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1, mb: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Activity style={{ width: 12, height: 12, marginRight: 4 }} />
+                <Typography variant="caption" color="text.secondary">Status:</Typography>
+                <Chip
+                  label={selectedCollector.statusDisplay}
+                  color={selectedCollector.isActiveStatus ? 'success' : 'error'}
+                  size="small"
+                  sx={{ ml: 1 }}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Clock style={{ width: 12, height: 12, marginRight: 4 }} />
+                <Typography variant="caption" color="text.secondary">Last Run:</Typography>
+                <Typography variant="caption" fontWeight="medium" sx={{ ml: 1 }}>
+                  {selectedCollector.lastRunDisplay}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+          {selectedCollector.collectorDesc && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              {selectedCollector.collectorDesc}
+            </Typography>
+          )}
+        </Box>
+      )}
 
       {/* Item Name Selection */}
       {internalCollectorId && (
-        <div className="space-y-2">
-          <Label htmlFor="item-select" className="text-sm font-medium">
-            Item Name
-          </Label>
-          
+        <FormControl fullWidth>
+          <InputLabel id="item-select-label">Item Name</InputLabel>
+
           {itemNamesError ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Failed to load item names: {itemNamesError.message}
-              </AlertDescription>
+            <Alert severity="error" sx={{ mt: 1 }}>
+              <AlertTitle>Error</AlertTitle>
+              Failed to load item names: {itemNamesError.message}
             </Alert>
           ) : (
             <Select
+              labelId="item-select-label"
               value={selectedItemName || ''}
-              onValueChange={handleItemNameChange}
+              onChange={handleItemNameChange}
               disabled={disabled || itemNamesLoading}
+              label="Item Name"
             >
-              <SelectTrigger id="item-select" className="w-full">
-                <SelectValue placeholder={
-                  itemNamesLoading ? (
-                    <span className="flex items-center">
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading items...
-                    </span>
-                  ) : (
-                    "Select an item name"
-                  )
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {itemNames?.map((itemName) => (
-                  <SelectItem key={itemName} value={itemName}>
-                    {itemName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+              {/* Show the selected item even if it's not in the current list (for edit mode) */}
+              {selectedItemName && itemNames && !itemNames.includes(selectedItemName) && (
+                <MenuItem key={selectedItemName} value={selectedItemName}>
+                  <Box>
+                    <Typography variant="body2">{selectedItemName}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      (Previously selected - may not be available)
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )}
+              {itemNames?.map((itemName) => (
+                <MenuItem key={itemName} value={itemName}>
+                  {itemName}
+                </MenuItem>
+              ))}
             </Select>
           )}
-          
-          {itemNames && itemNames.length === 0 && !itemNamesLoading && (
-            <Alert>
-              <AlertDescription>
-                No item names found for this collector. The collector may not have any data yet.
-              </AlertDescription>
+
+          {itemNamesLoading && (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              Loading item names...
             </Alert>
           )}
-        </div>
+
+          {itemNames && itemNames.length === 0 && !itemNamesLoading && (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              No item names found for this collector. The collector may not have any data yet.
+            </Alert>
+          )}
+
+          {selectedItemName && itemNames && !itemNames.includes(selectedItemName) && !itemNamesLoading && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              The previously selected item "{selectedItemName}" is not available in the current data.
+              You may need to select a different item or check if the data source has changed.
+            </Alert>
+          )}
+        </FormControl>
       )}
-    </div>
+
+      {/* Statistics Section */}
+      {showStatistics && internalCollectorId && (
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Tooltip title={showStatsPanel ? "Hide Statistics" : "Show Statistics"}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<BarChart3Icon />}
+                endIcon={showStatsPanel ? <ChevronUp /> : <ChevronDown />}
+                onClick={() => setShowStatsPanel(!showStatsPanel)}
+                disabled={disabled}
+              >
+                {showStatsPanel ? 'Hide' : 'Show'} Statistics
+              </Button>
+            </Tooltip>
+            {selectedCollector && (
+              <Typography variant="caption" color="text.secondary">
+                View data trends and analytics for {selectedCollector.displayName}
+              </Typography>
+            )}
+          </Box>
+
+          <Collapse in={showStatsPanel}>
+            <CollectorStatisticsViewer
+              collectorId={internalCollectorId}
+              collectorName={selectedCollector?.displayName}
+              selectedItemName={selectedItemName}
+            />
+          </Collapse>
+        </Box>
+      )}
+    </Box>
   );
 };

@@ -26,7 +26,7 @@ public class Indicator : AggregateRoot
     /// <summary>
     /// Reference to the collector in ProgressPlayDB.stats.tbl_Monitor_StatisticsCollectors
     /// </summary>
-    public long CollectorID { get; set; }
+    public long? CollectorID { get; set; }
 
     /// <summary>
     /// The specific ItemName from ProgressPlayDB.stats.tbl_Monitor_Statistics for this collector
@@ -117,7 +117,8 @@ public class Indicator : AggregateRoot
     public virtual Contact? OwnerContact { get; set; }
     public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
     public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();
-    public virtual MonitorStatisticsCollector? Collector { get; set; }
+
+    // Note: Collector relationship removed since MonitorStatisticsCollector is in a different database (ProgressPlayDBTest)
 
     // Domain methods
     public bool IsDue()

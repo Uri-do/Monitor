@@ -21,8 +21,7 @@ public class CreateIndicatorCommand : IRequest<Result<IndicatorDto>>
     [MaxLength(500)]
     public string? IndicatorDesc { get; set; }
 
-    [Required]
-    public long CollectorID { get; set; }
+    public long? CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]

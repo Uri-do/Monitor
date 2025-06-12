@@ -24,10 +24,6 @@ public class MonitoringContext : DbContext
 
     public DbSet<ScheduledJob> ScheduledJobs { get; set; }
 
-    // Statistics DbSets (from ProgressPlayDBTest)
-    public DbSet<MonitorStatistics> MonitorStatistics { get; set; }
-    public DbSet<MonitorStatisticsCollector> MonitorStatisticsCollectors { get; set; }
-
     // Authentication DbSets
     public DbSet<User> Users { get; set; }
     public DbSet<Core.Entities.Role> Roles { get; set; }
@@ -54,10 +50,6 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new SystemStatusConfiguration());
 
         modelBuilder.ApplyConfiguration(new ScheduledJobConfiguration());
-
-        // Apply statistics configurations
-        modelBuilder.ApplyConfiguration(new MonitorStatisticsConfiguration());
-        modelBuilder.ApplyConfiguration(new MonitorStatisticsCollectorConfiguration());
 
         // Apply authentication configurations
         modelBuilder.ApplyConfiguration(new UserConfiguration());

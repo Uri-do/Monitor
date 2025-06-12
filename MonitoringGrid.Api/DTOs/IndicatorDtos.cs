@@ -12,7 +12,7 @@ public class IndicatorDto
     public string IndicatorName { get; set; } = string.Empty;
     public string IndicatorCode { get; set; } = string.Empty;
     public string? IndicatorDesc { get; set; }
-    public long CollectorID { get; set; }
+    public long? CollectorID { get; set; }
     public string CollectorItemName { get; set; } = string.Empty;
     public string ScheduleConfiguration { get; set; } = string.Empty;
     public bool IsActive { get; set; }
@@ -55,8 +55,7 @@ public class CreateIndicatorRequest
     [MaxLength(500)]
     public string? IndicatorDesc { get; set; }
 
-    [Required]
-    public long CollectorID { get; set; }
+    public long? CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]

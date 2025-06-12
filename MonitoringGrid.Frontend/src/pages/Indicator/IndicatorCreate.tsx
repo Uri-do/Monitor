@@ -38,8 +38,8 @@ const indicatorSchema = yup.object().shape({
   indicatorName: yup.string().required('Indicator name is required').max(255),
   indicatorCode: yup.string().required('Indicator code is required').max(100),
   indicatorDesc: yup.string().optional().max(500),
-  collectorId: yup.number().required('Collector is required').min(1),
-  collectorItemName: yup.string().required('Collector item is required'),
+  collectorID: yup.number().nullable().optional(),
+  collectorItemName: yup.string().optional(),
   scheduleConfiguration: yup.string().required('Schedule configuration is required'),
   lastMinutes: yup.number().required('Time range is required').min(1),
   thresholdType: yup.string().required('Threshold type is required'),
@@ -58,8 +58,8 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorId: number;
-  collectorItemName: string;
+  collectorID?: number;
+  collectorItemName?: string;
   scheduleConfiguration: string;
   lastMinutes: number;
   thresholdType: string;
@@ -181,7 +181,7 @@ const IndicatorCreate: React.FC = () => {
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorId: 0,
+      collectorID: undefined,
       collectorItemName: '',
       scheduleConfiguration: JSON.stringify({
         scheduleType: 'interval',
@@ -202,7 +202,7 @@ const IndicatorCreate: React.FC = () => {
     },
   });
 
-  const watchedCollectorId = watch('collectorId');
+  const watchedCollectorId = watch('collectorID');
 
   // Update selected collector when form value changes
   useEffect(() => {
@@ -220,7 +220,7 @@ const IndicatorCreate: React.FC = () => {
         indicatorName: indicator.indicatorName,
         indicatorCode: indicator.indicatorCode,
         indicatorDesc: indicator.indicatorDesc || '',
-        collectorId: indicator.collectorId,
+        collectorID: indicator.collectorID || undefined,
         collectorItemName: indicator.collectorItemName,
         scheduleConfiguration: indicator.scheduleConfiguration,
         lastMinutes: indicator.lastMinutes,
@@ -236,7 +236,7 @@ const IndicatorCreate: React.FC = () => {
         contactIds: indicator.contacts.map(c => c.contactId),
       });
       setSelectedContacts(indicator.contacts);
-      setSelectedCollectorId(indicator.collectorId);
+      setSelectedCollectorId(indicator.collectorID || null);
     }
   }, [indicator, isEdit, reset]);
 
@@ -254,7 +254,7 @@ const IndicatorCreate: React.FC = () => {
     if (isEdit && indicatorId) {
       updateIndicatorMutation.mutate({
         ...formData,
-        indicatorId,
+        indicatorID: indicatorId,
       }, {
         onSuccess: () => navigate(`/indicators/${indicatorId}`),
       });
@@ -267,7 +267,7 @@ const IndicatorCreate: React.FC = () => {
 
   const handleTest = () => {
     if (isEdit && indicatorId) {
-      executeIndicatorMutation.mutate({ indicatorId });
+      executeIndicatorMutation.mutate({ indicatorID: indicatorId });
     }
   };
 
@@ -275,9 +275,9 @@ const IndicatorCreate: React.FC = () => {
     setSelectedContacts(newValue);
   };
 
-  const handleCollectorChange = (collectorId: number) => {
-    setValue('collectorId', collectorId);
-    setSelectedCollectorId(collectorId);
+  const handleCollectorChange = (collectorId: number | undefined) => {
+    setValue('collectorID', collectorId);
+    setSelectedCollectorId(collectorId || null);
   };
 
   const handleItemNameChange = (itemName: string) => {
@@ -380,10 +380,11 @@ const IndicatorCreate: React.FC = () => {
                   onCollectorChange={handleCollectorChange}
                   onItemNameChange={handleItemNameChange}
                   disabled={isSubmitting}
+                  showStatistics={true} // Enable statistics viewing
                 />
-                {errors.collectorId && (
+                {errors.collectorID && (
                   <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>
-                    {errors.collectorId.message}
+                    {errors.collectorID.message}
                   </Typography>
                 )}
                 {errors.collectorItemName && (

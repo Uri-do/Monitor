@@ -1,7 +1,7 @@
 # Test script for Monitor Statistics API endpoints
 # Run this after starting the MonitoringGrid.Api
 
-$baseUrl = "https://localhost:7001"  # Adjust port as needed
+$baseUrl = "https://localhost:57652"  # Adjust port as needed
 $apiUrl = "$baseUrl/api/monitorstatistics"
 
 Write-Host "Testing Monitor Statistics API Endpoints" -ForegroundColor Green

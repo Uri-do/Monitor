@@ -30,7 +30,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .HasMaxLength(500);
 
         builder.Property(i => i.CollectorID)
-            .IsRequired();
+            .IsRequired(false); // Nullable for backward compatibility
 
         builder.Property(i => i.CollectorItemName)
             .IsRequired()
@@ -114,11 +114,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .HasForeignKey(ic => ic.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(i => i.Collector)
-            .WithMany(c => c.Indicators)
-            .HasForeignKey(i => i.CollectorID)
-            .HasPrincipalKey(c => c.CollectorID)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Note: Relationship with MonitorStatisticsCollector removed since it's in a different database (ProgressPlayDBTest)
 
         // Note: AlertLogs and HistoricalData still reference KpiId for now
         // These relationships will be updated when we migrate the data

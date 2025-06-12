@@ -11,10 +11,10 @@ namespace MonitoringGrid.Infrastructure.Services;
 /// </summary>
 public class MonitorStatisticsService : IMonitorStatisticsService
 {
-    private readonly MonitoringContext _context;
+    private readonly ProgressPlayContext _context;
     private readonly ILogger<MonitorStatisticsService> _logger;
 
-    public MonitorStatisticsService(MonitoringContext context, ILogger<MonitorStatisticsService> logger)
+    public MonitorStatisticsService(ProgressPlayContext context, ILogger<MonitorStatisticsService> logger)
     {
         _context = context;
         _logger = logger;

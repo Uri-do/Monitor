@@ -70,8 +70,9 @@ builder.Services.Configure<EmailConfiguration>(
 builder.Services.Configure<SecurityConfiguration>(
     builder.Configuration.GetSection("Security"));
 
-// Get connection string - use MonitoringGrid connection for the API
+// Get connection strings
 var connectionString = builder.Configuration.GetConnectionString("MonitoringGrid");
+var progressPlayConnectionString = builder.Configuration.GetConnectionString("ProgressPlayDB");
 
 // Add Entity Framework - Use real database with retry logic and fallback
 builder.Services.AddDbContext<MonitoringContext>(options =>
@@ -98,6 +99,30 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
     {
         options.EnableSensitiveDataLogging();
         options.EnableDetailedErrors();
+    }
+});
+
+// Add ProgressPlay DbContext for monitor statistics (ProgressPlayDBTest database)
+builder.Services.AddDbContext<ProgressPlayContext>(options =>
+{
+    if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(progressPlayConnectionString))
+    {
+        // Fallback to in-memory database for development when real DB is not available
+        options.UseInMemoryDatabase("ProgressPlay_Dev");
+        Log.Warning("Using in-memory database for ProgressPlay context - development mode");
+    }
+    else
+    {
+        options.UseSqlServer(progressPlayConnectionString, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+            sqlOptions.CommandTimeout(30);
+        });
+        Log.Information("Using SQL Server for ProgressPlay context: {Database}",
+            progressPlayConnectionString?.Split(';').FirstOrDefault(x => x.Contains("Initial Catalog"))?.Split('=').LastOrDefault());
     }
 });
 

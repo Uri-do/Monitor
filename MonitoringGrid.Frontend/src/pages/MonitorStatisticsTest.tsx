@@ -55,6 +55,7 @@ const MonitorStatisticsTest: React.FC = () => {
               selectedItemName={selectedItemName}
               onCollectorChange={handleCollectorChange}
               onItemNameChange={handleItemNameChange}
+              showStatistics={true}
             />
             
             {/* Selection Summary */}

@@ -19,7 +19,7 @@ export const useCreateIndicator = () => {
       
       // Add the new indicator to the cache
       queryClient.setQueryData(
-        queryKeys.indicators.detail(newIndicator.indicatorId),
+        queryKeys.indicators.detail(newIndicator.indicatorID),
         newIndicator
       );
 
@@ -43,7 +43,7 @@ export const useUpdateIndicator = () => {
     onSuccess: (updatedIndicator) => {
       // Update the specific indicator in cache
       queryClient.setQueryData(
-        queryKeys.indicators.detail(updatedIndicator.indicatorId),
+        queryKeys.indicators.detail(updatedIndicator.indicatorID),
         updatedIndicator
       );
 
@@ -95,8 +95,8 @@ export const useExecuteIndicator = () => {
     mutationFn: (request: TestIndicatorRequest) => indicatorApi.executeIndicator(request),
     onSuccess: (result, request) => {
       // Invalidate the specific indicator to refresh its status
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.indicators.detail(request.indicatorId) 
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.indicators.detail(request.indicatorID)
       });
       
       // Invalidate dashboard for updated counts

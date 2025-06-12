@@ -248,7 +248,7 @@ export const indicatorApi = {
 
   // Update Indicator
   updateIndicator: async (indicator: UpdateIndicatorRequest): Promise<IndicatorDto> => {
-    const response: AxiosResponse<IndicatorDto> = await api.put(`/indicator/${indicator.indicatorId}`, indicator);
+    const response: AxiosResponse<IndicatorDto> = await api.put(`/indicator/${indicator.indicatorID}`, indicator);
     return response.data;
   },
 
@@ -260,7 +260,7 @@ export const indicatorApi = {
   // Execute Indicator manually
   executeIndicator: async (request: TestIndicatorRequest): Promise<IndicatorExecutionResultDto> => {
     const response: AxiosResponse<IndicatorExecutionResultDto> = await api.post(
-      `/indicator/${request.indicatorId}/execute`,
+      `/indicator/${request.indicatorID}/execute`,
       request
     );
     return response.data;

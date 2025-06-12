@@ -4,11 +4,11 @@
 
 // Indicator Types
 export interface IndicatorDto {
-  indicatorId: number;
+  indicatorID: number;
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorId: number;
+  collectorID?: number;
   collectorItemName: string;
   scheduleConfiguration: string;
   isActive: boolean;
@@ -17,24 +17,26 @@ export interface IndicatorDto {
   thresholdField?: string;
   thresholdComparison?: string;
   thresholdValue?: number;
-  priority: number;
+  priority: string;
   ownerContactId: number;
   averageLastDays?: number;
   createdDate: string;
   updatedDate: string;
-  lastExecuted?: string;
+  lastRun?: string;
+  lastRunResult?: string;
   isCurrentlyRunning: boolean;
+  executionStartTime?: string;
+  executionContext?: string;
   // Navigation properties
   ownerContact?: ContactDto;
   contacts: ContactDto[];
-  collector?: CollectorDto;
 }
 
 export interface CreateIndicatorRequest {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorId: number;
+  collectorID?: number;
   collectorItemName: string;
   scheduleConfiguration: string;
   isActive: boolean;
@@ -50,11 +52,11 @@ export interface CreateIndicatorRequest {
 }
 
 export interface UpdateIndicatorRequest extends CreateIndicatorRequest {
-  indicatorId: number;
+  indicatorID: number;
 }
 
 export interface TestIndicatorRequest {
-  indicatorId: number;
+  indicatorID: number;
   customFrequency?: number;
 }
 

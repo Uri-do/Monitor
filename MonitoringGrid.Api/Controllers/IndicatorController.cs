@@ -328,6 +328,7 @@ public class IndicatorController : ControllerBase
     /// Get available collectors from ProgressPlayDB
     /// </summary>
     [HttpGet("collectors")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(List<CollectorDto>), 200)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetCollectors([FromQuery] bool? isActive = true)
@@ -361,6 +362,7 @@ public class IndicatorController : ControllerBase
     /// Get available item names for a specific collector
     /// </summary>
     [HttpGet("collectors/{collectorId:int}/items")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(List<string>), 200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]

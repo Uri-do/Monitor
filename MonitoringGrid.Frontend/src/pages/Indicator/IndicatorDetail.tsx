@@ -129,7 +129,7 @@ const IndicatorDetail: React.FC = () => {
         primaryAction={{
           label: 'Edit Indicator',
           icon: <EditIcon />,
-          onClick: () => navigate(`/indicators/${indicatorId}/edit`),
+          onClick: () => navigate(`/indicators/${indicator.indicatorID}/edit`),
         }}
         actions={[
           {

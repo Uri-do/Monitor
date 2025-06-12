@@ -37,5 +37,6 @@ public class MonitorStatisticsCollector
 
     // Navigation properties
     public virtual ICollection<MonitorStatistics> Statistics { get; set; } = new List<MonitorStatistics>();
-    public virtual ICollection<Indicator> Indicators { get; set; } = new List<Indicator>();
+
+    // Note: Indicators relationship removed since Indicator is in a different database (PopAI)
 }

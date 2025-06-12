@@ -62,11 +62,7 @@ public class MonitorStatisticsCollectorConfiguration : IEntityTypeConfiguration<
             .HasPrincipalKey(c => c.CollectorID)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(c => c.Indicators)
-            .WithOne()
-            .HasForeignKey(i => i.CollectorID)
-            .HasPrincipalKey(c => c.CollectorID)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Note: Indicators relationship removed since Indicator is in a different database (PopAI)
 
         // Indexes
         builder.HasIndex(c => c.CollectorID)
