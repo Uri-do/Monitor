@@ -38,6 +38,7 @@ const ExecutionHistoryDetail = React.lazy(
   () => import('@/pages/ExecutionHistory/ExecutionHistoryDetail')
 );
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
+const AuthTest = React.lazy(() => import('@/pages/AuthTest'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -192,6 +193,7 @@ function App() {
                   {/* Public Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/auth-test" element={<React.Suspense fallback={<div>Loading...</div>}><AuthTest /></React.Suspense>} />
 
                   {/* Authenticated Routes */}
                   <Route

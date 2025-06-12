@@ -1,0 +1,383 @@
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_BetsByPlayMode]    Script Date: 6/12/2025 7:25:11 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_BetsByPlayMode]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Bets by PlayMode
+	SELECT	lpm.lut_name AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN at.is_done = 1 THEN 1 ELSE 0 END) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	LEFT JOIN common.tbl_Luts lpm (NOLOCK) ON lpm.lut_id = at.draw_id
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	AND at.transaction_type_id = 262
+	GROUP BY lpm.lut_name
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_BonusReceiveByBonus]    Script Date: 6/12/2025 7:26:58 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_BonusReceiveByBonus]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Bonus Recieve by Bonus
+	SELECT	b.bonus_name AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN pbb.balance > 0 AND pbb.status_id = 32 THEN 1 ELSE 0 END) AS Marked
+	FROM [ProgressPlayDB].[accounts].[tbl_Account_bonus_transactions] at (NOLOCK)
+	INNER JOIN common.tbl_Luts ltt (NOLOCK) ON ltt.lut_id = at.transaction_type_id
+	LEFT JOIN accounts.tbl_Player_bonus_balance pbb (NOLOCK) ON pbb.bonus_balance_id = at.bonus_balance_id
+	LEFT JOIN crm.tbl_Bonuses b (NOLOCK) ON b.bonus_id = pbb.bonus_id
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE()) 
+	AND at.transaction_type_id = 436
+	GROUP BY b.bonus_name
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_DepositsBySettlementCompany]    Script Date: 6/12/2025 7:27:32 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_DepositsBySettlementCompany]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Deposits by SettlementCompany
+	SELECT	CASE WHEN external_code IS NOT NULL THEN 'NuveiPSP' ELSE sc.sys_code END AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN at.is_done = 1 THEN 1 ELSE 0 END) AS Successful
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	INNER JOIN accounts.tbl_Account_payment_methods apm (NOLOCK) ON apm.account_payment_method_id = at.account_payment_method_id
+	INNER JOIN accounts.tbl_Settlement_companies sc (NOLOCK) ON sc.settlement_company_id = apm.settlement_company_id
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	AND at.transaction_type_id = 263
+	GROUP BY CASE WHEN external_code IS NOT NULL THEN 'NuveiPSP' ELSE sc.sys_code END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_IncidentsSelectionByType]    Script Date: 6/12/2025 7:27:48 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_IncidentsSelectionByType]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Incidents by Type
+	SELECT CASE WHEN i.IncidentTypeID = 954 THEN lit.lut_name + ' - ' + lie.lut_name ELSE lit.lut_name END AS ItemName,
+		SUM(1) AS Total,
+		SUM(1) AS Marked
+	FROM [interactions].[tbl_Incidents] i (NOLOCK)
+	INNER JOIN common.tbl_Players AS p WITH (NOLOCK) ON p.player_id = i.PlayerID
+	INNER JOIN common.tbl_White_labels AS wl WITH (NOLOCK) ON wl.label_id = p.white_label_id
+	INNER JOIN common.tbl_Statuses AS s WITH (NOLOCK) ON s.status_id = p.status_id
+	LEFT JOIN common.tbl_Luts lit (NOLOCK) ON lit.lut_id = i.IncidentTypeID
+	LEFT JOIN common.tbl_Luts lie (NOLOCK) ON lie.lut_id = i.IncidentEventID
+	LEFT JOIN common.tbl_Luts lic (NOLOCK) ON lic.lut_id = i.IncidentCategoryID
+	LEFT JOIN common.tbl_Luts lis (NOLOCK) ON lis.lut_id = i.IncidentStatusID
+	WHERE i.IncidentDate >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	AND i.IncidentTypeID IN (962,963,971,972,973,976,977,954,955,956)
+	GROUP BY CASE WHEN i.IncidentTypeID = 954 THEN lit.lut_name + ' - ' + lie.lut_name ELSE lit.lut_name END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_LeadsRegsFTDsFTDAs]    Script Date: 6/12/2025 7:28:56 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_LeadsRegsFTDsFTDAs]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Leads/Regs/FTDs/FTDAs 
+	SELECT CASE WHEN first_name IS NULL THEN 'Lead' ELSE CASE WHEN ftd_date IS NULL THEN CASE WHEN ftda_date IS NULL THEN 'Reg' ELSE 'FTDA' END ELSE 'FTD' END END AS ItemName,
+		SUM(1) AS Total,
+		SUM(1) AS Marked
+	FROM [ProgressPlayDB].[common].[tbl_Players] p (NOLOCK)
+	WHERE p.registration_date >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE()) 
+	GROUP BY CASE WHEN first_name IS NULL THEN 'Lead' ELSE CASE WHEN ftd_date IS NULL THEN CASE WHEN ftda_date IS NULL THEN 'Reg' ELSE 'FTDA' END ELSE 'FTD' END END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_NotificationsByEvent]    Script Date: 6/12/2025 7:29:18 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_NotificationsByEvent]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Notifications by Event
+	SELECT le.lut_name AS ItemName,
+		SUM(1) AS Total,
+		SUM(1) AS Marked
+	FROM [ProgressPlayDB].[crm].[tbl_Notifications_compressed] n (NOLOCK)
+	INNER JOIN common.tbl_Luts le (NOLOCK) ON le.lut_id = n.event_id
+	WHERE n.sent_date >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE()) 
+	GROUP BY le.lut_name
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_NotificationsByType]    Script Date: 6/12/2025 7:29:38 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_NotificationsByType]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Notifications by Type
+	SELECT lnt.lut_name AS ItemName,
+		SUM(1) AS Total,
+		SUM(1) AS Marked
+	FROM [ProgressPlayDB].[crm].[tbl_Notifications_compressed] n (NOLOCK)
+	INNER JOIN common.tbl_Luts lnt (NOLOCK) ON lnt.lut_id = n.notification_type_id
+	WHERE n.sent_date >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE()) 
+	GROUP BY lnt.lut_name
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_PlayedGamesByGameType]    Script Date: 6/12/2025 7:30:00 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_PlayedGamesByGameType]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Played Games by GameType
+	SELECT	CASE WHEN og.GameID IS NOT NULL THEN gtog.Name ELSE gtpg.Name END AS ItemName,
+			SUM(1) AS Total,
+			SUM(1) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	LEFT JOIN Games.OngoingGames og (NOLOCK) ON og.ID = at.ongoing_id
+	LEFT JOIN Games.Games_PlayedGames pg (NOLOCK) ON pg.ID = at.ongoing_id
+	LEFT JOIN Games.Games gog (NOLOCK) ON gog.GameID = og.GameID
+	LEFT JOIN Games.Games gpg (NOLOCK) ON gpg.GameID = pg.GameID
+	LEFT JOIN Games.Games_GameTypes gtog (NOLOCK) ON gtog.ID = gog.GameTypeID
+	LEFT JOIN Games.Games_GameTypes gtpg (NOLOCK) ON gtpg.ID = gpg.GameTypeID
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	GROUP BY CASE WHEN og.GameID IS NOT NULL THEN gtog.Name ELSE gtpg.Name END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_PlayedGamesByProvider]    Script Date: 6/12/2025 7:30:22 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_PlayedGamesByProvider]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Played Games by Provider
+	SELECT	CASE WHEN og.GameID IS NOT NULL THEN pog.Name ELSE ppg.Name END AS ItemName,
+			SUM(1) AS Total,
+			SUM(1) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	LEFT JOIN Games.OngoingGames og (NOLOCK) ON og.ID = at.ongoing_id
+	LEFT JOIN Games.Games_PlayedGames pg (NOLOCK) ON pg.ID = at.ongoing_id
+	LEFT JOIN Games.Games gog (NOLOCK) ON gog.GameID = og.GameID
+	LEFT JOIN Games.Games gpg (NOLOCK) ON gpg.GameID = pg.GameID
+	LEFT JOIN Games.Games_Providers pog (NOLOCK) ON pog.ID = gog.ProviderID
+	LEFT JOIN Games.Games_Providers ppg (NOLOCK) ON ppg.ID = gpg.ProviderID
+	LEFT JOIN Games.Games_SubProviders spog (NOLOCK) ON spog.ID = gog.SubProviderID
+	LEFT JOIN Games.Games_SubProviders sppg (NOLOCK) ON sppg.ID = gpg.SubProviderID	
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	GROUP BY CASE WHEN og.GameID IS NOT NULL THEN pog.Name ELSE ppg.Name END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_PlayedGamesBySubProvider]    Script Date: 6/12/2025 7:30:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_PlayedGamesBySubProvider]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Played Games by SubProvider
+	SELECT	CASE WHEN og.GameID IS NOT NULL THEN pog.Name + ' - ' + spog.Name ELSE ppg.Name + ' - ' + sppg.Name END AS ItemName,
+			SUM(1) AS Total,
+			SUM(1) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	LEFT JOIN Games.OngoingGames og (NOLOCK) ON og.ID = at.ongoing_id
+	LEFT JOIN Games.Games_PlayedGames pg (NOLOCK) ON pg.ID = at.ongoing_id
+	LEFT JOIN Games.Games gog (NOLOCK) ON gog.GameID = og.GameID
+	LEFT JOIN Games.Games gpg (NOLOCK) ON gpg.GameID = pg.GameID
+	LEFT JOIN Games.Games_Providers pog (NOLOCK) ON pog.ID = gog.ProviderID
+	LEFT JOIN Games.Games_Providers ppg (NOLOCK) ON ppg.ID = gpg.ProviderID
+	LEFT JOIN Games.Games_SubProviders spog (NOLOCK) ON spog.ID = gog.SubProviderID
+	LEFT JOIN Games.Games_SubProviders sppg (NOLOCK) ON sppg.ID = gpg.SubProviderID	
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	GROUP BY CASE WHEN og.GameID IS NOT NULL THEN pog.Name + ' - ' + spog.Name ELSE ppg.Name + ' - ' + sppg.Name END
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_TransactionsByType]    Script Date: 6/12/2025 7:31:52 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_TransactionsByType]
+(
+	@ForLastMinutes int
+)
+AS
+BEGIN
+	SELECT	ltt.lut_name AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN at.is_done = 1 THEN 1 ELSE 0 END) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	INNER JOIN common.tbl_Luts ltt (NOLOCK) ON ltt.lut_id = at.transaction_type_id
+	LEFT JOIN accounts.tbl_Account_payment_methods apm (NOLOCK) ON apm.account_payment_method_id = at.account_payment_method_id
+	LEFT JOIN accounts.tbl_Settlement_companies sc (NOLOCK) ON sc.settlement_company_id = apm.settlement_company_id
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@ForLastMinutes, GETUTCDATE())
+	GROUP BY ltt.lut_name
+	ORDER BY SUM(1) DESC	
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_WithdrawalRequestsByStatus]    Script Date: 6/12/2025 7:32:13 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_WithdrawalRequestsByStatus]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Withdrawals Requests by Status
+	SELECT	s.status_name AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN wr.status_id IN (41,58) THEN 1 ELSE 0 END) AS Marked
+	FROM [ProgressPlayDB].[crm].[tbl_Withdrawal_requests] wr (NOLOCK) 
+	INNER JOIN common.tbl_Statuses s (NOLOCK) ON  s.status_id = wr.status_id 
+	LEFT JOIN accounts.tbl_Account_payment_methods apm (NOLOCK) ON apm.account_payment_method_id = wr.account_payment_method_id
+	LEFT JOIN accounts.tbl_Settlement_companies sc (NOLOCK) ON sc.settlement_company_id = apm.settlement_company_id
+	WHERE wr.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	GROUP BY s.status_name
+	ORDER BY SUM(1) DESC
+END
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_Monitor_WithdrawalsBySettlementCompany]    Script Date: 6/12/2025 7:32:39 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [stats].[stp_Monitor_WithdrawalsBySettlementCompany]
+(
+	@LastMinutes int
+)
+AS
+BEGIN
+	--Withdrawals by SettlementCompany
+	SELECT	sc.sys_code AS ItemName,
+			SUM(1) AS Total,
+			SUM(CASE WHEN at.is_done = 1 THEN 1 ELSE 0 END) AS Marked
+	FROM accounts.tbl_Account_transactions at (NOLOCK) 
+	INNER JOIN accounts.tbl_Account_payment_methods apm (NOLOCK) ON apm.account_payment_method_id = at.account_payment_method_id
+	INNER JOIN accounts.tbl_Settlement_companies sc (NOLOCK) ON sc.settlement_company_id = apm.settlement_company_id
+	WHERE at.updated_dt >= DATEADD(MINUTE, -@LastMinutes, GETUTCDATE())
+	AND at.transaction_type_id = 264	
+	GROUP BY sc.sys_code
+	ORDER BY SUM(1) DESC
+END
+
+
+
+
+
+
+
+
+
+
+
+
+USE [ProgressPlayDB]
+GO
+/****** Object:  StoredProcedure [stats].[stp_MonitorService_GetStatisticsAverage]    Script Date: 6/12/2025 8:26:51 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE procedure [stats].[stp_MonitorService_GetStatisticsAverage]
+(
+	@Hour int NULL,
+	@FromDate date NULL,
+	@CollectorID bigint,
+	@ItemName varchar(50),
+	@ValueType varchar(50)
+)
+AS
+BEGIN
+	SELECT AVG(CASE @ValueType WHEN 'Total' THEN Total WHEN 'Marked' THEN Marked WHEN 'MarkedPercent' THEN [MarkedPercent] END) AS Average
+	FROM [stats].[tbl_Monitor_Statistics] ms (NOLOCK)
+	WHERE (@Hour IS NULL OR [Hour] = @Hour)
+	AND (@FromDate IS NULL OR [Day] >= @FromDate)
+	AND CollectorID = @CollectorID
+	AND ItemName = @ItemName
+END

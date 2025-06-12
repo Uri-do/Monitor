@@ -1,0 +1,9 @@
+﻿ID,CollectorID,CollectorCode,CollectorDesc,FrequencyMinutes,LastMinutes,StoreProcedure,IsActive,UpdatedDate,LastRun,LastRunResult
+1,1,TransactionsByType,TransactionsByType,60,60,stats.stp_Monitor_TransactionsByType,1,2025-06-09 14:15:41.617,2025-06-12 07:00:00.667,Count: 10
+2,2,DepositsBySettlementCompany,DepositsBySettlementCompany,60,60,stats.stp_Monitor_DepositsBySettlementCompany,1,2025-06-09 14:16:07.437,2025-06-12 07:00:00.750,Count: 8
+3,3,WithdrawalRequestsByStatus,WithdrawalRequestsByStatus,60,60,stats.stp_Monitor_WithdrawalRequestsByStatus,1,2025-06-09 14:16:25.870,2025-06-12 07:00:01.710,Count: 5
+4,4,BetsByPlayMode,BetsByPlayMode,60,60,stats.stp_Monitor_BetsByPlayMode,1,2025-06-09 14:16:41.690,2025-06-12 07:00:01.760,Count: 4
+5,5,IncidentsSelectionByType,IncidentsSelectionByType,60,60,stats.stp_Monitor_IncidentsSelectionByType,1,2025-06-09 14:17:01.883,2025-06-12 07:00:01.777,Count: 7
+6,6,LeadsRegsFTDsFTDAs,LeadsRegsFTDsFTDAs,60,60,stats.stp_Monitor_LeadsRegsFTDsFTDAs,1,2025-06-09 14:17:28.617,2025-06-12 07:00:01.780,Count: 3
+7,7,BonusTransactionsByType,BonusTransactionsByType,60,60,stats.stp_Monitor_BonusTransactionsByType,1,2025-06-09 14:17:42.523,2025-06-12 07:00:01.787,Count: 5
+8,8,NotificationsByType,NotificationsByType,60,60,stats.stp_Monitor_NotificationsByType,1,2025-06-09 14:17:56.937,2025-06-12 07:00:03.060,Count: 3

@@ -88,19 +88,55 @@ class AuthService {
     });
 
     if (!response.ok) {
-      throw new Error('Token refresh failed');
+      // Clear tokens if refresh fails
+      this.clearToken();
+      throw new Error(`Token refresh failed: ${response.status}`);
     }
 
     const result = await response.json();
-    this.setToken(result.token);
-    this.setRefreshToken(result.refreshToken);
+
+    // Handle different response formats
+    const accessToken = result.token?.accessToken || result.accessToken;
+    const newRefreshToken = result.token?.refreshToken || result.refreshToken || refreshToken;
+
+    if (!accessToken) {
+      throw new Error('No access token in refresh response');
+    }
+
+    this.setToken(accessToken);
+    this.setRefreshToken(newRefreshToken);
+
     return result;
+  }
+
+  shouldRefreshToken(): boolean {
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    try {
+      // Decode JWT token to check expiration
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      // Refresh if token expires within the next 10 minutes (600 seconds)
+      return payload.exp && payload.exp < (currentTime + 600);
+    } catch (error) {
+      // If we can't decode the token, we should refresh
+      return true;
+    }
   }
 
   async getCurrentUser(): Promise<User> {
     const token = this.getToken();
     if (!token) {
       throw new Error('No authentication token');
+    }
+
+    // Check if token is expired before making the request
+    if (this.isTokenExpired(token)) {
+      throw new Error('Authentication token expired');
     }
 
     const response = await fetch(`${this.baseUrl}/auth/profile`, {
@@ -111,14 +147,28 @@ class AuthService {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token is invalid/expired, clear it
-        this.clearToken();
+        // Token is invalid/expired
         throw new Error('Authentication token expired');
       }
       throw new Error(`Failed to get current user: ${response.status}`);
     }
 
     return response.json();
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      // Decode JWT token to check expiration
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      // Check if token expires within the next 5 minutes (300 seconds)
+      return payload.exp && payload.exp < (currentTime + 300);
+    } catch (error) {
+      // If we can't decode the token, consider it expired
+      console.warn('Failed to decode JWT token:', error);
+      return true;
+    }
   }
 
   getToken(): string | null {
@@ -143,7 +193,13 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    // Check if token is expired
+    return !this.isTokenExpired(token);
   }
 }
 

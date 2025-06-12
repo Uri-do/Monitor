@@ -28,6 +28,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initAuth = async () => {
       const token = authService.getToken();
+      const refreshToken = authService.getRefreshToken();
+
       if (token) {
         try {
           console.log('Attempting to validate existing token...');
@@ -40,8 +42,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
             isLoading: false,
             error: null,
           });
-        } catch (error) {
-          console.log('Token validation failed, clearing token:', error);
+        } catch (error: any) {
+          console.log('Token validation failed:', error);
+
+          // If we have a refresh token, try to refresh instead of clearing immediately
+          if (refreshToken && error.message?.includes('expired')) {
+            try {
+              console.log('Attempting to refresh expired token...');
+              const response = await authService.refreshToken();
+
+              if (response.token && response.user) {
+                console.log('Token refresh successful during initialization');
+                setState({
+                  user: response.user,
+                  token: response.token.accessToken,
+                  isAuthenticated: true,
+                  isLoading: false,
+                  error: null,
+                });
+                return;
+              }
+            } catch (refreshError) {
+              console.log('Token refresh failed during initialization:', refreshError);
+            }
+          }
+
+          // Clear tokens and set unauthenticated state
+          console.log('Clearing tokens and setting unauthenticated state');
           authService.clearToken();
           setState({
             user: null,
@@ -144,17 +171,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshToken = async () => {
     try {
       const response = await authService.refreshToken();
+      const newToken = response.token?.accessToken || response.accessToken;
+
       setState(prev => ({
         ...prev,
-        user: response.user || null,
-        token: response.token?.accessToken || null,
+        user: response.user || prev.user,
+        token: newToken,
         error: null,
       }));
+
+      return newToken;
     } catch (error) {
+      console.error('Token refresh failed in useAuth:', error);
       await logout();
       throw error;
     }
   };
+
+  // Proactive token refresh - check every 5 minutes
+  useEffect(() => {
+    if (!state.isAuthenticated || !state.token) {
+      return;
+    }
+
+    const checkTokenExpiration = () => {
+      if (authService.shouldRefreshToken()) {
+        console.log('Token needs refresh, refreshing proactively...');
+        refreshToken().catch(error => {
+          console.error('Proactive token refresh failed:', error);
+        });
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiration();
+
+    // Set up interval to check every 5 minutes
+    const interval = setInterval(checkTokenExpiration, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [state.isAuthenticated, state.token]);
 
   const value: AuthContextType = {
     ...state,

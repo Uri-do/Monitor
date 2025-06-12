@@ -79,37 +79,127 @@ api.interceptors.request.use(
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Log token usage for debugging (only first 20 chars for security)
+      console.debug(`API Request with token: ${token.substring(0, 20)}...`);
+    } else {
+      console.debug('API Request without token');
     }
     return config;
   },
   error => {
+    console.error('API Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for error handling
+// Token refresh state management
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
+// Response interceptor for error handling with automatic token refresh
 api.interceptors.response.use(
   response => {
     return response;
   },
-  error => {
+  async error => {
+    const originalRequest = error.config;
     console.error('API Response Error:', error);
 
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      console.error('Unauthorized access - redirecting to login');
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If we're already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
 
-      // Clear stored tokens
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
+      originalRequest._retry = true;
+      isRefreshing = true;
 
-      // Redirect to login page if not already there or in demo mode
-      const currentPath = window.location.pathname;
-      const isPublicPath =
-        currentPath === '/login' || currentPath === '/auth-test' || currentPath.startsWith('/demo');
+      try {
+        // Attempt to refresh the token
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
 
-      if (!isPublicPath) {
-        window.location.href = '/login';
+        console.log('Attempting to refresh token...');
+        const response = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Token refresh failed');
+        }
+
+        const result = await response.json();
+        const newToken = result.token?.accessToken || result.accessToken;
+
+        if (!newToken) {
+          throw new Error('No access token in refresh response');
+        }
+
+        // Update stored tokens
+        localStorage.setItem('auth_token', newToken);
+        if (result.token?.refreshToken || result.refreshToken) {
+          localStorage.setItem('refresh_token', result.token?.refreshToken || result.refreshToken);
+        }
+
+        // Update the authorization header for the original request
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        // Process the queue with the new token
+        processQueue(null, newToken);
+
+        console.log('Token refresh successful, retrying original request');
+        return api(originalRequest);
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+
+        // Process the queue with the error
+        processQueue(refreshError, null);
+
+        // Clear stored tokens
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+
+        // Redirect to login page if not already there or in demo mode
+        const currentPath = window.location.pathname;
+        const isPublicPath =
+          currentPath === '/login' || currentPath === '/auth-test' || currentPath.startsWith('/demo');
+
+        if (!isPublicPath) {
+          console.log('Redirecting to login due to authentication failure');
+          window.location.href = '/login';
+        }
+
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     } else if (error.response?.status >= 500) {
       // Handle server errors
