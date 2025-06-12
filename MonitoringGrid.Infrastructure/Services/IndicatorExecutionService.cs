@@ -1,0 +1,434 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Events;
+using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Infrastructure.Data;
+using System.Diagnostics;
+
+namespace MonitoringGrid.Infrastructure.Services;
+
+/// <summary>
+/// Service implementation for indicator execution operations
+/// Replaces KpiExecutionService
+/// </summary>
+public class IndicatorExecutionService : IIndicatorExecutionService
+{
+    private readonly MonitoringContext _context;
+    private readonly IIndicatorService _indicatorService;
+    private readonly IProgressPlayDbService _progressPlayDbService;
+    private readonly ILogger<IndicatorExecutionService> _logger;
+
+    public IndicatorExecutionService(
+        MonitoringContext context,
+        IIndicatorService indicatorService,
+        IProgressPlayDbService progressPlayDbService,
+        ILogger<IndicatorExecutionService> logger)
+    {
+        _context = context;
+        _indicatorService = indicatorService;
+        _progressPlayDbService = progressPlayDbService;
+        _logger = logger;
+    }
+
+    public async Task<IndicatorExecutionResult> ExecuteIndicatorAsync(int indicatorId, string executionContext = "Manual", 
+        bool saveResults = true, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var executionTime = DateTime.UtcNow;
+
+        try
+        {
+            _logger.LogDebug("Executing indicator {IndicatorId} with context {ExecutionContext}", 
+                indicatorId, executionContext);
+
+            // Get the indicator
+            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            if (indicator == null)
+            {
+                return new IndicatorExecutionResult
+                {
+                    IndicatorId = indicatorId,
+                    IndicatorName = "Unknown",
+                    WasSuccessful = false,
+                    ErrorMessage = $"Indicator {indicatorId} not found",
+                    ExecutionDuration = stopwatch.Elapsed,
+                    ExecutionTime = executionTime,
+                    ExecutionContext = executionContext
+                };
+            }
+
+            // Check if indicator is active
+            if (!indicator.IsActive)
+            {
+                return new IndicatorExecutionResult
+                {
+                    IndicatorId = indicatorId,
+                    IndicatorName = indicator.IndicatorName,
+                    WasSuccessful = false,
+                    ErrorMessage = "Indicator is not active",
+                    ExecutionDuration = stopwatch.Elapsed,
+                    ExecutionTime = executionTime,
+                    ExecutionContext = executionContext
+                };
+            }
+
+            // Mark indicator as running
+            indicator.StartExecution(executionContext);
+            if (saveResults)
+            {
+                await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+            }
+
+            try
+            {
+                // Execute the collector stored procedure to get current data
+                var rawData = await _progressPlayDbService.ExecuteCollectorStoredProcedureAsync(
+                    indicator.CollectorId, 
+                    indicator.LastMinutes, 
+                    cancellationToken);
+
+                // Find the specific item we're monitoring
+                var itemData = rawData.FirstOrDefault(d => d.ItemName == indicator.CollectorItemName);
+                if (itemData == null)
+                {
+                    return CreateFailureResult(indicator, "Item not found in collector results", 
+                        stopwatch.Elapsed, executionTime, executionContext);
+                }
+
+                // Get the current value based on threshold field
+                var currentValue = GetValueByField(itemData, indicator.ThresholdField);
+
+                // Get historical average if needed for threshold type
+                decimal? historicalAverage = null;
+                if (indicator.ThresholdType == "volume_average")
+                {
+                    historicalAverage = await _progressPlayDbService.GetCollectorItemAverageAsync(
+                        indicator.CollectorId,
+                        indicator.CollectorItemName,
+                        indicator.ThresholdField,
+                        DateTime.UtcNow.Hour,
+                        indicator.AverageLastDays.HasValue ? DateTime.UtcNow.AddDays(-indicator.AverageLastDays.Value) : null,
+                        cancellationToken);
+                }
+
+                // Evaluate threshold
+                var thresholdBreached = EvaluateThreshold(indicator, currentValue, historicalAverage);
+
+                var result = new IndicatorExecutionResult
+                {
+                    IndicatorId = indicatorId,
+                    IndicatorName = indicator.IndicatorName,
+                    WasSuccessful = true,
+                    CurrentValue = currentValue,
+                    ThresholdValue = indicator.ThresholdValue,
+                    ThresholdBreached = thresholdBreached,
+                    RawData = rawData,
+                    ExecutionDuration = stopwatch.Elapsed,
+                    ExecutionTime = executionTime,
+                    ExecutionContext = executionContext,
+                    HistoricalAverage = historicalAverage
+                };
+
+                // Save results if requested
+                if (saveResults)
+                {
+                    await SaveExecutionResultsAsync(indicator, result, cancellationToken);
+                    
+                    // Trigger alert if threshold breached
+                    if (thresholdBreached)
+                    {
+                        await TriggerAlertAsync(indicator, result, cancellationToken);
+                    }
+                }
+
+                _logger.LogInformation("Successfully executed indicator {IndicatorId}: {IndicatorName}, " +
+                    "Value: {CurrentValue}, Threshold Breached: {ThresholdBreached}", 
+                    indicatorId, indicator.IndicatorName, currentValue, thresholdBreached);
+
+                return result;
+            }
+            finally
+            {
+                // Mark indicator as completed
+                indicator.CompleteExecution();
+                if (saveResults)
+                {
+                    await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to execute indicator {IndicatorId}", indicatorId);
+            
+            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            return CreateFailureResult(indicator, ex.Message, stopwatch.Elapsed, executionTime, executionContext);
+        }
+    }
+
+    public async Task<List<IndicatorExecutionResult>> ExecuteIndicatorsAsync(List<int> indicatorIds, 
+        string executionContext = "Scheduled", bool saveResults = true, CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Executing {Count} indicators with context {ExecutionContext}", 
+            indicatorIds.Count, executionContext);
+
+        var results = new List<IndicatorExecutionResult>();
+
+        foreach (var indicatorId in indicatorIds)
+        {
+            var result = await ExecuteIndicatorAsync(indicatorId, executionContext, saveResults, cancellationToken);
+            results.Add(result);
+        }
+
+        _logger.LogInformation("Completed execution of {Count} indicators, {SuccessCount} successful", 
+            results.Count, results.Count(r => r.WasSuccessful));
+
+        return results;
+    }
+
+    public async Task<IndicatorExecutionResult> TestIndicatorAsync(int indicatorId, int? overrideLastMinutes = null, 
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Testing indicator {IndicatorId}", indicatorId);
+
+        // Get the indicator and temporarily override LastMinutes if provided
+        var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+        if (indicator != null && overrideLastMinutes.HasValue)
+        {
+            indicator.LastMinutes = overrideLastMinutes.Value;
+        }
+
+        // Execute without saving results
+        return await ExecuteIndicatorAsync(indicatorId, "Test", saveResults: false, cancellationToken);
+    }
+
+    public async Task<List<IndicatorExecutionResult>> ExecuteDueIndicatorsAsync(string executionContext = "Scheduled", 
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Executing due indicators with context {ExecutionContext}", executionContext);
+
+        var dueIndicators = await _indicatorService.GetDueIndicatorsAsync(cancellationToken);
+        var indicatorIds = dueIndicators.Select(i => i.IndicatorId).ToList();
+
+        _logger.LogInformation("Found {Count} due indicators for execution", indicatorIds.Count);
+
+        return await ExecuteIndicatorsAsync(indicatorIds, executionContext, saveResults: true, cancellationToken);
+    }
+
+    public async Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(int indicatorId, 
+        CancellationToken cancellationToken = default)
+    {
+        var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+        if (indicator == null)
+        {
+            return new IndicatorExecutionStatus
+            {
+                IndicatorId = indicatorId,
+                IndicatorName = "Unknown",
+                Status = "error"
+            };
+        }
+
+        return new IndicatorExecutionStatus
+        {
+            IndicatorId = indicatorId,
+            IndicatorName = indicator.IndicatorName,
+            IsCurrentlyRunning = indicator.IsCurrentlyRunning,
+            ExecutionStartTime = indicator.ExecutionStartTime,
+            ExecutionContext = indicator.ExecutionContext,
+            ExecutionDuration = indicator.GetExecutionDuration(),
+            LastRun = indicator.LastRun,
+            NextRun = indicator.GetNextRunTime(),
+            Status = GetIndicatorStatus(indicator)
+        };
+    }
+
+    public async Task<bool> CancelIndicatorExecutionAsync(int indicatorId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            if (indicator == null || !indicator.IsCurrentlyRunning)
+            {
+                return false;
+            }
+
+            indicator.CompleteExecution();
+            await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+
+            _logger.LogInformation("Cancelled execution of indicator {IndicatorId}: {IndicatorName}", 
+                indicatorId, indicator.IndicatorName);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cancel indicator execution {IndicatorId}", indicatorId);
+            return false;
+        }
+    }
+
+    public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(int indicatorId, int days = 30, 
+        CancellationToken cancellationToken = default)
+    {
+        var startDate = DateTime.UtcNow.AddDays(-days);
+        
+        var historicalData = await _context.HistoricalData
+            .Where(h => h.KpiId == indicatorId && h.Timestamp >= startDate)
+            .OrderByDescending(h => h.Timestamp)
+            .ToListAsync(cancellationToken);
+
+        return historicalData.Select(h => new IndicatorExecutionHistory
+        {
+            HistoryId = (int)h.HistoricalId,
+            IndicatorId = indicatorId,
+            ExecutionTime = h.Timestamp,
+            WasSuccessful = true, // Assume successful if in historical data
+            Value = h.Value,
+            ExecutionDuration = TimeSpan.Zero, // Not stored in current schema
+            ExecutionContext = "Unknown" // Not stored in current schema
+        }).ToList();
+    }
+
+    private static decimal GetValueByField(CollectorStatisticDto data, string field)
+    {
+        return field.ToLower() switch
+        {
+            "total" => data.Total,
+            "marked" => data.Marked,
+            "markedpercent" => data.MarkedPercent,
+            _ => data.Total
+        };
+    }
+
+    private static bool EvaluateThreshold(Core.Entities.Indicator indicator, decimal currentValue, decimal? historicalAverage)
+    {
+        var thresholdValue = indicator.ThresholdType == "volume_average" && historicalAverage.HasValue
+            ? historicalAverage.Value
+            : indicator.ThresholdValue;
+
+        return indicator.ThresholdComparison.ToLower() switch
+        {
+            "gt" => currentValue > thresholdValue,
+            "gte" => currentValue >= thresholdValue,
+            "lt" => currentValue < thresholdValue,
+            "lte" => currentValue <= thresholdValue,
+            "eq" => currentValue == thresholdValue,
+            _ => false
+        };
+    }
+
+    private static string GetIndicatorStatus(Core.Entities.Indicator indicator)
+    {
+        if (indicator.IsCurrentlyRunning)
+            return "running";
+
+        if (!indicator.IsActive)
+            return "inactive";
+
+        if (indicator.LastRun == null)
+            return "never_run";
+
+        if (indicator.IsDue())
+            return "due";
+
+        return "idle";
+    }
+
+    private static IndicatorExecutionResult CreateFailureResult(Core.Entities.Indicator? indicator, string errorMessage, 
+        TimeSpan duration, DateTime executionTime, string executionContext)
+    {
+        return new IndicatorExecutionResult
+        {
+            IndicatorId = indicator?.IndicatorId ?? 0,
+            IndicatorName = indicator?.IndicatorName ?? "Unknown",
+            WasSuccessful = false,
+            ErrorMessage = errorMessage,
+            ExecutionDuration = duration,
+            ExecutionTime = executionTime,
+            ExecutionContext = executionContext
+        };
+    }
+
+    private async Task SaveExecutionResultsAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result, 
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Update indicator last run
+            indicator.LastRun = result.ExecutionTime;
+            indicator.LastRunResult = result.WasSuccessful ? "Success" : result.ErrorMessage;
+
+            // Save historical data
+            if (result.CurrentValue.HasValue)
+            {
+                var historicalData = new HistoricalData
+                {
+                    KpiId = indicator.IndicatorId,
+                    Timestamp = result.ExecutionTime,
+                    Value = result.CurrentValue.Value,
+                    MetricKey = indicator.IndicatorName,
+                    ExecutedBy = "System",
+                    ExecutionMethod = result.ExecutionContext,
+                    IsSuccessful = result.WasSuccessful
+                };
+
+                _context.HistoricalData.Add(historicalData);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save execution results for indicator {IndicatorId}", indicator.IndicatorId);
+        }
+    }
+
+    private async Task TriggerAlertAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result, 
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Create alert log
+            var alertLog = new AlertLog
+            {
+                KpiId = indicator.IndicatorId,
+                TriggerTime = result.ExecutionTime,
+                Message = $"Indicator '{indicator.IndicatorName}' threshold breached. " +
+                         $"Current value: {result.CurrentValue}, Threshold: {result.ThresholdValue}",
+                CurrentValue = result.CurrentValue,
+                HistoricalValue = result.HistoricalAverage,
+                IsResolved = false,
+                SentTo = indicator.OwnerContact?.Email ?? "Unknown",
+                SentVia = 2 // Email
+            };
+
+            _context.AlertLogs.Add(alertLog);
+
+            // Note: Domain events will be raised by the indicator entity itself
+            // when we call UpdateIndicatorAsync, so we don't need to add them here
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogWarning("Alert triggered for indicator {IndicatorId}: {IndicatorName}, " +
+                "Value: {CurrentValue}, Threshold: {ThresholdValue}", 
+                indicator.IndicatorId, indicator.IndicatorName, result.CurrentValue, result.ThresholdValue);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to trigger alert for indicator {IndicatorId}", indicator.IndicatorId);
+        }
+    }
+
+    private static string GetSeverityFromPriority(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "high" => "Critical",
+            "medium" => "Warning",
+            "low" => "Info",
+            _ => "Warning"
+        };
+    }
+}

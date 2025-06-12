@@ -109,10 +109,14 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
 // builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile), typeof(AuthMappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile), typeof(AuthMappingProfile), typeof(IndicatorMappingProfile));
 
 // Add MediatR for CQRS and Domain Events
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(MonitoringGrid.Core.Entities.Indicator).Assembly);
+});
 
 // Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -140,6 +144,10 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add application services
 builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>(); // Keep original for now
+builder.Services.AddScoped<IIndicatorService, IndicatorService>();
+builder.Services.AddScoped<IIndicatorExecutionService, IndicatorExecutionService>();
+builder.Services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
+builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 
@@ -482,8 +490,8 @@ if (enableWorkerServices)
     builder.Services.Configure<MonitoringGrid.Worker.Configuration.WorkerConfiguration>(
         builder.Configuration.GetSection("Worker"));
 
-    // Add Worker services
-    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.KpiMonitoringWorker>();
+    // Add Worker services - using new Indicator system
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.IndicatorMonitoringWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();

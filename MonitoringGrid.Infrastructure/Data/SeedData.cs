@@ -110,29 +110,29 @@ public static class SeedData
         {
             new Config
             {
-                ConfigKey = "EmailEnabled",
-                ConfigValue = "true",
+                Key = "EmailEnabled",
+                Value = "true",
                 Description = "Enable email notifications",
                 ModifiedDate = DateTime.UtcNow
             },
             new Config
             {
-                ConfigKey = "SmsEnabled",
-                ConfigValue = "false",
+                Key = "SmsEnabled",
+                Value = "false",
                 Description = "Enable SMS notifications",
                 ModifiedDate = DateTime.UtcNow
             },
             new Config
             {
-                ConfigKey = "MaxRetryAttempts",
-                ConfigValue = "3",
+                Key = "MaxRetryAttempts",
+                Value = "3",
                 Description = "Maximum retry attempts for failed operations",
                 ModifiedDate = DateTime.UtcNow
             },
             new Config
             {
-                ConfigKey = "DefaultCooldownMinutes",
-                ConfigValue = "30",
+                Key = "DefaultCooldownMinutes",
+                Value = "30",
                 Description = "Default cooldown period between alerts",
                 ModifiedDate = DateTime.UtcNow
             }

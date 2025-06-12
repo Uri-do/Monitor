@@ -60,9 +60,9 @@ public class MonitoringHub : Hub
     {
         var groupName = $"KPI_{kpiId}";
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        
+
         _logger.LogDebug("Client {ConnectionId} joined KPI group {GroupName}", Context.ConnectionId, groupName);
-        
+
         await Clients.Caller.SendAsync("JoinedGroup", new
         {
             GroupName = groupName,
@@ -77,13 +77,47 @@ public class MonitoringHub : Hub
     {
         var groupName = $"KPI_{kpiId}";
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        
+
         _logger.LogDebug("Client {ConnectionId} left KPI group {GroupName}", Context.ConnectionId, groupName);
-        
+
         await Clients.Caller.SendAsync("LeftGroup", new
         {
             GroupName = groupName,
             Message = $"Left KPI {kpiId} monitoring group"
+        });
+    }
+
+    /// <summary>
+    /// Join a specific Indicator monitoring group
+    /// </summary>
+    public async Task JoinIndicatorGroup(int indicatorId)
+    {
+        var groupName = $"Indicator_{indicatorId}";
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} joined Indicator group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("JoinedGroup", new
+        {
+            GroupName = groupName,
+            Message = $"Joined Indicator {indicatorId} monitoring group"
+        });
+    }
+
+    /// <summary>
+    /// Leave a specific Indicator monitoring group
+    /// </summary>
+    public async Task LeaveIndicatorGroup(int indicatorId)
+    {
+        var groupName = $"Indicator_{indicatorId}";
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} left Indicator group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("LeftGroup", new
+        {
+            GroupName = groupName,
+            Message = $"Left Indicator {indicatorId} monitoring group"
         });
     }
 
@@ -168,6 +202,13 @@ public interface IRealtimeNotificationService
     Task SendCountdownUpdateAsync(CountdownUpdateDto countdown);
     Task SendNextKpiScheduleUpdateAsync(NextKpiScheduleUpdateDto schedule);
     Task SendRunningKpisUpdateAsync(RunningKpisUpdateDto runningKpis);
+
+    // Indicator real-time events
+    Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution);
+    Task SendIndicatorExecutionCompletedAsync(IndicatorExecutionCompletedDto indicatorCompletion);
+    Task SendIndicatorCountdownUpdateAsync(IndicatorCountdownUpdateDto countdown);
+    Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate);
+    Task SendIndicatorAlertAsync(IndicatorAlertDto indicatorAlert);
 }
 
 /// <summary>
@@ -396,6 +437,114 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send running KPIs update");
+        }
+    }
+
+    public async Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution)
+    {
+        try
+        {
+            _logger.LogDebug("Sending Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+
+            await _hubContext.Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionStarted", indicatorExecution);
+
+            await _hubContext.Clients.Group($"Indicator_{indicatorExecution.IndicatorId}")
+                .SendAsync("IndicatorExecutionStarted", indicatorExecution);
+
+            _logger.LogDebug("Indicator execution started notification sent for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+        }
+    }
+
+    public async Task SendIndicatorExecutionCompletedAsync(IndicatorExecutionCompletedDto indicatorCompletion)
+    {
+        try
+        {
+            _logger.LogDebug("Sending Indicator execution completed notification for Indicator {IndicatorId}", indicatorCompletion.IndicatorId);
+
+            await _hubContext.Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionCompleted", indicatorCompletion);
+
+            await _hubContext.Clients.Group($"Indicator_{indicatorCompletion.IndicatorId}")
+                .SendAsync("IndicatorExecutionCompleted", indicatorCompletion);
+
+            _logger.LogDebug("Indicator execution completed notification sent for Indicator {IndicatorId}", indicatorCompletion.IndicatorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Indicator execution completed notification for Indicator {IndicatorId}", indicatorCompletion.IndicatorId);
+        }
+    }
+
+    public async Task SendIndicatorCountdownUpdateAsync(IndicatorCountdownUpdateDto countdown)
+    {
+        try
+        {
+            _logger.LogDebug("Sending Indicator countdown update for next Indicator {IndicatorId}: {Seconds} seconds", countdown.NextIndicatorId, countdown.SecondsUntilDue);
+
+            await _hubContext.Clients.Group("Dashboard")
+                .SendAsync("IndicatorCountdownUpdate", countdown);
+
+            _logger.LogDebug("Indicator countdown update sent");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Indicator countdown update");
+        }
+    }
+
+    public async Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate)
+    {
+        try
+        {
+            _logger.LogDebug("Sending real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+
+            // Send to specific Indicator group
+            await _hubContext.Clients.Group($"Indicator_{indicatorUpdate.IndicatorId}")
+                .SendAsync("IndicatorStatusUpdate", indicatorUpdate);
+
+            // Send to dashboard if it's a significant update
+            if (indicatorUpdate.IsSignificantChange)
+            {
+                await _hubContext.Clients.Group("Dashboard")
+                    .SendAsync("DashboardIndicatorUpdate", indicatorUpdate);
+            }
+
+            _logger.LogDebug("Real-time Indicator update sent for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+        }
+    }
+
+    public async Task SendIndicatorAlertAsync(IndicatorAlertDto indicatorAlert)
+    {
+        try
+        {
+            _logger.LogDebug("Sending real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
+
+            // Send to all monitoring users
+            await _hubContext.Clients.Group("MonitoringUsers")
+                .SendAsync("IndicatorAlertTriggered", indicatorAlert);
+
+            // Send to specific Indicator group if anyone is monitoring it
+            await _hubContext.Clients.Group($"Indicator_{indicatorAlert.IndicatorId}")
+                .SendAsync("IndicatorAlert", indicatorAlert);
+
+            // Send to dashboard subscribers
+            await _hubContext.Clients.Group("Dashboard")
+                .SendAsync("DashboardIndicatorAlert", indicatorAlert);
+
+            _logger.LogInformation("Real-time Indicator alert sent for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
         }
     }
 }

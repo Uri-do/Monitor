@@ -13,13 +13,13 @@ public class ConfigConfiguration : IEntityTypeConfiguration<Config>
     {
         builder.ToTable("Config", "monitoring");
 
-        builder.HasKey(c => c.ConfigKey);
+        builder.HasKey(c => c.Key);
 
-        builder.Property(c => c.ConfigKey)
+        builder.Property(c => c.Key)
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(c => c.ConfigValue)
+        builder.Property(c => c.Value)
             .IsRequired()
             .HasMaxLength(255);
 

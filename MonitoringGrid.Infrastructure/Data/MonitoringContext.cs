@@ -16,8 +16,10 @@ public class MonitoringContext : DbContext
 
     // DbSets
     public DbSet<KPI> KPIs { get; set; }
+    public DbSet<Indicator> Indicators { get; set; }
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<KpiContact> KpiContacts { get; set; }
+    public DbSet<IndicatorContact> IndicatorContacts { get; set; }
     public DbSet<AlertLog> AlertLogs { get; set; }
     public DbSet<HistoricalData> HistoricalData { get; set; }
     public DbSet<Config> Config { get; set; }
@@ -44,8 +46,10 @@ public class MonitoringContext : DbContext
 
         // Apply configurations
         modelBuilder.ApplyConfiguration(new KpiConfiguration());
+        modelBuilder.ApplyConfiguration(new IndicatorConfiguration());
         modelBuilder.ApplyConfiguration(new ContactConfiguration());
         modelBuilder.ApplyConfiguration(new KpiContactConfiguration());
+        modelBuilder.ApplyConfiguration(new IndicatorContactConfiguration());
         modelBuilder.ApplyConfiguration(new AlertLogConfiguration());
         modelBuilder.ApplyConfiguration(new HistoricalDataConfiguration());
         modelBuilder.ApplyConfiguration(new ConfigConfiguration());
