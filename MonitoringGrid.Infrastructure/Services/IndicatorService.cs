@@ -279,7 +279,7 @@ public class IndicatorService : IIndicatorService
         var startDate = DateTime.UtcNow.AddDays(-days);
 
         var alerts = await _context.AlertLogs
-            .Where(a => a.KpiId == indicatorId && a.TriggerTime >= startDate)
+            .Where(a => a.IndicatorId == indicatorId && a.TriggerTime >= startDate)
             .ToListAsync(cancellationToken);
 
         // TODO: Implement with new IndicatorsExecutionHistory table

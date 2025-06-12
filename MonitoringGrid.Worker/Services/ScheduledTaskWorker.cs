@@ -136,19 +136,9 @@ public class CleanupJob : IJob
             var cutoffDate = DateTime.UtcNow.AddDays(-_configuration.ScheduledTasks.HistoricalDataRetentionDays);
             var logCutoffDate = DateTime.UtcNow.AddDays(-_configuration.ScheduledTasks.LogRetentionDays);
 
-            // Clean up old historical data
-            var historicalDataDeleted = await dbContext.HistoricalData
-                .Where(h => h.Timestamp < cutoffDate)
-                .ExecuteDeleteAsync();
-
-            _logger.LogInformation("Deleted {Count} old historical data records", historicalDataDeleted);
-
-            // Clean up old historical data (KPI execution results)
-            var historicalDataDeleted2 = await dbContext.HistoricalData
-                .Where(h => h.Timestamp < cutoffDate)
-                .ExecuteDeleteAsync();
-
-            _logger.LogInformation("Deleted {Count} additional old historical data records", historicalDataDeleted2);
+            // TODO: Clean up old indicator execution history when new table is implemented
+            // For now, skip historical data cleanup since HistoricalData table is obsolete
+            _logger.LogInformation("Historical data cleanup skipped - table is obsolete");
 
             // Clean up old alert logs
             var alertLogsDeleted = await dbContext.AlertLogs

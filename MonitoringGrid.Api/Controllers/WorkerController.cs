@@ -347,23 +347,23 @@ public class WorkerController : ControllerBase
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
 
-            var kpi = await context.KPIs.FindAsync(kpiId);
-            if (kpi == null)
+            var indicator = await context.Indicators.FindAsync(kpiId);
+            if (indicator == null)
             {
-                return NotFound(new { success = false, message = "KPI not found" });
+                return NotFound(new { success = false, message = "Indicator not found" });
             }
 
             // Mark as currently running
-            kpi.IsCurrentlyRunning = true;
+            indicator.IsCurrentlyRunning = true;
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("Manual execution requested for KPI {KpiId}: {Indicator}", kpiId, kpi.Indicator);
+            _logger.LogInformation("Manual execution requested for Indicator {IndicatorId}: {IndicatorName}", kpiId, indicator.IndicatorName);
 
             return Ok(new {
                 success = true,
-                message = $"KPI execution started: {kpi.Indicator}",
-                kpiId = kpiId,
-                indicator = kpi.Indicator
+                message = $"Indicator execution started: {indicator.IndicatorName}",
+                indicatorId = kpiId,
+                indicatorName = indicator.IndicatorName
             });
         }
         catch (Exception ex)
@@ -384,29 +384,29 @@ public class WorkerController : ControllerBase
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
 
-            var kpis = await context.KPIs.ToListAsync();
+            var indicators = await context.Indicators.ToListAsync();
 
-            foreach (var kpi in kpis)
+            foreach (var indicator in indicators)
             {
-                kpi.IsActive = true;
-                kpi.LastRun = null; // Reset to make them due for execution
-                kpi.IsCurrentlyRunning = false;
+                indicator.IsActive = true;
+                indicator.LastRun = null; // Reset to make them due for execution
+                indicator.IsCurrentlyRunning = false;
             }
 
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("Activated {Count} KPIs", kpis.Count);
+            _logger.LogInformation("Activated {Count} Indicators", indicators.Count);
 
             return Ok(new {
                 success = true,
-                message = $"Activated {kpis.Count} KPIs and reset their execution times",
-                activatedKpis = kpis.Select(k => new { k.KpiId, k.Indicator }).ToList()
+                message = $"Activated {indicators.Count} Indicators and reset their execution times",
+                activatedIndicators = indicators.Select(i => new { i.IndicatorID, i.IndicatorName }).ToList()
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error activating KPIs");
-            return StatusCode(500, new { success = false, message = "Failed to activate KPIs" });
+            _logger.LogError(ex, "Error activating Indicators");
+            return StatusCode(500, new { success = false, message = "Failed to activate Indicators" });
         }
     }
 

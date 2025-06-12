@@ -11,11 +11,9 @@ using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Api.Middleware;
 using MonitoringGrid.Api.Filters;
-using MonitoringGrid.Api.HealthChecks;
+
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Api.Authentication;
-using MonitoringGrid.Api.BackgroundServices;
-using MonitoringGrid.Api.Validators;
 using MonitoringGrid.Core.EventSourcing;
 using MonitoringGrid.Core.Events;
 using FluentValidation;
@@ -24,9 +22,7 @@ using OpenTelemetry.Trace;
 using Prometheus;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
-using MonitoringGrid.Core.Services;
 using MonitoringGrid.Core.Security;
-using MonitoringGrid.Core.Factories;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
@@ -147,11 +143,7 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Add domain services
-builder.Services.AddScoped<KpiDomainService>();
-
-// Add factories
-builder.Services.AddScoped<KpiFactory>();
+// Domain services and factories removed - obsolete KPI system
 
 // Add domain event publisher (MediatR-based)
 builder.Services.AddScoped<IDomainEventPublisher, MonitoringGrid.Api.Events.MediatRDomainEventPublisher>();
@@ -168,7 +160,6 @@ builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add application services
-builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>(); // Keep original for now
 builder.Services.AddScoped<IIndicatorService, IndicatorService>();
 builder.Services.AddScoped<IIndicatorExecutionService, IndicatorExecutionService>();
 builder.Services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
@@ -204,7 +195,6 @@ builder.Services.AddSingleton(new RateLimitingOptions
     EnableLogging = true,
     CleanupInterval = TimeSpan.FromMinutes(5)
 });
-builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
 
 // Add Quartz.NET scheduling services (temporarily disabled for compilation)
@@ -342,12 +332,7 @@ builder.Services.AddSwaggerGen(c =>
     c.DescribeAllParametersInCamelCase();
     c.UseInlineDefinitionsForEnums();
 
-    // Add custom schema and operation filters for examples
-    c.SchemaFilter<MonitoringGrid.Api.Documentation.SwaggerExampleSchemaFilter>();
-    c.OperationFilter<MonitoringGrid.Api.Documentation.SwaggerExampleOperationFilter>();
-
-    // Add custom operation filters for better documentation
-    c.DocumentFilter<MonitoringGrid.Api.Documentation.ApiDocumentationFilter>();
+    // Swagger filters removed - obsolete KPI examples
 });
 
 // Add JWT Authentication
@@ -508,9 +493,6 @@ builder.Services.AddSingleton<MonitoringGrid.Api.Authentication.IApiKeyService, 
 var enableWorkerServices = builder.Configuration.GetValue<bool>("Monitoring:EnableWorkerServices", false);
 if (enableWorkerServices)
 {
-    // Add Worker services directly in API (for single-process deployment)
-    builder.Services.AddScoped<MonitoringGrid.Core.Interfaces.IKpiService, MonitoringGrid.Infrastructure.Services.KpiService>();
-
     // Add Worker configuration
     builder.Services.Configure<MonitoringGrid.Worker.Configuration.WorkerConfiguration>(
         builder.Configuration.GetSection("Worker"));
@@ -518,9 +500,7 @@ if (enableWorkerServices)
     // Add Worker services - using new Indicator system
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.IndicatorMonitoringWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
-    // DISABLED: HealthCheckWorker using old KPI system causing excessive queries
-    // builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
-    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();
+    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
     // REMOVED: MonitoringGrid.Worker.Services.Worker class doesn't exist
 
     // Add Quartz for Worker services

@@ -73,9 +73,9 @@ public class AlertController : ControllerBase
             var alertDtos = alertsResult.Alerts.Select(alert => new AlertLogDto
             {
                 AlertId = alert.AlertId,
-                KpiId = alert.KpiId,
-                KpiIndicator = alert.KPI?.Indicator ?? "Unknown",
-                KpiOwner = alert.KPI?.Owner ?? "Unknown",
+                IndicatorId = alert.IndicatorId,
+                IndicatorName = alert.Indicator?.IndicatorName ?? "Unknown",
+                IndicatorOwner = alert.Indicator?.OwnerContactId.ToString() ?? "Unknown",
                 TriggerTime = alert.TriggerTime,
                 Message = alert.Message ?? "No message",
                 Details = alert.Details,
@@ -138,9 +138,9 @@ public class AlertController : ControllerBase
             var alertDto = new AlertLogDto
             {
                 AlertId = alert.AlertId,
-                KpiId = alert.KpiId,
-                KpiIndicator = alert.KPI?.Indicator ?? "Unknown",
-                KpiOwner = alert.KPI?.Owner ?? "Unknown",
+                IndicatorId = alert.IndicatorId,
+                IndicatorName = alert.Indicator?.IndicatorName ?? "Unknown",
+                IndicatorOwner = alert.Indicator?.OwnerContactId.ToString() ?? "Unknown",
                 TriggerTime = alert.TriggerTime,
                 Message = alert.Message ?? "No message",
                 Details = alert.Details,

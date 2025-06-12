@@ -19,7 +19,7 @@ public class AlertResolvedEventHandler : DomainEventNotificationHandler<AlertRes
     protected override async Task HandleDomainEvent(AlertResolvedEvent domainEvent, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling alert resolved event - Alert {AlertId} for KPI {KpiId} resolved by {ResolvedBy}",
-            domainEvent.AlertId, domainEvent.KpiId, domainEvent.ResolvedBy);
+            domainEvent.AlertId, domainEvent.IndicatorId, domainEvent.ResolvedBy);
 
         try
         {
@@ -50,7 +50,7 @@ public class AlertResolvedEventHandler : DomainEventNotificationHandler<AlertRes
     {
         _logger.LogInformation("ALERT RESOLVED - ID: {AlertId}, KPI: {KpiId}, Resolved By: {ResolvedBy}, Resolution: {Resolution}",
             domainEvent.AlertId,
-            domainEvent.KpiId,
+            domainEvent.IndicatorId,
             domainEvent.ResolvedBy,
             domainEvent.Resolution ?? "No resolution notes provided");
     }

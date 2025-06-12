@@ -41,22 +41,7 @@ public class IndicatorCountdownUpdateDto
     public string ScheduledTime { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// DTO for Indicator status update real-time event
-/// </summary>
-public class IndicatorStatusUpdateDto
-{
-    public long IndicatorID { get; set; }
-    public string IndicatorName { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-    public bool IsCurrentlyRunning { get; set; }
-    public DateTime? LastRun { get; set; }
-    public DateTime? NextRun { get; set; }
-    public string Status { get; set; } = string.Empty; // "healthy", "warning", "error", "running", "idle"
-    public decimal? LastValue { get; set; }
-    public bool IsSignificantChange { get; set; }
-    public string? ChangeReason { get; set; }
-}
+
 
 /// <summary>
 /// DTO for Indicator alert real-time event

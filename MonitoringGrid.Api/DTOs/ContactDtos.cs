@@ -14,7 +14,7 @@ public class ContactDto
     public bool IsActive { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
-    public List<KpiSummaryDto> AssignedKpis { get; set; } = new();
+    public List<IndicatorSummaryDto> AssignedIndicators { get; set; } = new();
 }
 
 /// <summary>
@@ -46,14 +46,14 @@ public class UpdateContactRequest : CreateContactRequest
 }
 
 /// <summary>
-/// KPI summary for contact assignments
+/// Indicator summary for contact assignments
 /// </summary>
-public class KpiSummaryDto
+public class IndicatorSummaryDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
-    public byte Priority { get; set; }
+    public string Priority { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 }
 
@@ -63,7 +63,7 @@ public class KpiSummaryDto
 public class ContactAssignmentRequest
 {
     public int ContactId { get; set; }
-    public List<int> KpiIds { get; set; } = new();
+    public List<long> IndicatorIds { get; set; } = new();
 }
 
 /// <summary>

@@ -31,8 +31,8 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("MonitoringGrid Worker Service started");
-        _logger.LogInformation("Configuration: KPI Monitoring Interval: {KpiInterval}s, Health Check Interval: {HealthInterval}s",
-            _configuration.KpiMonitoring.IntervalSeconds, _configuration.HealthChecks.IntervalSeconds);
+        _logger.LogInformation("Configuration: Indicator Monitoring Interval: {IndicatorInterval}s, Health Check Interval: {HealthInterval}s",
+            _configuration.IndicatorMonitoring?.IntervalSeconds ?? 60, _configuration.HealthChecks.IntervalSeconds);
 
         try
         {
@@ -92,9 +92,8 @@ public class Worker : BackgroundService
             // Check if required services are registered
             var requiredServices = new[]
             {
-                typeof(MonitoringGrid.Core.Interfaces.IKpiService),
-                typeof(MonitoringGrid.Core.Interfaces.IKpiExecutionService),
-                typeof(MonitoringGrid.Core.Interfaces.IAlertService)
+                typeof(MonitoringGrid.Core.Interfaces.IIndicatorService),
+                typeof(MonitoringGrid.Core.Interfaces.IIndicatorExecutionService)
             };
 
             foreach (var serviceType in requiredServices)
@@ -134,7 +133,7 @@ public class Worker : BackgroundService
                 workingSet, cpuTime, process.Threads.Count);
 
             // Log configuration status
-            _logger.LogDebug("Active Configuration - KPI Monitoring: {KpiEnabled}, Scheduled Tasks: {ScheduledEnabled}, Health Checks: {HealthEnabled}, Alert Processing: {AlertEnabled}",
+            _logger.LogDebug("Active Configuration - Indicator Monitoring: {IndicatorEnabled}, Scheduled Tasks: {ScheduledEnabled}, Health Checks: {HealthEnabled}, Alert Processing: {AlertEnabled}",
                 true, _configuration.ScheduledTasks.Enabled, true, true);
 
             await Task.CompletedTask;

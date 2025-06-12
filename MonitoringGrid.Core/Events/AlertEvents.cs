@@ -10,7 +10,7 @@ public record AlertTriggeredEvent : DomainEvent
     public AlertTriggeredEvent(AlertLog alert)
     {
         AlertId = (int)alert.AlertId;
-        KpiId = alert.KpiId;
+        IndicatorId = alert.IndicatorId;
         Severity = alert.GetSeverity();
         Subject = alert.Subject ?? string.Empty;
         Message = alert.Message;
@@ -20,7 +20,7 @@ public record AlertTriggeredEvent : DomainEvent
     }
 
     public int AlertId { get; init; }
-    public int KpiId { get; init; }
+    public long IndicatorId { get; init; }
     public string Severity { get; init; }
     public string Subject { get; init; }
     public string Message { get; init; }
@@ -34,16 +34,16 @@ public record AlertTriggeredEvent : DomainEvent
 /// </summary>
 public record AlertResolvedEvent : DomainEvent
 {
-    public AlertResolvedEvent(int alertId, int kpiId, string resolvedBy, string? resolution = null)
+    public AlertResolvedEvent(int alertId, long indicatorId, string resolvedBy, string? resolution = null)
     {
         AlertId = alertId;
-        KpiId = kpiId;
+        IndicatorId = indicatorId;
         ResolvedBy = resolvedBy;
         Resolution = resolution;
     }
 
     public int AlertId { get; init; }
-    public int KpiId { get; init; }
+    public long IndicatorId { get; init; }
     public string ResolvedBy { get; init; }
     public string? Resolution { get; init; }
 }
@@ -53,16 +53,16 @@ public record AlertResolvedEvent : DomainEvent
 /// </summary>
 public record AlertAcknowledgedEvent : DomainEvent
 {
-    public AlertAcknowledgedEvent(int alertId, int kpiId, string acknowledgedBy, string? notes = null)
+    public AlertAcknowledgedEvent(int alertId, long indicatorId, string acknowledgedBy, string? notes = null)
     {
         AlertId = alertId;
-        KpiId = kpiId;
+        IndicatorId = indicatorId;
         AcknowledgedBy = acknowledgedBy;
         Notes = notes;
     }
 
     public int AlertId { get; init; }
-    public int KpiId { get; init; }
+    public long IndicatorId { get; init; }
     public string AcknowledgedBy { get; init; }
     public string? Notes { get; init; }
 }
@@ -72,16 +72,16 @@ public record AlertAcknowledgedEvent : DomainEvent
 /// </summary>
 public record AlertEscalationTriggeredEvent : DomainEvent
 {
-    public AlertEscalationTriggeredEvent(int alertId, int kpiId, int escalationLevel, string reason)
+    public AlertEscalationTriggeredEvent(int alertId, long indicatorId, int escalationLevel, string reason)
     {
         AlertId = alertId;
-        KpiId = kpiId;
+        IndicatorId = indicatorId;
         EscalationLevel = escalationLevel;
         Reason = reason;
     }
 
     public int AlertId { get; init; }
-    public int KpiId { get; init; }
+    public long IndicatorId { get; init; }
     public int EscalationLevel { get; init; }
     public string Reason { get; init; }
 }
@@ -91,11 +91,11 @@ public record AlertEscalationTriggeredEvent : DomainEvent
 /// </summary>
 public record AlertNotificationSentEvent : DomainEvent
 {
-    public AlertNotificationSentEvent(int alertId, int kpiId, string channel, 
+    public AlertNotificationSentEvent(int alertId, long indicatorId, string channel,
         List<string> recipients, bool wasSuccessful, string? errorMessage = null)
     {
         AlertId = alertId;
-        KpiId = kpiId;
+        IndicatorId = indicatorId;
         Channel = channel;
         Recipients = recipients;
         WasSuccessful = wasSuccessful;
@@ -103,7 +103,7 @@ public record AlertNotificationSentEvent : DomainEvent
     }
 
     public int AlertId { get; init; }
-    public int KpiId { get; init; }
+    public long IndicatorId { get; init; }
     public string Channel { get; init; }
     public List<string> Recipients { get; init; }
     public bool WasSuccessful { get; init; }

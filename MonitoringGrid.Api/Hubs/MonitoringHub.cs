@@ -190,7 +190,7 @@ public class MonitoringHub : Hub
 public interface IRealtimeNotificationService
 {
     Task SendAlertNotificationAsync(AlertNotificationDto alert);
-    Task SendKpiUpdateAsync(KpiStatusUpdateDto kpiUpdate);
+    Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate);
     Task SendDashboardUpdateAsync(DashboardUpdateDto dashboardUpdate);
     Task SendSystemStatusAsync(SystemStatusDto systemStatus);
 
@@ -207,7 +207,7 @@ public interface IRealtimeNotificationService
     Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution);
     Task SendIndicatorExecutionCompletedAsync(IndicatorExecutionCompletedDto indicatorCompletion);
     Task SendIndicatorCountdownUpdateAsync(IndicatorCountdownUpdateDto countdown);
-    Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate);
+
     Task SendIndicatorAlertAsync(IndicatorAlertDto indicatorAlert);
 }
 
@@ -231,50 +231,50 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending real-time alert notification for KPI {KpiId}", alert.KpiId);
+            _logger.LogDebug("Sending real-time alert notification for Indicator {IndicatorId}", alert.IndicatorId);
 
             // Send to all monitoring users
             await _hubContext.Clients.Group("MonitoringUsers")
                 .SendAsync("AlertTriggered", alert);
 
             // Send to specific KPI group if anyone is monitoring it
-            await _hubContext.Clients.Group($"KPI_{alert.KpiId}")
-                .SendAsync("KpiAlert", alert);
+            await _hubContext.Clients.Group($"Indicator_{alert.IndicatorId}")
+                .SendAsync("IndicatorAlert", alert);
 
             // Send to dashboard subscribers
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("DashboardAlert", alert);
 
-            _logger.LogInformation("Real-time alert notification sent for KPI {KpiId}", alert.KpiId);
+            _logger.LogInformation("Real-time alert notification sent for Indicator {IndicatorId}", alert.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send real-time alert notification for KPI {KpiId}", alert.KpiId);
+            _logger.LogError(ex, "Failed to send real-time alert notification for Indicator {IndicatorId}", alert.IndicatorId);
         }
     }
 
-    public async Task SendKpiUpdateAsync(KpiStatusUpdateDto kpiUpdate)
+    public async Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate)
     {
         try
         {
-            _logger.LogDebug("Sending real-time KPI update for KPI {KpiId}", kpiUpdate.KpiId);
+            _logger.LogDebug("Sending real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
 
-            // Send to specific KPI group
-            await _hubContext.Clients.Group($"KPI_{kpiUpdate.KpiId}")
-                .SendAsync("KpiStatusUpdate", kpiUpdate);
+            // Send to specific Indicator group
+            await _hubContext.Clients.Group($"Indicator_{indicatorUpdate.IndicatorId}")
+                .SendAsync("IndicatorStatusUpdate", indicatorUpdate);
 
             // Send to dashboard if it's a significant update
-            if (kpiUpdate.IsSignificantChange)
+            if (indicatorUpdate.IsSignificantChange)
             {
                 await _hubContext.Clients.Group("Dashboard")
-                    .SendAsync("DashboardKpiUpdate", kpiUpdate);
+                    .SendAsync("DashboardIndicatorUpdate", indicatorUpdate);
             }
 
-            _logger.LogDebug("Real-time KPI update sent for KPI {KpiId}", kpiUpdate.KpiId);
+            _logger.LogDebug("Real-time Indicator update sent for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send real-time KPI update for KPI {KpiId}", kpiUpdate.KpiId);
+            _logger.LogError(ex, "Failed to send real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
         }
     }
 
@@ -497,30 +497,7 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         }
     }
 
-    public async Task SendIndicatorUpdateAsync(IndicatorStatusUpdateDto indicatorUpdate)
-    {
-        try
-        {
-            _logger.LogDebug("Sending real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
 
-            // Send to specific Indicator group
-            await _hubContext.Clients.Group($"Indicator_{indicatorUpdate.IndicatorID}")
-                .SendAsync("IndicatorStatusUpdate", indicatorUpdate);
-
-            // Send to dashboard if it's a significant update
-            if (indicatorUpdate.IsSignificantChange)
-            {
-                await _hubContext.Clients.Group("Dashboard")
-                    .SendAsync("DashboardIndicatorUpdate", indicatorUpdate);
-            }
-
-            _logger.LogDebug("Real-time Indicator update sent for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
-        }
-    }
 
     public async Task SendIndicatorAlertAsync(IndicatorAlertDto indicatorAlert)
     {

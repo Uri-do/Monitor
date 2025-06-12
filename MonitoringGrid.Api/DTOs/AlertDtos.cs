@@ -8,9 +8,9 @@ namespace MonitoringGrid.Api.DTOs;
 public class AlertLogDto
 {
     public long AlertId { get; set; }
-    public int KpiId { get; set; }
-    public string KpiIndicator { get; set; } = string.Empty;
-    public string KpiOwner { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
+    public string IndicatorOwner { get; set; } = string.Empty;
     public DateTime TriggerTime { get; set; }
     public string Message { get; set; } = string.Empty;
     public string? Details { get; set; }
@@ -94,7 +94,7 @@ public class AlertStatisticsDto
     public int HighPriorityAlerts { get; set; }
     public decimal AverageResolutionTimeHours { get; set; }
     public List<AlertTrendDto> DailyTrend { get; set; } = new();
-    public List<KpiAlertSummaryDto> TopAlertingKpis { get; set; } = new();
+    public List<IndicatorAlertSummaryDto> TopAlertingIndicators { get; set; } = new();
 }
 
 /// <summary>
@@ -111,12 +111,12 @@ public class AlertTrendDto
 }
 
 /// <summary>
-/// KPI alert summary
+/// Indicator alert summary
 /// </summary>
-public class KpiAlertSummaryDto
+public class IndicatorAlertSummaryDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int AlertCount { get; set; }
     public int UnresolvedCount { get; set; }
@@ -131,7 +131,7 @@ public class AlertFilterDto
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public List<int>? KpiIds { get; set; }
+    public List<long>? IndicatorIds { get; set; }
     public List<string>? Owners { get; set; }
     public bool? IsResolved { get; set; }
     public List<byte>? SentVia { get; set; }
@@ -179,7 +179,7 @@ public class AlertDashboardDto
     public int AlertsLastHour { get; set; }
     public decimal AlertTrendPercentage { get; set; }
     public List<AlertLogDto> RecentAlerts { get; set; } = new();
-    public List<KpiAlertSummaryDto> TopAlertingKpis { get; set; } = new();
+    public List<IndicatorAlertSummaryDto> TopAlertingIndicators { get; set; } = new();
     public List<AlertTrendDto> HourlyTrend { get; set; } = new();
 }
 
@@ -189,7 +189,7 @@ public class AlertDashboardDto
 public class ManualAlertRequest
 {
     [Required]
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     
     [Required]
     [StringLength(500)]
@@ -220,8 +220,8 @@ public class AlertExportRequest
 public class AlertNotificationDto
 {
     public int AlertId { get; set; }
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int Priority { get; set; }
     public decimal CurrentValue { get; set; }
@@ -235,19 +235,23 @@ public class AlertNotificationDto
 }
 
 /// <summary>
-/// DTO for real-time KPI status updates
+/// DTO for real-time Indicator status updates
 /// </summary>
-public class KpiStatusUpdateDto
+public class IndicatorStatusUpdateDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; } // For backward compatibility
+    public string IndicatorName { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTime LastRun { get; set; }
     public DateTime? NextRun { get; set; }
     public decimal? LastValue { get; set; }
     public decimal? LastDeviation { get; set; }
     public bool IsSignificantChange { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsCurrentlyRunning { get; set; }
     public string? ErrorMessage { get; set; }
+    public string? ChangeReason { get; set; }
 }
 
 /// <summary>
@@ -255,10 +259,10 @@ public class KpiStatusUpdateDto
 /// </summary>
 public class DashboardUpdateDto
 {
-    public int TotalKpis { get; set; }
-    public int ActiveKpis { get; set; }
-    public int KpisInError { get; set; }
-    public int KpisDue { get; set; }
+    public int TotalIndicators { get; set; }
+    public int ActiveIndicators { get; set; }
+    public int IndicatorsInError { get; set; }
+    public int IndicatorsDue { get; set; }
     public int AlertsToday { get; set; }
     public int AlertsThisWeek { get; set; }
     public DateTime LastUpdate { get; set; }
@@ -270,8 +274,8 @@ public class DashboardUpdateDto
 /// </summary>
 public class RecentAlertDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public DateTime TriggerTime { get; set; }
     public decimal Deviation { get; set; }
@@ -286,7 +290,7 @@ public class SystemStatusDto
     public string ServiceName { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTime LastHeartbeat { get; set; }
-    public int ProcessedKpis { get; set; }
+    public int ProcessedIndicators { get; set; }
     public int AlertsSent { get; set; }
     public string? ErrorMessage { get; set; }
     public Dictionary<string, object> AdditionalInfo { get; set; } = new();

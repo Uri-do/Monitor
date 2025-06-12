@@ -32,8 +32,8 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         if (filter.EndDate.HasValue)
             query = query.Where(a => a.TriggerTime <= filter.EndDate.Value);
 
-        if (filter.KpiIds?.Any() == true)
-            query = query.Where(a => filter.KpiIds.Contains(a.KpiId));
+        if (filter.IndicatorIds?.Any() == true)
+            query = query.Where(a => filter.IndicatorIds.Contains(a.IndicatorId));
 
         if (filter.Owners?.Any() == true)
             query = query.Where(a => filter.Owners.Contains(a.Indicator.OwnerContactId.ToString()));
@@ -118,11 +118,11 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
             .OrderBy(t => t.Date)
             .ToList();
 
-        var topAlertingKpis = alerts
-            .GroupBy(a => new { a.KpiId, a.Indicator.IndicatorName, a.Indicator.OwnerContactId })
-            .Select(g => new KpiAlertSummary
+        var topAlertingIndicators = alerts
+            .GroupBy(a => new { a.IndicatorId, a.Indicator.IndicatorName, a.Indicator.OwnerContactId })
+            .Select(g => new IndicatorAlertSummary
             {
-                KpiId = g.Key.KpiId,
+                IndicatorId = g.Key.IndicatorId,
                 Indicator = g.Key.IndicatorName,
                 Owner = g.Key.OwnerContactId.ToString(),
                 AlertCount = g.Count(),
@@ -151,7 +151,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
             HighPriorityAlerts = alerts.Count(a => a.DeviationPercent >= 25),
             AverageResolutionTimeHours = (decimal)averageResolutionTime,
             DailyTrend = dailyTrend,
-            TopAlertingKpis = topAlertingKpis
+            TopAlertingIndicators = topAlertingIndicators
         };
     }
 
@@ -206,12 +206,12 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         };
     }
 
-    public async Task<IEnumerable<AlertLog>> GetAlertsByKpiAsync(int kpiId, int days = 30)
+    public async Task<IEnumerable<AlertLog>> GetAlertsByIndicatorAsync(long indicatorId, int days = 30)
     {
         var startDate = DateTime.UtcNow.AddDays(-days);
         return await _dbSet
             .Include(a => a.Indicator)
-            .Where(a => a.KpiId == kpiId && a.TriggerTime >= startDate)
+            .Where(a => a.IndicatorId == indicatorId && a.TriggerTime >= startDate)
             .OrderByDescending(a => a.TriggerTime)
             .ToListAsync();
     }

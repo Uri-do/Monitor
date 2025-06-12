@@ -19,7 +19,7 @@ public class AlertTriggeredEventHandler : DomainEventNotificationHandler<AlertTr
     protected override async Task HandleDomainEvent(AlertTriggeredEvent domainEvent, CancellationToken cancellationToken)
     {
         _logger.LogWarning("Handling alert triggered event - Alert {AlertId} for KPI {KpiId}, Severity: {Severity}",
-            domainEvent.AlertId, domainEvent.KpiId, domainEvent.Severity);
+            domainEvent.AlertId, domainEvent.IndicatorId, domainEvent.Severity);
 
         try
         {
@@ -48,7 +48,7 @@ public class AlertTriggeredEventHandler : DomainEventNotificationHandler<AlertTr
         _logger.LogWarning("ALERT TRIGGERED - ID: {AlertId}, KPI: {KpiId}, Severity: {Severity}, " +
             "Current: {CurrentValue}, Historical: {HistoricalValue}, Deviation: {Deviation:F2}%",
             domainEvent.AlertId,
-            domainEvent.KpiId,
+            domainEvent.IndicatorId,
             domainEvent.Severity,
             domainEvent.CurrentValue,
             domainEvent.HistoricalValue,

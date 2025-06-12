@@ -47,7 +47,7 @@ public class AlertsByDateRangeSpecification : BaseSpecification<AlertLog>
 public class AlertsByIndicatorSpecification : BaseSpecification<AlertLog>
 {
     public AlertsByIndicatorSpecification(int indicatorId)
-        : base(a => a.KpiId == indicatorId)
+        : base(a => a.IndicatorId == indicatorId)
     {
         AddInclude(a => a.Indicator);
         ApplyOrderByDescending(a => a.TriggerTime);

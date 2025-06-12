@@ -66,17 +66,17 @@ MonitoringGrid/
 
 > **Note**: The API has been restructured into a clean, domain-driven architecture with 4 consolidated controllers.
 
-### 🎯 KPI Management Hub (`/api/kpi/*`)
-**Core KPI Operations:**
-- `GET /api/kpi` - Get all KPIs with filtering
-- `GET /api/kpi/{id}` - Get KPI by ID
-- `POST /api/kpi` - Create new KPI
-- `PUT /api/kpi/{id}` - Update KPI
-- `DELETE /api/kpi/{id}` - Delete KPI
-- `POST /api/kpi/{id}/execute` - Execute KPI manually
-- `GET /api/kpi/dashboard` - Get KPI dashboard data
-- `GET /api/kpi/{id}/metrics` - Get KPI metrics and trends
-- `POST /api/kpi/bulk` - Bulk operations on KPIs
+### 🎯 Indicator Management Hub (`/api/indicator/*`)
+**Core Indicator Operations:**
+- `GET /api/indicator` - Get all Indicators with filtering
+- `GET /api/indicator/{id}` - Get Indicator by ID
+- `POST /api/indicator` - Create new Indicator
+- `PUT /api/indicator/{id}` - Update Indicator
+- `DELETE /api/indicator/{id}` - Delete Indicator
+- `POST /api/indicator/{id}/execute` - Execute Indicator manually
+- `GET /api/indicator/dashboard` - Get Indicator dashboard data
+- `GET /api/indicator/{id}/metrics` - Get Indicator metrics and trends
+- `POST /api/indicator/bulk` - Bulk operations on Indicators
 
 **Alert Management (KPI-related):**
 - `GET /api/kpi/alerts` - Get KPI alerts with filtering

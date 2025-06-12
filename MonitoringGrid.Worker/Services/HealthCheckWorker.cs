@@ -152,96 +152,42 @@ public class KpiExecutionHealthCheck : IHealthCheck
         try
         {
             using var scope = _serviceProvider.CreateScope();
-            var kpiService = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Core.Interfaces.IKpiService>();
+            var indicatorService = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Core.Interfaces.IIndicatorService>();
 
-            // Check if we can retrieve KPIs
-            var kpis = await kpiService.GetAllKpisAsync(cancellationToken);
-            var activeKpis = kpis.Count(k => k.IsActive);
-            var totalKpis = kpis.Count;
+            // Check if we can retrieve Indicators
+            var indicators = await indicatorService.GetAllIndicatorsAsync(cancellationToken);
+            var activeIndicators = indicators.Count(i => i.IsActive);
+            var totalIndicators = indicators.Count();
 
             // Check for recent executions
-            var recentExecutions = kpis.Count(k => k.LastRun.HasValue && k.LastRun.Value > DateTime.UtcNow.AddHours(-1));
+            var recentExecutions = indicators.Count(i => i.LastRun.HasValue && i.LastRun.Value > DateTime.UtcNow.AddHours(-1));
 
             var data = new Dictionary<string, object>
             {
-                ["total_kpis"] = totalKpis,
-                ["active_kpis"] = activeKpis,
+                ["total_indicators"] = totalIndicators,
+                ["active_indicators"] = activeIndicators,
                 ["recent_executions"] = recentExecutions,
                 ["last_check"] = DateTime.UtcNow
             };
 
-            if (totalKpis == 0)
+            if (totalIndicators == 0)
             {
-                return HealthCheckResult.Degraded("No KPIs configured", data: data);
+                return HealthCheckResult.Degraded("No Indicators configured", data: data);
             }
 
-            if (activeKpis == 0)
+            if (activeIndicators == 0)
             {
-                return HealthCheckResult.Degraded("No active KPIs found", data: data);
+                return HealthCheckResult.Degraded("No active Indicators found", data: data);
             }
 
-            return HealthCheckResult.Healthy($"KPI execution system operational. {activeKpis}/{totalKpis} KPIs active, {recentExecutions} recent executions", data);
+            return HealthCheckResult.Healthy($"Indicator execution system operational. {activeIndicators}/{totalIndicators} Indicators active, {recentExecutions} recent executions", data);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "KPI execution health check failed");
-            return HealthCheckResult.Unhealthy("KPI execution system unavailable", ex);
+            _logger.LogError(ex, "Indicator execution health check failed");
+            return HealthCheckResult.Unhealthy("Indicator execution system unavailable", ex);
         }
     }
 }
 
-/// <summary>
-/// Health check for alert processing functionality
-/// </summary>
-public class AlertProcessingHealthCheck : IHealthCheck
-{
-    private readonly ILogger<AlertProcessingHealthCheck> _logger;
-    private readonly IServiceProvider _serviceProvider;
 
-    public AlertProcessingHealthCheck(
-        ILogger<AlertProcessingHealthCheck> logger,
-        IServiceProvider serviceProvider)
-    {
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
-
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var alertService = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Core.Interfaces.IAlertService>();
-
-            // Check if we can retrieve alerts from database directly
-            var dbContext = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
-            var cutoffTime = DateTime.UtcNow.AddHours(-24);
-
-            var recentAlerts = await dbContext.AlertLogs
-                .Where(a => a.TriggerTime >= cutoffTime)
-                .ToListAsync(cancellationToken);
-
-            var activeAlerts = recentAlerts.Count(a => !a.IsResolved);
-            var totalRecentAlerts = recentAlerts.Count;
-
-            var data = new Dictionary<string, object>
-            {
-                ["active_alerts"] = activeAlerts,
-                ["total_recent_alerts"] = totalRecentAlerts,
-                ["last_check"] = DateTime.UtcNow
-            };
-
-            if (activeAlerts > 100)
-            {
-                return HealthCheckResult.Degraded($"High number of active alerts: {activeAlerts}", data: data);
-            }
-
-            return HealthCheckResult.Healthy($"Alert processing system operational. {activeAlerts} active alerts, {totalRecentAlerts} recent alerts", data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Alert processing health check failed");
-            return HealthCheckResult.Unhealthy("Alert processing system unavailable", ex);
-        }
-    }
-}

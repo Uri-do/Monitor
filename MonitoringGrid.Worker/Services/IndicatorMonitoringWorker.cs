@@ -60,7 +60,7 @@ public class IndicatorMonitoringWorker : BackgroundService
                 _logger.LogError(ex, "Error occurred during Indicator monitoring cycle");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(_configuration.KpiMonitoring.IntervalSeconds), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.IntervalSeconds), stoppingToken);
         }
 
         // Cleanup
@@ -95,7 +95,7 @@ public class IndicatorMonitoringWorker : BackgroundService
             _logger.LogInformation("Found {Count} Indicators due for execution", dueIndicators.Count);
 
             // Process Indicators in parallel with configured concurrency limit
-            var semaphore = new SemaphoreSlim(_configuration.KpiMonitoring.MaxParallelKpis);
+            var semaphore = new SemaphoreSlim(_configuration.IndicatorMonitoring.MaxParallelIndicators);
             var tasks = dueIndicators.Select(async indicator =>
             {
                 await semaphore.WaitAsync(cancellationToken);
@@ -128,11 +128,11 @@ public class IndicatorMonitoringWorker : BackgroundService
         var filteredIndicators = dueIndicators.Where(indicator =>
         {
             // Only process active Indicators if configured
-            if (_configuration.KpiMonitoring.ProcessOnlyActiveKpis && !indicator.IsActive)
+            if (_configuration.IndicatorMonitoring.ProcessOnlyActiveIndicators && !indicator.IsActive)
                 return false;
 
             // Skip Indicators that are currently running if configured
-            if (_configuration.KpiMonitoring.SkipRunningKpis && indicator.IsCurrentlyRunning)
+            if (_configuration.IndicatorMonitoring.SkipRunningIndicators && indicator.IsCurrentlyRunning)
                 return false;
 
             return true;
@@ -153,7 +153,7 @@ public class IndicatorMonitoringWorker : BackgroundService
             await BroadcastIndicatorExecutionStartedAsync(indicator);
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_configuration.KpiMonitoring.ExecutionTimeoutSeconds));
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.ExecutionTimeoutSeconds));
 
             var result = await indicatorExecutionService.ExecuteIndicatorAsync(
                 indicator.IndicatorID,

@@ -24,9 +24,9 @@ public interface IAlertRepository : IRepository<AlertLog>
     Task<AlertDashboard> GetDashboardAsync();
 
     /// <summary>
-    /// Get alerts for a specific KPI
+    /// Get alerts for a specific Indicator
     /// </summary>
-    Task<IEnumerable<AlertLog>> GetAlertsByKpiAsync(int kpiId, int days = 30);
+    Task<IEnumerable<AlertLog>> GetAlertsByIndicatorAsync(long indicatorId, int days = 30);
 
     /// <summary>
     /// Get unresolved alerts count

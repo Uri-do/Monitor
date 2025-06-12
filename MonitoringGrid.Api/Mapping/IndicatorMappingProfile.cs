@@ -32,8 +32,7 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
             .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore());
+            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore());
 
         CreateMap<UpdateIndicatorRequest, Indicator>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
@@ -47,8 +46,7 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
             .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore());
+            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore());
 
         // Indicator execution result mappings
         CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();

@@ -46,18 +46,16 @@ builder.Services.Configure<MonitoringGrid.Core.Models.MonitoringConfiguration>(
     builder.Configuration.GetSection("Monitoring"));
 
 // Core Services
-builder.Services.AddScoped<IKpiService, MonitoringGrid.Infrastructure.Services.KpiService>();
-builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
+builder.Services.AddScoped<IIndicatorService, MonitoringGrid.Infrastructure.Services.IndicatorService>();
+builder.Services.AddScoped<IIndicatorExecutionService, MonitoringGrid.Infrastructure.Services.IndicatorExecutionService>();
 builder.Services.AddScoped<IEmailService, MonitoringGrid.Infrastructure.Services.EmailService>();
 builder.Services.AddScoped<ISmsService, MonitoringGrid.Infrastructure.Services.SmsService>();
-builder.Services.AddScoped<IAlertService, AlertService>();
-builder.Services.AddScoped<IRepository<MonitoringGrid.Core.Entities.KPI>, MonitoringGrid.Infrastructure.Repositories.Repository<MonitoringGrid.Core.Entities.KPI>>();
+builder.Services.AddScoped<IRepository<MonitoringGrid.Core.Entities.Indicator>, MonitoringGrid.Infrastructure.Repositories.Repository<MonitoringGrid.Core.Entities.Indicator>>();
 
 // Worker Services
-builder.Services.AddHostedService<KpiMonitoringWorker>();
+builder.Services.AddHostedService<IndicatorMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledTaskWorker>();
 builder.Services.AddHostedService<HealthCheckWorker>();
-builder.Services.AddHostedService<AlertProcessingWorker>();
 
 // Quartz Scheduling
 builder.Services.AddQuartz(q =>
@@ -75,9 +73,7 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Health Checks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<MonitoringContext>("database")
-    .AddCheck<KpiExecutionHealthCheck>("kpi-execution")
-    .AddCheck<AlertProcessingHealthCheck>("alert-processing");
+    .AddDbContextCheck<MonitoringContext>("database");
 
 // Resilience Policies
 builder.Services.AddResiliencePipeline("default", builder =>

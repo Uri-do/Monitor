@@ -15,7 +15,7 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
 
         builder.HasKey(a => a.AlertId);
 
-        builder.Property(a => a.KpiId)
+        builder.Property(a => a.IndicatorId)
             .IsRequired();
 
         builder.Property(a => a.TriggerTime)
@@ -69,8 +69,8 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.Ignore(a => a.AlertLogId);
 
         // Indexes
-        builder.HasIndex(a => a.KpiId)
-            .HasDatabaseName("IX_AlertLogs_KpiId");
+        builder.HasIndex(a => a.IndicatorId)
+            .HasDatabaseName("IX_AlertLogs_IndicatorId");
 
         builder.HasIndex(a => a.TriggerTime)
             .HasDatabaseName("IX_AlertLogs_TriggerTime");
@@ -78,8 +78,8 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.HasIndex(a => a.IsResolved)
             .HasDatabaseName("IX_AlertLogs_IsResolved");
 
-        builder.HasIndex(a => new { a.KpiId, a.TriggerTime })
-            .HasDatabaseName("IX_AlertLogs_KpiId_TriggerTime");
+        builder.HasIndex(a => new { a.IndicatorId, a.TriggerTime })
+            .HasDatabaseName("IX_AlertLogs_IndicatorId_TriggerTime");
 
         // Check constraint for SentVia
         builder.ToTable(t => t.HasCheckConstraint("CK_AlertLogs_SentVia", "SentVia IN (1, 2, 3)"));

@@ -10,9 +10,9 @@ public class WorkerConfiguration
     public const string SectionName = "Worker";
 
     /// <summary>
-    /// KPI monitoring configuration
+    /// Indicator monitoring configuration
     /// </summary>
-    public KpiMonitoringConfiguration KpiMonitoring { get; set; } = new();
+    public IndicatorMonitoringConfiguration IndicatorMonitoring { get; set; } = new();
 
     /// <summary>
     /// Scheduled task configuration
@@ -41,37 +41,37 @@ public class WorkerConfiguration
 }
 
 /// <summary>
-/// KPI monitoring specific configuration
+/// Indicator monitoring specific configuration
 /// </summary>
-public class KpiMonitoringConfiguration
+public class IndicatorMonitoringConfiguration
 {
     /// <summary>
-    /// Interval between KPI monitoring cycles in seconds
+    /// Interval between Indicator monitoring cycles in seconds
     /// </summary>
     [Range(10, 3600)]
     public int IntervalSeconds { get; set; } = 60;
 
     /// <summary>
-    /// Maximum number of KPIs to process in parallel
+    /// Maximum number of Indicators to process in parallel
     /// </summary>
     [Range(1, 50)]
-    public int MaxParallelKpis { get; set; } = 5;
+    public int MaxParallelIndicators { get; set; } = 5;
 
     /// <summary>
-    /// Timeout for individual KPI execution in seconds
+    /// Timeout for individual Indicator execution in seconds
     /// </summary>
     [Range(30, 1800)]
     public int ExecutionTimeoutSeconds { get; set; } = 300;
 
     /// <summary>
-    /// Whether to process only active KPIs
+    /// Whether to process only active Indicators
     /// </summary>
-    public bool ProcessOnlyActiveKpis { get; set; } = true;
+    public bool ProcessOnlyActiveIndicators { get; set; } = true;
 
     /// <summary>
-    /// Whether to skip KPIs that are currently running
+    /// Whether to skip Indicators that are currently running
     /// </summary>
-    public bool SkipRunningKpis { get; set; } = true;
+    public bool SkipRunningIndicators { get; set; } = true;
 }
 
 /// <summary>
@@ -124,9 +124,9 @@ public class HealthCheckConfiguration
     public bool CheckDatabase { get; set; } = true;
 
     /// <summary>
-    /// Whether to perform KPI execution health checks
+    /// Whether to perform Indicator execution health checks
     /// </summary>
-    public bool CheckKpiExecution { get; set; } = true;
+    public bool CheckIndicatorExecution { get; set; } = true;
 
     /// <summary>
     /// Whether to perform alert processing health checks

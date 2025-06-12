@@ -7,7 +7,7 @@ public class AlertFilter
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public List<int>? KpiIds { get; set; }
+    public List<long>? IndicatorIds { get; set; }
     public List<string>? Owners { get; set; }
     public bool? IsResolved { get; set; }
     public List<string>? SentVia { get; set; }
@@ -49,7 +49,7 @@ public class AlertStatistics
     public int HighPriorityAlerts { get; set; }
     public decimal AverageResolutionTimeHours { get; set; }
     public List<AlertTrend> DailyTrend { get; set; } = new();
-    public List<KpiAlertSummary> TopAlertingKpis { get; set; } = new();
+    public List<IndicatorAlertSummary> TopAlertingIndicators { get; set; } = new();
 }
 
 /// <summary>
@@ -79,11 +79,11 @@ public class AlertTrend
 }
 
 /// <summary>
-/// KPI alert summary
+/// Indicator alert summary
 /// </summary>
-public class KpiAlertSummary
+public class IndicatorAlertSummary
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public string Indicator { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int AlertCount { get; set; }

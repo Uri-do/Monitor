@@ -21,7 +21,7 @@ public class MonitoringContext : DbContext
     public DbSet<AlertLog> AlertLogs { get; set; }
     public DbSet<Config> Config { get; set; }
     public DbSet<SystemStatus> SystemStatus { get; set; }
-    public DbSet<KpiType> KpiTypes { get; set; }
+
     public DbSet<ScheduledJob> ScheduledJobs { get; set; }
 
     // Authentication DbSets

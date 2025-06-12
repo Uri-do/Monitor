@@ -1,5 +1,5 @@
 using AutoMapper;
-using MonitoringGrid.Api.CQRS.Commands.Kpi;
+
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
@@ -14,98 +14,26 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // KPI mappings
-        CreateMap<KPI, KpiDto>()
-            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.Contact)))
-            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => DeserializeScheduleConfiguration(src.ScheduleConfiguration)));
-
-        CreateMap<MonitoringGrid.Api.DTOs.CreateKpiRequest, KPI>()
-            .ForMember(dest => dest.KpiId, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
-            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
-
-        CreateMap<MonitoringGrid.Api.DTOs.UpdateKpiRequest, KPI>()
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
-            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
-
-        CreateMap<UpdateKpiCommand, KPI>()
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.HistoricalData, opt => opt.Ignore())
-            .ForMember(dest => dest.ScheduleConfiguration, opt => opt.MapFrom(src => SerializeScheduleConfiguration(src.ScheduleConfiguration)));
-
-        CreateMap<KpiExecutionResult, KpiExecutionResultDto>()
-            .ForMember(dest => dest.KpiId, opt => opt.Ignore())
-            .ForMember(dest => dest.Indicator, opt => opt.Ignore())
-            .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => DateTime.UtcNow));
-
-        // Enhanced execution result mappings
-        CreateMap<ExecutionTimingInfo, ExecutionTimingInfoDto>();
-        CreateMap<DatabaseExecutionInfo, DatabaseExecutionInfoDto>();
-        CreateMap<ExecutionStepInfo, ExecutionStepInfoDto>();
-
-        CreateMap<KPI, KpiStatusDto>()
-            .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src =>
-                src.LastRun.HasValue ? src.LastRun.Value.AddMinutes(src.Frequency) : (DateTime?)null))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => GetKpiStatus(src)))
-            .ForMember(dest => dest.LastAlert, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertsToday, opt => opt.Ignore())
-            .ForMember(dest => dest.LastCurrentValue, opt => opt.Ignore())
-            .ForMember(dest => dest.LastHistoricalValue, opt => opt.Ignore())
-            .ForMember(dest => dest.LastDeviation, opt => opt.Ignore())
-            .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.MapFrom(src => src.IsCurrentlyRunning))
-            .ForMember(dest => dest.ExecutionStartTime, opt => opt.MapFrom(src => src.ExecutionStartTime))
-            .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => src.ExecutionContext))
-            .ForMember(dest => dest.ExecutionDurationSeconds, opt => opt.MapFrom(src =>
-                src.IsCurrentlyRunning && src.ExecutionStartTime.HasValue ?
-                (int?)(DateTime.UtcNow - src.ExecutionStartTime.Value).TotalSeconds : null));
-
-        CreateMap<KPI, KpiSummaryDto>();
-
         // Contact mappings
         CreateMap<Contact, ContactDto>()
-            .ForMember(dest => dest.AssignedKpis, opt => opt.MapFrom(src => src.KpiContacts.Select(kc => kc.KPI)));
+            .ForMember(dest => dest.AssignedIndicators, opt => opt.MapFrom(src => src.IndicatorContacts.Count))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<MonitoringGrid.Api.DTOs.CreateContactRequest, Contact>()
             .ForMember(dest => dest.ContactId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore());
+            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
 
         CreateMap<MonitoringGrid.Api.DTOs.UpdateContactRequest, Contact>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.KpiContacts, opt => opt.Ignore());
+            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
 
         // Alert mappings
         CreateMap<AlertLog, AlertLogDto>()
-            .ForMember(dest => dest.KpiIndicator, opt => opt.MapFrom(src => src.KPI.Indicator))
-            .ForMember(dest => dest.KpiOwner, opt => opt.MapFrom(src => src.KPI.Owner));
-
-        // Historical data mappings
-        CreateMap<HistoricalData, KpiTrendDataDto>()
-            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value))
-            .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => src.Timestamp))
-            .ForMember(dest => dest.MetricKey, opt => opt.MapFrom(src => src.MetricKey))
-            .ForMember(dest => dest.Period, opt => opt.MapFrom(src => src.Period));
-
-        CreateMap<HistoricalData, KpiExecutionStatusDto>()
-            .ForMember(dest => dest.KpiId, opt => opt.MapFrom(src => src.KpiId))
-            .ForMember(dest => dest.Indicator, opt => opt.Ignore()) // Will be set manually
-            .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => src.Timestamp))
-            .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Value))
-            .ForMember(dest => dest.IsSuccessful, opt => opt.MapFrom(src => src.IsSuccessful))
-            .ForMember(dest => dest.ExecutionTimeMs, opt => opt.MapFrom(src => src.ExecutionTimeMs ?? 0));
+            .ForMember(dest => dest.IndicatorName, opt => opt.MapFrom(src => src.Indicator.IndicatorName))
+            .ForMember(dest => dest.IndicatorOwner, opt => opt.MapFrom(src => src.Indicator.OwnerContactId.ToString()));
 
         // System status mappings
         CreateMap<SystemStatus, SystemStatusDto>();
@@ -123,38 +51,14 @@ public class MappingProfile : Profile
 
         CreateMap<AlertStatistics, AlertStatisticsDto>();
         CreateMap<AlertTrend, AlertTrendDto>();
-        CreateMap<KpiAlertSummary, KpiAlertSummaryDto>();
+        // IndicatorAlertSummary mapping removed - entity not defined
 
         CreateMap<AlertDashboard, AlertDashboardDto>()
             .ForMember(dest => dest.RecentAlerts, opt => opt.Ignore())
-            .ForMember(dest => dest.TopAlertingKpis, opt => opt.Ignore());
+            .ForMember(dest => dest.TopAlertingIndicators, opt => opt.Ignore());
     }
 
-    /// <summary>
-    /// Determines KPI status based on its properties
-    /// </summary>
-    private static string GetKpiStatus(KPI kpi)
-    {
-        if (!kpi.IsActive)
-            return "Inactive";
 
-        if (kpi.IsCurrentlyRunning)
-            return "Running";
-
-        if (!kpi.LastRun.HasValue)
-            return "Never Run";
-
-        var nextRun = kpi.LastRun.Value.AddMinutes(kpi.Frequency);
-        var now = DateTime.UtcNow;
-
-        if (nextRun <= now)
-            return "Due";
-
-        if (nextRun <= now.AddMinutes(5))
-            return "Due Soon";
-
-        return "Scheduled";
-    }
 
     /// <summary>
     /// Helper method to deserialize schedule configuration from JSON string
@@ -203,7 +107,7 @@ public class SystemStatusDto
     public DateTime LastHeartbeat { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? ErrorMessage { get; set; }
-    public int ProcessedKpis { get; set; }
+    public int ProcessedIndicators { get; set; }
     public int AlertsSent { get; set; }
     public TimeSpan TimeSinceLastHeartbeat => DateTime.UtcNow - LastHeartbeat;
     public bool IsHealthy => TimeSinceLastHeartbeat.TotalMinutes < 5 && Status == "Running";
