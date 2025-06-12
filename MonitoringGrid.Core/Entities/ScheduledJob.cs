@@ -105,9 +105,9 @@ public class ScheduledJob
 
     // Navigation properties
     /// <summary>
-    /// The KPI that this scheduled job will execute.
+    /// The Indicator that this scheduled job will execute.
     /// </summary>
-    public virtual KPI KPI { get; set; } = null!;
+    public virtual Indicator Indicator { get; set; } = null!;
 
     // Domain methods
     /// <summary>

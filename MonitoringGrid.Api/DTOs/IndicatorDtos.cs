@@ -8,11 +8,11 @@ namespace MonitoringGrid.Api.DTOs;
 /// </summary>
 public class IndicatorDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string IndicatorCode { get; set; } = string.Empty;
     public string? IndicatorDesc { get; set; }
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
     public string CollectorItemName { get; set; } = string.Empty;
     public string ScheduleConfiguration { get; set; } = string.Empty;
     public bool IsActive { get; set; }
@@ -56,7 +56,7 @@ public class CreateIndicatorRequest
     public string? IndicatorDesc { get; set; }
 
     [Required]
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -102,7 +102,7 @@ public class CreateIndicatorRequest
 /// </summary>
 public class UpdateIndicatorRequest : CreateIndicatorRequest
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
 }
 
 /// <summary>
@@ -110,7 +110,7 @@ public class UpdateIndicatorRequest : CreateIndicatorRequest
 /// </summary>
 public class ExecuteIndicatorRequest
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string ExecutionContext { get; set; } = "Manual";
     public bool SaveResults { get; set; } = true;
 }
@@ -120,7 +120,7 @@ public class ExecuteIndicatorRequest
 /// </summary>
 public class TestIndicatorRequest
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public int? OverrideLastMinutes { get; set; }
 }
 
@@ -129,7 +129,7 @@ public class TestIndicatorRequest
 /// </summary>
 public class BulkIndicatorOperationRequest
 {
-    public List<long> IndicatorIds { get; set; } = new();
+    public List<long> IndicatorIDs { get; set; } = new();
     public string Operation { get; set; } = string.Empty; // "activate", "deactivate", "delete", "execute"
     public string? ExecutionContext { get; set; }
 }
@@ -159,7 +159,7 @@ public class IndicatorFilterRequest
 /// </summary>
 public class IndicatorExecutionResultDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool WasSuccessful { get; set; }
     public decimal? CurrentValue { get; set; }
@@ -193,7 +193,7 @@ public class IndicatorDashboardDto
 /// </summary>
 public class IndicatorExecutionSummaryDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public DateTime ExecutionTime { get; set; }
     public bool WasSuccessful { get; set; }
@@ -218,7 +218,7 @@ public class IndicatorCountByPriorityDto
 /// </summary>
 public class IndicatorStatusDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsCurrentlyRunning { get; set; }
@@ -233,7 +233,7 @@ public class IndicatorStatusDto
 /// </summary>
 public class IndicatorStatisticsDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public int TotalExecutions { get; set; }
     public int SuccessfulExecutions { get; set; }

@@ -66,7 +66,7 @@ public interface IIndicatorService
     /// <summary>
     /// Get indicator execution history
     /// </summary>
-    Task<List<HistoricalData>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default);
+    Task<List<IndicatorValueTrend>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get indicator dashboard data

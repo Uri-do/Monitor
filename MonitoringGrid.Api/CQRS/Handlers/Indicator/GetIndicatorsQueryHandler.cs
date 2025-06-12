@@ -62,7 +62,7 @@ public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Res
 
             if (request.CollectorId.HasValue)
             {
-                indicators = indicators.Where(i => i.CollectorId == request.CollectorId.Value).ToList();
+                indicators = indicators.Where(i => i.CollectorID == request.CollectorId.Value).ToList();
             }
 
             if (!string.IsNullOrEmpty(request.ThresholdType))

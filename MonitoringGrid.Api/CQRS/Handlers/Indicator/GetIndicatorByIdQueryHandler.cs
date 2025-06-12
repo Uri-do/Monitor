@@ -43,8 +43,8 @@ public class GetIndicatorByIdQueryHandler : IRequestHandler<GetIndicatorByIdQuer
 
             var indicatorDto = _mapper.Map<IndicatorDto>(indicator);
 
-            _logger.LogDebug("Successfully retrieved indicator {IndicatorId}: {IndicatorName}", 
-                indicator.IndicatorId, indicator.IndicatorName);
+            _logger.LogDebug("Successfully retrieved indicator {IndicatorId}: {IndicatorName}",
+                indicator.IndicatorID, indicator.IndicatorName);
 
             return Result<IndicatorDto>.Success(indicatorDto);
         }

@@ -22,7 +22,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         filter.PageSize = Math.Max(1, Math.Min(100, filter.PageSize)); // Limit to max 100 items per page
 
         var query = _dbSet
-            .Include(a => a.KPI)
+            .Include(a => a.Indicator)
             .AsQueryable();
 
         // Apply filters
@@ -36,7 +36,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
             query = query.Where(a => filter.KpiIds.Contains(a.KpiId));
 
         if (filter.Owners?.Any() == true)
-            query = query.Where(a => filter.Owners.Contains(a.KPI.Owner));
+            query = query.Where(a => filter.Owners.Contains(a.Indicator.OwnerContactId.ToString()));
 
         if (filter.IsResolved.HasValue)
             query = query.Where(a => a.IsResolved == filter.IsResolved.Value);
@@ -65,7 +65,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
 
         if (!string.IsNullOrEmpty(filter.SearchText))
             query = query.Where(a => a.Message.Contains(filter.SearchText) ||
-                                   a.KPI.Indicator.Contains(filter.SearchText));
+                                   a.Indicator.IndicatorName.Contains(filter.SearchText));
 
         // Get total count before pagination
         var totalCount = await query.CountAsync();
@@ -100,7 +100,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         var today = now.Date;
 
         var alerts = await _dbSet
-            .Include(a => a.KPI)
+            .Include(a => a.Indicator)
             .Where(a => a.TriggerTime >= startDate)
             .ToListAsync();
 
@@ -119,12 +119,12 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
             .ToList();
 
         var topAlertingKpis = alerts
-            .GroupBy(a => new { a.KpiId, a.KPI.Indicator, a.KPI.Owner })
+            .GroupBy(a => new { a.KpiId, a.Indicator.IndicatorName, a.Indicator.OwnerContactId })
             .Select(g => new KpiAlertSummary
             {
                 KpiId = g.Key.KpiId,
-                Indicator = g.Key.Indicator,
-                Owner = g.Key.Owner,
+                Indicator = g.Key.IndicatorName,
+                Owner = g.Key.OwnerContactId.ToString(),
                 AlertCount = g.Count(),
                 UnresolvedCount = g.Count(a => !a.IsResolved),
                 LastAlert = g.Max(a => a.TriggerTime),
@@ -210,7 +210,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
     {
         var startDate = DateTime.UtcNow.AddDays(-days);
         return await _dbSet
-            .Include(a => a.KPI)
+            .Include(a => a.Indicator)
             .Where(a => a.KpiId == kpiId && a.TriggerTime >= startDate)
             .OrderByDescending(a => a.TriggerTime)
             .ToListAsync();
@@ -268,8 +268,8 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         return sortBy.ToLower() switch
         {
             "triggertime" => query.OrderBy(a => a.TriggerTime),
-            "kpi" => query.OrderBy(a => a.KPI.Indicator),
-            "owner" => query.OrderBy(a => a.KPI.Owner),
+            "kpi" => query.OrderBy(a => a.Indicator.IndicatorName),
+            "owner" => query.OrderBy(a => a.Indicator.OwnerContactId),
             "deviation" => query.OrderBy(a => a.DeviationPercent),
             "resolved" => query.OrderBy(a => a.IsResolved),
             _ => query.OrderBy(a => a.TriggerTime)
@@ -281,8 +281,8 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         return sortBy.ToLower() switch
         {
             "triggertime" => query.OrderByDescending(a => a.TriggerTime),
-            "kpi" => query.OrderByDescending(a => a.KPI.Indicator),
-            "owner" => query.OrderByDescending(a => a.KPI.Owner),
+            "kpi" => query.OrderByDescending(a => a.Indicator.IndicatorName),
+            "owner" => query.OrderByDescending(a => a.Indicator.OwnerContactId),
             "deviation" => query.OrderByDescending(a => a.DeviationPercent),
             "resolved" => query.OrderByDescending(a => a.IsResolved),
             _ => query.OrderByDescending(a => a.TriggerTime)

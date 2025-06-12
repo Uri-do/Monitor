@@ -1,5 +1,6 @@
 using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.CQRS.Queries.Collector;
@@ -126,7 +127,7 @@ public class IndicatorController : ControllerBase
             if (result.IsSuccess)
             {
                 _performanceMetrics?.IncrementCounter("indicator.create.success");
-                return CreatedAtAction(nameof(GetIndicator), new { id = result.Value.IndicatorId }, result.Value);
+                return CreatedAtAction(nameof(GetIndicator), new { id = result.Value.IndicatorID }, result.Value);
             }
 
             _performanceMetrics?.IncrementCounter("indicator.create.failure");
@@ -152,7 +153,7 @@ public class IndicatorController : ControllerBase
     {
         try
         {
-            if (id != request.IndicatorId)
+            if (id != request.IndicatorID)
             {
                 return BadRequest("ID mismatch");
             }
@@ -293,6 +294,7 @@ public class IndicatorController : ControllerBase
     /// Get indicator dashboard data
     /// </summary>
     [HttpGet("dashboard")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IndicatorDashboardDto), 200)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetDashboard()

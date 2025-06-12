@@ -48,7 +48,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             {
                 return new IndicatorExecutionResult
                 {
-                    IndicatorId = indicatorId,
+                    IndicatorID = indicatorId,
                     IndicatorName = "Unknown",
                     WasSuccessful = false,
                     ErrorMessage = $"Indicator {indicatorId} not found",
@@ -63,7 +63,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             {
                 return new IndicatorExecutionResult
                 {
-                    IndicatorId = indicatorId,
+                    IndicatorID = indicatorId,
                     IndicatorName = indicator.IndicatorName,
                     WasSuccessful = false,
                     ErrorMessage = "Indicator is not active",
@@ -84,8 +84,8 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             {
                 // Execute the collector stored procedure to get current data
                 var rawData = await _progressPlayDbService.ExecuteCollectorStoredProcedureAsync(
-                    indicator.CollectorId, 
-                    indicator.LastMinutes, 
+                    indicator.CollectorID,
+                    indicator.LastMinutes,
                     cancellationToken);
 
                 // Find the specific item we're monitoring
@@ -104,7 +104,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 if (indicator.ThresholdType == "volume_average")
                 {
                     historicalAverage = await _progressPlayDbService.GetCollectorItemAverageAsync(
-                        indicator.CollectorId,
+                        indicator.CollectorID,
                         indicator.CollectorItemName,
                         indicator.ThresholdField,
                         DateTime.UtcNow.Hour,
@@ -117,7 +117,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
                 var result = new IndicatorExecutionResult
                 {
-                    IndicatorId = indicatorId,
+                    IndicatorID = indicatorId,
                     IndicatorName = indicator.IndicatorName,
                     WasSuccessful = true,
                     CurrentValue = currentValue,
@@ -209,7 +209,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         _logger.LogDebug("Executing due indicators with context {ExecutionContext}", executionContext);
 
         var dueIndicators = await _indicatorService.GetDueIndicatorsAsync(cancellationToken);
-        var indicatorIds = dueIndicators.Select(i => i.IndicatorId).ToList();
+        var indicatorIds = dueIndicators.Select(i => i.IndicatorID).ToList();
 
         _logger.LogInformation("Found {Count} due indicators for execution", indicatorIds.Count);
 
@@ -224,7 +224,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         {
             return new IndicatorExecutionStatus
             {
-                IndicatorId = indicatorId,
+                IndicatorID = indicatorId,
                 IndicatorName = "Unknown",
                 Status = "error"
             };
@@ -232,7 +232,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
         return new IndicatorExecutionStatus
         {
-            IndicatorId = indicatorId,
+            IndicatorID = indicatorId,
             IndicatorName = indicator.IndicatorName,
             IsCurrentlyRunning = indicator.IsCurrentlyRunning,
             ExecutionStartTime = indicator.ExecutionStartTime,
@@ -272,23 +272,9 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
         CancellationToken cancellationToken = default)
     {
-        var startDate = DateTime.UtcNow.AddDays(-days);
-        
-        var historicalData = await _context.HistoricalData
-            .Where(h => h.KpiId == indicatorId && h.Timestamp >= startDate)
-            .OrderByDescending(h => h.Timestamp)
-            .ToListAsync(cancellationToken);
-
-        return historicalData.Select(h => new IndicatorExecutionHistory
-        {
-            HistoryId = (int)h.HistoricalId,
-            IndicatorId = indicatorId,
-            ExecutionTime = h.Timestamp,
-            WasSuccessful = true, // Assume successful if in historical data
-            Value = h.Value,
-            ExecutionDuration = TimeSpan.Zero, // Not stored in current schema
-            ExecutionContext = "Unknown" // Not stored in current schema
-        }).ToList();
+        // TODO: Implement with new IndicatorsExecutionHistory table
+        // For now, return empty list since HistoricalData table is obsolete
+        return new List<IndicatorExecutionHistory>();
     }
 
     private static decimal GetValueByField(CollectorStatisticDto data, string field)
@@ -341,7 +327,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     {
         return new IndicatorExecutionResult
         {
-            IndicatorId = indicator?.IndicatorId ?? 0L,
+            IndicatorID = indicator?.IndicatorID ?? 0L,
             IndicatorName = indicator?.IndicatorName ?? "Unknown",
             WasSuccessful = false,
             ErrorMessage = errorMessage,
@@ -360,28 +346,14 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             indicator.LastRun = result.ExecutionTime;
             indicator.LastRunResult = result.WasSuccessful ? "Success" : result.ErrorMessage;
 
-            // Save historical data
-            if (result.CurrentValue.HasValue)
-            {
-                var historicalData = new HistoricalData
-                {
-                    KpiId = (int)indicator.IndicatorId,
-                    Timestamp = result.ExecutionTime,
-                    Value = result.CurrentValue.Value,
-                    MetricKey = indicator.IndicatorName,
-                    ExecutedBy = "System",
-                    ExecutionMethod = result.ExecutionContext,
-                    IsSuccessful = result.WasSuccessful
-                };
-
-                _context.HistoricalData.Add(historicalData);
-            }
+            // TODO: Save to new IndicatorsExecutionHistory table
+            // Historical data saving is temporarily disabled since HistoricalData table is obsolete
 
             await _context.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save execution results for indicator {IndicatorId}", indicator.IndicatorId);
+            _logger.LogError(ex, "Failed to save execution results for indicator {IndicatorId}", indicator.IndicatorID);
         }
     }
 
@@ -393,7 +365,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             // Create alert log
             var alertLog = new AlertLog
             {
-                KpiId = (int)indicator.IndicatorId,
+                KpiId = (int)indicator.IndicatorID,
                 TriggerTime = result.ExecutionTime,
                 Message = $"Indicator '{indicator.IndicatorName}' threshold breached. " +
                          $"Current value: {result.CurrentValue}, Threshold: {result.ThresholdValue}",
@@ -412,12 +384,12 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogWarning("Alert triggered for indicator {IndicatorId}: {IndicatorName}, " +
-                "Value: {CurrentValue}, Threshold: {ThresholdValue}", 
-                indicator.IndicatorId, indicator.IndicatorName, result.CurrentValue, result.ThresholdValue);
+                "Value: {CurrentValue}, Threshold: {ThresholdValue}",
+                indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue, result.ThresholdValue);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to trigger alert for indicator {IndicatorId}", indicator.IndicatorId);
+            _logger.LogError(ex, "Failed to trigger alert for indicator {IndicatorId}", indicator.IndicatorID);
         }
     }
 

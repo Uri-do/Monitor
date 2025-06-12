@@ -67,7 +67,7 @@ public class AlertLog
     public string? ResolutionNotes { get; set; }
 
     // Navigation properties
-    public virtual KPI KPI { get; set; } = null!;
+    public virtual Indicator Indicator { get; set; } = null!;
 
     // Domain methods
     public string GetSentViaName()

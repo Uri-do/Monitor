@@ -10,7 +10,7 @@ namespace MonitoringGrid.Core.Entities;
 /// </summary>
 public class Indicator : AggregateRoot
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -26,7 +26,7 @@ public class Indicator : AggregateRoot
     /// <summary>
     /// Reference to the collector in ProgressPlayDB.stats.tbl_Monitor_StatisticsCollectors
     /// </summary>
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
 
     /// <summary>
     /// The specific ItemName from ProgressPlayDB.stats.tbl_Monitor_Statistics for this collector
@@ -117,7 +117,6 @@ public class Indicator : AggregateRoot
     public virtual Contact? OwnerContact { get; set; }
     public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
     public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();
-    public virtual ICollection<HistoricalData> HistoricalData { get; set; } = new List<HistoricalData>();
 
     // Domain methods
     public bool IsDue()
@@ -167,7 +166,7 @@ public class Indicator : AggregateRoot
         MarkAsModified();
 
         // Raise domain event for real-time updates
-        var startedEvent = new IndicatorExecutionStartedEvent(IndicatorId, IndicatorName, OwnerContactId.ToString(), context);
+        var startedEvent = new IndicatorExecutionStartedEvent(IndicatorID, IndicatorName, OwnerContactId.ToString(), context);
         AddDomainEvent(startedEvent);
     }
 
@@ -182,7 +181,7 @@ public class Indicator : AggregateRoot
         MarkAsModified();
 
         // Raise domain event for real-time updates
-        var completedEvent = new IndicatorExecutionCompletedEvent(IndicatorId, IndicatorName, OwnerContactId.ToString());
+        var completedEvent = new IndicatorExecutionCompletedEvent(IndicatorID, IndicatorName, OwnerContactId.ToString());
         AddDomainEvent(completedEvent);
     }
 
@@ -207,7 +206,7 @@ public class Indicator : AggregateRoot
 
         // Raise domain event
         var executedEvent = new IndicatorExecutedEvent(
-            IndicatorId, IndicatorName, OwnerContactId.ToString(), wasSuccessful,
+            IndicatorID, IndicatorName, OwnerContactId.ToString(), wasSuccessful,
             currentValue, historicalValue, errorMessage);
 
         AddDomainEvent(executedEvent);

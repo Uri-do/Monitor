@@ -27,13 +27,13 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
     {
         try
         {
-            _logger.LogDebug("Deleting indicator {IndicatorId}", request.IndicatorId);
+            _logger.LogDebug("Deleting indicator {IndicatorId}", request.IndicatorID);
 
             // Get the indicator to validate it exists and get details for the event
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorId, cancellationToken);
+            var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
             if (indicator == null)
             {
-                return Result.Failure<bool>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorId} not found");
+                return Result.Failure<bool>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
             }
 
             // Check if indicator is currently running
@@ -44,29 +44,29 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
 
             // Add domain event before deletion
             indicator.AddDomainEvent(new IndicatorDeletedEvent(
-                indicator.IndicatorId, 
-                indicator.IndicatorName, 
+                indicator.IndicatorID,
+                indicator.IndicatorName,
                 indicator.OwnerContact?.Name ?? "Unknown"));
 
             // Delete the indicator
-            var success = await _indicatorService.DeleteIndicatorAsync(request.IndicatorId, cancellationToken);
+            var success = await _indicatorService.DeleteIndicatorAsync(request.IndicatorID, cancellationToken);
 
             if (success)
             {
-                _logger.LogInformation("Successfully deleted indicator {IndicatorId}: {IndicatorName}", 
-                    indicator.IndicatorId, indicator.IndicatorName);
+                _logger.LogInformation("Successfully deleted indicator {IndicatorId}: {IndicatorName}",
+                    indicator.IndicatorID, indicator.IndicatorName);
                 return Result<bool>.Success(true);
             }
             else
             {
-                _logger.LogWarning("Failed to delete indicator {IndicatorId}: {IndicatorName}", 
-                    indicator.IndicatorId, indicator.IndicatorName);
+                _logger.LogWarning("Failed to delete indicator {IndicatorId}: {IndicatorName}",
+                    indicator.IndicatorID, indicator.IndicatorName);
                 return Result.Failure<bool>("DELETE_FAILED", "Failed to delete indicator");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting indicator {IndicatorId}", request.IndicatorId);
+            _logger.LogError(ex, "Error deleting indicator {IndicatorId}", request.IndicatorID);
             return Result.Failure<bool>("DELETE_ERROR", $"Failed to delete indicator: {ex.Message}");
         }
     }

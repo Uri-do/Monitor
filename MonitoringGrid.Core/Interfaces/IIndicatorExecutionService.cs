@@ -55,7 +55,7 @@ public interface IIndicatorExecutionService
 /// </summary>
 public class IndicatorExecutionResult
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool WasSuccessful { get; set; }
     public decimal? CurrentValue { get; set; }
@@ -75,7 +75,7 @@ public class IndicatorExecutionResult
 /// </summary>
 public class IndicatorExecutionStatus
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool IsCurrentlyRunning { get; set; }
     public DateTime? ExecutionStartTime { get; set; }
@@ -92,7 +92,7 @@ public class IndicatorExecutionStatus
 public class IndicatorExecutionHistory
 {
     public int HistoryId { get; set; }
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public DateTime ExecutionTime { get; set; }
     public bool WasSuccessful { get; set; }
     public decimal? Value { get; set; }

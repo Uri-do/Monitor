@@ -147,7 +147,7 @@ public class IndicatorMonitoringWorker : BackgroundService
 
         try
         {
-            _logger.LogDebug("Executing Indicator {IndicatorId}: {IndicatorName}", indicator.IndicatorId, indicator.IndicatorName);
+            _logger.LogDebug("Executing Indicator {IndicatorId}: {IndicatorName}", indicator.IndicatorID, indicator.IndicatorName);
 
             // Broadcast Indicator execution started
             await BroadcastIndicatorExecutionStartedAsync(indicator);
@@ -156,15 +156,15 @@ public class IndicatorMonitoringWorker : BackgroundService
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(_configuration.KpiMonitoring.ExecutionTimeoutSeconds));
 
             var result = await indicatorExecutionService.ExecuteIndicatorAsync(
-                indicator.IndicatorId, 
-                "Scheduled", 
-                saveResults: true, 
+                indicator.IndicatorID,
+                "Scheduled",
+                saveResults: true,
                 timeoutCts.Token);
 
             if (result.WasSuccessful)
             {
                 _logger.LogInformation("Successfully executed Indicator {IndicatorId}: {IndicatorName}. Value: {Value}",
-                    indicator.IndicatorId, indicator.IndicatorName, result.CurrentValue);
+                    indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue);
                 _indicatorsProcessedCounter.Add(1, new KeyValuePair<string, object?>("status", "success"));
 
                 // Broadcast successful completion
@@ -173,7 +173,7 @@ public class IndicatorMonitoringWorker : BackgroundService
             else
             {
                 _logger.LogWarning("Indicator execution failed for {IndicatorId}: {IndicatorName}. Error: {Error}",
-                    indicator.IndicatorId, indicator.IndicatorName, result.ErrorMessage);
+                    indicator.IndicatorID, indicator.IndicatorName, result.ErrorMessage);
                 _indicatorsFailedCounter.Add(1, new KeyValuePair<string, object?>("status", "failed"));
 
                 // Broadcast failed completion
@@ -182,19 +182,19 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Indicator execution cancelled for {IndicatorId}: {IndicatorName}", indicator.IndicatorId, indicator.IndicatorName);
+            _logger.LogInformation("Indicator execution cancelled for {IndicatorId}: {IndicatorName}", indicator.IndicatorID, indicator.IndicatorName);
             await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, "Execution cancelled");
             throw;
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("Indicator execution timed out for {IndicatorId}: {IndicatorName}", indicator.IndicatorId, indicator.IndicatorName);
+            _logger.LogWarning("Indicator execution timed out for {IndicatorId}: {IndicatorName}", indicator.IndicatorID, indicator.IndicatorName);
             _indicatorsFailedCounter.Add(1, new KeyValuePair<string, object?>("status", "timeout"));
             await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, "Execution timed out");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing Indicator {IndicatorId}: {IndicatorName}", indicator.IndicatorId, indicator.IndicatorName);
+            _logger.LogError(ex, "Error executing Indicator {IndicatorId}: {IndicatorName}", indicator.IndicatorID, indicator.IndicatorName);
             _indicatorsFailedCounter.Add(1, new KeyValuePair<string, object?>("status", "error"));
             await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, ex.Message);
         }
@@ -202,7 +202,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             stopwatch.Stop();
             _indicatorExecutionDuration.Record(stopwatch.Elapsed.TotalSeconds,
-                new KeyValuePair<string, object?>("indicator_id", indicator.IndicatorId.ToString()));
+                new KeyValuePair<string, object?>("indicator_id", indicator.IndicatorID.ToString()));
         }
     }
 
@@ -215,7 +215,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             var executionStarted = new
             {
-                IndicatorId = indicator.IndicatorId,
+                IndicatorId = indicator.IndicatorID,
                 IndicatorName = indicator.IndicatorName,
                 Owner = indicator.OwnerContact?.Name ?? "Unknown",
                 StartTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
@@ -226,7 +226,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error broadcasting Indicator execution started for {IndicatorId}", indicator.IndicatorId);
+            _logger.LogDebug(ex, "Error broadcasting Indicator execution started for {IndicatorId}", indicator.IndicatorID);
         }
     }
 
@@ -239,7 +239,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             var executionCompleted = new
             {
-                IndicatorId = indicator.IndicatorId,
+                IndicatorId = indicator.IndicatorID,
                 IndicatorName = indicator.IndicatorName,
                 Success = success,
                 Value = value,
@@ -252,7 +252,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error broadcasting Indicator execution completed for {IndicatorId}", indicator.IndicatorId);
+            _logger.LogDebug(ex, "Error broadcasting Indicator execution completed for {IndicatorId}", indicator.IndicatorID);
         }
     }
 
@@ -313,7 +313,7 @@ public class IndicatorMonitoringWorker : BackgroundService
 
                 var countdownUpdate = new
                 {
-                    NextIndicatorId = nextIndicator.Indicator.IndicatorId,
+                    NextIndicatorId = nextIndicator.Indicator.IndicatorID,
                     IndicatorName = nextIndicator.Indicator.IndicatorName,
                     Owner = nextIndicator.Indicator.OwnerContact?.Name ?? "Unknown",
                     SecondsUntilDue = secondsUntilDue,

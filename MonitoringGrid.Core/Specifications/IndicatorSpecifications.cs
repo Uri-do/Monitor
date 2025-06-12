@@ -50,7 +50,7 @@ public class IndicatorsByPrioritySpecification : BaseSpecification<Indicator>
 public class IndicatorsByCollectorSpecification : BaseSpecification<Indicator>
 {
     public IndicatorsByCollectorSpecification(int collectorId) 
-        : base(i => i.CollectorId == collectorId && i.IsActive)
+        : base(i => i.CollectorID == collectorId && i.IsActive)
     {
         AddInclude(i => i.IndicatorContacts);
         AddInclude(i => i.OwnerContact);
@@ -106,7 +106,7 @@ public class IndicatorsByThresholdTypeSpecification : BaseSpecification<Indicato
 public class IndicatorsByCollectorAndItemSpecification : BaseSpecification<Indicator>
 {
     public IndicatorsByCollectorAndItemSpecification(int collectorId, string itemName) 
-        : base(i => i.CollectorId == collectorId && i.CollectorItemName == itemName && i.IsActive)
+        : base(i => i.CollectorID == collectorId && i.CollectorItemName == itemName && i.IsActive)
     {
         AddInclude(i => i.IndicatorContacts);
         AddInclude(i => i.OwnerContact);

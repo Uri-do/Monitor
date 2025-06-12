@@ -3,73 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MonitoringGrid.Models;
 
-/// <summary>
-/// Represents a Key Performance Indicator configuration
-/// </summary>
-[Table("KPIs", Schema = "monitoring")]
-public class KPI
-{
-    [Key]
-    public int KpiId { get; set; }
 
-    [Required]
-    [MaxLength(255)]
-    public string Indicator { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(100)]
-    public string Owner { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Priority level: 1 = SMS, 2 = Email
-    /// </summary>
-    public byte Priority { get; set; }
-
-    /// <summary>
-    /// Frequency in minutes
-    /// </summary>
-    public int Frequency { get; set; }
-
-    /// <summary>
-    /// Acceptable deviation percentage
-    /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal Deviation { get; set; }
-
-    [Required]
-    [MaxLength(255)]
-    public string SpName { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(500)]
-    public string SubjectTemplate { get; set; } = string.Empty;
-
-    [Required]
-    public string DescriptionTemplate { get; set; } = string.Empty;
-
-    public bool IsActive { get; set; } = true;
-
-    public DateTime? LastRun { get; set; }
-
-    /// <summary>
-    /// Cooldown period in minutes to prevent alert flooding
-    /// </summary>
-    public int CooldownMinutes { get; set; } = 30;
-
-    /// <summary>
-    /// Minimum threshold for absolute value checking
-    /// </summary>
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? MinimumThreshold { get; set; }
-
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-    public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
-
-    // Navigation properties
-    public virtual ICollection<KpiContact> KpiContacts { get; set; } = new List<KpiContact>();
-    public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();
-    public virtual ICollection<HistoricalData> HistoricalData { get; set; } = new List<HistoricalData>();
-}
 
 /// <summary>
 /// Represents a contact for notifications
@@ -96,22 +30,9 @@ public class Contact
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual ICollection<KpiContact> KpiContacts { get; set; } = new List<KpiContact>();
 }
 
-/// <summary>
-/// Many-to-many relationship between KPIs and Contacts
-/// </summary>
-[Table("KpiContacts", Schema = "monitoring")]
-public class KpiContact
-{
-    public int KpiId { get; set; }
-    public int ContactId { get; set; }
 
-    // Navigation properties
-    public virtual KPI KPI { get; set; } = null!;
-    public virtual Contact Contact { get; set; } = null!;
-}
 
 /// <summary>
 /// Represents an alert log entry
@@ -157,37 +78,9 @@ public class AlertLog
     public string? ResolvedBy { get; set; }
 
     // Navigation properties
-    public virtual KPI KPI { get; set; } = null!;
 }
 
-/// <summary>
-/// Stores historical data for trend analysis
-/// </summary>
-[Table("HistoricalData", Schema = "monitoring")]
-public class HistoricalData
-{
-    [Key]
-    public long HistoricalId { get; set; }
 
-    public int KpiId { get; set; }
-
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal Value { get; set; }
-
-    /// <summary>
-    /// Period in minutes
-    /// </summary>
-    public int Period { get; set; }
-
-    [Required]
-    [MaxLength(255)]
-    public string MetricKey { get; set; } = string.Empty;
-
-    // Navigation properties
-    public virtual KPI KPI { get; set; } = null!;
-}
 
 /// <summary>
 /// System configuration settings
@@ -235,18 +128,7 @@ public class SystemStatus
     public int AlertsSent { get; set; } = 0;
 }
 
-/// <summary>
-/// Result of KPI execution
-/// </summary>
-public class KpiExecutionResult
-{
-    public string Key { get; set; } = string.Empty;
-    public decimal CurrentValue { get; set; }
-    public decimal HistoricalValue { get; set; }
-    public decimal DeviationPercent { get; set; }
-    public bool ShouldAlert { get; set; }
-    public string? ErrorMessage { get; set; }
-}
+
 
 /// <summary>
 /// Result of alert sending operation

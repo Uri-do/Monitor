@@ -518,9 +518,10 @@ if (enableWorkerServices)
     // Add Worker services - using new Indicator system
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.IndicatorMonitoringWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
-    builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
+    // DISABLED: HealthCheckWorker using old KPI system causing excessive queries
+    // builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.AlertProcessingWorker>();
-    builder.Services.AddHostedService<MonitoringGrid.Worker.Worker>();
+    // REMOVED: MonitoringGrid.Worker.Services.Worker class doesn't exist
 
     // Add Quartz for Worker services
     builder.Services.AddQuartz(q =>
@@ -531,19 +532,21 @@ if (enableWorkerServices)
     });
     builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
-    // Add Worker health checks
-    builder.Services.AddHealthChecks()
-        .AddCheck<MonitoringGrid.Worker.Services.KpiExecutionHealthCheck>("worker-kpi-execution")
-        .AddCheck<MonitoringGrid.Worker.Services.AlertProcessingHealthCheck>("worker-alert-processing");
+    // DISABLED: Worker health checks using old KPI system causing excessive queries
+    // builder.Services.AddHealthChecks()
+    //     .AddCheck<MonitoringGrid.Worker.Services.KpiExecutionHealthCheck>("worker-kpi-execution")
+    //     .AddCheck<MonitoringGrid.Worker.Services.AlertProcessingHealthCheck>("worker-alert-processing");
 }
 else
 {
-    // Use legacy enhanced scheduler when external workers are used
-    builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+    // DISABLED: Legacy enhanced scheduler causing excessive database queries
+    // Use new IndicatorMonitoringWorker instead
+    // builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
 }
 
-// Add real-time update service (always enabled for SignalR updates)
-builder.Services.AddHostedService<RealtimeUpdateService>();
+// DISABLED: Real-time update service causing excessive KPI database queries
+// SignalR updates are now handled by IndicatorMonitoringWorker
+// builder.Services.AddHostedService<RealtimeUpdateService>();
 
 // Graceful shutdown is now handled by LifecycleManagementService (Phase 3)
 

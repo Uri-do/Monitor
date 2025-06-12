@@ -42,10 +42,10 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             _logger.LogDebug("Creating indicator: {IndicatorName}", request.IndicatorName);
 
             // Validate collector exists and is active
-            var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorId, cancellationToken);
+            var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorId} not found");
+                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
 
             if (!collector.IsActive)
@@ -54,7 +54,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             }
 
             // Validate collector item name exists
-            var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorId, cancellationToken);
+            var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
             if (!availableItems.Contains(request.CollectorItemName))
             {
                 return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
@@ -99,7 +99,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 IndicatorName = request.IndicatorName,
                 IndicatorCode = request.IndicatorCode,
                 IndicatorDesc = request.IndicatorDesc,
-                CollectorId = request.CollectorId,
+                CollectorID = request.CollectorID,
                 CollectorItemName = request.CollectorItemName,
                 ScheduleConfiguration = request.ScheduleConfiguration,
                 IsActive = request.IsActive,
@@ -117,8 +117,8 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
 
             // Add domain event
             indicator.AddDomainEvent(new IndicatorCreatedEvent(
-                indicator.IndicatorId, 
-                indicator.IndicatorName, 
+                indicator.IndicatorID,
+                indicator.IndicatorName,
                 ownerContact.Name));
 
             // Save the indicator
@@ -128,20 +128,20 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             if (request.ContactIds.Any())
             {
                 await _indicatorService.AddContactsToIndicatorAsync(
-                    createdIndicator.IndicatorId, 
-                    request.ContactIds, 
+                    createdIndicator.IndicatorID,
+                    request.ContactIds,
                     cancellationToken);
             }
 
             // Reload with contacts for mapping
             var indicatorWithContacts = await _indicatorService.GetIndicatorByIdAsync(
-                createdIndicator.IndicatorId, 
+                createdIndicator.IndicatorID,
                 cancellationToken);
 
             var indicatorDto = _mapper.Map<IndicatorDto>(indicatorWithContacts);
 
-            _logger.LogInformation("Successfully created indicator {IndicatorId}: {IndicatorName}", 
-                createdIndicator.IndicatorId, createdIndicator.IndicatorName);
+            _logger.LogInformation("Successfully created indicator {IndicatorId}: {IndicatorName}",
+                createdIndicator.IndicatorID, createdIndicator.IndicatorName);
 
             return Result<IndicatorDto>.Success(indicatorDto);
         }

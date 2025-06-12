@@ -22,7 +22,7 @@ public class CreateIndicatorCommand : IRequest<Result<IndicatorDto>>
     public string? IndicatorDesc { get; set; }
 
     [Required]
-    public int CollectorId { get; set; }
+    public int CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]

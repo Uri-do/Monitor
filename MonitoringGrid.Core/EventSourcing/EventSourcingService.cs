@@ -152,10 +152,10 @@ public class EventSourcingService : IEventSourcingService
     {
         return domainEvent switch
         {
-            KpiExecutedEvent kpiEvent => EventStoreExtensions.GetKpiStreamId(kpiEvent.KpiId),
-            KpiCreatedEvent kpiEvent => EventStoreExtensions.GetKpiStreamId(kpiEvent.KpiId),
-            KpiUpdatedEvent kpiEvent => EventStoreExtensions.GetKpiStreamId(kpiEvent.KpiId),
-            KpiDeactivatedEvent kpiEvent => EventStoreExtensions.GetKpiStreamId(kpiEvent.KpiId),
+            IndicatorExecutedEvent indicatorEvent => EventStoreExtensions.GetIndicatorStreamId(indicatorEvent.IndicatorId),
+            IndicatorCreatedEvent indicatorEvent => EventStoreExtensions.GetIndicatorStreamId(indicatorEvent.IndicatorId),
+            IndicatorUpdatedEvent indicatorEvent => EventStoreExtensions.GetIndicatorStreamId(indicatorEvent.IndicatorId),
+            IndicatorDeletedEvent indicatorEvent => EventStoreExtensions.GetIndicatorStreamId(indicatorEvent.IndicatorId),
             AlertTriggeredEvent alertEvent => EventStoreExtensions.GetAlertStreamId(alertEvent.AlertId),
             AlertResolvedEvent alertEvent => EventStoreExtensions.GetAlertStreamId(alertEvent.AlertId),
             _ => $"Unknown-{domainEvent.EventId}"
@@ -197,10 +197,10 @@ public class EventSourcingService : IEventSourcingService
     {
         return eventType switch
         {
-            "KpiExecutedEvent" => "KPI was executed",
-            "KpiCreatedEvent" => "KPI was created",
-            "KpiUpdatedEvent" => "KPI was updated",
-            "KpiDeactivatedEvent" => "KPI was deactivated",
+            "IndicatorExecutedEvent" => "Indicator was executed",
+            "IndicatorCreatedEvent" => "Indicator was created",
+            "IndicatorUpdatedEvent" => "Indicator was updated",
+            "IndicatorDeletedEvent" => "Indicator was deleted",
             "AlertTriggeredEvent" => "Alert was triggered",
             "AlertResolvedEvent" => "Alert was resolved",
             _ => $"Event of type {eventType} occurred"

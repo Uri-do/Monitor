@@ -25,7 +25,6 @@ public class Contact
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual ICollection<KpiContact> KpiContacts { get; set; } = new List<KpiContact>();
     public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
 
     // Domain methods

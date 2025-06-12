@@ -40,7 +40,7 @@ public class GetIndicatorDashboardQueryHandler : IRequestHandler<GetIndicatorDas
             var allIndicators = await _indicatorService.GetAllIndicatorsAsync(cancellationToken);
             dashboardDto.IndicatorStatuses = allIndicators.Select(i => new IndicatorStatusDto
             {
-                IndicatorId = i.IndicatorId,
+                IndicatorID = i.IndicatorID,
                 IndicatorName = i.IndicatorName,
                 IsActive = i.IsActive,
                 IsCurrentlyRunning = i.IsCurrentlyRunning,

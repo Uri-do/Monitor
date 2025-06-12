@@ -13,9 +13,9 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
     {
         builder.ToTable("Indicators", "monitoring");
 
-        builder.HasKey(i => i.IndicatorId);
+        builder.HasKey(i => i.IndicatorID);
 
-        builder.Property(i => i.IndicatorId)
+        builder.Property(i => i.IndicatorID)
             .ValueGeneratedOnAdd();
 
         builder.Property(i => i.IndicatorName)
@@ -29,7 +29,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
         builder.Property(i => i.IndicatorDesc)
             .HasMaxLength(500);
 
-        builder.Property(i => i.CollectorId)
+        builder.Property(i => i.CollectorID)
             .IsRequired();
 
         builder.Property(i => i.CollectorItemName)
@@ -111,7 +111,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
 
         builder.HasMany(i => i.IndicatorContacts)
             .WithOne(ic => ic.Indicator)
-            .HasForeignKey(ic => ic.IndicatorId)
+            .HasForeignKey(ic => ic.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Note: AlertLogs and HistoricalData still reference KpiId for now
@@ -134,8 +134,8 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .IsUnique()
             .HasDatabaseName("IX_Indicators_IndicatorCode");
 
-        builder.HasIndex(i => i.CollectorId)
-            .HasDatabaseName("IX_Indicators_CollectorId");
+        builder.HasIndex(i => i.CollectorID)
+            .HasDatabaseName("IX_Indicators_CollectorID");
 
         builder.HasIndex(i => i.OwnerContactId)
             .HasDatabaseName("IX_Indicators_OwnerContactId");
@@ -149,7 +149,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
         builder.HasIndex(i => i.LastRun)
             .HasDatabaseName("IX_Indicators_LastRun");
 
-        builder.HasIndex(i => new { i.CollectorId, i.CollectorItemName })
+        builder.HasIndex(i => new { i.CollectorID, i.CollectorItemName })
             .HasDatabaseName("IX_Indicators_Collector_Item");
     }
 }

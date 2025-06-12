@@ -73,7 +73,7 @@ public class ScheduledJobConfiguration : IEntityTypeConfiguration<ScheduledJob>
             .HasDatabaseName("IX_ScheduledJobs_TriggerName_TriggerGroup");
 
         // Relationships
-        builder.HasOne(sj => sj.KPI)
+        builder.HasOne(sj => sj.Indicator)
             .WithMany()
             .HasForeignKey(sj => sj.KpiId)
             .OnDelete(DeleteBehavior.Cascade);

@@ -49,9 +49,9 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
             .HasDatabaseName("IX_Contacts_IsActive");
 
         // Relationships
-        builder.HasMany(c => c.KpiContacts)
-            .WithOne(kc => kc.Contact)
-            .HasForeignKey(kc => kc.ContactId)
+        builder.HasMany(c => c.IndicatorContacts)
+            .WithOne(ic => ic.Contact)
+            .HasForeignKey(ic => ic.ContactId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

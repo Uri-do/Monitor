@@ -21,8 +21,7 @@ public class IndicatorContactConfiguration : IEntityTypeConfiguration<IndicatorC
             .ValueGeneratedOnAdd();
 
         // Required properties
-        builder.Property(ic => ic.IndicatorId)
-            .HasColumnName("IndicatorID")
+        builder.Property(ic => ic.IndicatorID)
             .IsRequired();
 
         builder.Property(ic => ic.ContactId)
@@ -43,7 +42,7 @@ public class IndicatorContactConfiguration : IEntityTypeConfiguration<IndicatorC
         // Foreign Key Relationships
         builder.HasOne(ic => ic.Indicator)
             .WithMany(i => i.IndicatorContacts)
-            .HasForeignKey(ic => ic.IndicatorId)
+            .HasForeignKey(ic => ic.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ic => ic.Contact)
@@ -52,13 +51,13 @@ public class IndicatorContactConfiguration : IEntityTypeConfiguration<IndicatorC
             .OnDelete(DeleteBehavior.Cascade);
 
         // Unique constraint to prevent duplicate indicator-contact relationships
-        builder.HasIndex(ic => new { ic.IndicatorId, ic.ContactId })
+        builder.HasIndex(ic => new { ic.IndicatorID, ic.ContactId })
             .IsUnique()
-            .HasDatabaseName("UQ_IndicatorContacts_IndicatorId_ContactId");
+            .HasDatabaseName("UQ_IndicatorContacts_IndicatorID_ContactId");
 
         // Performance indexes
-        builder.HasIndex(ic => ic.IndicatorId)
-            .HasDatabaseName("IX_IndicatorContacts_IndicatorId");
+        builder.HasIndex(ic => ic.IndicatorID)
+            .HasDatabaseName("IX_IndicatorContacts_IndicatorID");
 
         builder.HasIndex(ic => ic.ContactId)
             .HasDatabaseName("IX_IndicatorContacts_ContactId");

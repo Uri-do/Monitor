@@ -20,7 +20,7 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)));
 
         CreateMap<CreateIndicatorRequest, Indicator>()
-            .ForMember(dest => dest.IndicatorId, opt => opt.Ignore())
+            .ForMember(dest => dest.IndicatorID, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.LastRun, opt => opt.Ignore())
@@ -95,6 +95,6 @@ public class IndicatorMappingProfile : Profile
 
         // Bulk operation mappings
         CreateMap<BulkIndicatorOperationRequest, List<long>>()
-            .ConvertUsing(src => src.IndicatorIds);
+            .ConvertUsing(src => src.IndicatorIDs);
     }
 }

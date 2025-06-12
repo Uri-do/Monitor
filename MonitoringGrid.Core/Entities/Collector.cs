@@ -8,7 +8,7 @@ namespace MonitoringGrid.Core.Entities;
 /// </summary>
 public class Collector
 {
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
     public string CollectorCode { get; set; } = string.Empty;
     public string CollectorDesc { get; set; } = string.Empty;
     public int FrequencyMinutes { get; set; }
@@ -30,7 +30,7 @@ public class Collector
 public class CollectorStatistic
 {
     public long StatisticId { get; set; }
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
     public string ItemName { get; set; } = string.Empty;
     public int Total { get; set; }
     public int Marked { get; set; }
@@ -48,7 +48,7 @@ public class CollectorStatistic
 /// </summary>
 public class CollectorDto
 {
-    public long CollectorId { get; set; }
+    public long CollectorID { get; set; }
     public string CollectorCode { get; set; } = string.Empty;
     public string CollectorDesc { get; set; } = string.Empty;
     public bool IsActive { get; set; }

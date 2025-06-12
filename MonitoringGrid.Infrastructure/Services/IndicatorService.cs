@@ -41,7 +41,7 @@ public class IndicatorService : IIndicatorService
             .Include(i => i.IndicatorContacts)
                 .ThenInclude(ic => ic.Contact)
             .Include(i => i.OwnerContact)
-            .FirstOrDefaultAsync(i => i.IndicatorId == indicatorId, cancellationToken);
+            .FirstOrDefaultAsync(i => i.IndicatorID == indicatorId, cancellationToken);
     }
 
     public async Task<List<Indicator>> GetActiveIndicatorsAsync(CancellationToken cancellationToken = default)
@@ -101,23 +101,23 @@ public class IndicatorService : IIndicatorService
         _context.Indicators.Add(indicator);
         await _context.SaveChangesAsync(cancellationToken);
         
-        _logger.LogInformation("Created indicator {IndicatorId}: {IndicatorName}", 
-            indicator.IndicatorId, indicator.IndicatorName);
+        _logger.LogInformation("Created indicator {IndicatorId}: {IndicatorName}",
+            indicator.IndicatorID, indicator.IndicatorName);
         
         return indicator;
     }
 
     public async Task<Indicator> UpdateIndicatorAsync(Indicator indicator, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Updating indicator {IndicatorId}", indicator.IndicatorId);
+        _logger.LogDebug("Updating indicator {IndicatorId}", indicator.IndicatorID);
         
         indicator.UpdatedDate = DateTime.UtcNow;
         
         _context.Indicators.Update(indicator);
         await _context.SaveChangesAsync(cancellationToken);
         
-        _logger.LogInformation("Updated indicator {IndicatorId}: {IndicatorName}", 
-            indicator.IndicatorId, indicator.IndicatorName);
+        _logger.LogInformation("Updated indicator {IndicatorId}: {IndicatorName}",
+            indicator.IndicatorID, indicator.IndicatorName);
         
         return indicator;
     }
@@ -160,7 +160,7 @@ public class IndicatorService : IIndicatorService
         {
             var indicatorContact = new IndicatorContact
             {
-                IndicatorId = indicatorId,
+                IndicatorID = indicatorId,
                 ContactId = contactId
             };
             _context.IndicatorContacts.Add(indicatorContact);
@@ -179,7 +179,7 @@ public class IndicatorService : IIndicatorService
         _logger.LogDebug("Removing {Count} contacts from indicator {IndicatorId}", contactIds.Count, indicatorId);
         
         var indicatorContacts = await _context.IndicatorContacts
-            .Where(ic => ic.IndicatorId == indicatorId && contactIds.Contains(ic.ContactId))
+            .Where(ic => ic.IndicatorID == indicatorId && contactIds.Contains(ic.ContactId))
             .ToListAsync(cancellationToken);
         
         _context.IndicatorContacts.RemoveRange(indicatorContacts);
@@ -191,15 +191,13 @@ public class IndicatorService : IIndicatorService
         return true;
     }
 
-    public async Task<List<HistoricalData>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
+    public async Task<List<IndicatorValueTrend>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving history for indicator {IndicatorId}, last {Days} days", indicatorId, days);
-        
-        var startDate = DateTime.UtcNow.AddDays(-days);
-        return await _context.HistoricalData
-            .Where(h => h.KpiId == indicatorId && h.Timestamp >= startDate)
-            .OrderByDescending(h => h.Timestamp)
-            .ToListAsync(cancellationToken);
+
+        // TODO: Implement with new IndicatorsExecutionHistory table
+        // For now, return empty list since HistoricalData table is obsolete
+        return new List<IndicatorValueTrend>();
     }
 
     public async Task<IndicatorDashboard> GetIndicatorDashboardAsync(CancellationToken cancellationToken = default)
@@ -222,20 +220,9 @@ public class IndicatorService : IIndicatorService
                 .ToList()
         };
         
-        // Get recent executions from historical data
-        dashboard.RecentExecutions = await _context.HistoricalData
-            .Where(h => h.Timestamp >= DateTime.UtcNow.AddHours(-24))
-            .OrderByDescending(h => h.Timestamp)
-            .Take(10)
-            .Select(h => new IndicatorExecutionSummary
-            {
-                IndicatorId = h.KpiId,
-                IndicatorName = indicators.Where(i => i.IndicatorId == h.KpiId).Select(i => i.IndicatorName).FirstOrDefault() ?? "Unknown",
-                ExecutionTime = h.Timestamp,
-                WasSuccessful = true, // Assume successful if in historical data
-                Value = h.Value
-            })
-            .ToListAsync(cancellationToken);
+        // TODO: Get recent executions from new IndicatorsExecutionHistory table
+        // For now, return empty list since HistoricalData table is obsolete
+        dashboard.RecentExecutions = new List<IndicatorExecutionSummary>();
         
         // Get alerts triggered today - use a safe default if AlertLogs doesn't exist
         try
@@ -290,34 +277,26 @@ public class IndicatorService : IIndicatorService
         }
         
         var startDate = DateTime.UtcNow.AddDays(-days);
-        var historicalData = await _context.HistoricalData
-            .Where(h => h.KpiId == indicatorId && h.Timestamp >= startDate)
-            .OrderBy(h => h.Timestamp)
-            .ToListAsync(cancellationToken);
-        
+
         var alerts = await _context.AlertLogs
             .Where(a => a.KpiId == indicatorId && a.TriggerTime >= startDate)
             .ToListAsync(cancellationToken);
-        
+
+        // TODO: Implement with new IndicatorsExecutionHistory table
         return new IndicatorStatistics
         {
             IndicatorId = indicatorId,
             IndicatorName = indicator.IndicatorName,
-            TotalExecutions = historicalData.Count,
-            SuccessfulExecutions = historicalData.Count, // Assume all in historical data are successful
-            FailedExecutions = 0,
-            AlertsTriggered = alerts.Count,
-            AverageValue = historicalData.Any() ? historicalData.Average(h => h.Value) : null,
-            MinValue = historicalData.Any() ? historicalData.Min(h => h.Value) : null,
-            MaxValue = historicalData.Any() ? historicalData.Max(h => h.Value) : null,
+            TotalExecutions = 0, // TODO: Get from new table
+            SuccessfulExecutions = 0, // TODO: Get from new table
+            FailedExecutions = 0, // TODO: Get from new table
+            AlertsTriggered = alerts.Count(),
+            AverageValue = null, // TODO: Calculate from new table
+            MinValue = null, // TODO: Calculate from new table
+            MaxValue = null, // TODO: Calculate from new table
             LastExecution = indicator.LastRun,
             NextExecution = indicator.GetNextRunTime(),
-            ValueTrend = historicalData.Select(h => new IndicatorValueTrend
-            {
-                Timestamp = h.Timestamp,
-                Value = h.Value,
-                AlertTriggered = alerts.Any(a => Math.Abs((a.TriggerTime - h.Timestamp).TotalMinutes) < 5)
-            }).ToList()
+            ValueTrend = new List<IndicatorValueTrend>() // TODO: Get from new table
         };
     }
 }

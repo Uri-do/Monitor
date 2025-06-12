@@ -214,16 +214,26 @@ export const DataTable: React.FC<DataTableProps> = ({
   };
 
   const handleSelectRow = (row: any) => {
-    const selectedIndex = selected.findIndex(item => item.id === row.id);
+    const rowId = rowKey ? row[rowKey] : row.id;
+    const selectedIndex = selected.findIndex(item => {
+      const itemId = rowKey ? item[rowKey] : item.id;
+      return itemId === rowId;
+    });
     let newSelected: any[] = [];
 
     if (selectedIndex === -1) {
       newSelected = [...selected, row];
     } else {
-      newSelected = selected.filter(item => item.id !== row.id);
+      newSelected = selected.filter(item => {
+        const itemId = rowKey ? item[rowKey] : item.id;
+        return itemId !== rowId;
+      });
     }
 
     setSelected(newSelected);
+    if (onSelectionChange) {
+      onSelectionChange(newSelected);
+    }
   };
 
   const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
@@ -241,7 +251,13 @@ export const DataTable: React.FC<DataTableProps> = ({
     setSelected([]);
   };
 
-  const isSelected = (row: any) => selected.findIndex(item => item.id === row.id) !== -1;
+  const isSelected = (row: any) => {
+    const rowId = rowKey ? row[rowKey] : row.id;
+    return selected.findIndex(item => {
+      const itemId = rowKey ? item[rowKey] : item.id;
+      return itemId === rowId;
+    }) !== -1;
+  };
 
   return (
     <CustomCard gradient={gradient} sx={{ height: height || 'auto' }}>
@@ -508,7 +524,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   const isItemSelected = isSelected(row);
                   return (
                     <TableRow
-                      key={row.id || index}
+                      key={rowKey ? row[rowKey] : row.id || index}
                       hover
                       selected={isItemSelected}
                       onClick={() => onRowClick?.(row)}

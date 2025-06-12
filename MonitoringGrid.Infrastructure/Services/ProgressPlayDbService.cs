@@ -51,7 +51,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
             {
                 var collector = new CollectorDto
                 {
-                    CollectorId = reader.GetInt64("CollectorID"),
+                    CollectorID = reader.GetInt64("CollectorID"),
                     CollectorCode = reader.GetString("CollectorCode"),
                     CollectorDesc = reader.GetString("CollectorDesc"),
                     IsActive = reader.GetBoolean("IsActive")
@@ -63,7 +63,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
             // Get available items for each collector
             foreach (var collector in collectors)
             {
-                collector.AvailableItems = await GetCollectorItemNamesAsync(collector.CollectorId, cancellationToken);
+                collector.AvailableItems = await GetCollectorItemNamesAsync(collector.CollectorID, cancellationToken);
             }
 
             _logger.LogDebug("Retrieved {Count} collectors", collectors.Count);
@@ -101,13 +101,13 @@ public class ProgressPlayDbService : IProgressPlayDbService
             {
                 var collector = new CollectorDto
                 {
-                    CollectorId = reader.GetInt64("CollectorID"),
+                    CollectorID = reader.GetInt64("CollectorID"),
                     CollectorCode = reader.GetString("CollectorCode"),
                     CollectorDesc = reader.GetString("CollectorDesc"),
                     IsActive = reader.GetBoolean("IsActive")
                 };
 
-                collector.AvailableItems = await GetCollectorItemNamesAsync(collector.CollectorId, cancellationToken);
+                collector.AvailableItems = await GetCollectorItemNamesAsync(collector.CollectorID, cancellationToken);
                 return collector;
             }
 

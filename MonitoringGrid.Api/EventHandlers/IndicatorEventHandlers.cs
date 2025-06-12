@@ -30,7 +30,7 @@ public class IndicatorExecutionStartedEventHandler : INotificationHandler<Indica
 
             var dto = new IndicatorExecutionStartedDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 Owner = notification.Owner,
                 StartTime = notification.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
@@ -128,7 +128,7 @@ public class IndicatorExecutedEventHandler : INotificationHandler<IndicatorExecu
             // Send status update
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 IsCurrentlyRunning = false,
                 LastValue = notification.CurrentValue,
@@ -172,7 +172,7 @@ public class IndicatorThresholdBreachedEventHandler : INotificationHandler<Indic
 
             var alertDto = new IndicatorAlertDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 Owner = notification.Owner,
                 AlertType = "Threshold",
@@ -190,7 +190,7 @@ public class IndicatorThresholdBreachedEventHandler : INotificationHandler<Indic
             // Send status update
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 Status = "warning",
                 LastValue = notification.CurrentValue,
@@ -234,7 +234,7 @@ public class IndicatorCreatedEventHandler : INotificationHandler<IndicatorCreate
 
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 IsActive = true,
                 Status = "idle",
@@ -278,7 +278,7 @@ public class IndicatorUpdatedEventHandler : INotificationHandler<IndicatorUpdate
 
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 IsSignificantChange = true,
                 ChangeReason = "Indicator updated"
@@ -320,7 +320,7 @@ public class IndicatorDeletedEventHandler : INotificationHandler<IndicatorDelete
 
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorId = notification.IndicatorId,
+                IndicatorID = notification.IndicatorId,
                 IndicatorName = notification.IndicatorName,
                 IsActive = false,
                 Status = "deleted",

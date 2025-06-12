@@ -35,5 +35,5 @@ public class AlertSuppressionRule
     
     // Navigation properties
     [ForeignKey("KpiId")]
-    public virtual KPI? Kpi { get; set; }
+    public virtual Indicator? Indicator { get; set; }
 }

@@ -5,7 +5,7 @@ namespace MonitoringGrid.Api.DTOs;
 /// </summary>
 public class IndicatorExecutionStartedDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
@@ -34,7 +34,7 @@ public class IndicatorExecutionCompletedDto
 /// </summary>
 public class IndicatorCountdownUpdateDto
 {
-    public long NextIndicatorId { get; set; }
+    public long NextIndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int SecondsUntilDue { get; set; }
@@ -46,7 +46,7 @@ public class IndicatorCountdownUpdateDto
 /// </summary>
 public class IndicatorStatusUpdateDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsCurrentlyRunning { get; set; }
@@ -63,7 +63,7 @@ public class IndicatorStatusUpdateDto
 /// </summary>
 public class IndicatorAlertDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string AlertType { get; set; } = string.Empty; // "Threshold", "Error", "Warning"
@@ -116,7 +116,7 @@ public class RunningIndicatorsUpdateDto
 /// </summary>
 public class RunningIndicatorDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
@@ -139,7 +139,7 @@ public class NextIndicatorsScheduleUpdateDto
 /// </summary>
 public class NextIndicatorDto
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
     public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public DateTime ScheduledTime { get; set; }

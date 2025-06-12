@@ -21,8 +21,7 @@ public class IndicatorContact
     /// Foreign key reference to the Indicators table
     /// </summary>
     [Required]
-    [Column("IndicatorID")]
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
 
     /// <summary>
     /// Foreign key reference to the Contacts table

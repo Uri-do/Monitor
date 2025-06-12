@@ -39,20 +39,20 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
     {
         try
         {
-            _logger.LogDebug("Updating indicator {IndicatorId}: {IndicatorName}", request.IndicatorId, request.IndicatorName);
+            _logger.LogDebug("Updating indicator {IndicatorId}: {IndicatorName}", request.IndicatorID, request.IndicatorName);
 
             // Get existing indicator
-            var existingIndicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorId, cancellationToken);
+            var existingIndicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
             if (existingIndicator == null)
             {
-                return Result.Failure<IndicatorDto>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorId} not found");
+                return Result.Failure<IndicatorDto>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
             }
 
             // Validate collector exists and is active
-            var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorId, cancellationToken);
+            var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorId} not found");
+                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
 
             if (!collector.IsActive)
@@ -61,7 +61,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             }
 
             // Validate collector item name exists
-            var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorId, cancellationToken);
+            var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
             if (!availableItems.Contains(request.CollectorItemName))
             {
                 return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
@@ -95,7 +95,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             // Check for duplicate indicator code (excluding current indicator)
             var indicatorRepository = _unitOfWork.Repository<Core.Entities.Indicator>();
             var duplicateIndicator = await indicatorRepository.GetAsync(
-                i => i.IndicatorCode == request.IndicatorCode && i.IndicatorId != request.IndicatorId,
+                i => i.IndicatorCode == request.IndicatorCode && i.IndicatorID != request.IndicatorID,
                 cancellationToken);
             if (duplicateIndicator.Any())
             {
@@ -106,7 +106,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             existingIndicator.IndicatorName = request.IndicatorName;
             existingIndicator.IndicatorCode = request.IndicatorCode;
             existingIndicator.IndicatorDesc = request.IndicatorDesc;
-            existingIndicator.CollectorId = request.CollectorId;
+            existingIndicator.CollectorID = request.CollectorID;
             existingIndicator.CollectorItemName = request.CollectorItemName;
             existingIndicator.ScheduleConfiguration = request.ScheduleConfiguration;
             existingIndicator.IsActive = request.IsActive;
@@ -122,8 +122,8 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
 
             // Add domain event
             existingIndicator.AddDomainEvent(new IndicatorUpdatedEvent(
-                existingIndicator.IndicatorId, 
-                existingIndicator.IndicatorName, 
+                existingIndicator.IndicatorID,
+                existingIndicator.IndicatorName,
                 ownerContact.Name));
 
             // Update the indicator
@@ -137,35 +137,35 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             if (contactsToRemove.Any())
             {
                 await _indicatorService.RemoveContactsFromIndicatorAsync(
-                    updatedIndicator.IndicatorId, 
-                    contactsToRemove, 
+                    updatedIndicator.IndicatorID,
+                    contactsToRemove,
                     cancellationToken);
             }
 
             if (contactsToAdd.Any())
             {
                 await _indicatorService.AddContactsToIndicatorAsync(
-                    updatedIndicator.IndicatorId, 
-                    contactsToAdd, 
+                    updatedIndicator.IndicatorID,
+                    contactsToAdd,
                     cancellationToken);
             }
 
             // Reload with updated contacts for mapping
             var indicatorWithContacts = await _indicatorService.GetIndicatorByIdAsync(
-                updatedIndicator.IndicatorId, 
+                updatedIndicator.IndicatorID,
                 cancellationToken);
 
             var indicatorDto = _mapper.Map<IndicatorDto>(indicatorWithContacts);
 
-            _logger.LogInformation("Successfully updated indicator {IndicatorId}: {IndicatorName}", 
-                updatedIndicator.IndicatorId, updatedIndicator.IndicatorName);
+            _logger.LogInformation("Successfully updated indicator {IndicatorId}: {IndicatorName}",
+                updatedIndicator.IndicatorID, updatedIndicator.IndicatorName);
 
             return Result<IndicatorDto>.Success(indicatorDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update indicator {IndicatorId}: {IndicatorName}", 
-                request.IndicatorId, request.IndicatorName);
+            _logger.LogError(ex, "Failed to update indicator {IndicatorId}: {IndicatorName}",
+                request.IndicatorID, request.IndicatorName);
             return Result.Failure<IndicatorDto>("UPDATE_FAILED", $"Failed to update indicator: {ex.Message}");
         }
     }

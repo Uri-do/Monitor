@@ -223,11 +223,11 @@ public static class EventStoreExtensions
     }
 
     /// <summary>
-    /// Generate stream ID for KPI events
+    /// Generate stream ID for Indicator events
     /// </summary>
-    public static string GetKpiStreamId(int kpiId)
+    public static string GetIndicatorStreamId(long indicatorId)
     {
-        return $"KPI-{kpiId}";
+        return $"Indicator-{indicatorId}";
     }
 
     /// <summary>

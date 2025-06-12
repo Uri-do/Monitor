@@ -444,19 +444,19 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+            _logger.LogDebug("Sending Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorID);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("IndicatorExecutionStarted", indicatorExecution);
 
-            await _hubContext.Clients.Group($"Indicator_{indicatorExecution.IndicatorId}")
+            await _hubContext.Clients.Group($"Indicator_{indicatorExecution.IndicatorID}")
                 .SendAsync("IndicatorExecutionStarted", indicatorExecution);
 
-            _logger.LogDebug("Indicator execution started notification sent for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+            _logger.LogDebug("Indicator execution started notification sent for Indicator {IndicatorId}", indicatorExecution.IndicatorID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorId);
+            _logger.LogError(ex, "Failed to send Indicator execution started notification for Indicator {IndicatorId}", indicatorExecution.IndicatorID);
         }
     }
 
@@ -484,7 +484,7 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending Indicator countdown update for next Indicator {IndicatorId}: {Seconds} seconds", countdown.NextIndicatorId, countdown.SecondsUntilDue);
+            _logger.LogDebug("Sending Indicator countdown update for next Indicator {IndicatorId}: {Seconds} seconds", countdown.NextIndicatorID, countdown.SecondsUntilDue);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("IndicatorCountdownUpdate", countdown);
@@ -501,10 +501,10 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+            _logger.LogDebug("Sending real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
 
             // Send to specific Indicator group
-            await _hubContext.Clients.Group($"Indicator_{indicatorUpdate.IndicatorId}")
+            await _hubContext.Clients.Group($"Indicator_{indicatorUpdate.IndicatorID}")
                 .SendAsync("IndicatorStatusUpdate", indicatorUpdate);
 
             // Send to dashboard if it's a significant update
@@ -514,11 +514,11 @@ public class RealtimeNotificationService : IRealtimeNotificationService
                     .SendAsync("DashboardIndicatorUpdate", indicatorUpdate);
             }
 
-            _logger.LogDebug("Real-time Indicator update sent for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+            _logger.LogDebug("Real-time Indicator update sent for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorId);
+            _logger.LogError(ex, "Failed to send real-time Indicator update for Indicator {IndicatorId}", indicatorUpdate.IndicatorID);
         }
     }
 
@@ -526,25 +526,25 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
+            _logger.LogDebug("Sending real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorID);
 
             // Send to all monitoring users
             await _hubContext.Clients.Group("MonitoringUsers")
                 .SendAsync("IndicatorAlertTriggered", indicatorAlert);
 
             // Send to specific Indicator group if anyone is monitoring it
-            await _hubContext.Clients.Group($"Indicator_{indicatorAlert.IndicatorId}")
+            await _hubContext.Clients.Group($"Indicator_{indicatorAlert.IndicatorID}")
                 .SendAsync("IndicatorAlert", indicatorAlert);
 
             // Send to dashboard subscribers
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("DashboardIndicatorAlert", indicatorAlert);
 
-            _logger.LogInformation("Real-time Indicator alert sent for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
+            _logger.LogInformation("Real-time Indicator alert sent for Indicator {IndicatorId}", indicatorAlert.IndicatorID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorId);
+            _logger.LogError(ex, "Failed to send real-time Indicator alert for Indicator {IndicatorId}", indicatorAlert.IndicatorID);
         }
     }
 }

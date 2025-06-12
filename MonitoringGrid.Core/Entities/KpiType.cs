@@ -67,9 +67,9 @@ public class KpiType
 
     // Navigation properties
     /// <summary>
-    /// KPIs that use this type definition.
+    /// Indicators that use this type definition.
     /// </summary>
-    public virtual ICollection<KPI> KPIs { get; set; } = new List<KPI>();
+    public virtual ICollection<Indicator> Indicators { get; set; } = new List<Indicator>();
 
     // Domain methods
     /// <summary>
