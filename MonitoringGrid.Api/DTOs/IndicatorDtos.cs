@@ -12,7 +12,7 @@ public class IndicatorDto
     public string IndicatorName { get; set; } = string.Empty;
     public string IndicatorCode { get; set; } = string.Empty;
     public string? IndicatorDesc { get; set; }
-    public int CollectorId { get; set; }
+    public long CollectorId { get; set; }
     public string CollectorItemName { get; set; } = string.Empty;
     public string ScheduleConfiguration { get; set; } = string.Empty;
     public bool IsActive { get; set; }
@@ -56,7 +56,7 @@ public class CreateIndicatorRequest
     public string? IndicatorDesc { get; set; }
 
     [Required]
-    public int CollectorId { get; set; }
+    public long CollectorId { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -142,7 +142,7 @@ public class IndicatorFilterRequest
     public bool? IsActive { get; set; }
     public string? Priority { get; set; }
     public int? OwnerContactId { get; set; }
-    public int? CollectorId { get; set; }
+    public long? CollectorId { get; set; }
     public string? ThresholdType { get; set; }
     public bool? IsCurrentlyRunning { get; set; }
     public DateTime? LastRunAfter { get; set; }

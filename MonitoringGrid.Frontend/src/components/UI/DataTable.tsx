@@ -124,6 +124,12 @@ export const DataTable: React.FC<DataTableProps> = ({
   gradient = 'primary',
   height,
   maxHeight = 600,
+  defaultActions,
+  actions,
+  selectedRows,
+  onSelectionChange,
+  emptyMessage,
+  rowKey,
 }) => {
   // State management
   const [page, setPage] = useState(0);
@@ -452,7 +458,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                 ))}
 
                 {/* Actions Column */}
-                {(onRowEdit || onRowDelete || onRowView) && (
+                {(onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length) && (
                   <TableCell
                     align="center"
                     sx={{
@@ -475,7 +481,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                     colSpan={
                       columns.length +
                       (selectable ? 1 : 0) +
-                      (onRowEdit || onRowDelete || onRowView ? 1 : 0)
+                      (onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length ? 1 : 0)
                     }
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -489,11 +495,11 @@ export const DataTable: React.FC<DataTableProps> = ({
                     colSpan={
                       columns.length +
                       (selectable ? 1 : 0) +
-                      (onRowEdit || onRowDelete || onRowView ? 1 : 0)
+                      (onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length ? 1 : 0)
                     }
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <Typography color="text.secondary">No data available</Typography>
+                      <Typography color="text.secondary">{emptyMessage || 'No data available'}</Typography>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -553,16 +559,18 @@ export const DataTable: React.FC<DataTableProps> = ({
                       ))}
 
                       {/* Action Buttons */}
-                      {(onRowEdit || onRowDelete || onRowView) && (
+                      {(onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length) && (
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            {onRowView && (
+                            {/* Default Actions */}
+                            {(onRowView || defaultActions?.view) && (
                               <Tooltip title="View">
                                 <IconButton
                                   size="small"
                                   onClick={e => {
                                     e.stopPropagation();
-                                    onRowView(row);
+                                    if (onRowView) onRowView(row);
+                                    else if (defaultActions?.view) defaultActions.view(row);
                                   }}
                                   sx={{ color: '#4facfe' }}
                                 >
@@ -570,13 +578,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                                 </IconButton>
                               </Tooltip>
                             )}
-                            {onRowEdit && (
+                            {(onRowEdit || defaultActions?.edit) && (
                               <Tooltip title="Edit">
                                 <IconButton
                                   size="small"
                                   onClick={e => {
                                     e.stopPropagation();
-                                    onRowEdit(row);
+                                    if (onRowEdit) onRowEdit(row);
+                                    else if (defaultActions?.edit) defaultActions.edit(row);
                                   }}
                                   sx={{ color: '#43e97b' }}
                                 >
@@ -584,13 +593,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                                 </IconButton>
                               </Tooltip>
                             )}
-                            {onRowDelete && (
+                            {(onRowDelete || defaultActions?.delete) && (
                               <Tooltip title="Delete">
                                 <IconButton
                                   size="small"
                                   onClick={e => {
                                     e.stopPropagation();
-                                    onRowDelete(row);
+                                    if (onRowDelete) onRowDelete(row);
+                                    else if (defaultActions?.delete) defaultActions.delete(row);
                                   }}
                                   sx={{ color: '#ff6b6b' }}
                                 >
@@ -598,6 +608,22 @@ export const DataTable: React.FC<DataTableProps> = ({
                                 </IconButton>
                               </Tooltip>
                             )}
+                            {/* Custom Actions */}
+                            {actions?.map((action, index) => (
+                              <Tooltip key={index} title={action.label}>
+                                <IconButton
+                                  size="small"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    action.onClick(row);
+                                  }}
+                                  disabled={action.disabled ? action.disabled(row) : false}
+                                  sx={{ color: '#667eea' }}
+                                >
+                                  {action.icon}
+                                </IconButton>
+                              </Tooltip>
+                            ))}
                           </Box>
                         </TableCell>
                       )}

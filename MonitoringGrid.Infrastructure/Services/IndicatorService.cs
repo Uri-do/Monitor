@@ -237,10 +237,18 @@ public class IndicatorService : IIndicatorService
             })
             .ToListAsync(cancellationToken);
         
-        // Get alerts triggered today
-        dashboard.AlertsTriggeredToday = await _context.AlertLogs
-            .Where(a => a.TriggerTime.Date == today)
-            .CountAsync(cancellationToken);
+        // Get alerts triggered today - use a safe default if AlertLogs doesn't exist
+        try
+        {
+            dashboard.AlertsTriggeredToday = await _context.AlertLogs
+                .Where(a => a.TriggerTime.Date == today)
+                .CountAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not retrieve alert count, using default value");
+            dashboard.AlertsTriggeredToday = 0;
+        }
         
         return dashboard;
     }

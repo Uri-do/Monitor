@@ -51,7 +51,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
             {
                 var collector = new CollectorDto
                 {
-                    CollectorId = reader.GetInt32("CollectorID"),
+                    CollectorId = reader.GetInt64("CollectorID"),
                     CollectorCode = reader.GetString("CollectorCode"),
                     CollectorDesc = reader.GetString("CollectorDesc"),
                     IsActive = reader.GetBoolean("IsActive")
@@ -76,7 +76,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
         }
     }
 
-    public async Task<CollectorDto?> GetCollectorByIdAsync(int collectorId, CancellationToken cancellationToken = default)
+    public async Task<CollectorDto?> GetCollectorByIdAsync(long collectorId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving collector {CollectorId} from ProgressPlayDB", collectorId);
 
@@ -101,7 +101,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
             {
                 var collector = new CollectorDto
                 {
-                    CollectorId = reader.GetInt32("CollectorID"),
+                    CollectorId = reader.GetInt64("CollectorID"),
                     CollectorCode = reader.GetString("CollectorCode"),
                     CollectorDesc = reader.GetString("CollectorDesc"),
                     IsActive = reader.GetBoolean("IsActive")
@@ -120,7 +120,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
         }
     }
 
-    public async Task<List<string>> GetCollectorItemNamesAsync(int collectorId, CancellationToken cancellationToken = default)
+    public async Task<List<string>> GetCollectorItemNamesAsync(long collectorId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving item names for collector {CollectorId}", collectorId);
 
@@ -158,7 +158,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
         }
     }
 
-    public async Task<List<CollectorStatisticDto>> GetCollectorStatisticsAsync(int collectorId, string itemName,
+    public async Task<List<CollectorStatisticDto>> GetCollectorStatisticsAsync(long collectorId, string itemName,
         int lastDays = 30, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving statistics for collector {CollectorId}, item {ItemName}, last {Days} days",
@@ -213,7 +213,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
         }
     }
 
-    public async Task<List<CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(int collectorId, int lastMinutes,
+    public async Task<List<CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(long collectorId, int lastMinutes,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Executing stored procedure for collector {CollectorId} with {LastMinutes} minutes",
@@ -291,7 +291,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
         }
     }
 
-    public async Task<decimal?> GetCollectorItemAverageAsync(int collectorId, string itemName, string valueType,
+    public async Task<decimal?> GetCollectorItemAverageAsync(long collectorId, string itemName, string valueType,
         int? hour = null, DateTime? fromDate = null, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting average for collector {CollectorId}, item {ItemName}, type {ValueType}",

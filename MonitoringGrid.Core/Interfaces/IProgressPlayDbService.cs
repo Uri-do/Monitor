@@ -16,29 +16,29 @@ public interface IProgressPlayDbService
     /// <summary>
     /// Get collector by ID
     /// </summary>
-    Task<CollectorDto?> GetCollectorByIdAsync(int collectorId, CancellationToken cancellationToken = default);
+    Task<CollectorDto?> GetCollectorByIdAsync(long collectorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get available item names for a specific collector from ProgressPlayDB.stats.tbl_Monitor_Statistics
     /// </summary>
-    Task<List<string>> GetCollectorItemNamesAsync(int collectorId, CancellationToken cancellationToken = default);
+    Task<List<string>> GetCollectorItemNamesAsync(long collectorId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get statistics for a specific collector and item name
     /// </summary>
-    Task<List<CollectorStatisticDto>> GetCollectorStatisticsAsync(int collectorId, string itemName, 
+    Task<List<CollectorStatisticDto>> GetCollectorStatisticsAsync(long collectorId, string itemName,
         int lastDays = 30, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Execute a collector's stored procedure to get current data
     /// </summary>
-    Task<List<CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(int collectorId, int lastMinutes,
+    Task<List<CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(long collectorId, int lastMinutes,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get average value for a collector item over specified period
     /// </summary>
-    Task<decimal?> GetCollectorItemAverageAsync(int collectorId, string itemName, string valueType,
+    Task<decimal?> GetCollectorItemAverageAsync(long collectorId, string itemName, string valueType,
         int? hour = null, DateTime? fromDate = null, CancellationToken cancellationToken = default);
 
     /// <summary>
