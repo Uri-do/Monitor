@@ -114,6 +114,12 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .HasForeignKey(ic => ic.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(i => i.Collector)
+            .WithMany(c => c.Indicators)
+            .HasForeignKey(i => i.CollectorID)
+            .HasPrincipalKey(c => c.CollectorID)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Note: AlertLogs and HistoricalData still reference KpiId for now
         // These relationships will be updated when we migrate the data
         // builder.HasMany(i => i.AlertLogs)

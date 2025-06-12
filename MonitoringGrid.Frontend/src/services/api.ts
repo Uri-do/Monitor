@@ -288,6 +288,52 @@ export const collectorApi = {
   },
 };
 
+// Monitor Statistics API endpoints (New system using ProgressPlayDBTest)
+export const monitorStatisticsApi = {
+  // Get active collectors
+  getActiveCollectors: async (): Promise<any[]> => {
+    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get('/monitorstatistics/collectors?activeOnly=true');
+    return response.data.value || [];
+  },
+
+  // Get all collectors
+  getAllCollectors: async (): Promise<any[]> => {
+    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get('/monitorstatistics/collectors?activeOnly=false');
+    return response.data.value || [];
+  },
+
+  // Get collector by ID
+  getCollector: async (collectorId: number): Promise<any> => {
+    const response: AxiosResponse<{ isSuccess: boolean; value: any }> = await api.get(`/monitorstatistics/collectors/${collectorId}`);
+    return response.data.value;
+  },
+
+  // Get collector item names
+  getCollectorItemNames: async (collectorId: number): Promise<string[]> => {
+    const response: AxiosResponse<{ isSuccess: boolean; value: string[] }> = await api.get(`/monitorstatistics/collectors/${collectorId}/items`);
+    return response.data.value || [];
+  },
+
+  // Get collector statistics
+  getCollectorStatistics: async (collectorId: number, options?: {
+    fromDate?: string;
+    toDate?: string;
+    hours?: number;
+  }): Promise<any[]> => {
+    const params = new URLSearchParams();
+    if (options?.fromDate && options?.toDate) {
+      params.append('fromDate', options.fromDate);
+      params.append('toDate', options.toDate);
+    } else if (options?.hours) {
+      params.append('hours', options.hours.toString());
+    }
+
+    const url = `/monitorstatistics/collectors/${collectorId}/statistics${params.toString() ? `?${params.toString()}` : ''}`;
+    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(url);
+    return response.data.value || [];
+  },
+};
+
 // KPI API endpoints (Legacy - kept for backward compatibility during migration)
 export const kpiApi = {
   // Get all KPIs with optional filtering

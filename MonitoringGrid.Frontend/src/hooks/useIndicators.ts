@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { indicatorApi, collectorApi } from '@/services/api';
+import { indicatorApi, collectorApi, monitorStatisticsApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
@@ -52,11 +52,12 @@ export const useIndicatorDashboard = () => {
 
 /**
  * Hook to fetch all collectors for dropdown selection
+ * Updated to use new monitor statistics API
  */
 export const useCollectors = () => {
   return useQuery({
     queryKey: queryKeys.collectors.list(),
-    queryFn: collectorApi.getCollectors,
+    queryFn: monitorStatisticsApi.getActiveCollectors,
     staleTime: 5 * 60 * 1000, // Collectors don't change often, cache for 5 minutes
     refetchInterval: 10 * 60 * 1000, // Refetch every 10 minutes
   });
@@ -64,11 +65,12 @@ export const useCollectors = () => {
 
 /**
  * Hook to fetch collector item names for a specific collector
+ * Updated to use new monitor statistics API
  */
 export const useCollectorItemNames = (collectorId: number) => {
   return useQuery({
     queryKey: queryKeys.collectors.items(collectorId),
-    queryFn: () => collectorApi.getCollectorItemNames(collectorId),
+    queryFn: () => monitorStatisticsApi.getCollectorItemNames(collectorId),
     enabled: !!collectorId && collectorId > 0,
     staleTime: 5 * 60 * 1000, // Item names don't change often
     refetchInterval: 10 * 60 * 1000,

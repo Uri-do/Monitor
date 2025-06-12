@@ -1,6 +1,51 @@
-1. Added new row in PopAI.monitoring.Config with key 'ProgressPlayDbConnectionString' and value 'Data Source=192.168.166.11,1433;Initial Catalog=ProgressPlayDB;User ID=saturn;Password=xxxxx;MultipleActiveResultSets=true;TrustServerCertificate=true;ApplicationIntent=ReadOnly' with the real password, i marked it as encrypted, please encrypt it. and then make sure it is being used instead of the ProgressPlayDBTest connection string from the settings files.
-2. see files monitor_statistics__collectors_sample.csv which are the collectors that ProgressPlayDB already run (no need for this system to manage this) and insert stats every hour, by hour, into stats.tbl_Monitor_Statistics. 
-3. see C:\Dev\code\Monitor\NewEnh\progressplaydb_stats_monitor_sps.txt for the stored procedures that are already created in ProgressPlayDB, no need to change them. but they need to be used when running Indicator
-Added a new table in PopAI monitoring.Indicators and added first 3 indicators from the file C:\Dev\code\Monitor\NewEnh\popai_indicators.csv as samples.
-I want to replace the existing KPI functionality with the new indicator functionality. when creating a new Indicator the user should choose a Collector from ProgressPlayDB.stats.tbl_Monitor_StatisticsCollectors, and after that one of the ItemName available in ProgressPlayDB.stats.tbl_Monitor_Statistics for this collector. 
-and then we will continue. plan and ask if something is not clear
+because we have problem currently to connect to ProgressPlayDB, lets change the connection to ProgressPlayDBTest for now. I added these 2 tables to ProgressPlayDBTest, so you can use it. 
+USE [ProgressPlayDBTest]
+GO
+
+/****** Object:  Table [stats].[tbl_Monitor_Statistics]    Script Date: 6/12/2025 11:16:06 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [stats].[tbl_Monitor_Statistics](
+	[Day] [date] NOT NULL,
+	[Hour] [tinyint] NOT NULL,
+	[CollectorID] [bigint] NOT NULL,
+	[ItemName] [varchar](50) NULL,
+	[Total] [decimal](18, 2) NULL,
+	[Marked] [decimal](18, 2) NULL,
+	[MarkedPercent] [decimal](18, 2) NULL,
+	[UpdatedDate] [datetime] NULL
+) ON [PRIMARY]
+GO
+
+
+USE [ProgressPlayDBTest]
+GO
+
+/****** Object:  Table [stats].[tbl_Monitor_StatisticsCollectors]    Script Date: 6/12/2025 11:16:16 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [stats].[tbl_Monitor_StatisticsCollectors](
+	[ID] [bigint] IDENTITY(1,1) NOT NULL,
+	[CollectorID] [bigint] NOT NULL,
+	[CollectorCode] [varchar](500) NULL,
+	[CollectorDesc] [nvarchar](500) NULL,
+	[FrequencyMinutes] [int] NOT NULL,
+	[LastMinutes] [int] NULL,
+	[StoreProcedure] [varchar](50) NULL,
+	[IsActive] [bit] NULL,
+	[UpdatedDate] [datetime] NULL,
+	[LastRun] [datetime] NULL,
+	[LastRunResult] [nvarchar](500) NULL
+) ON [PRIMARY]
+GO
+
+
+create models and all and lets integrate it, first in creating indicators

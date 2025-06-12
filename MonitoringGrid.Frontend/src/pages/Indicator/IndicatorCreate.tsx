@@ -21,7 +21,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useIndicator, useCollectors, useCollectorItemNames } from '@/hooks/useIndicators';
+import { useIndicator } from '@/hooks/useIndicators';
+import { CollectorSelector } from '@/components/CollectorSelector';
 import { useActiveContacts } from '@/hooks/useContacts';
 import { useCreateIndicator, useUpdateIndicator, useExecuteIndicator } from '@/hooks/useIndicatorMutations';
 import {
@@ -165,8 +166,6 @@ const IndicatorCreate: React.FC = () => {
   // Use our enhanced hooks
   const { data: indicator, isLoading: indicatorLoading } = useIndicator(indicatorId || 0);
   const { data: contacts = [], isLoading: contactsLoading } = useActiveContacts();
-  const { data: collectors = [], isLoading: collectorsLoading } = useCollectors();
-  const { data: collectorItems = [], isLoading: itemsLoading } = useCollectorItemNames(selectedCollectorId || 0);
 
   // Form setup
   const {
@@ -276,7 +275,16 @@ const IndicatorCreate: React.FC = () => {
     setSelectedContacts(newValue);
   };
 
-  if (indicatorLoading || contactsLoading || collectorsLoading) {
+  const handleCollectorChange = (collectorId: number) => {
+    setValue('collectorId', collectorId);
+    setSelectedCollectorId(collectorId);
+  };
+
+  const handleItemNameChange = (itemName: string) => {
+    setValue('collectorItemName', itemName);
+  };
+
+  if (indicatorLoading || contactsLoading) {
     return <LoadingSpinner />;
   }
 
@@ -365,37 +373,24 @@ const IndicatorCreate: React.FC = () => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="collectorId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      label="Collector"
-                      options={collectors.map(c => ({ value: c.collectorId, label: c.collectorName }))}
-                      error={!!errors.collectorId}
-                      required
-                    />
-                  )}
+              <Grid item xs={12}>
+                <CollectorSelector
+                  selectedCollectorId={selectedCollectorId || undefined}
+                  selectedItemName={watch('collectorItemName')}
+                  onCollectorChange={handleCollectorChange}
+                  onItemNameChange={handleItemNameChange}
+                  disabled={isSubmitting}
                 />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="collectorItemName"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      label="Collector Item"
-                      options={collectorItems.map(item => ({ value: item, label: item }))}
-                      error={!!errors.collectorItemName}
-                      disabled={!selectedCollectorId || itemsLoading}
-                      required
-                    />
-                  )}
-                />
+                {errors.collectorId && (
+                  <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>
+                    {errors.collectorId.message}
+                  </Typography>
+                )}
+                {errors.collectorItemName && (
+                  <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>
+                    {errors.collectorItemName.message}
+                  </Typography>
+                )}
               </Grid>
 
               <Grid item xs={12}>

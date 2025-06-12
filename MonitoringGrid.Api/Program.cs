@@ -166,6 +166,7 @@ builder.Services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<IMonitorStatisticsService, MonitorStatisticsService>();
 
 // Add performance optimization services
 builder.Services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();

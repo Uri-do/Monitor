@@ -18,6 +18,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIndicatorService _indicatorService;
     private readonly IProgressPlayDbService _progressPlayDbService;
+    private readonly IMonitorStatisticsService _statisticsService;
     private readonly IMapper _mapper;
     private readonly ILogger<CreateIndicatorCommandHandler> _logger;
 
@@ -25,12 +26,14 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
         IUnitOfWork unitOfWork,
         IIndicatorService indicatorService,
         IProgressPlayDbService progressPlayDbService,
+        IMonitorStatisticsService statisticsService,
         IMapper mapper,
         ILogger<CreateIndicatorCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _indicatorService = indicatorService;
         _progressPlayDbService = progressPlayDbService;
+        _statisticsService = statisticsService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -42,19 +45,19 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             _logger.LogDebug("Creating indicator: {IndicatorName}", request.IndicatorName);
 
             // Validate collector exists and is active
-            var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorID, cancellationToken);
+            var collector = await _statisticsService.GetCollectorByCollectorIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
                 return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
 
-            if (!collector.IsActive)
+            if (!(collector.IsActive ?? false))
             {
                 return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
             }
 
             // Validate collector item name exists
-            var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
+            var availableItems = await _statisticsService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
             if (!availableItems.Contains(request.CollectorItemName))
             {
                 return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");

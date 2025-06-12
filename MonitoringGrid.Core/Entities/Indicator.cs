@@ -117,6 +117,7 @@ public class Indicator : AggregateRoot
     public virtual Contact? OwnerContact { get; set; }
     public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
     public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();
+    public virtual MonitorStatisticsCollector? Collector { get; set; }
 
     // Domain methods
     public bool IsDue()
