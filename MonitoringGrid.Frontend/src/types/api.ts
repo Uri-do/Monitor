@@ -1,5 +1,116 @@
 // API Types for Monitoring Grid Frontend
 
+// ===== INDICATOR TYPES (New System) =====
+
+// Indicator Types
+export interface IndicatorDto {
+  indicatorId: number;
+  indicatorName: string;
+  indicatorCode: string;
+  indicatorDesc?: string;
+  collectorId: number;
+  collectorItemName: string;
+  scheduleConfiguration: string;
+  isActive: boolean;
+  lastMinutes: number;
+  thresholdType?: string;
+  thresholdField?: string;
+  thresholdComparison?: string;
+  thresholdValue?: number;
+  priority: number;
+  ownerContactId: number;
+  averageLastDays?: number;
+  createdDate: string;
+  updatedDate: string;
+  lastExecuted?: string;
+  isCurrentlyRunning: boolean;
+  // Navigation properties
+  ownerContact?: ContactDto;
+  contacts: ContactDto[];
+  collector?: CollectorDto;
+}
+
+export interface CreateIndicatorRequest {
+  indicatorName: string;
+  indicatorCode: string;
+  indicatorDesc?: string;
+  collectorId: number;
+  collectorItemName: string;
+  scheduleConfiguration: string;
+  isActive: boolean;
+  lastMinutes: number;
+  thresholdType?: string;
+  thresholdField?: string;
+  thresholdComparison?: string;
+  thresholdValue?: number;
+  priority: number;
+  ownerContactId: number;
+  averageLastDays?: number;
+  contactIds: number[];
+}
+
+export interface UpdateIndicatorRequest extends CreateIndicatorRequest {
+  indicatorId: number;
+}
+
+export interface TestIndicatorRequest {
+  indicatorId: number;
+  customFrequency?: number;
+}
+
+export interface IndicatorExecutionResultDto {
+  indicatorId: number;
+  indicatorName: string;
+  executionId: string;
+  isSuccess: boolean;
+  executionTime: number;
+  resultValue?: number;
+  resultMessage?: string;
+  errorMessage?: string;
+  executedAt: string;
+  executedBy: string;
+}
+
+export interface IndicatorDashboardDto {
+  totalIndicators: number;
+  activeIndicators: number;
+  inactiveIndicators: number;
+  indicatorsInErrorCount: number;
+  indicatorsDue: number;
+  indicatorsRunning: number;
+  alertsToday: number;
+  alertsThisWeek: number;
+  lastUpdate: string;
+  recentAlerts: IndicatorStatusDto[];
+  indicatorsInError: IndicatorStatusDto[];
+  dueIndicators: IndicatorStatusDto[];
+  runningIndicators: IndicatorStatusDto[];
+  nextIndicatorDue?: IndicatorStatusDto;
+}
+
+export interface IndicatorStatusDto {
+  indicatorId: number;
+  indicatorName: string;
+  status: string;
+  lastExecuted?: string;
+  nextDue?: string;
+  priority: number;
+  ownerContact?: string;
+}
+
+// Collector Types (for ProgressPlayDB integration)
+export interface CollectorDto {
+  collectorId: number;
+  collectorCode: string;
+  collectorName: string;
+  collectorDesc?: string;
+  isActive: boolean;
+  createdDate: string;
+  updatedDate: string;
+}
+
+// ===== SCHEDULER TYPES =====
+
 // Scheduler Types
 export interface ScheduleConfiguration {
   scheduleType: ScheduleType;

@@ -20,19 +20,19 @@ namespace MonitoringGrid.Infrastructure.Services;
 /// </summary>
 public class KpiExecutionService : IKpiExecutionService
 {
-    private readonly MonitoringContext _context;
+    private readonly IDbContextFactory<MonitoringContext> _contextFactory;
     private readonly MonitoringConfiguration _config;
     private readonly ILogger<KpiExecutionService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IAsyncPolicy _retryPolicy;
 
     public KpiExecutionService(
-        MonitoringContext context,
+        IDbContextFactory<MonitoringContext> contextFactory,
         IOptions<MonitoringConfiguration> config,
         IConfiguration configuration,
         ILogger<KpiExecutionService> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _config = config.Value;
         _configuration = configuration;
         _logger = logger;
@@ -48,17 +48,21 @@ public class KpiExecutionService : IKpiExecutionService
 
     public async Task<KpiExecutionResult> ExecuteKpiAsync(KPI kpi, CancellationToken cancellationToken = default)
     {
+        // Create a new context instance for this execution to avoid concurrency issues
+        using var context = _contextFactory.CreateDbContext();
+
         try
         {
             _logger.LogDebug("Executing KPI {Indicator} using stored procedure {SpName}", kpi.Indicator, kpi.SpName);
 
-            // Mark KPI as currently running
+            // Attach the KPI entity to the new context and mark as running
+            context.Attach(kpi);
             kpi.StartExecution("Manual");
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             var result = await _retryPolicy.ExecuteAsync(async () =>
             {
-                return await ExecuteStoredProcedureAsync(kpi, cancellationToken);
+                return await ExecuteStoredProcedureAsync(kpi, context, cancellationToken);
             });
 
             // Mark KPI execution as completed and update last run time
@@ -66,8 +70,8 @@ public class KpiExecutionService : IKpiExecutionService
             kpi.UpdateLastRun();
 
             // Ensure the entity is tracked and marked as modified
-            _context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            await _context.SaveChangesAsync(cancellationToken);
+            context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            await context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Updated KPI {KpiId} LastRun to {LastRun}", kpi.KpiId, kpi.LastRun);
 
@@ -77,15 +81,22 @@ public class KpiExecutionService : IKpiExecutionService
         {
             _logger.LogError(ex, "Failed to execute KPI {Indicator}: {Message}", kpi.Indicator, ex.Message);
 
-            // Mark KPI execution as completed even on error and update last run time
-            kpi.CompleteExecution();
-            kpi.UpdateLastRun();
+            try
+            {
+                // Mark KPI execution as completed even on error and update last run time
+                kpi.CompleteExecution();
+                kpi.UpdateLastRun();
 
-            // Ensure the entity is tracked and marked as modified
-            _context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-            await _context.SaveChangesAsync(cancellationToken);
+                // Ensure the entity is tracked and marked as modified
+                context.Entry(kpi).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                await context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogWarning("Updated KPI {KpiId} LastRun to {LastRun} after error", kpi.KpiId, kpi.LastRun);
+                _logger.LogWarning("Updated KPI {KpiId} LastRun to {LastRun} after error", kpi.KpiId, kpi.LastRun);
+            }
+            catch (Exception saveEx)
+            {
+                _logger.LogError(saveEx, "Failed to save KPI state after execution error for {KpiId}", kpi.KpiId);
+            }
 
             return new KpiExecutionResult
             {
@@ -96,7 +107,7 @@ public class KpiExecutionService : IKpiExecutionService
         }
     }
 
-    private async Task<KpiExecutionResult> ExecuteStoredProcedureAsync(KPI kpi, CancellationToken cancellationToken)
+    private async Task<KpiExecutionResult> ExecuteStoredProcedureAsync(KPI kpi, MonitoringContext context, CancellationToken cancellationToken)
     {
         var executionSteps = new List<ExecutionStepInfo>();
         var overallStartTime = DateTime.UtcNow;
@@ -111,7 +122,7 @@ public class KpiExecutionService : IKpiExecutionService
         executionSteps.Add(initStep);
 
         // Determine connection string based on stored procedure location
-        var connectionString = GetConnectionStringForStoredProcedure(kpi.SpName);
+        var connectionString = GetConnectionStringForStoredProcedure(kpi.SpName, context);
         var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
 
         initStep.EndTime = DateTime.UtcNow;
@@ -196,9 +207,6 @@ public class KpiExecutionService : IKpiExecutionService
         };
 
         result.ShouldAlert = ShouldTriggerAlert(kpi, result);
-
-        // Store historical data
-        await StoreHistoricalDataAsync(kpi, result, cancellationToken);
 
         _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%, ExecutionTime={ExecutionTimeMs}ms",
             kpi.Indicator, currentValue, historicalValue, deviationPercent, totalExecutionMs);
@@ -318,14 +326,14 @@ public class KpiExecutionService : IKpiExecutionService
         processStep.Status = "Success";
         processStep.Details = $"Calculated deviation: {deviationPercent:F2}%";
 
-        // Step 5: Store Historical Data
-        var storeStep = new ExecutionStepInfo
+        // Step 5: Finalize Results
+        var finalizeStep = new ExecutionStepInfo
         {
-            StepName = "Storing Historical Data",
+            StepName = "Finalizing Results",
             StartTime = DateTime.UtcNow,
             Status = "Active"
         };
-        executionSteps.Add(storeStep);
+        executionSteps.Add(finalizeStep);
 
         // Update the result with final values
         result.Key = key;
@@ -348,7 +356,7 @@ public class KpiExecutionService : IKpiExecutionService
             DatabaseConnectionMs = executionSteps.FirstOrDefault(s => s.StepName == "Connecting to Database")?.DurationMs ?? 0,
             StoredProcedureExecutionMs = executionSteps.FirstOrDefault(s => s.StepName == "Executing Stored Procedure")?.DurationMs ?? 0,
             ResultProcessingMs = executionSteps.FirstOrDefault(s => s.StepName == "Processing Results")?.DurationMs ?? 0,
-            HistoricalDataSaveMs = 0 // Will be updated after save
+            HistoricalDataSaveMs = 0 // Not used anymore - data stored in IndicatorsExecutionHistory table
         };
 
         result.DatabaseInfo = new DatabaseExecutionInfo
@@ -366,19 +374,10 @@ public class KpiExecutionService : IKpiExecutionService
 
         result.ExecutionSteps = executionSteps;
 
-        // Store historical data
-        await StoreHistoricalDataAsync(kpi, result, cancellationToken);
-
-        storeStep.EndTime = DateTime.UtcNow;
-        storeStep.DurationMs = (int)(storeStep.EndTime - storeStep.StartTime).TotalMilliseconds;
-        storeStep.Status = "Success";
-        storeStep.Details = "Historical data saved successfully";
-
-        // Update timing info with historical data save time
-        if (result.TimingInfo != null)
-        {
-            result.TimingInfo.HistoricalDataSaveMs = storeStep.DurationMs;
-        }
+        finalizeStep.EndTime = DateTime.UtcNow;
+        finalizeStep.DurationMs = (int)(finalizeStep.EndTime - finalizeStep.StartTime).TotalMilliseconds;
+        finalizeStep.Status = "Success";
+        finalizeStep.Details = "Results finalized successfully";
 
         _logger.LogDebug("KPI {Indicator} executed successfully: Current={Current}, Historical={Historical}, Deviation={Deviation}%, Total Time={TotalMs}ms",
             kpi.Indicator, currentValue, historicalValue, deviationPercent, totalExecutionMs);
@@ -410,7 +409,7 @@ public class KpiExecutionService : IKpiExecutionService
 
 
 
-    private string GetConnectionStringForStoredProcedure(string spName)
+    private string GetConnectionStringForStoredProcedure(string spName, MonitoringContext context)
     {
         // If the stored procedure is in the stats schema, use the main database connection
         if (spName.StartsWith("[stats].") || spName.StartsWith("stats."))
@@ -454,7 +453,7 @@ public class KpiExecutionService : IKpiExecutionService
         }
 
         // Default to monitoring database
-        return _context.Database.GetConnectionString() ?? throw new InvalidOperationException("No connection string found for monitoring database");
+        return context.Database.GetConnectionString() ?? throw new InvalidOperationException("No connection string found for monitoring database");
     }
 
     private bool IsResultSetBasedStoredProcedure(string spName)
@@ -588,56 +587,7 @@ public class KpiExecutionService : IKpiExecutionService
         return result;
     }
 
-    private async Task StoreHistoricalDataAsync(KPI kpi, KpiExecutionResult result, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var connectionString = GetConnectionStringForStoredProcedure(kpi.SpName);
-            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
 
-            var historicalData = new HistoricalData
-            {
-                KpiId = kpi.KpiId,
-                Timestamp = result.ExecutionTime,
-                Value = result.CurrentValue,
-                Period = kpi.Frequency,
-                MetricKey = result.Key,
-
-                // Comprehensive audit information
-                ExecutedBy = "System", // TODO: Get from current user context
-                ExecutionMethod = "API", // TODO: Determine execution method
-                SqlCommand = $"EXEC {kpi.SpName} @Frequency = {kpi.Frequency}",
-                SqlParameters = $"@Frequency = {kpi.Frequency}",
-                RawResponse = result.ExecutionDetails,
-                ExecutionTimeMs = result.ExecutionTimeMs,
-                ConnectionString = MaskConnectionString(connectionString),
-                DatabaseName = connectionStringBuilder.InitialCatalog,
-                ServerName = connectionStringBuilder.DataSource,
-                IsSuccessful = string.IsNullOrEmpty(result.ErrorMessage),
-                ErrorMessage = result.ErrorMessage,
-                DeviationPercent = result.DeviationPercent,
-                HistoricalValue = result.HistoricalValue,
-                ShouldAlert = result.ShouldAlert,
-                AlertSent = false, // TODO: Track if alert was actually sent
-                SessionId = null, // TODO: Get from HTTP context
-                UserAgent = null, // TODO: Get from HTTP context
-                IpAddress = null, // TODO: Get from HTTP context
-                ExecutionContext = result.Metadata != null ?
-                    System.Text.Json.JsonSerializer.Serialize(result.Metadata) : null
-            };
-
-            _context.HistoricalData.Add(historicalData);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("📊 Stored comprehensive audit data for KPI {Indicator}: Value={Value}, Success={Success}, Database={Database}",
-                kpi.Indicator, result.CurrentValue, historicalData.IsSuccessful, historicalData.DatabaseName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Failed to store historical data for KPI {Indicator}: {Message}",
-                kpi.Indicator, ex.Message);
-        }
-    }
 
     #region Enhanced Type-Based Execution Methods
 
@@ -664,7 +614,8 @@ public class KpiExecutionService : IKpiExecutionService
     {
         try
         {
-            var connectionString = GetConnectionStringForStoredProcedure(spName);
+            using var context = _contextFactory.CreateDbContext();
+            var connectionString = GetConnectionStringForStoredProcedure(spName, context);
             using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 

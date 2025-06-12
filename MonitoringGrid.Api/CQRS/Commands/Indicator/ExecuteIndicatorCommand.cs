@@ -1,6 +1,6 @@
 using MediatR;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Common;
 
 namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 

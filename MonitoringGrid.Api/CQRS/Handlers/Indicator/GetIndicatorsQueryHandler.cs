@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
@@ -112,7 +112,7 @@ public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Res
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get indicators");
-            return Result<List<IndicatorDto>>.Failure($"Failed to get indicators: {ex.Message}");
+            return Result.Failure<List<IndicatorDto>>("GET_FAILED", $"Failed to get indicators: {ex.Message}");
         }
     }
 

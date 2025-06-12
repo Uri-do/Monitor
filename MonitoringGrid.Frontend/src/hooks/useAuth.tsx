@@ -7,7 +7,7 @@ interface AuthContextType extends AuthState {
   login: (request: LoginRequest) => Promise<void>;
   register: (request: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
+  refreshToken: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -171,16 +171,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshToken = async () => {
     try {
       const response = await authService.refreshToken();
-      const newToken = response.token?.accessToken || response.accessToken;
+      const newToken = response.token?.accessToken || response.token || '';
 
       setState(prev => ({
         ...prev,
         user: response.user || prev.user,
-        token: newToken,
+        token: typeof newToken === 'string' ? newToken : null,
         error: null,
       }));
 
-      return newToken;
+      return typeof newToken === 'string' ? newToken : '';
     } catch (error) {
       console.error('Token refresh failed in useAuth:', error);
       await logout();

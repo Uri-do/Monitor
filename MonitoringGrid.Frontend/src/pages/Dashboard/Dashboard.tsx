@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Box, Grid, LinearProgress, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
-import { useKpiDashboard } from '@/hooks/useKpis';
+import { useIndicatorDashboard } from '@/hooks/useIndicators';
 import { useAlertDashboard } from '@/hooks/useAlerts';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { useRealtime } from '@/contexts/RealtimeContext';
@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
   const dashboardState = realtimeDashboard;
 
   // Use enhanced hooks for dashboard data with optimized real-time updates
-  const { data: kpiDashboard, isLoading: kpiLoading, refetch: refetchKpi } = useKpiDashboard();
+  const { data: indicatorDashboard, isLoading: indicatorLoading, refetch: refetchIndicator } = useIndicatorDashboard();
 
   const {
     data: alertDashboard,
@@ -42,37 +42,28 @@ const Dashboard: React.FC = () => {
     refetch: refetchAlert,
   } = useAlertDashboard();
 
-  // Merge real-time data with dashboard data
-  const mergedKpiDashboard = React.useMemo(() => {
-    if (!kpiDashboard) return kpiDashboard;
+  // Merge real-time data with dashboard data (temporarily simplified)
+  const mergedIndicatorDashboard = React.useMemo(() => {
+    if (!indicatorDashboard) return indicatorDashboard;
 
     return {
-      ...kpiDashboard,
-      runningKpis:
-        dashboardState.runningKpis.length > 0
-          ? dashboardState.runningKpis.map(kpi => ({
-              kpiId: kpi.kpiId,
-              indicator: kpi.indicator,
-              owner: kpi.owner,
-              startTime: kpi.startTime,
-              progress: kpi.progress,
-              estimatedCompletion: kpi.estimatedCompletion,
-            }))
-          : kpiDashboard.runningKpis,
-      nextKpiDue: dashboardState.nextKpiDue || kpiDashboard.nextKpiDue,
+      ...indicatorDashboard,
+      // TODO: Add real-time indicator support when RealtimeDashboardState is updated
+      runningIndicators: indicatorDashboard.runningIndicators || [],
+      nextIndicatorDue: indicatorDashboard.nextIndicatorDue,
     };
-  }, [kpiDashboard, dashboardState.runningKpis, dashboardState.nextKpiDue]);
+  }, [indicatorDashboard]);
 
   const handleRefresh = () => {
     // Use enhanced query keys for cache invalidation
-    queryClient.invalidateQueries({ queryKey: ['kpis', 'dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['indicators', 'dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['alerts', 'dashboard'] });
-    refetchKpi();
+    refetchIndicator();
     refetchAlert();
     dashboardState.refreshDashboard();
   };
 
-  if (kpiLoading || alertLoading) {
+  if (indicatorLoading || alertLoading) {
     return (
       <Box>
         <Typography variant="h4" gutterBottom>
@@ -87,32 +78,32 @@ const Dashboard: React.FC = () => {
     <Box>
       {/* Header */}
       <DashboardHeader
-        lastUpdate={kpiDashboard?.lastUpdate}
+        lastUpdate={indicatorDashboard?.lastUpdate}
         countdown={dashboardState.countdown}
         onRefresh={handleRefresh}
       />
 
       <Grid container spacing={3}>
-        {/* KPI Overview Cards */}
+        {/* KPI Overview Cards (temporarily using KPI components until Indicator components are created) */}
         <KpiOverviewCards
-          kpiDashboard={mergedKpiDashboard as any}
+          kpiDashboard={mergedIndicatorDashboard as any}
           alertDashboard={alertDashboard}
-          kpiLoading={kpiLoading}
+          kpiLoading={indicatorLoading}
           alertLoading={alertLoading}
         />
 
         {/* KPIs Due for Execution - Moved to top */}
-        <KpisDueCard kpiDashboard={mergedKpiDashboard as any} />
+        <KpisDueCard kpiDashboard={mergedIndicatorDashboard as any} />
 
         {/* Running KPIs */}
         <RunningKpisCard
-          kpiDashboard={mergedKpiDashboard as any}
-          realtimeRunningKpis={dashboardState.runningKpis}
+          kpiDashboard={mergedIndicatorDashboard as any}
+          realtimeRunningKpis={dashboardState.runningKpis || []}
         />
 
         {/* Next KPI Due */}
         <NextKpiExecutionCard
-          kpiDashboard={mergedKpiDashboard as any}
+          kpiDashboard={mergedIndicatorDashboard as any}
           countdown={dashboardState.countdown}
           isConnected={dashboardState.isConnected}
         />

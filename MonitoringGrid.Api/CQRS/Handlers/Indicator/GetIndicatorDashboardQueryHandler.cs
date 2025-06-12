@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
@@ -57,7 +57,7 @@ public class GetIndicatorDashboardQueryHandler : IRequestHandler<GetIndicatorDas
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get indicator dashboard data");
-            return Result<IndicatorDashboardDto>.Failure($"Failed to get dashboard data: {ex.Message}");
+            return Result.Failure<IndicatorDashboardDto>("DASHBOARD_FAILED", $"Failed to get dashboard data: {ex.Message}");
         }
     }
 

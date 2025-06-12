@@ -166,6 +166,7 @@ public interface IPerformanceMetricsService
     Task<List<SlowRequestInfo>> GetSlowRequestsAsync(int thresholdMs = 1000, int count = 50);
     Task<Dictionary<string, PerformanceStatistics>> GetActionStatisticsAsync(DateTime from, DateTime to);
     Task<SystemPerformanceMetrics> GetSystemMetricsAsync();
+    void IncrementCounter(string counterName, string? category = null);
 }
 
 /// <summary>
@@ -303,6 +304,12 @@ public class PerformanceMetricsService : IPerformanceMetricsService
         };
 
         return Task.FromResult(metrics);
+    }
+
+    public void IncrementCounter(string counterName, string? category = null)
+    {
+        // Simple counter implementation - in production you might want to use a more sophisticated approach
+        _logger.LogDebug("Counter incremented: {CounterName} (Category: {Category})", counterName, category ?? "default");
     }
 
     private double CalculateMedian(IEnumerable<double> values)

@@ -112,7 +112,7 @@ const AuthTest: React.FC = () => {
                     <strong>Email:</strong> {user.email}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Role:</strong> {user.role}
+                    <strong>Roles:</strong> {user.roles?.map(r => r.name).join(', ') || 'None'}
                   </Typography>
                 </Box>
               )}

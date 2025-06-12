@@ -112,9 +112,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       path: '/dashboard',
     },
     {
-      text: 'KPIs',
+      text: 'Indicators',
       icon: <KpiIcon />,
-      path: '/kpis',
+      path: '/indicators',
     },
     {
       text: 'Contacts',

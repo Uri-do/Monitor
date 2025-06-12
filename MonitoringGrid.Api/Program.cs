@@ -105,6 +105,26 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
     }
 });
 
+// Add DbContextFactory for thread-safe operations (fixes concurrency issues)
+builder.Services.AddDbContextFactory<MonitoringContext>(options =>
+{
+    if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString))
+    {
+        options.UseInMemoryDatabase("MonitoringGrid_Dev");
+    }
+    else
+    {
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
+            sqlOptions.CommandTimeout(30);
+        });
+    }
+});
+
 // Database seeding not needed for real database
 // builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 

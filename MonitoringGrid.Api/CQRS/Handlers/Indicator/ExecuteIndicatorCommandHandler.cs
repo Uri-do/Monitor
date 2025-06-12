@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
@@ -52,13 +52,13 @@ public class ExecuteIndicatorCommandHandler : IRequestHandler<ExecuteIndicatorCo
             {
                 _logger.LogWarning("Indicator execution failed for {IndicatorId}: {ErrorMessage}", 
                     request.IndicatorId, executionResult.ErrorMessage);
-                return Result<IndicatorExecutionResultDto>.Failure(executionResult.ErrorMessage ?? "Execution failed");
+                return Result.Failure<IndicatorExecutionResultDto>("EXECUTION_FAILED", executionResult.ErrorMessage ?? "Execution failed");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing indicator {IndicatorId}", request.IndicatorId);
-            return Result<IndicatorExecutionResultDto>.Failure($"Failed to execute indicator: {ex.Message}");
+            return Result.Failure<IndicatorExecutionResultDto>("EXECUTION_ERROR", $"Failed to execute indicator: {ex.Message}");
         }
     }
 }

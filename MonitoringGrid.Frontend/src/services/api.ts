@@ -27,6 +27,15 @@
 
 import axios, { AxiosResponse } from 'axios';
 import {
+  // Indicator types (New system)
+  IndicatorDto,
+  CreateIndicatorRequest,
+  UpdateIndicatorRequest,
+  TestIndicatorRequest,
+  IndicatorExecutionResultDto,
+  IndicatorDashboardDto,
+  CollectorDto,
+  // KPI types (Legacy)
   KpiDto,
   CreateKpiRequest,
   UpdateKpiRequest,
@@ -210,7 +219,76 @@ api.interceptors.response.use(
   }
 );
 
-// KPI API endpoints
+// Indicator API endpoints (New system replacing KPIs)
+export const indicatorApi = {
+  // Get all Indicators with optional filtering
+  getIndicators: async (params?: {
+    isActive?: boolean;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+  }): Promise<IndicatorDto[]> => {
+    const response: AxiosResponse<IndicatorDto[]> = await api.get('/indicator', { params });
+    return response.data;
+  },
+
+  // Get Indicator by ID
+  getIndicator: async (id: number): Promise<IndicatorDto> => {
+    const response: AxiosResponse<IndicatorDto> = await api.get(`/indicator/${id}`);
+    return response.data;
+  },
+
+  // Create new Indicator
+  createIndicator: async (indicator: CreateIndicatorRequest): Promise<IndicatorDto> => {
+    const response: AxiosResponse<IndicatorDto> = await api.post('/indicator', indicator);
+    return response.data;
+  },
+
+  // Update Indicator
+  updateIndicator: async (indicator: UpdateIndicatorRequest): Promise<IndicatorDto> => {
+    const response: AxiosResponse<IndicatorDto> = await api.put(`/indicator/${indicator.indicatorId}`, indicator);
+    return response.data;
+  },
+
+  // Delete Indicator
+  deleteIndicator: async (id: number): Promise<void> => {
+    await api.delete(`/indicator/${id}`);
+  },
+
+  // Execute Indicator manually
+  executeIndicator: async (request: TestIndicatorRequest): Promise<IndicatorExecutionResultDto> => {
+    const response: AxiosResponse<IndicatorExecutionResultDto> = await api.post(
+      `/indicator/${request.indicatorId}/execute`,
+      request
+    );
+    return response.data;
+  },
+
+  // Get Indicator dashboard data
+  getDashboard: async (): Promise<IndicatorDashboardDto> => {
+    const response: AxiosResponse<IndicatorDashboardDto> = await api.get('/indicator/dashboard');
+    return response.data;
+  },
+};
+
+// Collector API endpoints (for ProgressPlayDB integration)
+export const collectorApi = {
+  // Get all collectors
+  getCollectors: async (): Promise<CollectorDto[]> => {
+    const response: AxiosResponse<CollectorDto[]> = await api.get('/collector');
+    return response.data;
+  },
+
+  // Get collector item names for a specific collector
+  getCollectorItemNames: async (collectorId: number): Promise<string[]> => {
+    const response: AxiosResponse<string[]> = await api.get(`/collector/${collectorId}/items`);
+    return response.data;
+  },
+};
+
+// KPI API endpoints (Legacy - kept for backward compatibility during migration)
 export const kpiApi = {
   // Get all KPIs with optional filtering
   getKpis: async (params?: {

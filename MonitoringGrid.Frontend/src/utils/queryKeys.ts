@@ -2,7 +2,29 @@
 // This prevents string-based query key errors and provides type safety
 
 export const queryKeys = {
-  // KPI related queries
+  // Indicator related queries (New system)
+  indicators: {
+    all: ['indicators'] as const,
+    lists: () => [...queryKeys.indicators.all, 'list'] as const,
+    list: (filters: any) => [...queryKeys.indicators.lists(), filters] as const,
+    details: () => [...queryKeys.indicators.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.indicators.details(), id] as const,
+    executions: (id: number) => [...queryKeys.indicators.detail(id), 'executions'] as const,
+    analytics: (id: number) => [...queryKeys.indicators.detail(id), 'analytics'] as const,
+    dashboard: () => [...queryKeys.indicators.all, 'dashboard'] as const,
+  },
+
+  // Collector related queries (for ProgressPlayDB integration)
+  collectors: {
+    all: ['collectors'] as const,
+    lists: () => [...queryKeys.collectors.all, 'list'] as const,
+    list: () => [...queryKeys.collectors.lists()] as const,
+    details: () => [...queryKeys.collectors.all, 'detail'] as const,
+    detail: (id: number) => [...queryKeys.collectors.details(), id] as const,
+    items: (collectorId: number) => [...queryKeys.collectors.detail(collectorId), 'items'] as const,
+  },
+
+  // KPI related queries (Legacy - kept for backward compatibility)
   kpis: {
     all: ['kpis'] as const,
     lists: () => [...queryKeys.kpis.all, 'list'] as const,
@@ -95,6 +117,20 @@ export const queryKeys = {
 
 // Helper function to invalidate related queries
 export const getInvalidationKeys = {
+  indicator: (id?: number) => {
+    if (id) {
+      return [queryKeys.indicators.detail(id), queryKeys.indicators.lists()];
+    }
+    return [queryKeys.indicators.all];
+  },
+
+  collector: (id?: number) => {
+    if (id) {
+      return [queryKeys.collectors.detail(id), queryKeys.collectors.lists()];
+    }
+    return [queryKeys.collectors.all];
+  },
+
   kpi: (id?: number) => {
     if (id) {
       return [queryKeys.kpis.detail(id), queryKeys.kpis.lists()];

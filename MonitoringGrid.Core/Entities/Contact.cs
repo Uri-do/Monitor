@@ -26,6 +26,7 @@ public class Contact
 
     // Navigation properties
     public virtual ICollection<KpiContact> KpiContacts { get; set; } = new List<KpiContact>();
+    public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
 
     // Domain methods
     public bool CanReceiveEmail()

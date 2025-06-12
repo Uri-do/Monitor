@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Collector;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Collector;
@@ -32,7 +32,7 @@ public class GetCollectorItemNamesQueryHandler : IRequestHandler<GetCollectorIte
             var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorId, cancellationToken);
             if (collector == null)
             {
-                return Result<List<string>>.Failure($"Collector with ID {request.CollectorId} not found");
+                return Result.Failure<List<string>>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorId} not found");
             }
 
             var itemNames = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorId, cancellationToken);
@@ -45,7 +45,7 @@ public class GetCollectorItemNamesQueryHandler : IRequestHandler<GetCollectorIte
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get item names for collector {CollectorId}", request.CollectorId);
-            return Result<List<string>>.Failure($"Failed to get item names: {ex.Message}");
+            return Result.Failure<List<string>>("GET_FAILED", $"Failed to get item names: {ex.Message}");
         }
     }
 }

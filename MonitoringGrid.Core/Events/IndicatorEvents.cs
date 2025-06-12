@@ -25,7 +25,7 @@ public record IndicatorExecutionStartedEvent : DomainEvent, INotification
 /// <summary>
 /// Domain event raised when an indicator execution completes
 /// </summary>
-public record IndicatorExecutionCompletedEvent : DomainEvent
+public record IndicatorExecutionCompletedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }
@@ -42,7 +42,7 @@ public record IndicatorExecutionCompletedEvent : DomainEvent
 /// <summary>
 /// Domain event raised when an indicator is executed
 /// </summary>
-public record IndicatorExecutedEvent : DomainEvent
+public record IndicatorExecutedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }
@@ -68,7 +68,7 @@ public record IndicatorExecutedEvent : DomainEvent
 /// <summary>
 /// Domain event raised when an indicator threshold is breached
 /// </summary>
-public record IndicatorThresholdBreachedEvent : DomainEvent
+public record IndicatorThresholdBreachedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }
@@ -94,7 +94,7 @@ public record IndicatorThresholdBreachedEvent : DomainEvent
 /// <summary>
 /// Domain event raised when an indicator is created
 /// </summary>
-public record IndicatorCreatedEvent : DomainEvent
+public record IndicatorCreatedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }
@@ -111,7 +111,7 @@ public record IndicatorCreatedEvent : DomainEvent
 /// <summary>
 /// Domain event raised when an indicator is updated
 /// </summary>
-public record IndicatorUpdatedEvent : DomainEvent
+public record IndicatorUpdatedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }
@@ -128,7 +128,7 @@ public record IndicatorUpdatedEvent : DomainEvent
 /// <summary>
 /// Domain event raised when an indicator is deleted
 /// </summary>
-public record IndicatorDeletedEvent : DomainEvent
+public record IndicatorDeletedEvent : DomainEvent, INotification
 {
     public int IndicatorId { get; }
     public string IndicatorName { get; }

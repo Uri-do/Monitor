@@ -15,6 +15,13 @@ import Register from '@/pages/Auth/Register';
 
 // Lazy loaded components for code splitting
 const Dashboard = React.lazy(() => import('@/pages/Dashboard/Dashboard'));
+
+// Indicator Management (New System)
+const IndicatorList = React.lazy(() => import('@/pages/Indicator/IndicatorList'));
+const IndicatorDetail = React.lazy(() => import('@/pages/Indicator/IndicatorDetail'));
+const IndicatorCreate = React.lazy(() => import('@/pages/Indicator/IndicatorCreate'));
+
+// KPI Management (Legacy)
 const KpiList = React.lazy(() => import('@/pages/KPI/KpiList'));
 const KpiDetail = React.lazy(() => import('@/pages/KPI/KpiDetail'));
 const KpiCreate = React.lazy(() => import('@/pages/KPI/KpiCreate'));
@@ -220,7 +227,41 @@ function App() {
                             }
                           />
 
-                          {/* KPI Management */}
+                          {/* Indicator Management (New System) */}
+                          <Route
+                            path="/indicators"
+                            element={
+                              <LazyRoute>
+                                <IndicatorList />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/indicators/create"
+                            element={
+                              <LazyRoute>
+                                <IndicatorCreate />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/indicators/:id"
+                            element={
+                              <LazyRoute>
+                                <IndicatorDetail />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/indicators/:id/edit"
+                            element={
+                              <LazyRoute>
+                                <IndicatorCreate />
+                              </LazyRoute>
+                            }
+                          />
+
+                          {/* KPI Management (Legacy - kept for backward compatibility) */}
                           <Route
                             path="/kpis"
                             element={

@@ -1,7 +1,8 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Collector;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
+using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 
@@ -44,7 +45,7 @@ public class GetCollectorsQueryHandler : IRequestHandler<GetCollectorsQuery, Res
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get collectors from ProgressPlayDB");
-            return Result<List<CollectorDto>>.Failure($"Failed to get collectors: {ex.Message}");
+            return Result.Failure<List<CollectorDto>>("GET_FAILED", $"Failed to get collectors: {ex.Message}");
         }
     }
 }

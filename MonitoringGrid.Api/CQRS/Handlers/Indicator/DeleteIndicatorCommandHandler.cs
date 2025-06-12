@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
 
@@ -33,13 +33,13 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
             var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorId, cancellationToken);
             if (indicator == null)
             {
-                return Result<bool>.Failure($"Indicator with ID {request.IndicatorId} not found");
+                return Result.Failure<bool>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorId} not found");
             }
 
             // Check if indicator is currently running
             if (indicator.IsCurrentlyRunning)
             {
-                return Result<bool>.Failure($"Cannot delete indicator '{indicator.IndicatorName}' while it is currently running");
+                return Result.Failure<bool>("INDICATOR_RUNNING", $"Cannot delete indicator '{indicator.IndicatorName}' while it is currently running");
             }
 
             // Add domain event before deletion
@@ -61,13 +61,13 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
             {
                 _logger.LogWarning("Failed to delete indicator {IndicatorId}: {IndicatorName}", 
                     indicator.IndicatorId, indicator.IndicatorName);
-                return Result<bool>.Failure("Failed to delete indicator");
+                return Result.Failure<bool>("DELETE_FAILED", "Failed to delete indicator");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting indicator {IndicatorId}", request.IndicatorId);
-            return Result<bool>.Failure($"Failed to delete indicator: {ex.Message}");
+            return Result.Failure<bool>("DELETE_ERROR", $"Failed to delete indicator: {ex.Message}");
         }
     }
 }

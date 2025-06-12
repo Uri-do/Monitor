@@ -17,7 +17,7 @@ public abstract class AggregateRoot
     /// <summary>
     /// Adds a domain event to be published
     /// </summary>
-    protected void AddDomainEvent(IDomainEvent domainEvent)
+    public void AddDomainEvent(IDomainEvent domainEvent)
     {
         _domainEvents.Add(domainEvent);
     }

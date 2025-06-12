@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Common;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
@@ -45,19 +45,19 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorId, cancellationToken);
             if (collector == null)
             {
-                return Result<IndicatorDto>.Failure($"Collector with ID {request.CollectorId} not found");
+                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorId} not found");
             }
 
             if (!collector.IsActive)
             {
-                return Result<IndicatorDto>.Failure($"Collector {collector.CollectorCode} is not active");
+                return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
             }
 
             // Validate collector item name exists
             var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorId, cancellationToken);
             if (!availableItems.Contains(request.CollectorItemName))
             {
-                return Result<IndicatorDto>.Failure($"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
+                return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
             }
 
             // Validate owner contact exists
@@ -65,7 +65,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var ownerContact = await contactRepository.GetByIdAsync(request.OwnerContactId, cancellationToken);
             if (ownerContact == null)
             {
-                return Result<IndicatorDto>.Failure($"Owner contact with ID {request.OwnerContactId} not found");
+                return Result.Failure<IndicatorDto>("OWNER_CONTACT_NOT_FOUND", $"Owner contact with ID {request.OwnerContactId} not found");
             }
 
             // Validate additional contacts if provided
@@ -75,14 +75,14 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 var missingContactIds = request.ContactIds.Except(contacts.Select(c => c.ContactId)).ToList();
                 if (missingContactIds.Any())
                 {
-                    return Result<IndicatorDto>.Failure($"Contacts not found: {string.Join(", ", missingContactIds)}");
+                    return Result.Failure<IndicatorDto>("CONTACTS_NOT_FOUND", $"Contacts not found: {string.Join(", ", missingContactIds)}");
                 }
             }
 
             // Validate schedule configuration
             if (!IsValidScheduleConfiguration(request.ScheduleConfiguration))
             {
-                return Result<IndicatorDto>.Failure("Invalid schedule configuration format");
+                return Result.Failure<IndicatorDto>("INVALID_SCHEDULE", "Invalid schedule configuration format");
             }
 
             // Check for duplicate indicator code
@@ -90,7 +90,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var existingIndicator = await indicatorRepository.GetAsync(i => i.IndicatorCode == request.IndicatorCode, cancellationToken);
             if (existingIndicator.Any())
             {
-                return Result<IndicatorDto>.Failure($"Indicator with code '{request.IndicatorCode}' already exists");
+                return Result.Failure<IndicatorDto>("DUPLICATE_CODE", $"Indicator with code '{request.IndicatorCode}' already exists");
             }
 
             // Create the indicator entity
@@ -148,7 +148,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create indicator: {IndicatorName}", request.IndicatorName);
-            return Result<IndicatorDto>.Failure($"Failed to create indicator: {ex.Message}");
+            return Result.Failure<IndicatorDto>("CREATE_FAILED", $"Failed to create indicator: {ex.Message}");
         }
     }
 

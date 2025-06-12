@@ -13,30 +13,57 @@ public class IndicatorContactConfiguration : IEntityTypeConfiguration<IndicatorC
     {
         builder.ToTable("IndicatorContacts", "monitoring");
 
-        builder.HasKey(ic => new { ic.IndicatorId, ic.ContactId });
+        // Primary Key
+        builder.HasKey(ic => ic.IndicatorContactId);
 
+        builder.Property(ic => ic.IndicatorContactId)
+            .HasColumnName("IndicatorContactID")
+            .ValueGeneratedOnAdd();
+
+        // Required properties
         builder.Property(ic => ic.IndicatorId)
+            .HasColumnName("IndicatorID")
             .IsRequired();
 
         builder.Property(ic => ic.ContactId)
+            .HasColumnName("ContactID")
             .IsRequired();
 
-        // Relationships
+        builder.Property(ic => ic.CreatedDate)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.Property(ic => ic.CreatedBy)
+            .HasMaxLength(100);
+
+        builder.Property(ic => ic.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        // Foreign Key Relationships
         builder.HasOne(ic => ic.Indicator)
             .WithMany(i => i.IndicatorContacts)
             .HasForeignKey(ic => ic.IndicatorId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ic => ic.Contact)
-            .WithMany()
+            .WithMany(c => c.IndicatorContacts)
             .HasForeignKey(ic => ic.ContactId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
+        // Unique constraint to prevent duplicate indicator-contact relationships
+        builder.HasIndex(ic => new { ic.IndicatorId, ic.ContactId })
+            .IsUnique()
+            .HasDatabaseName("UQ_IndicatorContacts_IndicatorId_ContactId");
+
+        // Performance indexes
         builder.HasIndex(ic => ic.IndicatorId)
             .HasDatabaseName("IX_IndicatorContacts_IndicatorId");
 
         builder.HasIndex(ic => ic.ContactId)
             .HasDatabaseName("IX_IndicatorContacts_ContactId");
+
+        builder.HasIndex(ic => ic.IsActive)
+            .HasDatabaseName("IX_IndicatorContacts_IsActive");
     }
 }
