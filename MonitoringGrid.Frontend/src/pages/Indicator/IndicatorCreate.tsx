@@ -11,8 +11,12 @@ import {
   Stack,
   Divider,
   TextField,
+  Paper,
+  IconButton,
+  Tooltip,
+  MenuItem,
 } from '@mui/material';
-import { Save as SaveIcon, Cancel as CancelIcon, PlayArrow as TestIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Cancel as CancelIcon, PlayArrow as TestIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -37,13 +41,14 @@ const indicatorSchema = yup.object().shape({
   collectorItemName: yup.string().required('Collector item is required'),
   scheduleConfiguration: yup.string().required('Schedule configuration is required'),
   lastMinutes: yup.number().required('Time range is required').min(1),
-  thresholdType: yup.string().optional(),
-  thresholdField: yup.string().optional(),
-  thresholdComparison: yup.string().optional(),
-  thresholdValue: yup.number().optional(),
-  priority: yup.number().required('Priority is required').min(1).max(5),
+  thresholdType: yup.string().required('Threshold type is required'),
+  thresholdField: yup.string().required('Threshold field is required'),
+  thresholdComparison: yup.string().required('Threshold comparison is required'),
+  thresholdValue: yup.number().required('Threshold value is required'),
+  priority: yup.string().required('Priority is required'),
   ownerContactId: yup.number().required('Owner contact is required').min(1),
   averageLastDays: yup.number().optional().min(1),
+  averageOfCurrHour: yup.boolean().default(false),
   isActive: yup.boolean().default(true),
   contactIds: yup.array().of(yup.number().required()).default([]),
 });
@@ -56,16 +61,96 @@ interface IndicatorFormData {
   collectorItemName: string;
   scheduleConfiguration: string;
   lastMinutes: number;
-  thresholdType?: string;
-  thresholdField?: string;
-  thresholdComparison?: string;
-  thresholdValue?: number;
-  priority: number;
+  thresholdType: string;
+  thresholdField: string;
+  thresholdComparison: string;
+  thresholdValue: number;
+  priority: string;
   ownerContactId: number;
   averageLastDays?: number;
+  averageOfCurrHour: boolean;
   isActive: boolean;
   contactIds: number[];
 }
+
+// Schedule configuration helper component
+const ScheduleConfigHelper: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => {
+  const [scheduleType, setScheduleType] = useState('interval');
+  const [intervalMinutes, setIntervalMinutes] = useState(60);
+  const [cronExpression, setCronExpression] = useState('0 * * * *');
+  const [isEnabled, setIsEnabled] = useState(true);
+
+  useEffect(() => {
+    try {
+      const config = JSON.parse(value);
+      setScheduleType(config.scheduleType || 'interval');
+      setIntervalMinutes(config.intervalMinutes || 60);
+      setCronExpression(config.cronExpression || '0 * * * *');
+      setIsEnabled(config.isEnabled !== false);
+    } catch {
+      // Invalid JSON, use defaults
+    }
+  }, [value]);
+
+  useEffect(() => {
+    const config = {
+      scheduleType,
+      intervalMinutes: scheduleType === 'interval' ? intervalMinutes : undefined,
+      cronExpression: scheduleType === 'cron' ? cronExpression : undefined,
+      isEnabled,
+      timezone: 'UTC',
+    };
+    onChange(JSON.stringify(config, null, 2));
+  }, [scheduleType, intervalMinutes, cronExpression, isEnabled, onChange]);
+
+  return (
+    <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <TextField
+            select
+            value={scheduleType}
+            onChange={(e) => setScheduleType(e.target.value)}
+            label="Schedule Type"
+            fullWidth
+          >
+            <MenuItem value="interval">Interval (Minutes)</MenuItem>
+            <MenuItem value="cron">Cron Expression</MenuItem>
+          </TextField>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <FormControlLabel
+            control={<Switch checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} />}
+            label="Enabled"
+          />
+        </Grid>
+        {scheduleType === 'interval' && (
+          <Grid item xs={12} md={6}>
+            <TextField
+              value={intervalMinutes}
+              onChange={(e) => setIntervalMinutes(Number(e.target.value))}
+              label="Interval (Minutes)"
+              type="number"
+              helperText="How often to run the indicator"
+              fullWidth
+            />
+          </Grid>
+        )}
+        {scheduleType === 'cron' && (
+          <Grid item xs={12}>
+            <TextField
+              value={cronExpression}
+              onChange={(e) => setCronExpression(e.target.value)}
+              label="Cron Expression"
+              helperText="Standard cron format (e.g., '0 * * * *' for every hour)"
+              fullWidth
+            />
+          </Grid>
+        )}
+      </Grid>
+    </Paper>
+  );
+};
 
 const IndicatorCreate: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,6 +160,7 @@ const IndicatorCreate: React.FC = () => {
 
   const [selectedContacts, setSelectedContacts] = useState<ContactDto[]>([]);
   const [selectedCollectorId, setSelectedCollectorId] = useState<number | null>(null);
+  const [showScheduleHelper, setShowScheduleHelper] = useState(true);
 
   // Use our enhanced hooks
   const { data: indicator, isLoading: indicatorLoading } = useIndicator(indicatorId || 0);
@@ -105,8 +191,13 @@ const IndicatorCreate: React.FC = () => {
         timezone: 'UTC',
       }),
       lastMinutes: 60,
-      priority: 3,
+      thresholdType: '',
+      thresholdField: '',
+      thresholdComparison: '',
+      thresholdValue: 0,
+      priority: 'medium',
       ownerContactId: 0,
+      averageOfCurrHour: false,
       isActive: true,
       contactIds: [],
     },
@@ -137,10 +228,11 @@ const IndicatorCreate: React.FC = () => {
         thresholdType: indicator.thresholdType || '',
         thresholdField: indicator.thresholdField || '',
         thresholdComparison: indicator.thresholdComparison || '',
-        thresholdValue: indicator.thresholdValue,
-        priority: indicator.priority,
+        thresholdValue: indicator.thresholdValue || 0,
+        priority: indicator.priority || 'medium',
         ownerContactId: indicator.ownerContactId,
         averageLastDays: indicator.averageLastDays,
+        averageOfCurrHour: indicator.averageOfCurrHour || false,
         isActive: indicator.isActive,
         contactIds: indicator.contacts.map(c => c.contactId),
       });
@@ -343,11 +435,9 @@ const IndicatorCreate: React.FC = () => {
                       {...field}
                       label="Priority"
                       options={[
-                        { value: 1, label: 'High (1)' },
-                        { value: 2, label: 'Medium (2)' },
-                        { value: 3, label: 'Normal (3)' },
-                        { value: 4, label: 'Low (4)' },
-                        { value: 5, label: 'Very Low (5)' },
+                        { value: 'high', label: 'High' },
+                        { value: 'medium', label: 'Medium' },
+                        { value: 'low', label: 'Low' },
                       ]}
                       error={!!errors.priority}
                       required
@@ -370,6 +460,184 @@ const IndicatorCreate: React.FC = () => {
                     />
                   )}
                 />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="averageLastDays"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      {...field}
+                      label="Average Last Days"
+                      type="number"
+                      error={!!errors.averageLastDays}
+                      helperText={errors.averageLastDays?.message || "Number of days to look back for average calculation"}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="averageOfCurrHour"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="Average of Current Hour"
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
+
+              {/* Threshold Configuration */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Threshold Configuration
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="thresholdType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      label="Threshold Type"
+                      options={[
+                        { value: 'volume_average', label: 'Volume Average' },
+                        { value: 'threshold_value', label: 'Threshold Value' },
+                        { value: 'percentage_change', label: 'Percentage Change' },
+                        { value: 'absolute_value', label: 'Absolute Value' },
+                      ]}
+                      error={!!errors.thresholdType}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="thresholdField"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      label="Threshold Field"
+                      options={[
+                        { value: 'Total', label: 'Total' },
+                        { value: 'Marked', label: 'Marked' },
+                        { value: 'MarkedPercent', label: 'Marked Percent' },
+                        { value: 'Average', label: 'Average' },
+                      ]}
+                      error={!!errors.thresholdField}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="thresholdComparison"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      label="Comparison Operator"
+                      options={[
+                        { value: 'gt', label: 'Greater Than (>)' },
+                        { value: 'gte', label: 'Greater Than or Equal (>=)' },
+                        { value: 'lt', label: 'Less Than (<)' },
+                        { value: 'lte', label: 'Less Than or Equal (<=)' },
+                        { value: 'eq', label: 'Equal To (=)' },
+                      ]}
+                      error={!!errors.thresholdComparison}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="thresholdValue"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      {...field}
+                      label="Threshold Value"
+                      type="number"
+                      error={!!errors.thresholdValue}
+                      helperText={errors.thresholdValue?.message}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
+
+              {/* Schedule Configuration */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Schedule Configuration
+                  </Typography>
+                  <Tooltip title="Toggle between visual editor and JSON editor">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowScheduleHelper(!showScheduleHelper)}
+                    >
+                      <HelpIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Controller
+                  name="scheduleConfiguration"
+                  control={control}
+                  render={({ field }) => (
+                    showScheduleHelper ? (
+                      <ScheduleConfigHelper
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    ) : (
+                      <InputField
+                        {...field}
+                        label="Schedule Configuration (JSON)"
+                        multiline
+                        rows={6}
+                        error={!!errors.scheduleConfiguration}
+                        helperText={errors.scheduleConfiguration?.message || 'JSON configuration for scheduling (interval, cron, etc.)'}
+                        required
+                      />
+                    )
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider />
+              </Grid>
+
+              {/* Additional Contacts */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Notification Contacts
+                </Typography>
               </Grid>
 
               <Grid item xs={12}>

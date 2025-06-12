@@ -19,7 +19,7 @@ public class ScheduledJobConfiguration : IEntityTypeConfiguration<ScheduledJob>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(sj => sj.KpiId)
+        builder.Property(sj => sj.IndicatorID)
             .IsRequired();
 
         builder.Property(sj => sj.JobName)
@@ -56,8 +56,8 @@ public class ScheduledJobConfiguration : IEntityTypeConfiguration<ScheduledJob>
             .HasDefaultValueSql("GETUTCDATE()");
 
         // Indexes
-        builder.HasIndex(sj => sj.KpiId)
-            .HasDatabaseName("IX_ScheduledJobs_KpiId")
+        builder.HasIndex(sj => sj.IndicatorID)
+            .HasDatabaseName("IX_ScheduledJobs_IndicatorID")
             .IncludeProperties(sj => sj.IsActive);
 
         builder.HasIndex(sj => sj.NextFireTime)
@@ -75,7 +75,7 @@ public class ScheduledJobConfiguration : IEntityTypeConfiguration<ScheduledJob>
         // Relationships
         builder.HasOne(sj => sj.Indicator)
             .WithMany()
-            .HasForeignKey(sj => sj.KpiId)
+            .HasForeignKey(sj => sj.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

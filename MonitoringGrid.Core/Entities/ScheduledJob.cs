@@ -17,10 +17,10 @@ public class ScheduledJob
     public string JobId { get; set; } = string.Empty;
 
     /// <summary>
-    /// ID of the KPI that this job will execute.
+    /// ID of the Indicator that this job will execute.
     /// </summary>
-    [Range(1, int.MaxValue, ErrorMessage = "KPI ID must be a positive number")]
-    public int KpiId { get; set; }
+    [Range(1, long.MaxValue, ErrorMessage = "Indicator ID must be a positive number")]
+    public long IndicatorID { get; set; }
 
     /// <summary>
     /// Human-readable name for the scheduled job.

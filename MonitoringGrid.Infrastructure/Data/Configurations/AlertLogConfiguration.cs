@@ -84,6 +84,10 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         // Check constraint for SentVia
         builder.ToTable(t => t.HasCheckConstraint("CK_AlertLogs_SentVia", "SentVia IN (1, 2, 3)"));
 
-        // Relationship is configured in KPI configuration
+        // Relationship with Indicator
+        builder.HasOne(a => a.Indicator)
+            .WithMany()
+            .HasForeignKey(a => a.IndicatorId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

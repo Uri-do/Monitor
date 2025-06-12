@@ -1,59 +1,59 @@
 import React from 'react';
 import { Grid, Typography, Box, Chip, Skeleton } from '@mui/material';
 import { TrendingUp, TrendingDown, Warning, CheckCircle, PlayCircle } from '@mui/icons-material';
-import { KpiDashboardDto, AlertDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto, AlertDashboardDto } from '../../../types/api';
 import { MetricCard } from '@/components';
 
-interface KpiOverviewCardsProps {
-  kpiDashboard?: KpiDashboardDto;
+interface IndicatorOverviewCardsProps {
+  indicatorDashboard?: IndicatorDashboardDto;
   alertDashboard?: AlertDashboardDto;
-  kpiLoading: boolean;
+  indicatorLoading: boolean;
   alertLoading: boolean;
 }
 
-const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
-  kpiDashboard,
+const IndicatorOverviewCards: React.FC<IndicatorOverviewCardsProps> = ({
+  indicatorDashboard,
   alertDashboard,
-  kpiLoading,
+  indicatorLoading,
   alertLoading,
 }) => {
   return (
     <>
-      {/* Total KPIs Card */}
+      {/* Total Indicators Card */}
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
-          title="Total KPIs"
-          value={kpiLoading ? '...' : (kpiDashboard?.totalKpis || 0).toString()}
+          title="Total Indicators"
+          value={indicatorLoading ? '...' : (indicatorDashboard?.totalIndicators || 0).toString()}
           gradient="primary"
           chip={{
-            label: `${kpiDashboard?.activeKpis || 0} Active`,
+            label: `${indicatorDashboard?.activeIndicators || 0} Active`,
             color: 'primary',
           }}
         />
       </Grid>
 
-      {/* KPIs Due Card */}
+      {/* Indicators Due Card */}
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
-          title="KPIs Due"
-          value={kpiLoading ? '...' : (kpiDashboard?.kpisDue || 0).toString()}
-          gradient={kpiDashboard?.kpisDue ? 'warning' : 'success'}
+          title="Indicators Due"
+          value={indicatorLoading ? '...' : (indicatorDashboard?.dueIndicators || 0).toString()}
+          gradient={indicatorDashboard?.dueIndicators ? 'warning' : 'success'}
           chip={{
-            label: kpiDashboard?.kpisDue ? 'Needs Attention' : 'All Up to Date',
-            color: kpiDashboard?.kpisDue ? 'warning' : 'success',
+            label: indicatorDashboard?.dueIndicators ? 'Needs Attention' : 'All Up to Date',
+            color: indicatorDashboard?.dueIndicators ? 'warning' : 'success',
           }}
         />
       </Grid>
 
-      {/* KPIs Running Card */}
+      {/* Indicators Running Card */}
       <Grid item xs={12} sm={6} md={3}>
         <MetricCard
-          title="KPIs Running"
-          value={kpiLoading ? '...' : (kpiDashboard?.kpisRunning || 0).toString()}
-          gradient={kpiDashboard?.kpisRunning ? 'info' : 'secondary'}
+          title="Indicators Running"
+          value={indicatorLoading ? '...' : (indicatorDashboard?.runningIndicators || 0).toString()}
+          gradient={indicatorDashboard?.runningIndicators ? 'info' : 'secondary'}
           chip={{
-            label: kpiDashboard?.kpisRunning ? 'Executing Now' : 'All Idle',
-            color: kpiDashboard?.kpisRunning ? 'info' : 'secondary',
+            label: indicatorDashboard?.runningIndicators ? 'Executing Now' : 'All Idle',
+            color: indicatorDashboard?.runningIndicators ? 'info' : 'secondary',
           }}
         />
       </Grid>
@@ -78,4 +78,4 @@ const KpiOverviewCards: React.FC<KpiOverviewCardsProps> = ({
   );
 };
 
-export default KpiOverviewCards;
+export default IndicatorOverviewCards;

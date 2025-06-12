@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { KpiDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto } from '../../../types/api';
 import {
   formatCountdownWithContext,
   getCountdownSeverity,
@@ -31,14 +31,14 @@ import {
 } from '../../../utils/countdown';
 import { Card } from '@/components';
 
-interface NextKpiExecutionCardProps {
-  kpiDashboard?: KpiDashboardDto;
+interface NextIndicatorExecutionCardProps {
+  indicatorDashboard?: IndicatorDashboardDto;
   countdown?: number | null;
   isConnected?: boolean;
 }
 
-const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
-  kpiDashboard,
+const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
+  indicatorDashboard,
   countdown,
   isConnected = false,
 }) => {
@@ -76,7 +76,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
             <Box display="flex" alignItems="center" gap={1}>
               <Schedule sx={{ color: theme => theme.palette.primary.main }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Next KPI Execution
+                Next Indicator Execution
               </Typography>
               <Tooltip
                 title={isConnected ? 'Real-time updates active' : 'Real-time updates disconnected'}
@@ -107,7 +107,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
             </Box>
             <IconButton
               size="small"
-              onClick={() => navigate('/kpis')}
+              onClick={() => navigate('/indicators')}
               sx={{
                 backgroundColor: theme => theme.palette.primary.main,
                 color: 'white',
@@ -121,7 +121,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {kpiDashboard?.nextKpiDue ? (
+            {indicatorDashboard?.indicatorStatuses && indicatorDashboard.indicatorStatuses.length > 0 ? (
               <Box
                 sx={{
                   p: 3,
@@ -142,7 +142,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                     sx={{
                       '& .MuiBadge-badge': {
                         backgroundColor: theme =>
-                          kpiDashboard.nextKpiDue?.status === 'Due Soon'
+                          indicatorDashboard.indicatorStatuses[0]?.status === 'never_run'
                             ? theme.palette.warning.main
                             : theme.palette.primary.main,
                         color: 'white',
@@ -156,10 +156,10 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       variant="h6"
                       sx={{ fontWeight: 600, color: theme => theme.palette.primary.dark }}
                     >
-                      {kpiDashboard.nextKpiDue?.indicator}
+                      {indicatorDashboard.indicatorStatuses[0]?.indicatorName}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Owner: {kpiDashboard.nextKpiDue?.owner}
+                      Status: {indicatorDashboard.indicatorStatuses[0]?.status}
                     </Typography>
                   </Box>
                 </Box>
@@ -172,8 +172,8 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       Next Run
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {kpiDashboard.nextKpiDue?.nextRun
-                        ? format(new Date(kpiDashboard.nextKpiDue.nextRun), 'MMM dd, HH:mm:ss')
+                      {indicatorDashboard.indicatorStatuses[0]?.nextRun
+                        ? format(new Date(indicatorDashboard.indicatorStatuses[0].nextRun), 'MMM dd, HH:mm:ss')
                         : 'N/A'}
                     </Typography>
                   </Box>
@@ -233,7 +233,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                           ? Math.round(
                               getCountdownProgress(
                                 countdown,
-                                kpiDashboard.nextKpiDue?.frequency ?? 5
+                                60 // Default frequency since we don't have this data
                               )
                             )
                           : 0}
@@ -244,7 +244,7 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                       variant="determinate"
                       value={
                         countdown !== null && countdown !== undefined
-                          ? getCountdownProgress(countdown, kpiDashboard.nextKpiDue?.frequency ?? 5)
+                          ? getCountdownProgress(countdown, 60) // Default frequency
                           : 0
                       }
                       sx={{
@@ -265,16 +265,16 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
 
                 <Box display="flex" alignItems="center" gap={1}>
                   <Chip
-                    label={kpiDashboard.nextKpiDue?.status || 'Unknown'}
-                    color={getStatusColor(kpiDashboard.nextKpiDue?.status)}
+                    label={indicatorDashboard.indicatorStatuses[0]?.status || 'Unknown'}
+                    color={getStatusColor(indicatorDashboard.indicatorStatuses[0]?.status)}
                     size="small"
                     sx={{ fontWeight: 600 }}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    {(kpiDashboard.nextKpiDue?.minutesUntilDue ?? 0) <= 5
-                      ? 'Executing soon...'
+                    {indicatorDashboard.indicatorStatuses[0]?.isCurrentlyRunning
+                      ? 'Currently running...'
                       : 'Scheduled'}{' '}
-                    • Whole time scheduling ({kpiDashboard.nextKpiDue?.frequency} min intervals)
+                    • Active: {indicatorDashboard.indicatorStatuses[0]?.isActive ? 'Yes' : 'No'}
                   </Typography>
                 </Box>
               </Box>
@@ -297,11 +297,11 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
                   No upcoming executions
                 </Typography>
                 <Typography color="text.secondary" variant="caption">
-                  {kpiDashboard?.activeKpis === 0
-                    ? 'No active KPIs - add KPIs to start monitoring'
-                    : kpiDashboard?.activeKpis === 1
-                      ? 'One KPI is active - check KPI management for scheduling'
-                      : 'All KPIs are inactive or have no schedule'}
+                  {indicatorDashboard?.activeIndicators === 0
+                    ? 'No active Indicators - add Indicators to start monitoring'
+                    : indicatorDashboard?.activeIndicators === 1
+                      ? 'One Indicator is active - check Indicator management for scheduling'
+                      : 'All Indicators are inactive or have no schedule'}
                 </Typography>
               </Box>
             )}
@@ -312,4 +312,4 @@ const NextKpiExecutionCard: React.FC<NextKpiExecutionCardProps> = ({
   );
 };
 
-export default NextKpiExecutionCard;
+export default NextIndicatorExecutionCard;

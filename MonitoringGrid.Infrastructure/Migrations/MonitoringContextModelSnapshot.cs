@@ -53,8 +53,8 @@ namespace MonitoringGrid.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<int>("KpiId")
-                        .HasColumnType("int");
+                    b.Property<long>("IndicatorId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -96,14 +96,14 @@ namespace MonitoringGrid.Infrastructure.Migrations
                     b.HasIndex("IsResolved")
                         .HasDatabaseName("IX_AlertLogs_IsResolved");
 
-                    b.HasIndex("KpiId")
-                        .HasDatabaseName("IX_AlertLogs_KpiId");
+                    b.HasIndex("IndicatorId")
+                        .HasDatabaseName("IX_AlertLogs_IndicatorId");
 
                     b.HasIndex("TriggerTime")
                         .HasDatabaseName("IX_AlertLogs_TriggerTime");
 
-                    b.HasIndex("KpiId", "TriggerTime")
-                        .HasDatabaseName("IX_AlertLogs_KpiId_TriggerTime");
+                    b.HasIndex("IndicatorId", "TriggerTime")
+                        .HasDatabaseName("IX_AlertLogs_IndicatorId_TriggerTime");
 
                     b.ToTable("AlertLogs", "monitoring", t =>
                         {
@@ -1042,8 +1042,8 @@ namespace MonitoringGrid.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("KpiId")
-                        .HasColumnType("int");
+                    b.Property<long>("IndicatorID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("ModifiedDate")
                         .ValueGeneratedOnAdd()
@@ -1073,10 +1073,10 @@ namespace MonitoringGrid.Infrastructure.Migrations
 
                     b.HasKey("JobId");
 
-                    b.HasIndex("KpiId")
-                        .HasDatabaseName("IX_ScheduledJobs_KpiId");
+                    b.HasIndex("IndicatorID")
+                        .HasDatabaseName("IX_ScheduledJobs_IndicatorID");
 
-                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("KpiId"), new[] { "IsActive" });
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("IndicatorID"), new[] { "IsActive" });
 
                     b.HasIndex("NextFireTime")
                         .HasDatabaseName("IX_ScheduledJobs_NextFireTime")
@@ -1483,17 +1483,13 @@ namespace MonitoringGrid.Infrastructure.Migrations
 
             modelBuilder.Entity("MonitoringGrid.Core.Entities.AlertLog", b =>
                 {
-                    b.HasOne("MonitoringGrid.Core.Entities.Indicator", null)
+                    b.HasOne("MonitoringGrid.Core.Entities.Indicator", "Indicator")
                         .WithMany("AlertLogs")
-                        .HasForeignKey("IndicatorId");
-
-                    b.HasOne("MonitoringGrid.Core.Entities.KPI", "KPI")
-                        .WithMany("AlertLogs")
-                        .HasForeignKey("KpiId")
+                        .HasForeignKey("IndicatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("KPI");
+                    b.Navigation("Indicator");
                 });
 
             modelBuilder.Entity("MonitoringGrid.Core.Entities.HistoricalData", b =>
@@ -1601,13 +1597,13 @@ namespace MonitoringGrid.Infrastructure.Migrations
 
             modelBuilder.Entity("MonitoringGrid.Core.Entities.ScheduledJob", b =>
                 {
-                    b.HasOne("MonitoringGrid.Core.Entities.KPI", "KPI")
+                    b.HasOne("MonitoringGrid.Core.Entities.Indicator", "Indicator")
                         .WithMany()
-                        .HasForeignKey("KpiId")
+                        .HasForeignKey("IndicatorID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("KPI");
+                    b.Navigation("Indicator");
                 });
 
             modelBuilder.Entity("MonitoringGrid.Core.Entities.UserPassword", b =>

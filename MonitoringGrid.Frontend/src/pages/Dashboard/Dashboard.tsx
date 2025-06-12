@@ -8,10 +8,10 @@ import { useRealtime } from '@/contexts/RealtimeContext';
 
 // Dashboard Components
 import DashboardHeader from './components/DashboardHeader';
-import KpiOverviewCards from './components/KpiOverviewCards';
-import KpisDueCard from './components/KpisDueCard';
-import RunningKpisCard from './components/RunningKpisCard';
-import NextKpiExecutionCard from './components/NextKpiExecutionCard';
+import IndicatorOverviewCards from './components/IndicatorOverviewCards';
+import IndicatorsDueCard from './components/IndicatorsDueCard';
+import RunningIndicatorsCard from './components/RunningIndicatorsCard';
+import NextIndicatorExecutionCard from './components/NextIndicatorExecutionCard';
 import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingKpisCard from './components/TopAlertingKpisCard';
 
@@ -84,26 +84,26 @@ const Dashboard: React.FC = () => {
       />
 
       <Grid container spacing={3}>
-        {/* KPI Overview Cards (temporarily using KPI components until Indicator components are created) */}
-        <KpiOverviewCards
-          kpiDashboard={mergedIndicatorDashboard as any}
+        {/* Indicator Overview Cards */}
+        <IndicatorOverviewCards
+          indicatorDashboard={mergedIndicatorDashboard}
           alertDashboard={alertDashboard}
-          kpiLoading={indicatorLoading}
+          indicatorLoading={indicatorLoading}
           alertLoading={alertLoading}
         />
 
-        {/* KPIs Due for Execution - Moved to top */}
-        <KpisDueCard kpiDashboard={mergedIndicatorDashboard as any} />
+        {/* Indicators Due for Execution - Moved to top */}
+        <IndicatorsDueCard indicatorDashboard={mergedIndicatorDashboard} />
 
-        {/* Running KPIs */}
-        <RunningKpisCard
-          kpiDashboard={mergedIndicatorDashboard as any}
-          realtimeRunningKpis={dashboardState.runningKpis || []}
+        {/* Running Indicators */}
+        <RunningIndicatorsCard
+          indicatorDashboard={mergedIndicatorDashboard}
+          realtimeRunningIndicators={dashboardState.runningKpis || []}
         />
 
-        {/* Next KPI Due */}
-        <NextKpiExecutionCard
-          kpiDashboard={mergedIndicatorDashboard as any}
+        {/* Next Indicator Due */}
+        <NextIndicatorExecutionCard
+          indicatorDashboard={mergedIndicatorDashboard}
           countdown={dashboardState.countdown}
           isConnected={dashboardState.isConnected}
         />

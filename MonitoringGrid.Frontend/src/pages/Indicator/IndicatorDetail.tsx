@@ -93,7 +93,10 @@ const IndicatorDetail: React.FC = () => {
     return 'active';
   };
 
-  const getPriorityLabel = (priority: number) => {
+  const getPriorityLabel = (priority: string | number) => {
+    if (typeof priority === 'string') {
+      return priority.charAt(0).toUpperCase() + priority.slice(1);
+    }
     switch (priority) {
       case 1: return 'High';
       case 2: return 'Medium';
@@ -206,6 +209,19 @@ const IndicatorDetail: React.FC = () => {
                 {indicator.averageLastDays && (
                   <InfoItem label="Average Last Days" value={indicator.averageLastDays} />
                 )}
+                <InfoItem
+                  label="Average of Current Hour"
+                  value={indicator.averageOfCurrHour ? 'Yes' : 'No'}
+                />
+                {indicator.averageHour && (
+                  <InfoItem label="Current Hour Average" value={indicator.averageHour} />
+                )}
+                <Divider />
+                <InfoItem label="Created" value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')} />
+                <InfoItem label="Last Updated" value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')} />
+                {indicator.lastRunResult && (
+                  <InfoItem label="Last Run Result" value={indicator.lastRunResult} />
+                )}
               </Stack>
             </CardContent>
           </Card>
@@ -238,6 +254,49 @@ const IndicatorDetail: React.FC = () => {
                   </Typography>
                 )}
               </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Execution Status */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Execution Status
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <InfoItem
+                    label="Currently Running"
+                    value={indicator.isCurrentlyRunning ? 'Yes' : 'No'}
+                  />
+                </Grid>
+                {indicator.executionStartTime && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <InfoItem
+                      label="Execution Started"
+                      value={format(new Date(indicator.executionStartTime), 'MMM dd, yyyy HH:mm:ss')}
+                    />
+                  </Grid>
+                )}
+                {indicator.executionContext && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <InfoItem
+                      label="Execution Context"
+                      value={indicator.executionContext}
+                    />
+                  </Grid>
+                )}
+                {indicator.isCurrentlyRunning && indicator.executionStartTime && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <InfoItem
+                      label="Running Duration"
+                      value={`${Math.floor((new Date().getTime() - new Date(indicator.executionStartTime).getTime()) / 1000)} seconds`}
+                    />
+                  </Grid>
+                )}
+              </Grid>
             </CardContent>
           </Card>
         </Grid>

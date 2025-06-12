@@ -15,19 +15,19 @@ import {
 import { TrendingUp, Warning, CheckCircle, PlayArrow } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { KpiDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto } from '../../../types/api';
 import { Card } from '@/components';
 
-interface KpisDueCardProps {
-  kpiDashboard?: KpiDashboardDto;
+interface IndicatorsDueCardProps {
+  indicatorDashboard?: IndicatorDashboardDto;
 }
 
-const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
+const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboard }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  // Hide this card if there are 2 or fewer KPIs to avoid redundancy with NextKpiExecutionCard
-  if (!kpiDashboard?.dueKpis || kpiDashboard.dueKpis.length <= 2) {
+  // Hide this card if there are 2 or fewer Indicators to avoid redundancy with NextIndicatorExecutionCard
+  if (!indicatorDashboard?.indicatorStatuses || indicatorDashboard.indicatorStatuses.length <= 2) {
     return null;
   }
 
@@ -39,12 +39,12 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
             <Box display="flex" alignItems="center" gap={1}>
               <TrendingUp sx={{ color: 'info.main' }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                KPIs Due for Execution
+                Indicators Due for Execution
               </Typography>
             </Box>
             <IconButton
               size="small"
-              onClick={() => navigate('/kpis')}
+              onClick={() => navigate('/indicators')}
               sx={{
                 backgroundColor: 'info.main',
                 color: 'white',
@@ -58,11 +58,11 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {kpiDashboard?.dueKpis && kpiDashboard.dueKpis.length > 0 ? (
+            {indicatorDashboard?.indicatorStatuses && indicatorDashboard.indicatorStatuses.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {kpiDashboard.dueKpis.map(kpi => (
+                {indicatorDashboard.indicatorStatuses.map(indicator => (
                   <ListItem
-                    key={kpi.kpiId}
+                    key={indicator.indicatorID}
                     sx={{
                       borderRadius: 1,
                       mb: 1,
@@ -79,13 +79,13 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
                     <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
                       <Box display="flex" alignItems="center" gap={1}>
                         <Chip
-                          label="Due"
-                          color="warning"
+                          label={indicator.status === 'never_run' ? 'Never Run' : 'Due'}
+                          color={indicator.status === 'never_run' ? 'info' : 'warning'}
                           size="small"
                           icon={<Warning sx={{ fontSize: '14px !important' }} />}
                           sx={{
                             fontWeight: 600,
-                            animation: 'pulse 2s infinite',
+                            animation: indicator.status !== 'never_run' ? 'pulse 2s infinite' : 'none',
                             '@keyframes pulse': {
                               '0%': { opacity: 1 },
                               '50%': { opacity: 0.7 },
@@ -94,9 +94,10 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
                           }}
                         />
                         <Chip
-                          label={`${kpi.frequency}min`}
+                          label={indicator.isActive ? 'Active' : 'Inactive'}
                           size="small"
                           variant="outlined"
+                          color={indicator.isActive ? 'success' : 'default'}
                           sx={{
                             height: 20,
                             fontSize: '0.7rem',
@@ -108,18 +109,16 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
                     <ListItemText
                       primary={
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                          {kpi.indicator}
+                          {indicator.indicatorName}
                         </Typography>
                       }
                       secondary={
                         <Box>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                            Owner: {kpi.owner}
+                            Status: {indicator.status}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Frequency: {kpi.frequency} minutes
-                            {kpi.lastRun &&
-                              ` • Last run: ${format(new Date(kpi.lastRun), 'MMM dd, HH:mm')}`}
+                            Next run: {indicator.nextRun ? format(new Date(indicator.nextRun), 'MMM dd, HH:mm') : 'Not scheduled'}
                           </Typography>
                         </Box>
                       }
@@ -143,7 +142,7 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
               >
                 <CheckCircle sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
                 <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
-                  All KPIs are up to date
+                  All Indicators are up to date
                 </Typography>
                 <Typography color="text.secondary" variant="caption">
                   No immediate action required
@@ -157,4 +156,4 @@ const KpisDueCard: React.FC<KpisDueCardProps> = ({ kpiDashboard }) => {
   );
 };
 
-export default KpisDueCard;
+export default IndicatorsDueCard;
