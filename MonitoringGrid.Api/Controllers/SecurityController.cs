@@ -402,7 +402,7 @@ public class SecurityController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value ?? User.FindFirst("user_id")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized(new { message = "User ID not found in token" });
