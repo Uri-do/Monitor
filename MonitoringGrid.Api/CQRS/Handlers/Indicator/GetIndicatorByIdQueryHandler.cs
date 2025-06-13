@@ -31,14 +31,14 @@ public class GetIndicatorByIdQueryHandler : IRequestHandler<GetIndicatorByIdQuer
     {
         try
         {
-            _logger.LogDebug("Getting indicator by ID: {IndicatorId}", request.IndicatorId);
+            _logger.LogDebug("Getting indicator by ID: {IndicatorId}", request.IndicatorID);
 
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorId, cancellationToken);
+            var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
 
             if (indicator == null)
             {
-                _logger.LogWarning("Indicator not found: {IndicatorId}", request.IndicatorId);
-                return Result.Failure<IndicatorDto>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorId} not found");
+                _logger.LogWarning("Indicator not found: {IndicatorId}", request.IndicatorID);
+                return Result.Failure<IndicatorDto>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
             }
 
             var indicatorDto = _mapper.Map<IndicatorDto>(indicator);
@@ -50,7 +50,7 @@ public class GetIndicatorByIdQueryHandler : IRequestHandler<GetIndicatorByIdQuer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get indicator by ID: {IndicatorId}", request.IndicatorId);
+            _logger.LogError(ex, "Failed to get indicator by ID: {IndicatorId}", request.IndicatorID);
             return Result.Failure<IndicatorDto>("GET_FAILED", $"Failed to get indicator: {ex.Message}");
         }
     }

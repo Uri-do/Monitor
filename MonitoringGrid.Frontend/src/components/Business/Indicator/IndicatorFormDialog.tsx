@@ -5,11 +5,11 @@ import { Dialog, InputField, Select, Button } from '@/components';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { CreateKpiRequest, UpdateKpiRequest } from '@/types/api';
+import { CreateIndicatorRequest, UpdateIndicatorRequest } from '@/types/api';
 
 // Validation schema
-const kpiSchema = yup.object({
-  indicator: yup.string().required('KPI Indicator is required'),
+const indicatorSchema = yup.object({
+  indicator: yup.string().required('Indicator name is required'),
   owner: yup.string().required('Owner is required'),
   priority: yup.number().required('Priority is required').min(1).max(4),
   frequency: yup.number().required('Frequency is required').min(1),
@@ -23,13 +23,13 @@ const kpiSchema = yup.object({
   isActive: yup.boolean().required(),
 });
 
-export type KpiFormData = yup.InferType<typeof kpiSchema>;
+export type IndicatorFormData = yup.InferType<typeof indicatorSchema>;
 
-interface KpiFormDialogProps {
+interface IndicatorFormDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateKpiRequest | UpdateKpiRequest) => void;
-  initialData?: Partial<KpiFormData>;
+  onSubmit: (data: CreateIndicatorRequest | UpdateIndicatorRequest) => void;
+  initialData?: Partial<IndicatorFormData>;
   isEdit?: boolean;
   loading?: boolean;
 }
@@ -41,7 +41,7 @@ const priorityOptions = [
   { value: 4, label: 'Low', color: 'success' as const },
 ];
 
-export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
+export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
   open,
   onClose,
   onSubmit,
@@ -54,8 +54,8 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<KpiFormData>({
-    resolver: yupResolver(kpiSchema),
+  } = useForm<IndicatorFormData>({
+    resolver: yupResolver(indicatorSchema),
     defaultValues: {
       indicator: '',
       owner: '',
@@ -79,8 +79,35 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
     }
   }, [open, initialData, reset]);
 
-  const handleFormSubmit = (data: KpiFormData) => {
-    onSubmit(data as CreateKpiRequest | UpdateKpiRequest);
+  const handleFormSubmit = (data: IndicatorFormData) => {
+    // Transform form data to API request format
+    const apiData: CreateIndicatorRequest = {
+      indicatorName: data.indicator,
+      indicatorCode: data.indicator.toLowerCase().replace(/\s+/g, '_'),
+      indicatorDesc: data.indicator,
+      collectorItemName: data.spName,
+      priority: data.priority,
+      scheduleConfiguration: JSON.stringify({
+        scheduleType: 'interval',
+        intervalMinutes: data.frequency,
+        isEnabled: data.isActive,
+      }),
+      lastMinutes: data.lastMinutes,
+      thresholdValue: data.minimumThreshold || undefined,
+      isActive: data.isActive,
+      ownerContactId: 1, // TODO: Get from form or context
+      contactIds: [], // TODO: Get from form
+    };
+
+    if (isEdit && initialData) {
+      const updateData: UpdateIndicatorRequest = {
+        ...apiData,
+        indicatorID: (initialData as any).indicatorID || 0, // TODO: Pass indicatorID properly
+      };
+      onSubmit(updateData);
+    } else {
+      onSubmit(apiData);
+    }
   };
 
   const handleClose = () => {
@@ -94,11 +121,11 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit KPI' : 'Create New KPI'}
+      title={isEdit ? 'Edit Indicator' : 'Create New Indicator'}
       subtitle={
         isEdit
-          ? 'Update KPI configuration and monitoring settings'
-          : 'Create a new Key Performance Indicator'
+          ? 'Update Indicator configuration and monitoring settings'
+          : 'Create a new Indicator'
       }
       icon={<KpiIcon />}
       gradient="primary"
@@ -121,7 +148,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             disabled={isSubmitting}
             onClick={handleSubmit(handleFormSubmit)}
           >
-            {isSubmitting ? 'Saving...' : isEdit ? 'Update KPI' : 'Create KPI'}
+            {isSubmitting ? 'Saving...' : isEdit ? 'Update Indicator' : 'Create Indicator'}
           </Button>
         </>
       }
@@ -141,7 +168,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
             render={({ field }) => (
               <InputField
                 {...field}
-                label="KPI Indicator"
+                label="Indicator Name"
                 fullWidth
                 error={!!errors.indicator}
                 helperText={errors.indicator?.message}
@@ -224,7 +251,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
                 type="number"
                 fullWidth
                 error={!!errors.frequency}
-                helperText={errors.frequency?.message || 'How often to check this KPI'}
+                helperText={errors.frequency?.message || 'How often to check this Indicator'}
                 inputProps={{ min: 1 }}
               />
             )}
@@ -341,7 +368,7 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
                 rows={3}
                 error={!!errors.descriptionTemplate}
                 helperText={errors.descriptionTemplate?.message || 'Email body template for alerts'}
-                placeholder="e.g., The KPI {indicator} has deviated by {deviation}% from the expected value..."
+                placeholder="e.g., The Indicator {indicator} has deviated by {deviation}% from the expected value..."
               />
             )}
           />
@@ -351,4 +378,4 @@ export const KpiFormDialog: React.FC<KpiFormDialogProps> = ({
   );
 };
 
-export default KpiFormDialog;
+export default IndicatorFormDialog;

@@ -34,7 +34,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
           <Box display="flex" alignItems="center" gap={1} mb={3}>
             <Error sx={{ fontSize: 28 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Top Alerting KPIs (Last 7 Days)
+              Top Alerting Indicators (Last 7 Days)
             </Typography>
           </Box>
           <List sx={{ p: 0 }}>
@@ -42,7 +42,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
               <ListItem
                 key={kpi.kpiId}
                 button
-                onClick={() => navigate(`/kpis/${kpi.kpiId}`)}
+                onClick={() => navigate(`/indicators/${kpi.kpiId}`)}
                 sx={{
                   borderRadius: 1,
                   mb: 1,

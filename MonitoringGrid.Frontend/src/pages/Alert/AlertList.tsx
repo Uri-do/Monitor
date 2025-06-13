@@ -95,7 +95,7 @@ const AlertList: React.FC = () => {
       toast('Alert is already resolved', { icon: 'ℹ️' });
       return;
     }
-    resolveMutation.mutate(alert.alertId);
+    resolveMutation.mutate(alert.alertID);
   };
 
   const handleBulkResolve = () => {
@@ -104,7 +104,7 @@ const AlertList: React.FC = () => {
       toast('No unresolved alerts selected', { icon: 'ℹ️' });
       return;
     }
-    bulkResolveMutation.mutate(unresolvedAlerts.map(alert => alert.alertId));
+    bulkResolveMutation.mutate(unresolvedAlerts.map(alert => alert.alertID));
   };
 
   // Filter data based on search and filters
@@ -115,8 +115,8 @@ const AlertList: React.FC = () => {
     const searchLower = filters.search.toLowerCase();
     return alerts.filter(
       alert =>
-        alert.kpiIndicator.toLowerCase().includes(searchLower) ||
-        alert.kpiOwner.toLowerCase().includes(searchLower) ||
+        alert.indicatorName.toLowerCase().includes(searchLower) ||
+        alert.indicatorOwner.toLowerCase().includes(searchLower) ||
         alert.message.toLowerCase().includes(searchLower) ||
         alert.severity.toLowerCase().includes(searchLower)
     );
@@ -148,8 +148,8 @@ const AlertList: React.FC = () => {
       render: value => <StatusChip status={value} />,
     },
     {
-      id: 'kpiIndicator',
-      label: 'KPI',
+      id: 'indicatorName',
+      label: 'Indicator',
       sortable: true,
       width: 200,
       render: (value, row) => (
@@ -158,7 +158,7 @@ const AlertList: React.FC = () => {
             {value}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Owner: {row.kpiOwner}
+            Owner: {row.indicatorOwner}
           </Typography>
         </Box>
       ),
@@ -287,7 +287,7 @@ const AlertList: React.FC = () => {
           })
         }
         onSearch={searchTerm => setFilters({ ...filters, search: searchTerm })}
-        searchPlaceholder="Search alerts by KPI, owner, message, or severity..."
+        searchPlaceholder="Search alerts by Indicator, owner, message, or severity..."
         defaultExpanded={false}
       />
 
@@ -299,7 +299,7 @@ const AlertList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: alert => navigate(`/alerts/${alert.alertId}`),
+          view: alert => navigate(`/alerts/${alert.alertID}`),
         }}
         actions={[
           {
@@ -310,7 +310,7 @@ const AlertList: React.FC = () => {
           },
         ]}
         emptyMessage="No alerts found."
-        rowKey="alertId"
+        rowKey="alertID"
       />
     </Box>
   );

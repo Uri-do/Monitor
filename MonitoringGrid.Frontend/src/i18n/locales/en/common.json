@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "MonitoringGrid",
-    "tagline": "Advanced KPI Monitoring & Analytics",
+    "tagline": "Advanced Indicator Monitoring & Analytics",
     "version": "Enterprise Edition"
   },
   "navigation": {
     "dashboard": "Dashboard",
-    "kpis": "KPIs",
+    "indicators": "Indicators",
     "alerts": "Alerts",
     "analytics": "Analytics",
     "reports": "Reports",

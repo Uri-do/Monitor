@@ -19,8 +19,8 @@ import { PlayCircle, PlayArrow, TrendingUp } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { Card } from '@/components';
 
-export interface RunningKpi {
-  kpiId: number;
+export interface RunningIndicator {
+  indicatorID: number;
   indicator: string;
   owner: string;
   startTime: string;
@@ -30,8 +30,8 @@ export interface RunningKpi {
   elapsedTime?: number;
 }
 
-interface RunningKpisDisplayProps {
-  runningKpis: RunningKpi[];
+interface RunningIndicatorsDisplayProps {
+  runningIndicators: RunningIndicator[];
   variant?: 'card' | 'section';
   title?: string;
   showNavigateButton?: boolean;
@@ -41,10 +41,10 @@ interface RunningKpisDisplayProps {
   compact?: boolean;
 }
 
-const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
-  runningKpis,
+const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
+  runningIndicators,
   variant = 'card',
-  title = 'Currently Executing KPIs',
+  title = 'Currently Executing Indicators',
   showNavigateButton = false,
   onNavigate,
   maxDisplay,
@@ -64,14 +64,14 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
     return new Date(dateString).toLocaleTimeString();
   };
 
-  const displayKpis = maxDisplay ? runningKpis.slice(0, maxDisplay) : runningKpis;
+  const displayIndicators = maxDisplay ? runningIndicators.slice(0, maxDisplay) : runningIndicators;
 
-  const renderKpiItem = (kpi: RunningKpi, _index: number) => {
+  const renderIndicatorItem = (indicator: RunningIndicator, _index: number) => {
     if (compact) {
       // Compact version for WorkerDashboardCard
       return (
         <Box
-          key={kpi.kpiId}
+          key={indicator.indicatorID}
           sx={{
             mb: 2,
             p: 1.5,
@@ -86,7 +86,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}
           >
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {kpi.indicator}
+              {indicator.indicator}
             </Typography>
             <Chip
               label="Running"
@@ -97,21 +97,21 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           </Box>
 
           <Typography variant="caption" sx={{ opacity: 0.8 }}>
-            Started: {formatDateTime(kpi.startTime)}
+            Started: {formatDateTime(indicator.startTime)}
           </Typography>
 
-          {showProgress && kpi.progress !== undefined && (
+          {showProgress && indicator.progress !== undefined && (
             <Box sx={{ mt: 1 }}>
               <LinearProgress
                 variant="determinate"
-                value={kpi.progress}
+                value={indicator.progress}
                 sx={{
                   height: 4,
                   borderRadius: 2,
                 }}
               />
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                {kpi.progress}% - {kpi.currentStep}
+                {indicator.progress}% - {indicator.currentStep}
               </Typography>
             </Box>
           )}
@@ -123,7 +123,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
       // Section version for WorkerManagement
       return (
         <Box
-          key={kpi.kpiId}
+          key={indicator.indicatorID}
           sx={{
             p: 2,
             bgcolor: 'background.paper',
@@ -151,10 +151,10 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
                 />
                 <Box>
                   <Typography variant="subtitle1" fontWeight="medium">
-                    {kpi.indicator}
+                    {indicator.indicator}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Owner: {kpi.owner}
+                    Owner: {indicator.owner}
                   </Typography>
                 </Box>
               </Box>
@@ -162,17 +162,17 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
             <Grid item xs={12} md={4}>
               <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
                 <Typography variant="body2" color="text.secondary">
-                  Started: {formatDateTime(kpi.startTime)}
+                  Started: {formatDateTime(indicator.startTime)}
                 </Typography>
-                {showProgress && kpi.progress !== undefined && (
+                {showProgress && indicator.progress !== undefined && (
                   <Box sx={{ mt: 1 }}>
                     <LinearProgress
                       variant="determinate"
-                      value={kpi.progress}
+                      value={indicator.progress}
                       sx={{ height: 4, borderRadius: 2 }}
                     />
                     <Typography variant="caption" color="text.secondary">
-                      {kpi.progress}% - {kpi.currentStep || 'Processing...'}
+                      {indicator.progress}% - {indicator.currentStep || 'Processing...'}
                     </Typography>
                   </Box>
                 )}
@@ -186,7 +186,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
     // Card version for Dashboard
     return (
       <ListItem
-        key={kpi.kpiId}
+        key={indicator.indicatorID}
         sx={{
           borderRadius: 2,
           mb: 1,
@@ -218,31 +218,31 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           />
         </ListItemIcon>
         <ListItemText
-          primary={kpi.indicator}
+          primary={indicator.indicator}
           secondary={
             <Box component="span">
               <Box component="span" sx={{ display: 'block', mb: 0.5 }}>
-                Owner: {kpi.owner}
+                Owner: {indicator.owner}
               </Box>
               <Box component="span" sx={{ display: 'block', mb: 1 }}>
-                Started: {formatDistanceToNow(new Date(kpi.startTime), { addSuffix: true })}
-                {kpi.elapsedTime && ` • Elapsed: ${formatElapsedTime(kpi.elapsedTime)}`}
+                Started: {formatDistanceToNow(new Date(indicator.startTime), { addSuffix: true })}
+                {indicator.elapsedTime && ` • Elapsed: ${formatElapsedTime(indicator.elapsedTime)}`}
               </Box>
 
               {/* Progress Bar */}
-              {showProgress && kpi.progress !== undefined && (
+              {showProgress && indicator.progress !== undefined && (
                 <Box sx={{ mt: 1 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
                     <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                      {kpi.currentStep || 'Processing...'}
+                      {indicator.currentStep || 'Processing...'}
                     </Box>
                     <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                      {kpi.progress}%
+                      {indicator.progress}%
                     </Box>
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={kpi.progress}
+                    value={indicator.progress}
                     sx={{
                       height: 4,
                       borderRadius: 2,
@@ -281,10 +281,10 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
     >
       <PlayCircle sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
       <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
-        No KPIs currently running
+        No Indicators currently running
       </Typography>
       <Typography color="text.secondary" variant="caption">
-        All KPIs are idle
+        All Indicators are idle
       </Typography>
     </Box>
   );
@@ -295,7 +295,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <TrendingUp sx={{ color: 'success.main' }} />
           <Typography variant="h6" color="success.main">
-            {title} ({runningKpis.length})
+            {title} ({runningIndicators.length})
           </Typography>
           <Chip
             label="LIVE"
@@ -312,9 +312,9 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           />
         </Box>
 
-        {runningKpis.length > 0 ? (
+        {runningIndicators.length > 0 ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {displayKpis.map(renderKpiItem)}
+            {displayIndicators.map(renderIndicatorItem)}
           </Box>
         ) : (
           renderEmptyState()
@@ -331,7 +331,7 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box display="flex" alignItems="center" gap={1}>
               <Badge
-                badgeContent={runningKpis.length}
+                badgeContent={runningIndicators.length}
                 color="primary"
                 sx={{ '& .MuiBadge-badge': { fontSize: '0.7rem' } }}
               >
@@ -359,8 +359,8 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {runningKpis.length > 0 ? (
-              <List sx={{ p: 0 }}>{displayKpis.map(renderKpiItem)}</List>
+            {runningIndicators.length > 0 ? (
+              <List sx={{ p: 0 }}>{displayIndicators.map(renderIndicatorItem)}</List>
             ) : (
               renderEmptyState()
             )}
@@ -371,4 +371,4 @@ const RunningKpisDisplay: React.FC<RunningKpisDisplayProps> = ({
   );
 };
 
-export default RunningKpisDisplay;
+export default RunningIndicatorsDisplay;

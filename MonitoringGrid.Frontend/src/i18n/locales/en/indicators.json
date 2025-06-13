@@ -1,10 +1,10 @@
 {
-  "title": "Key Performance Indicators",
-  "subtitle": "Monitor and manage your KPIs",
-  "create": "Create KPI",
-  "edit": "Edit KPI",
-  "delete": "Delete KPI",
-  "execute": "Execute KPI",
+  "title": "Indicators",
+  "subtitle": "Monitor and manage your Indicators",
+  "create": "Create Indicator",
+  "edit": "Edit Indicator",
+  "delete": "Delete Indicator",
+  "execute": "Execute Indicator",
   "fields": {
     "indicator": "Indicator Name",
     "description": "Description",

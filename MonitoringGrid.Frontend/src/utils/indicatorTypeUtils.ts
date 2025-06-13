@@ -1,11 +1,11 @@
-import { KpiType, KpiTypeDefinition } from '@/types/api';
+import { IndicatorType, IndicatorTypeDefinition } from '@/types/api';
 
 /**
  * Complete definitions for all Indicator types
  */
-export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
+export const INDICATOR_TYPE_DEFINITIONS: IndicatorTypeDefinition[] = [
   {
-    type: KpiType.SuccessRate,
+    type: IndicatorType.SuccessRate,
     name: 'Success Rate Monitoring',
     description:
       'Monitors success percentages and compares them against historical averages. Ideal for tracking transaction success rates, API response rates, login success rates, and other percentage-based metrics.',
@@ -13,7 +13,7 @@ export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
     defaultStoredProcedure: 'monitoring.usp_MonitorTransactions',
   },
   {
-    type: KpiType.TransactionVolume,
+    type: IndicatorType.TransactionVolume,
     name: 'Transaction Volume Monitoring',
     description:
       'Tracks transaction counts and compares them to historical patterns. Perfect for detecting unusual spikes or drops in activity, monitoring daily transactions, API calls, user registrations, and other count-based metrics.',
@@ -21,7 +21,7 @@ export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
     defaultStoredProcedure: 'monitoring.usp_MonitorTransactionVolume',
   },
   {
-    type: KpiType.Threshold,
+    type: IndicatorType.Threshold,
     name: 'Threshold Monitoring',
     description:
       'Simple threshold-based monitoring that triggers alerts when values cross specified limits. Useful for monitoring system resources, queue lengths, error counts, response times, and other absolute value metrics.',
@@ -29,7 +29,7 @@ export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
     defaultStoredProcedure: 'monitoring.usp_MonitorThreshold',
   },
   {
-    type: KpiType.TrendAnalysis,
+    type: IndicatorType.TrendAnalysis,
     name: 'Trend Analysis',
     description:
       'Analyzes trends over time to detect gradual changes or patterns. Excellent for capacity planning, performance degradation detection, user behavior analysis, and early warning systems for emerging issues.',
@@ -41,14 +41,14 @@ export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
 /**
  * Gets the definition for a specific Indicator type
  */
-export const getIndicatorTypeDefinition = (type: KpiType): KpiTypeDefinition | undefined => {
+export const getIndicatorTypeDefinition = (type: IndicatorType): IndicatorTypeDefinition | undefined => {
   return INDICATOR_TYPE_DEFINITIONS.find(def => def.type === type);
 };
 
 /**
  * Gets the display name for an Indicator type
  */
-export const getIndicatorTypeName = (type: KpiType): string => {
+export const getIndicatorTypeName = (type: IndicatorType): string => {
   const definition = getIndicatorTypeDefinition(type);
   return definition?.name || type;
 };
@@ -56,7 +56,7 @@ export const getIndicatorTypeName = (type: KpiType): string => {
 /**
  * Gets the description for an Indicator type
  */
-export const getIndicatorTypeDescription = (type: KpiType): string => {
+export const getIndicatorTypeDescription = (type: IndicatorType): string => {
   const definition = getIndicatorTypeDefinition(type);
   return definition?.description || 'No description available';
 };
@@ -64,7 +64,7 @@ export const getIndicatorTypeDescription = (type: KpiType): string => {
 /**
  * Gets the required fields for an Indicator type
  */
-export const getRequiredFields = (type: KpiType): string[] => {
+export const getRequiredFields = (type: IndicatorType): string[] => {
   const definition = getIndicatorTypeDefinition(type);
   return definition?.requiredFields || [];
 };
@@ -72,7 +72,7 @@ export const getRequiredFields = (type: KpiType): string[] => {
 /**
  * Gets the default stored procedure for an Indicator type
  */
-export const getDefaultStoredProcedure = (type: KpiType): string => {
+export const getDefaultStoredProcedure = (type: IndicatorType): string => {
   const definition = getIndicatorTypeDefinition(type);
   return definition?.defaultStoredProcedure || '';
 };
@@ -81,7 +81,7 @@ export const getDefaultStoredProcedure = (type: KpiType): string => {
  * Validates an Indicator configuration based on its type
  */
 export const validateIndicatorConfiguration = (
-  type: KpiType,
+  type: IndicatorType,
   config: {
     deviation?: number;
     thresholdValue?: number;
@@ -127,13 +127,13 @@ export const validateIndicatorConfiguration = (
 
   // Type-specific validations
   switch (type) {
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       if (config.minimumThreshold !== undefined && config.minimumThreshold < 1) {
         errors.push('Transaction volume monitoring requires a minimum threshold of at least 1');
       }
       break;
 
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       if (
         config.thresholdValue !== undefined &&
         config.thresholdValue === 0 &&
@@ -143,7 +143,7 @@ export const validateIndicatorConfiguration = (
       }
       break;
 
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       if (config.lastMinutes !== undefined && config.lastMinutes < 60) {
         errors.push('Trend analysis requires at least 60 minutes of data for meaningful results');
       }
@@ -156,9 +156,9 @@ export const validateIndicatorConfiguration = (
 /**
  * Gets recommended configuration for an Indicator type
  */
-export const getRecommendedConfiguration = (type: KpiType) => {
+export const getRecommendedConfiguration = (type: IndicatorType) => {
   switch (type) {
-    case KpiType.SuccessRate:
+    case IndicatorType.SuccessRate:
       return {
         deviation: 10,
         lastMinutes: 1440, // 24 hours
@@ -166,7 +166,7 @@ export const getRecommendedConfiguration = (type: KpiType) => {
         description: 'Monitor success rates with 10% deviation tolerance over 24 hours',
       };
 
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       return {
         deviation: 20,
         lastMinutes: 1440, // 24 hours
@@ -175,14 +175,14 @@ export const getRecommendedConfiguration = (type: KpiType) => {
           'Monitor transaction volume with 20% deviation tolerance, minimum 100 transactions',
       };
 
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       return {
         thresholdValue: 100,
         comparisonOperator: 'gt' as const,
         description: 'Alert when value exceeds 100',
       };
 
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       return {
         deviation: 15,
         lastMinutes: 2880, // 48 hours
@@ -199,9 +199,9 @@ export const getRecommendedConfiguration = (type: KpiType) => {
 /**
  * Gets example use cases for an Indicator type
  */
-export const getIndicatorTypeExamples = (type: KpiType): string[] => {
+export const getIndicatorTypeExamples = (type: IndicatorType): string[] => {
   switch (type) {
-    case KpiType.SuccessRate:
+    case IndicatorType.SuccessRate:
       return [
         'Payment processing success rate',
         'API response success rate',
@@ -210,7 +210,7 @@ export const getIndicatorTypeExamples = (type: KpiType): string[] => {
         'Database query success rate',
       ];
 
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       return [
         'Daily transaction count',
         'Hourly API calls',
@@ -219,7 +219,7 @@ export const getIndicatorTypeExamples = (type: KpiType): string[] => {
         'File upload counts',
       ];
 
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       return [
         'CPU usage above 80%',
         'Memory usage above 90%',
@@ -228,7 +228,7 @@ export const getIndicatorTypeExamples = (type: KpiType): string[] => {
         'Error count above 10',
       ];
 
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       return [
         'Gradual performance degradation',
         'Increasing error rates over time',
@@ -245,15 +245,15 @@ export const getIndicatorTypeExamples = (type: KpiType): string[] => {
 /**
  * Gets the appropriate icon name for an Indicator type
  */
-export const getIndicatorTypeIcon = (type: KpiType): string => {
+export const getIndicatorTypeIcon = (type: IndicatorType): string => {
   switch (type) {
-    case KpiType.SuccessRate:
+    case IndicatorType.SuccessRate:
       return 'Speed';
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       return 'Assessment';
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       return 'TrendingUp';
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       return 'Timeline';
     default:
       return 'Assessment';
@@ -264,16 +264,16 @@ export const getIndicatorTypeIcon = (type: KpiType): string => {
  * Gets the color scheme for an Indicator type
  */
 export const getIndicatorTypeColor = (
-  type: KpiType
+  type: IndicatorType
 ): 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' => {
   switch (type) {
-    case KpiType.SuccessRate:
+    case IndicatorType.SuccessRate:
       return 'success';
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       return 'primary';
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       return 'warning';
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       return 'info';
     default:
       return 'primary';

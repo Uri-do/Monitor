@@ -1,12 +1,12 @@
 // Business Logic Components
 // These components contain business-specific logic and domain knowledge
 
-// KPI Management Components
-export { default as KpiFormDialog } from './KPI/KpiFormDialog';
-export { default as ExecutionProgressDialog } from './KPI/ExecutionProgressDialog';
-export { default as KpiTypeSelector } from './KPI/KpiTypeSelector';
-export { default as RunningKpisDisplay } from './KPI/RunningKpisDisplay';
-export { default as SchedulerComponent } from './KPI/SchedulerComponent';
+// Indicator Management Components
+export { default as IndicatorFormDialog } from './Indicator/IndicatorFormDialog';
+export { default as ExecutionProgressDialog } from './Indicator/ExecutionProgressDialog';
+export { default as IndicatorTypeSelector } from './Indicator/IndicatorTypeSelector';
+export { default as RunningIndicatorsDisplay } from './Indicator/RunningIndicatorsDisplay';
+export { default as SchedulerComponent } from './Indicator/SchedulerComponent';
 
 // Contact Management Components
 export { default as ContactFormDialog } from './Contact/ContactFormDialog';
@@ -15,6 +15,6 @@ export { default as ContactFormDialog } from './Contact/ContactFormDialog';
 export { default as WorkerDashboardCard } from './Worker/WorkerDashboardCard';
 
 // Re-export types if needed
-export type { KpiFormData } from './KPI/KpiFormDialog';
+export type { IndicatorFormData } from './Indicator/IndicatorFormDialog';
 export type { ContactFormData } from './Contact/ContactFormDialog';
-export type { RunningKpi } from './KPI/RunningKpisDisplay';
+export type { RunningIndicator } from './Indicator/RunningIndicatorsDisplay';

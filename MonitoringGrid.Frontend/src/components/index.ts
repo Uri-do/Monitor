@@ -21,11 +21,11 @@ export {
 // ===== BUSINESS LOGIC COMPONENTS =====
 // Domain-specific components with business logic
 export {
-  // KPI Management
-  KpiFormDialog,
+  // Indicator Management
+  IndicatorFormDialog,
   ExecutionProgressDialog,
-  KpiTypeSelector,
-  RunningKpisDisplay,
+  IndicatorTypeSelector,
+  RunningIndicatorsDisplay,
   SchedulerComponent,
   // Contact Management
   ContactFormDialog,
@@ -52,6 +52,7 @@ export { default as AdvancedChart } from './Charts/AdvancedChart';
 export { CollectorSelector } from './CollectorSelector';
 export { default as StatisticsBrowser } from './StatisticsBrowser';
 export { default as StatisticsBrowserButton } from './StatisticsBrowserButton';
+export { default as StatsExplorer } from './StatsExplorer';
 
 // ===== COMMON UTILITIES =====
 // Truly reusable utility components
@@ -69,4 +70,4 @@ export type {
   DataTableColumn,
 } from './UI';
 
-export type { KpiFormData, ContactFormData, RunningKpi } from './Business';
+export type { IndicatorFormData, ContactFormData, RunningIndicator } from './Business';

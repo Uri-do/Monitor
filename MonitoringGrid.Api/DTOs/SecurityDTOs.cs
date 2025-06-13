@@ -130,5 +130,3 @@ public class UpdateUserRolesDto
     [Required]
     public List<string> Roles { get; set; } = new();
 }
-
-

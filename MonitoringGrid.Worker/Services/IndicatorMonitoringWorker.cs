@@ -239,7 +239,7 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             var executionCompleted = new
             {
-                IndicatorId = indicator.IndicatorID,
+                IndicatorID = indicator.IndicatorID,
                 IndicatorName = indicator.IndicatorName,
                 Success = success,
                 Value = value,
@@ -313,7 +313,7 @@ public class IndicatorMonitoringWorker : BackgroundService
 
                 var countdownUpdate = new
                 {
-                    NextIndicatorId = nextIndicator.Indicator.IndicatorID,
+                    NextIndicatorID = nextIndicator.Indicator.IndicatorID,
                     IndicatorName = nextIndicator.Indicator.IndicatorName,
                     Owner = nextIndicator.Indicator.OwnerContact?.Name ?? "Unknown",
                     SecondsUntilDue = secondsUntilDue,

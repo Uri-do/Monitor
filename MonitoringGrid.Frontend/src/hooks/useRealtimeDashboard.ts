@@ -3,14 +3,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSignalR } from '../services/signalRService';
 import {
   WorkerStatusUpdate,
-  KpiExecutionStarted,
-  KpiExecutionProgress,
-  KpiExecutionCompleted,
+  IndicatorExecutionStarted,
+  IndicatorExecutionProgress,
+  IndicatorExecutionCompleted,
   CountdownUpdate,
-  NextKpiScheduleUpdate,
-  RunningKpisUpdate,
+  NextIndicatorScheduleUpdate,
+  RunningIndicatorsUpdate,
 } from '../services/signalRService';
-import { KpiDashboardDto } from '../types/api';
+import { IndicatorDashboardDto } from '../types/api';
 import { useRealtime } from '../contexts/RealtimeContext';
 import { queryKeys } from '../utils/queryKeys';
 
@@ -18,9 +18,9 @@ export interface RealtimeDashboardState {
   // Worker status
   workerStatus: WorkerStatusUpdate | null;
 
-  // KPI execution state
-  runningKpis: Array<{
-    kpiId: number;
+  // Indicator execution state
+  runningIndicators: Array<{
+    indicatorID: number;
     indicator: string;
     owner: string;
     startTime: string;
@@ -32,8 +32,8 @@ export interface RealtimeDashboardState {
 
   // Countdown and scheduling
   countdown: number | null;
-  nextKpiDue: {
-    kpiId: number;
+  nextIndicatorDue: {
+    indicatorID: number;
     indicator: string;
     owner: string;
     scheduledTime: string;
@@ -41,7 +41,7 @@ export interface RealtimeDashboardState {
   } | null;
 
   // Dashboard data
-  dashboardData: KpiDashboardDto | null;
+  dashboardData: IndicatorDashboardDto | null;
 
   // Connection state
   isConnected: boolean;
@@ -60,9 +60,9 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   const [state, setState] = useState<RealtimeDashboardState>({
     workerStatus: null,
-    runningKpis: [],
+    runningIndicators: [],
     countdown: null,
-    nextKpiDue: null,
+    nextIndicatorDue: null,
     dashboardData: null,
     isConnected: false,
     lastUpdate: new Date(),
@@ -84,14 +84,14 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     }));
   }, []);
 
-  // KPI execution started handler
-  const handleKpiExecutionStarted = useCallback((data: KpiExecutionStarted) => {
+  // Indicator execution started handler
+  const handleIndicatorExecutionStarted = useCallback((data: IndicatorExecutionStarted) => {
     setState(prev => ({
       ...prev,
-      runningKpis: [
-        ...prev.runningKpis.filter(kpi => kpi.kpiId !== data.kpiId),
+      runningIndicators: [
+        ...prev.runningIndicators.filter(indicator => indicator.indicatorID !== data.indicatorID),
         {
-          kpiId: data.kpiId,
+          indicatorID: data.indicatorID,
           indicator: data.indicator,
           owner: data.owner,
           startTime: data.startTime,
@@ -104,14 +104,14 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     }));
   }, []);
 
-  // KPI execution progress handler
-  const handleKpiExecutionProgress = useCallback((data: KpiExecutionProgress) => {
+  // Indicator execution progress handler
+  const handleIndicatorExecutionProgress = useCallback((data: IndicatorExecutionProgress) => {
     setState(prev => ({
       ...prev,
-      runningKpis: prev.runningKpis.map(kpi =>
-        kpi.kpiId === data.kpiId
+      runningIndicators: prev.runningIndicators.map(indicator =>
+        indicator.indicatorID === data.indicatorID
           ? {
-              ...kpi,
+              ...indicator,
               progress: data.progress,
               currentStep: data.currentStep,
               elapsedTime: data.elapsedTime,
@@ -119,24 +119,24 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
                 ? new Date(Date.now() + data.estimatedTimeRemaining * 1000).toISOString()
                 : undefined,
             }
-          : kpi
+          : indicator
       ),
       lastUpdate: new Date(),
     }));
   }, []);
 
-  // KPI execution completed handler
-  const handleKpiExecutionCompleted = useCallback(
-    (data: KpiExecutionCompleted) => {
+  // Indicator execution completed handler
+  const handleIndicatorExecutionCompleted = useCallback(
+    (data: IndicatorExecutionCompleted) => {
       setState(prev => ({
         ...prev,
-        runningKpis: prev.runningKpis.filter(kpi => kpi.kpiId !== data.kpiId),
+        runningIndicators: prev.runningIndicators.filter(indicator => indicator.indicatorID !== data.indicatorID),
         lastUpdate: new Date(),
       }));
 
       // Update TanStack Query cache with fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.kpiId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.executionHistory.byKpi(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.indicatorID) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.executionHistory.byIndicator(data.indicatorID) });
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 
@@ -154,8 +154,8 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     setState(prev => ({
       ...prev,
       countdown: data.secondsUntilDue,
-      nextKpiDue: {
-        kpiId: data.nextKpiId,
+      nextIndicatorDue: {
+        indicatorID: data.nextIndicatorID,
         indicator: data.indicator,
         owner: data.owner,
         scheduledTime: data.scheduledTime,
@@ -165,24 +165,24 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     }));
   }, []);
 
-  // Next KPI schedule update handler
-  const handleNextKpiScheduleUpdate = useCallback((data: NextKpiScheduleUpdate) => {
-    if (data.nextKpis.length > 0) {
-      const nextKpi = data.nextKpis[0];
+  // Next Indicator schedule update handler
+  const handleNextIndicatorScheduleUpdate = useCallback((data: NextIndicatorScheduleUpdate) => {
+    if (data.nextIndicators.length > 0) {
+      const nextIndicator = data.nextIndicators[0];
       setState(prev => ({
         ...prev,
-        nextKpiDue: nextKpi,
-        countdown: nextKpi.minutesUntilDue * 60,
+        nextIndicatorDue: nextIndicator,
+        countdown: nextIndicator.minutesUntilDue * 60,
         lastUpdate: new Date(),
       }));
     }
   }, []);
 
-  // Running KPIs update handler
-  const handleRunningKpisUpdate = useCallback((data: RunningKpisUpdate) => {
+  // Running Indicators update handler
+  const handleRunningIndicatorsUpdate = useCallback((data: RunningIndicatorsUpdate) => {
     setState(prev => ({
       ...prev,
-      runningKpis: data.runningKpis,
+      runningIndicators: data.runningIndicators,
       lastUpdate: new Date(),
     }));
   }, []);
@@ -195,12 +195,12 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
       // Set up event handlers
       on('onWorkerStatusUpdate', handleWorkerStatusUpdate);
-      on('onKpiExecutionStarted', handleKpiExecutionStarted);
-      on('onKpiExecutionProgress', handleKpiExecutionProgress);
-      on('onKpiExecutionCompleted', handleKpiExecutionCompleted);
+      on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
+      on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
+      on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
       on('onCountdownUpdate', handleCountdownUpdate);
-      on('onNextKpiScheduleUpdate', handleNextKpiScheduleUpdate);
-      on('onRunningKpisUpdate', handleRunningKpisUpdate);
+      on('onNextIndicatorScheduleUpdate', handleNextIndicatorScheduleUpdate);
+      on('onRunningIndicatorsUpdate', handleRunningIndicatorsUpdate);
     }
   }, [
     realtimeEnabled,
@@ -208,12 +208,12 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     joinGroup,
     on,
     handleWorkerStatusUpdate,
-    handleKpiExecutionStarted,
-    handleKpiExecutionProgress,
-    handleKpiExecutionCompleted,
+    handleIndicatorExecutionStarted,
+    handleIndicatorExecutionProgress,
+    handleIndicatorExecutionCompleted,
     handleCountdownUpdate,
-    handleNextKpiScheduleUpdate,
-    handleRunningKpisUpdate,
+    handleNextIndicatorScheduleUpdate,
+    handleRunningIndicatorsUpdate,
   ]);
 
   // Unsubscribe from real-time updates
@@ -221,12 +221,12 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     leaveGroup('Dashboard');
 
     off('onWorkerStatusUpdate');
-    off('onKpiExecutionStarted');
-    off('onKpiExecutionProgress');
-    off('onKpiExecutionCompleted');
+    off('onIndicatorExecutionStarted');
+    off('onIndicatorExecutionProgress');
+    off('onIndicatorExecutionCompleted');
     off('onCountdownUpdate');
-    off('onNextKpiScheduleUpdate');
-    off('onRunningKpisUpdate');
+    off('onNextIndicatorScheduleUpdate');
+    off('onRunningIndicatorsUpdate');
   }, [leaveGroup, off]);
 
   // Auto-subscribe when connected and real-time is enabled

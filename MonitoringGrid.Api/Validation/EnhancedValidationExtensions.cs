@@ -83,20 +83,20 @@ public static class EnhancedValidationExtensions
     }
 
     /// <summary>
-    /// Validates deviation threshold based on KPI type
+    /// Validates deviation threshold based on Indicator type
     /// </summary>
-    public static IRuleBuilderOptions<T, decimal> MustHaveAppropriateDeviationForKpiType<T>(
+    public static IRuleBuilderOptions<T, decimal> MustHaveAppropriateDeviationForIndicatorType<T>(
         this IRuleBuilder<T, decimal> ruleBuilder,
-        Func<T, string?> kpiTypeSelector)
+        Func<T, string?> indicatorTypeSelector)
     {
         return ruleBuilder.Must((instance, deviation) =>
         {
-            var kpiType = kpiTypeSelector(instance) ?? "general";
-            return ValidateDeviationThreshold(deviation, kpiType);
+            var indicatorType = indicatorTypeSelector(instance) ?? "general";
+            return ValidateDeviationThreshold(deviation, indicatorType);
         }).WithMessage((instance, deviation) =>
         {
-            var kpiType = kpiTypeSelector(instance) ?? "general";
-            return GetDeviationValidationMessage(deviation, kpiType);
+            var indicatorType = indicatorTypeSelector(instance) ?? "general";
+            return GetDeviationValidationMessage(deviation, indicatorType);
         });
     }
 
@@ -117,10 +117,10 @@ public static class EnhancedValidationExtensions
     {
         return priority switch
         {
-            1 when frequency < 5 => "High priority KPIs (SMS alerts) should not run more frequently than every 5 minutes to avoid spam",
-            1 when frequency > 1440 => "High priority KPIs should run at least once per day",
-            2 when frequency < 1 => "Email-only KPIs should not run more frequently than every minute",
-            2 when frequency > 10080 => "Email-only KPIs should run at least once per week",
+            1 when frequency < 5 => "High priority Indicators (SMS alerts) should not run more frequently than every 5 minutes to avoid spam",
+            1 when frequency > 1440 => "High priority Indicators should run at least once per day",
+            2 when frequency < 1 => "Email-only Indicators should not run more frequently than every minute",
+            2 when frequency > 10080 => "Email-only Indicators should run at least once per week",
             _ => "Frequency is valid for this priority level"
         };
     }
@@ -137,7 +137,7 @@ public static class EnhancedValidationExtensions
     {
         if (cooldownMinutes < 0) return "Cooldown period cannot be negative";
         if (cooldownMinutes > frequency * 10) return "Cooldown period should not exceed 10 times the execution frequency";
-        if (frequency <= 5 && cooldownMinutes < frequency) return "High-frequency KPIs should have cooldown periods at least equal to their frequency";
+        if (frequency <= 5 && cooldownMinutes < frequency) return "High-frequency Indicators should have cooldown periods at least equal to their frequency";
         return "Cooldown period is valid";
     }
 
@@ -147,7 +147,7 @@ public static class EnhancedValidationExtensions
         if (lastMinutes < frequency) return false; // Data window should be at least equal to frequency
         if (lastMinutes > frequency * 100) return false; // Data window shouldn't be excessive
         if (frequency <= 5 && lastMinutes > 60) return false; // High-frequency should use smaller windows
-        if (frequency >= 1440 && lastMinutes < 1440) return false; // Daily KPIs should use at least 24h windows
+        if (frequency >= 1440 && lastMinutes < 1440) return false; // Daily Indicators should use at least 24h windows
         return true;
     }
 
@@ -156,8 +156,8 @@ public static class EnhancedValidationExtensions
         if (lastMinutes <= 0) return "Data window must be greater than 0";
         if (lastMinutes < frequency) return "Data window should be at least equal to the execution frequency";
         if (lastMinutes > frequency * 100) return "Data window should not exceed 100 times the execution frequency";
-        if (frequency <= 5 && lastMinutes > 60) return "High-frequency KPIs (≤5 min) should use data windows ≤60 minutes";
-        if (frequency >= 1440 && lastMinutes < 1440) return "Daily KPIs should use data windows of at least 24 hours";
+        if (frequency <= 5 && lastMinutes > 60) return "High-frequency Indicators (≤5 min) should use data windows ≤60 minutes";
+        if (frequency >= 1440 && lastMinutes < 1440) return "Daily Indicators should use data windows of at least 24 hours";
         return "Data window is valid";
     }
 
@@ -193,11 +193,11 @@ public static class EnhancedValidationExtensions
         return true;
     }
 
-    private static bool ValidateDeviationThreshold(decimal deviation, string kpiType)
+    private static bool ValidateDeviationThreshold(decimal deviation, string indicatorType)
     {
         if (deviation < 0 || deviation > 100) return false;
         
-        return kpiType.ToLower() switch
+        return indicatorType.ToLower() switch
         {
             "success_rate" when deviation < 1 => false, // Success rates need at least 1% to avoid false positives
             "transaction_count" when deviation < 5 => false, // Transaction counts need at least 5% due to variance
@@ -206,16 +206,16 @@ public static class EnhancedValidationExtensions
         };
     }
 
-    private static string GetDeviationValidationMessage(decimal deviation, string kpiType)
+    private static string GetDeviationValidationMessage(decimal deviation, string indicatorType)
     {
         if (deviation < 0 || deviation > 100) return "Deviation must be between 0 and 100 percent";
         
-        return kpiType.ToLower() switch
+        return indicatorType.ToLower() switch
         {
-            "success_rate" when deviation < 1 => "Success rate KPIs should have deviation thresholds of at least 1% to avoid false positives",
-            "transaction_count" when deviation < 5 => "Transaction count KPIs should have deviation thresholds of at least 5% due to natural variance",
-            "performance_metric" when deviation < 2 => "Performance metric KPIs should have deviation thresholds of at least 2%",
-            _ => "Deviation threshold is valid for this KPI type"
+            "success_rate" when deviation < 1 => "Success rate Indicators should have deviation thresholds of at least 1% to avoid false positives",
+            "transaction_count" when deviation < 5 => "Transaction count Indicators should have deviation thresholds of at least 5% due to natural variance",
+            "performance_metric" when deviation < 2 => "Performance metric Indicators should have deviation thresholds of at least 2%",
+            _ => "Deviation threshold is valid for this Indicator type"
         };
     }
 }

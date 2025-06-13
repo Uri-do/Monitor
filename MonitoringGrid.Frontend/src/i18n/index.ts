@@ -6,28 +6,28 @@ import Backend from 'i18next-http-backend';
 // Import translation resources
 import enCommon from './locales/en/common.json';
 import enDashboard from './locales/en/dashboard.json';
-import enKpis from './locales/en/kpis.json';
+import enIndicators from './locales/en/indicators.json';
 import enAlerts from './locales/en/alerts.json';
 import enSecurity from './locales/en/security.json';
 import enValidation from './locales/en/validation.json';
 
 import esCommon from './locales/es/common.json';
 import esDashboard from './locales/es/dashboard.json';
-import esKpis from './locales/es/kpis.json';
+import esIndicators from './locales/es/indicators.json';
 import esAlerts from './locales/es/alerts.json';
 import esSecurity from './locales/es/security.json';
 import esValidation from './locales/es/validation.json';
 
 import frCommon from './locales/fr/common.json';
 import frDashboard from './locales/fr/dashboard.json';
-import frKpis from './locales/fr/kpis.json';
+import frIndicators from './locales/fr/indicators.json';
 import frAlerts from './locales/fr/alerts.json';
 import frSecurity from './locales/fr/security.json';
 import frValidation from './locales/fr/validation.json';
 
 import deCommon from './locales/de/common.json';
 import deDashboard from './locales/de/dashboard.json';
-import deKpis from './locales/de/kpis.json';
+import deIndicators from './locales/de/indicators.json';
 import deAlerts from './locales/de/alerts.json';
 import deSecurity from './locales/de/security.json';
 import deValidation from './locales/de/validation.json';
@@ -51,7 +51,7 @@ const resources = {
   en: {
     common: enCommon,
     dashboard: enDashboard,
-    kpis: enKpis,
+    indicators: enIndicators,
     alerts: enAlerts,
     security: enSecurity,
     validation: enValidation,
@@ -59,7 +59,7 @@ const resources = {
   es: {
     common: esCommon,
     dashboard: esDashboard,
-    kpis: esKpis,
+    indicators: esIndicators,
     alerts: esAlerts,
     security: esSecurity,
     validation: esValidation,
@@ -67,7 +67,7 @@ const resources = {
   fr: {
     common: frCommon,
     dashboard: frDashboard,
-    kpis: frKpis,
+    indicators: frIndicators,
     alerts: frAlerts,
     security: frSecurity,
     validation: frValidation,
@@ -75,7 +75,7 @@ const resources = {
   de: {
     common: deCommon,
     dashboard: deDashboard,
-    kpis: deKpis,
+    indicators: deIndicators,
     alerts: deAlerts,
     security: deSecurity,
     validation: deValidation,
@@ -148,7 +148,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'dashboard', 'kpis', 'alerts', 'security', 'validation'],
+    ns: ['common', 'dashboard', 'indicators', 'alerts', 'security', 'validation'],
 
     // React options
     react: {

@@ -1,11 +1,11 @@
 {
   "app": {
     "name": "MonitoringGrid",
-    "tagline": "Erweiterte KPI-Überwachung und Analyse"
+    "tagline": "Erweiterte Indikator-Überwachung und Analyse"
   },
   "navigation": {
     "dashboard": "Dashboard",
-    "kpis": "KPIs",
+    "indicators": "Indikatoren",
     "alerts": "Warnungen"
   }
 }

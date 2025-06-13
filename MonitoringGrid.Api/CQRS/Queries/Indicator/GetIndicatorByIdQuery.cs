@@ -9,10 +9,10 @@ namespace MonitoringGrid.Api.CQRS.Queries.Indicator;
 /// </summary>
 public class GetIndicatorByIdQuery : IRequest<Result<IndicatorDto>>
 {
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
 
-    public GetIndicatorByIdQuery(long indicatorId)
+    public GetIndicatorByIdQuery(long indicatorID)
     {
-        IndicatorId = indicatorId;
+        IndicatorID = indicatorID;
     }
 }

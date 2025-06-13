@@ -16,13 +16,13 @@ import {
   Assessment as AssessmentIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
-import { KpiType } from '@/types/api';
+import { IndicatorType } from '@/types/api';
 import { INDICATOR_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/indicatorTypeUtils';
 import { Card, InputField, Select } from '@/components/UI';
 
-interface KpiTypeSelectorProps {
-  selectedType: KpiType;
-  onTypeChange: (type: KpiType) => void;
+interface IndicatorTypeSelectorProps {
+  selectedType: IndicatorType;
+  onTypeChange: (type: IndicatorType) => void;
   thresholdValue?: number;
   onThresholdChange?: (value: number) => void;
   comparisonOperator?: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
@@ -30,23 +30,23 @@ interface KpiTypeSelectorProps {
   disabled?: boolean;
 }
 
-// Icon component function for KPI types
-const getKpiTypeIconComponent = (type: KpiType) => {
+// Icon component function for Indicator types
+const getIndicatorTypeIconComponent = (type: IndicatorType) => {
   switch (type) {
-    case KpiType.SuccessRate:
+    case IndicatorType.SuccessRate:
       return <SpeedIcon color="primary" />;
-    case KpiType.TransactionVolume:
+    case IndicatorType.TransactionVolume:
       return <AssessmentIcon color="primary" />;
-    case KpiType.Threshold:
+    case IndicatorType.Threshold:
       return <TrendingUpIcon color="primary" />;
-    case KpiType.TrendAnalysis:
+    case IndicatorType.TrendAnalysis:
       return <TimelineIcon color="primary" />;
     default:
       return <AssessmentIcon color="primary" />;
   }
 };
 
-export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
+export const IndicatorTypeSelector: React.FC<IndicatorTypeSelectorProps> = ({
   selectedType,
   onTypeChange,
   thresholdValue,
@@ -63,9 +63,9 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
     <Card>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1} mb={2}>
-          {getKpiTypeIconComponent(selectedType)}
-          <Typography variant="h6">KPI Type Configuration</Typography>
-          <Tooltip title="Choose the type of monitoring this KPI will perform">
+          {getIndicatorTypeIconComponent(selectedType)}
+          <Typography variant="h6">Indicator Type Configuration</Typography>
+          <Tooltip title="Choose the type of monitoring this Indicator will perform">
             <IconButton size="small">
               <InfoIcon fontSize="small" />
             </IconButton>
@@ -73,19 +73,19 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
         </Box>
 
         <Grid container spacing={3}>
-          {/* KPI Type Selection */}
+          {/* Indicator Type Selection */}
           <Grid item xs={12}>
             <Select
               fullWidth
-              label="KPI Type"
+              label="Indicator Type"
               value={selectedType}
-              onChange={e => onTypeChange(e.target.value as KpiType)}
+              onChange={e => onTypeChange(e.target.value as IndicatorType)}
               disabled={disabled}
               options={INDICATOR_TYPE_DEFINITIONS.map(definition => ({
                 value: definition.type,
                 label: definition.name,
                 description: definition.description,
-                icon: getKpiTypeIconComponent(definition.type),
+                icon: getIndicatorTypeIconComponent(definition.type),
               }))}
             />
           </Grid>
@@ -158,28 +158,28 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
               <Typography variant="subtitle2" gutterBottom>
                 Configuration Tips:
               </Typography>
-              {selectedType === KpiType.SuccessRate && (
+              {selectedType === IndicatorType.SuccessRate && (
                 <Typography variant="body2" color="text.secondary">
                   • Set deviation percentage to define acceptable variance from historical average •
                   Use minimum threshold to avoid alerts on low-volume periods • Recommended for: API
                   success rates, payment processing, user login success
                 </Typography>
               )}
-              {selectedType === KpiType.TransactionVolume && (
+              {selectedType === IndicatorType.TransactionVolume && (
                 <Typography variant="body2" color="text.secondary">
                   • Monitor transaction counts and compare to historical patterns • Set minimum
                   threshold to filter out noise during low-activity periods • Recommended for: Daily
                   transactions, API calls, user registrations
                 </Typography>
               )}
-              {selectedType === KpiType.Threshold && (
+              {selectedType === IndicatorType.Threshold && (
                 <Typography variant="body2" color="text.secondary">
                   • Simple threshold checking - alerts when value crosses the specified limit •
                   Choose appropriate comparison operator based on your monitoring needs •
                   Recommended for: System resources, queue lengths, error counts
                 </Typography>
               )}
-              {selectedType === KpiType.TrendAnalysis && (
+              {selectedType === IndicatorType.TrendAnalysis && (
                 <Typography variant="body2" color="text.secondary">
                   • Analyzes trends over the specified time window • Detects gradual changes that
                   might indicate emerging issues • Recommended for: Performance degradation,
@@ -194,4 +194,4 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
   );
 };
 
-export default KpiTypeSelector;
+export default IndicatorTypeSelector;

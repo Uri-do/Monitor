@@ -374,10 +374,10 @@ public class WorkerController : ControllerBase
     }
 
     /// <summary>
-    /// Activate all KPIs (for testing)
+    /// Activate all Indicators (for testing)
     /// </summary>
-    [HttpPost("activate-all-kpis")]
-    public async Task<IActionResult> ActivateAllKpis()
+    [HttpPost("activate-all-indicators")]
+    public async Task<IActionResult> ActivateAllIndicators()
     {
         try
         {
@@ -569,7 +569,7 @@ public class WorkerController : ControllerBase
         {
             new WorkerServiceDto
             {
-                Name = "KpiMonitoringWorker",
+                Name = "IndicatorMonitoringWorker",
                 Status = "Running",
                 LastActivity = DateTime.UtcNow
             },

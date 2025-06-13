@@ -20,8 +20,7 @@ MonitoringGrid.Worker/
 ├── Services/                        # Background services
 │   ├── IndicatorMonitoringWorker.cs # Main Indicator execution service
 │   ├── ScheduledTaskWorker.cs       # Cleanup and maintenance tasks
-│   ├── HealthCheckWorker.cs         # System health monitoring
-│   └── Worker.cs                    # Legacy worker (deprecated)
+│   └── HealthCheckWorker.cs         # System health monitoring
 ├── Configuration/                   # Configuration models
 │   └── WorkerConfiguration.cs       # Worker settings and validation
 ├── Scripts/                         # PowerShell test scripts

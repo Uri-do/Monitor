@@ -34,7 +34,6 @@ public class LifecycleManagementService : ILifecycleManagementService, IHostedSe
     // Events
     public event EventHandler<ShutdownEventArgs>? ShutdownInitiated;
     public event EventHandler<WorkerTerminatedEventArgs>? WorkerTerminated;
-    public event EventHandler<ProcessHealthChangedEventArgs>? ProcessHealthChanged;
 
     public LifecycleManagementService(
         ILogger<LifecycleManagementService> logger,
@@ -50,21 +49,23 @@ public class LifecycleManagementService : ILifecycleManagementService, IHostedSe
 
     #region IHostedService Implementation
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogInformation("Starting Lifecycle Management Service");
-            
+
             _status = ApplicationLifecycleStatus.Starting;
-            
+
             // Start process monitoring
             _monitoringCancellationTokenSource = new CancellationTokenSource();
             _monitoringTask = MonitorProcessHealthAsync(_monitoringCancellationTokenSource.Token);
-            
+
             _status = ApplicationLifecycleStatus.Running;
-            
+
             _logger.LogInformation("Lifecycle Management Service started successfully");
+
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -568,7 +569,7 @@ public class LifecycleManagementService : ILifecycleManagementService, IHostedSe
 
     #region Health Monitoring Domain
 
-    public async Task<ProcessHealthStatus> GetProcessHealthStatusAsync(CancellationToken cancellationToken = default)
+    public Task<ProcessHealthStatus> GetProcessHealthStatusAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -595,7 +596,7 @@ public class LifecycleManagementService : ILifecycleManagementService, IHostedSe
                 }
             }
 
-            return new ProcessHealthStatus
+            var result = new ProcessHealthStatus
             {
                 IsHealthy = issues.Count == 0,
                 TotalProcesses = processes.Count,
@@ -604,16 +605,20 @@ public class LifecycleManagementService : ILifecycleManagementService, IHostedSe
                 Issues = issues,
                 CheckTime = DateTime.UtcNow
             };
+
+            return Task.FromResult(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting process health status");
-            return new ProcessHealthStatus
+            var errorResult = new ProcessHealthStatus
             {
                 IsHealthy = false,
                 Issues = new List<string> { $"Health check failed: {ex.Message}" },
                 CheckTime = DateTime.UtcNow
             };
+
+            return Task.FromResult(errorResult);
         }
     }
 

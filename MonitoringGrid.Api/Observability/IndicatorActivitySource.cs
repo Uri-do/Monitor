@@ -12,10 +12,10 @@ public static class IndicatorActivitySource
     /// <summary>
     /// Start an Indicator execution activity
     /// </summary>
-    public static Activity? StartIndicatorExecution(long indicatorId, string indicator)
+    public static Activity? StartIndicatorExecution(long indicatorID, string indicator)
     {
         return Source.StartActivity("ExecuteIndicator", ActivityKind.Internal)
-            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.id", indicatorID)
             ?.SetTag("indicator.name", indicator)
             ?.SetTag("operation.type", "indicator_execution");
     }
@@ -23,10 +23,10 @@ public static class IndicatorActivitySource
     /// <summary>
     /// Start an Indicator validation activity
     /// </summary>
-    public static Activity? StartIndicatorValidation(long indicatorId, string indicator)
+    public static Activity? StartIndicatorValidation(long indicatorID, string indicator)
     {
         return Source.StartActivity("ValidateIndicator", ActivityKind.Internal)
-            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.id", indicatorID)
             ?.SetTag("indicator.name", indicator)
             ?.SetTag("operation.type", "indicator_validation");
     }
@@ -34,10 +34,10 @@ public static class IndicatorActivitySource
     /// <summary>
     /// Start a database query activity for Indicator
     /// </summary>
-    public static Activity? StartDatabaseQuery(long indicatorId, string storedProcedure)
+    public static Activity? StartDatabaseQuery(long indicatorID, string storedProcedure)
     {
         return Source.StartActivity("ExecuteStoredProcedure", ActivityKind.Client)
-            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.id", indicatorID)
             ?.SetTag("db.operation", "stored_procedure")
             ?.SetTag("db.sql.table", storedProcedure)
             ?.SetTag("operation.type", "database_query");
@@ -46,10 +46,10 @@ public static class IndicatorActivitySource
     /// <summary>
     /// Start an alert processing activity
     /// </summary>
-    public static Activity? StartAlertProcessing(long indicatorId, string alertType)
+    public static Activity? StartAlertProcessing(long indicatorID, string alertType)
     {
         return Source.StartActivity("ProcessAlert", ActivityKind.Internal)
-            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.id", indicatorID)
             ?.SetTag("alert.type", alertType)
             ?.SetTag("operation.type", "alert_processing");
     }

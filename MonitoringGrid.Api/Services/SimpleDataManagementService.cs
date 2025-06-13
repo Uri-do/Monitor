@@ -20,23 +20,26 @@ public class SimpleDataManagementService : IDataManagementService
 
     #region Bulk Operations Domain
 
+    [Obsolete("Use BulkCreateIndicatorsAsync instead")]
     public async Task<BulkOperationResult> BulkCreateKpisAsync(IEnumerable<CreateKpiRequest> requests, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Bulk creating KPIs (simplified implementation)");
+        _logger.LogInformation("Bulk creating KPIs (simplified implementation - deprecated, use Indicators instead)");
         await Task.Delay(100, cancellationToken);
         return new BulkOperationResult { IsSuccess = true, SuccessCount = requests.Count(), TotalRequested = requests.Count() };
     }
 
+    [Obsolete("Use BulkUpdateIndicatorsAsync instead")]
     public async Task<BulkOperationResult> BulkUpdateKpisAsync(IEnumerable<UpdateKpiRequest> requests, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Bulk updating KPIs (simplified implementation)");
+        _logger.LogInformation("Bulk updating KPIs (simplified implementation - deprecated, use Indicators instead)");
         await Task.Delay(100, cancellationToken);
         return new BulkOperationResult { IsSuccess = true, SuccessCount = requests.Count(), TotalRequested = requests.Count() };
     }
 
+    [Obsolete("Use BulkDeleteIndicatorsAsync instead")]
     public async Task<BulkOperationResult> BulkDeleteKpisAsync(IEnumerable<int> kpiIds, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Bulk deleting KPIs (simplified implementation)");
+        _logger.LogInformation("Bulk deleting KPIs (simplified implementation - deprecated, use Indicators instead)");
         await Task.Delay(100, cancellationToken);
         return new BulkOperationResult { IsSuccess = true, SuccessCount = kpiIds.Count(), TotalRequested = kpiIds.Count() };
     }
@@ -147,9 +150,10 @@ public class SimpleDataManagementService : IDataManagementService
         await Task.Delay(50, cancellationToken);
     }
 
+    [Obsolete("Use SeedIndicatorsAsync instead")]
     public async Task SeedKpisAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Seeding KPIs (simplified implementation)");
+        _logger.LogInformation("Seeding KPIs (simplified implementation - deprecated, use Indicators instead)");
         await Task.Delay(50, cancellationToken);
     }
 

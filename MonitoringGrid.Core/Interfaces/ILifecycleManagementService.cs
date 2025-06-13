@@ -160,11 +160,6 @@ public interface ILifecycleManagementService
     /// Event raised when a worker process terminates
     /// </summary>
     event EventHandler<WorkerTerminatedEventArgs>? WorkerTerminated;
-    
-    /// <summary>
-    /// Event raised when process health changes
-    /// </summary>
-    event EventHandler<ProcessHealthChangedEventArgs>? ProcessHealthChanged;
 
     #endregion
 }
@@ -255,14 +250,4 @@ public class WorkerTerminatedEventArgs : EventArgs
     public DateTime TerminatedAt { get; set; }
 }
 
-/// <summary>
-/// Process health changed event arguments
-/// </summary>
-public class ProcessHealthChangedEventArgs : EventArgs
-{
-    public int ProcessId { get; set; }
-    public string ProcessName { get; set; } = string.Empty;
-    public WorkerProcessStatus OldStatus { get; set; }
-    public WorkerProcessStatus NewStatus { get; set; }
-    public DateTime ChangedAt { get; set; }
-}
+

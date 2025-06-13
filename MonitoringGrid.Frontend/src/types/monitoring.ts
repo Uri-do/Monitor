@@ -2,8 +2,8 @@
 
 export interface AlertNotification {
   id: string;
-  kpiId: number;
-  kpiIndicator: string;
+  indicatorID: number;
+  indicatorName: string;
   message: string;
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
   timestamp: Date;
@@ -13,8 +13,8 @@ export interface AlertNotification {
   isResolved: boolean;
 }
 
-export interface KpiExecutionResult {
-  kpiId: number;
+export interface IndicatorExecutionResult {
+  indicatorID: number;
   key: string;
   currentValue: number;
   historicalValue: number;
@@ -29,7 +29,7 @@ export interface SystemStatus {
   serviceName: string;
   status: 'Running' | 'Stopped' | 'Error' | 'Warning';
   lastHeartbeat: Date;
-  processedKpis: number;
+  processedIndicators: number;
   alertsSent: number;
   errorMessage?: string;
   isHealthy: boolean;
@@ -37,7 +37,7 @@ export interface SystemStatus {
 
 export interface MonitoringEvent {
   id: string;
-  type: 'alert' | 'kpi_update' | 'system_status' | 'dashboard_update';
+  type: 'alert' | 'indicator_update' | 'system_status' | 'dashboard_update';
   timestamp: Date;
   data: any;
 }
@@ -52,10 +52,10 @@ export interface RealtimeMetric {
 }
 
 export interface DashboardStats {
-  totalKpis: number;
+  totalIndicators: number;
   activeAlerts: number;
-  healthyKpis: number;
-  criticalKpis: number;
+  healthyIndicators: number;
+  criticalIndicators: number;
   systemStatus: 'Healthy' | 'Warning' | 'Critical';
   lastUpdate: Date;
 }

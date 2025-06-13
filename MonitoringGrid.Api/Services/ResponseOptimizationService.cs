@@ -30,7 +30,7 @@ public interface IResponseOptimizationService
     /// <summary>
     /// Creates a streaming response for large datasets
     /// </summary>
-    Task<IActionResult> CreateStreamingResponseAsync<T>(IAsyncEnumerable<T> data, string contentType = "application/json");
+    IActionResult CreateStreamingResponse<T>(IAsyncEnumerable<T> data, string contentType = "application/json");
 
     /// <summary>
     /// Optimizes response based on client capabilities
@@ -85,14 +85,14 @@ public class ResponseOptimizationService : IResponseOptimizationService
             using var sha256 = SHA256.Create();
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
             var hash = Convert.ToBase64String(hashBytes);
-            
+
             _metrics.RecordETagGeneration();
             return $"\"{hash}\"";
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to generate ETag");
-            return $"\"{Guid.NewGuid()}\"";
+            return $"\"{Guid.NewGuid():N}\"";
         }
     }
 
@@ -152,7 +152,7 @@ public class ResponseOptimizationService : IResponseOptimizationService
     /// <summary>
     /// Creates streaming response for large datasets
     /// </summary>
-    public async Task<IActionResult> CreateStreamingResponseAsync<T>(IAsyncEnumerable<T> data, string contentType = "application/json")
+    public IActionResult CreateStreamingResponse<T>(IAsyncEnumerable<T> data, string contentType = "application/json")
     {
         var correlationId = _correlationIdService.GetCorrelationId();
 

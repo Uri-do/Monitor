@@ -8,43 +8,43 @@ namespace MonitoringGrid.Api.Observability;
 public static class StructuredLoggingExtensions
 {
     /// <summary>
-    /// Log KPI execution start
+    /// Log Indicator execution start
     /// </summary>
-    public static void LogKpiExecutionStart(this ILogger logger, int kpiId, string indicator, string owner)
+    public static void LogIndicatorExecutionStart(this ILogger logger, int indicatorID, string indicator, string owner)
     {
-        logger.LogInformation("KPI execution started: {KpiId} - {Indicator} (Owner: {Owner}) [TraceId: {TraceId}]",
-            kpiId, indicator, owner, Activity.Current?.TraceId);
+        logger.LogInformation("Indicator execution started: {IndicatorId} - {Indicator} (Owner: {Owner}) [TraceId: {TraceId}]",
+            indicatorID, indicator, owner, Activity.Current?.TraceId);
     }
 
     /// <summary>
-    /// Log KPI execution completion
+    /// Log Indicator execution completion
     /// </summary>
-    public static void LogKpiExecutionCompleted(this ILogger logger, int kpiId, string indicator, 
+    public static void LogIndicatorExecutionCompleted(this ILogger logger, int indicatorID, string indicator,
         TimeSpan duration, bool success, string? result = null)
     {
         if (success)
         {
-            logger.LogInformation("KPI execution completed successfully: {KpiId} - {Indicator} " +
+            logger.LogInformation("Indicator execution completed successfully: {IndicatorId} - {Indicator} " +
                 "in {Duration}ms. Result: {Result} [TraceId: {TraceId}]",
-                kpiId, indicator, duration.TotalMilliseconds, result, Activity.Current?.TraceId);
+                indicatorID, indicator, duration.TotalMilliseconds, result, Activity.Current?.TraceId);
         }
         else
         {
-            logger.LogWarning("KPI execution failed: {KpiId} - {Indicator} " +
+            logger.LogWarning("Indicator execution failed: {IndicatorId} - {Indicator} " +
                 "after {Duration}ms. Error: {Result} [TraceId: {TraceId}]",
-                kpiId, indicator, duration.TotalMilliseconds, result, Activity.Current?.TraceId);
+                indicatorID, indicator, duration.TotalMilliseconds, result, Activity.Current?.TraceId);
         }
     }
 
     /// <summary>
-    /// Log KPI execution error
+    /// Log Indicator execution error
     /// </summary>
-    public static void LogKpiExecutionError(this ILogger logger, int kpiId, string indicator, 
+    public static void LogIndicatorExecutionError(this ILogger logger, int indicatorID, string indicator,
         Exception exception, TimeSpan? duration = null)
     {
-        logger.LogError(exception, "KPI execution error: {KpiId} - {Indicator} " +
+        logger.LogError(exception, "Indicator execution error: {IndicatorId} - {Indicator} " +
             "{Duration} [TraceId: {TraceId}] [ErrorType: {ErrorType}]",
-            kpiId, indicator, 
+            indicatorID, indicator,
             duration.HasValue ? $"after {duration.Value.TotalMilliseconds}ms" : "",
             Activity.Current?.TraceId, exception.GetType().Name);
     }
@@ -52,24 +52,24 @@ public static class StructuredLoggingExtensions
     /// <summary>
     /// Log alert triggered
     /// </summary>
-    public static void LogAlertTriggered(this ILogger logger, int kpiId, string indicator, 
+    public static void LogAlertTriggered(this ILogger logger, int indicatorID, string indicator,
         decimal deviationPercent, string severity, string recipient)
     {
-        logger.LogWarning("Alert triggered: {KpiId} - {Indicator} " +
+        logger.LogWarning("Alert triggered: {IndicatorId} - {Indicator} " +
             "Deviation: {DeviationPercent}% (Severity: {Severity}) " +
             "Sent to: {Recipient} [TraceId: {TraceId}]",
-            kpiId, indicator, deviationPercent, severity, recipient, Activity.Current?.TraceId);
+            indicatorID, indicator, deviationPercent, severity, recipient, Activity.Current?.TraceId);
     }
 
     /// <summary>
     /// Log alert resolution
     /// </summary>
-    public static void LogAlertResolved(this ILogger logger, long alertId, int kpiId, 
+    public static void LogAlertResolved(this ILogger logger, long alertId, int indicatorID,
         string resolvedBy, TimeSpan resolutionTime)
     {
-        logger.LogInformation("Alert resolved: {AlertId} for KPI {KpiId} " +
+        logger.LogInformation("Alert resolved: {AlertId} for Indicator {IndicatorId} " +
             "by {ResolvedBy} after {ResolutionTime} [TraceId: {TraceId}]",
-            alertId, kpiId, resolvedBy, resolutionTime, Activity.Current?.TraceId);
+            alertId, indicatorID, resolvedBy, resolutionTime, Activity.Current?.TraceId);
     }
 
     /// <summary>

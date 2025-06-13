@@ -114,8 +114,9 @@ public class DatabasePerformanceMonitorAttribute : ActionFilterAttribute
 }
 
 /// <summary>
-/// Performance monitor for KPI execution operations
+/// Performance monitor for KPI execution operations (Legacy - use IndicatorPerformanceMonitorAttribute instead)
 /// </summary>
+[Obsolete("Use IndicatorPerformanceMonitorAttribute instead")]
 public class KpiPerformanceMonitorAttribute : ActionFilterAttribute
 {
     public override async Task OnActionExecutionAsync(
@@ -129,10 +130,10 @@ public class KpiPerformanceMonitorAttribute : ActionFilterAttribute
         var logger = context.HttpContext.RequestServices
             .GetRequiredService<ILogger<KpiPerformanceMonitorAttribute>>();
 
-        // Extract KPI ID if available
+        // Extract KPI ID if available (Legacy - should be IndicatorId)
         var kpiId = context.ActionArguments.ContainsKey("id") ? context.ActionArguments["id"]?.ToString() : "unknown";
 
-        logger.LogInformation("Starting KPI operation: {ActionName} for KPI {KpiId} [RequestId: {RequestId}]", 
+        logger.LogInformation("Starting KPI operation: {ActionName} for KPI {KpiId} [RequestId: {RequestId}] (Legacy - use Indicator operations instead)",
             actionName, kpiId, requestId);
 
         var result = await next();
@@ -141,15 +142,56 @@ public class KpiPerformanceMonitorAttribute : ActionFilterAttribute
         var elapsedMs = stopwatch.ElapsedMilliseconds;
         var statusCode = context.HttpContext.Response.StatusCode;
 
-        logger.LogInformation("Completed KPI operation: {ActionName} for KPI {KpiId} in {ElapsedMs}ms [RequestId: {RequestId}] [StatusCode: {StatusCode}]",
+        logger.LogInformation("Completed KPI operation: {ActionName} for KPI {KpiId} in {ElapsedMs}ms [RequestId: {RequestId}] [StatusCode: {StatusCode}] (Legacy - use Indicator operations instead)",
             actionName, kpiId, elapsedMs, requestId, statusCode);
 
-        // Record KPI-specific metrics
+        // Record KPI-specific metrics (Legacy - should use indicator.* tags)
         using var activity = Activity.Current;
         activity?.SetTag("kpi.operation", actionName);
         activity?.SetTag("kpi.id", kpiId);
         activity?.SetTag("kpi.duration_ms", elapsedMs);
         activity?.SetTag("kpi.status_code", statusCode);
         activity?.SetTag("kpi.success", statusCode < 400);
+    }
+}
+
+/// <summary>
+/// Performance monitor for Indicator execution operations
+/// </summary>
+public class IndicatorPerformanceMonitorAttribute : ActionFilterAttribute
+{
+    public override async Task OnActionExecutionAsync(
+        ActionExecutingContext context,
+        ActionExecutionDelegate next)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var actionName = context.ActionDescriptor.DisplayName;
+        var requestId = context.HttpContext.TraceIdentifier;
+
+        var logger = context.HttpContext.RequestServices
+            .GetRequiredService<ILogger<IndicatorPerformanceMonitorAttribute>>();
+
+        // Extract Indicator ID if available
+        var indicatorId = context.ActionArguments.ContainsKey("id") ? context.ActionArguments["id"]?.ToString() : "unknown";
+
+        logger.LogInformation("Starting Indicator operation: {ActionName} for Indicator {IndicatorId} [RequestId: {RequestId}]",
+            actionName, indicatorId, requestId);
+
+        var result = await next();
+        stopwatch.Stop();
+
+        var elapsedMs = stopwatch.ElapsedMilliseconds;
+        var statusCode = context.HttpContext.Response.StatusCode;
+
+        logger.LogInformation("Completed Indicator operation: {ActionName} for Indicator {IndicatorId} in {ElapsedMs}ms [RequestId: {RequestId}] [StatusCode: {StatusCode}]",
+            actionName, indicatorId, elapsedMs, requestId, statusCode);
+
+        // Record Indicator-specific metrics
+        using var activity = Activity.Current;
+        activity?.SetTag("indicator.operation", actionName);
+        activity?.SetTag("indicator.id", indicatorId);
+        activity?.SetTag("indicator.duration_ms", elapsedMs);
+        activity?.SetTag("indicator.status_code", statusCode);
+        activity?.SetTag("indicator.success", statusCode < 400);
     }
 }

@@ -233,7 +233,7 @@ const IndicatorCreate: React.FC = () => {
         averageLastDays: indicator.averageLastDays,
         // averageOfCurrHour: not available in IndicatorDto
         isActive: indicator.isActive,
-        contactIds: indicator.contacts.map(c => c.contactId),
+        contactIds: indicator.contacts.map(c => c.contactID),
       });
       setSelectedContacts(indicator.contacts);
       setSelectedCollectorId(indicator.collectorID || null);
@@ -249,7 +249,7 @@ const IndicatorCreate: React.FC = () => {
     const formData = {
       ...data,
       collectorItemName: data.collectorItemName || '',
-      contactIds: selectedContacts.map(c => c.contactId),
+      contactIds: selectedContacts.map(c => c.contactID),
     };
 
     if (isEdit && indicatorId) {
@@ -450,7 +450,7 @@ const IndicatorCreate: React.FC = () => {
                     <Select
                       {...field}
                       label="Owner Contact"
-                      options={contacts.map(c => ({ value: c.contactId, label: c.name }))}
+                      options={contacts.map(c => ({ value: c.contactID, label: c.name }))}
                       error={!!errors.ownerContactId}
                       required
                     />

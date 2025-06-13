@@ -98,15 +98,15 @@ const Dashboard: React.FC = () => {
         {/* Running Indicators */}
         <RunningIndicatorsCard
           indicatorDashboard={mergedIndicatorDashboard}
-          realtimeRunningIndicators={(dashboardState.runningKpis || []).map(kpi => ({
-            indicatorId: kpi.kpiId,
-            indicator: kpi.indicator,
-            owner: kpi.owner,
-            startTime: kpi.startTime,
-            progress: kpi.progress,
-            estimatedCompletion: kpi.estimatedCompletion,
-            currentStep: kpi.currentStep,
-            elapsedTime: kpi.elapsedTime,
+          realtimeRunningIndicators={(dashboardState.runningIndicators || []).map(indicator => ({
+            indicatorId: indicator.indicatorID,
+            indicator: indicator.indicator,
+            owner: indicator.owner,
+            startTime: indicator.startTime,
+            progress: indicator.progress,
+            estimatedCompletion: indicator.estimatedCompletion,
+            currentStep: indicator.currentStep,
+            elapsedTime: indicator.elapsedTime,
           }))}
         />
 
@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
         {/* Recent Alerts */}
         <RecentAlertsCard alertDashboard={alertDashboard} />
 
-        {/* Top Alerting KPIs */}
+        {/* Top Alerting Indicators */}
         <TopAlertingKpisCard alertDashboard={alertDashboard} />
       </Grid>
     </Box>

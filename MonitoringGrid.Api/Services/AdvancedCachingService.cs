@@ -69,7 +69,6 @@ public class AdvancedCachingService : IAdvancedCachingService
     // Cache configuration
     private readonly TimeSpan _defaultExpiration = TimeSpan.FromMinutes(15);
     private readonly TimeSpan _memoryExpiration = TimeSpan.FromMinutes(5);
-    private readonly int _maxMemoryCacheSize = 1000;
 
     public AdvancedCachingService(
         IMemoryCache memoryCache,
@@ -214,7 +213,7 @@ public class AdvancedCachingService : IAdvancedCachingService
             await SetAsync(key, value, expiration, tags, cancellationToken);
         }
 
-        return value ?? default(T);
+        return value ?? default(T)!;
     }
 
     /// <summary>

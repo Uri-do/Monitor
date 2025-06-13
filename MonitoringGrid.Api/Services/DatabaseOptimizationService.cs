@@ -304,14 +304,14 @@ public class DatabaseOptimizationService : IDatabaseOptimizationService
     /// </summary>
     private string GenerateOptimizationSuggestion(OperationPerformance operation)
     {
-        if (operation.Name.Contains("GetKpis", StringComparison.OrdinalIgnoreCase))
+        if (operation.Name.Contains("GetIndicators", StringComparison.OrdinalIgnoreCase) || operation.Name.Contains("GetKpis", StringComparison.OrdinalIgnoreCase))
         {
-            return "Consider adding indexes on frequently queried KPI columns (Indicator, IsActive, Priority). Implement pagination for large result sets.";
+            return "Consider adding indexes on frequently queried Indicator columns (IndicatorName, IsActive, Priority). Implement pagination for large result sets.";
         }
-        
+
         if (operation.Name.Contains("Execute", StringComparison.OrdinalIgnoreCase))
         {
-            return "Review KPI SQL queries for optimization opportunities. Consider query result caching for frequently executed KPIs.";
+            return "Review Indicator SQL queries for optimization opportunities. Consider query result caching for frequently executed Indicators.";
         }
 
         if (operation.Name.Contains("Alert", StringComparison.OrdinalIgnoreCase))

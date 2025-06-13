@@ -41,7 +41,7 @@ export const useExecutionDetail = (executionId: number) => {
  */
 export const useIndicatorExecutionHistory = (indicatorId: number, limit?: number) => {
   return useQuery({
-    queryKey: queryKeys.executionHistory.byKpi(indicatorId, limit), // Note: still using byKpi for backward compatibility
+    queryKey: queryKeys.executionHistory.byIndicator(indicatorId, limit),
     queryFn: () => executionHistoryApi.getExecutionHistory({ kpiId: indicatorId, pageSize: limit }),
     enabled: !!indicatorId && indicatorId > 0,
     staleTime: 30 * 1000,

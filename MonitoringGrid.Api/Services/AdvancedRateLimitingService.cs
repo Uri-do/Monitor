@@ -139,7 +139,7 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// <summary>
     /// Records a request for rate limiting tracking
     /// </summary>
-    public async Task RecordRequestAsync(RateLimitRequest request)
+    public Task RecordRequestAsync(RateLimitRequest request)
     {
         var correlationId = request.CorrelationId ?? Guid.NewGuid().ToString();
 
@@ -167,6 +167,8 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
         {
             _logger.LogError(ex, "Error recording request for rate limiting [{CorrelationId}]", correlationId);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -213,13 +215,13 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// <summary>
     /// Checks if an IP address is currently blocked
     /// </summary>
-    public async Task<bool> IsIpBlockedAsync(string ipAddress)
+    public Task<bool> IsIpBlockedAsync(string ipAddress)
     {
         if (_blockedIps.TryGetValue(ipAddress, out var unblockTime))
         {
             if (DateTime.UtcNow < unblockTime)
             {
-                return true;
+                return Task.FromResult(true);
             }
             else
             {
@@ -228,7 +230,7 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
             }
         }
 
-        return false;
+        return Task.FromResult(false);
     }
 
     /// <summary>
@@ -314,11 +316,11 @@ public class AdvancedRateLimitingService : IAdvancedRateLimitingService
     /// <summary>
     /// Counts recent rate limit violations for an IP
     /// </summary>
-    private async Task<int> CountRecentViolationsAsync(string ipAddress)
+    private Task<int> CountRecentViolationsAsync(string ipAddress)
     {
         // This would typically query the security events
         // For now, return a simplified count
-        return 0;
+        return Task.FromResult(0);
     }
 
     /// <summary>

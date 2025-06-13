@@ -91,8 +91,8 @@ export const queryKeys = {
     list: (filters: any) => [...queryKeys.executionHistory.lists(), filters] as const,
     details: () => [...queryKeys.executionHistory.all, 'detail'] as const,
     detail: (id: number) => [...queryKeys.executionHistory.details(), id] as const,
-    byKpi: (kpiId: number, limit?: number) =>
-      [...queryKeys.executionHistory.all, 'byKpi', kpiId, limit] as const,
+    byIndicator: (indicatorID: number, limit?: number) =>
+      [...queryKeys.executionHistory.all, 'byIndicator', indicatorID, limit] as const,
     statistics: (timeRangeDays: number) =>
       [...queryKeys.executionHistory.all, 'statistics', timeRangeDays] as const,
     recent: (limit: number) => [...queryKeys.executionHistory.all, 'recent', limit] as const,

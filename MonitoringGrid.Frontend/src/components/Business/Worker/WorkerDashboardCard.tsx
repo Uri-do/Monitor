@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { WorkerStatusUpdate } from '@/services/signalRService';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import { RunningKpi } from '../KPI/RunningKpisDisplay';
+import { RunningIndicator } from '../Indicator/RunningIndicatorsDisplay';
 import { workerApi } from '@/services/api';
 
 interface WorkerService {
@@ -454,14 +454,14 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
               {/* Countdown Timer */}
               {currentStatus.isRunning &&
                 realtimeDashboard.countdown !== null &&
-                realtimeDashboard.nextKpiDue && (
+                realtimeDashboard.nextIndicatorDue && (
                   <>
                     <Divider sx={{ my: 2 }} />
                     <Box sx={{ mb: 3 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                         <Timer fontSize="small" color="primary" />
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                          Next KPI Execution
+                          Next Indicator Execution
                         </Typography>
                       </Box>
 
@@ -478,18 +478,18 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                           {formatCountdown(realtimeDashboard.countdown)}
                         </Typography>
                         <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          {realtimeDashboard.nextKpiDue.indicator}
+                          {realtimeDashboard.nextIndicatorDue.indicator}
                         </Typography>
                         <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                          by {realtimeDashboard.nextKpiDue.owner}
+                          by {realtimeDashboard.nextIndicatorDue.owner}
                         </Typography>
                       </Box>
                     </Box>
                   </>
                 )}
 
-              {/* Worker Executing KPIs */}
-              {currentStatus.isRunning && realtimeDashboard.runningKpis.length > 0 && (
+              {/* Worker Executing Indicators */}
+              {currentStatus.isRunning && realtimeDashboard.runningIndicators.length > 0 && (
                 <>
                   <Divider sx={{ my: 2 }} />
                   <Box>
@@ -499,7 +499,7 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                         variant="subtitle2"
                         sx={{ fontWeight: 600, color: 'warning.main' }}
                       >
-                        Worker Executing ({realtimeDashboard.runningKpis.length})
+                        Worker Executing ({realtimeDashboard.runningIndicators.length})
                       </Typography>
                       <Chip
                         label="LIVE"
@@ -510,20 +510,20 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                     </Box>
 
                     <Box>
-                      {realtimeDashboard.runningKpis.slice(0, 2).map(kpi => {
-                        const runningKpi: RunningKpi = {
-                          kpiId: kpi.kpiId,
-                          indicator: kpi.indicator,
-                          owner: kpi.owner,
-                          startTime: kpi.startTime,
-                          progress: kpi.progress,
-                          currentStep: kpi.currentStep,
-                          elapsedTime: kpi.elapsedTime,
+                      {realtimeDashboard.runningIndicators.slice(0, 2).map(indicator => {
+                        const runningIndicator: RunningIndicator = {
+                          indicatorID: indicator.indicatorID,
+                          indicator: indicator.indicator,
+                          owner: indicator.owner,
+                          startTime: indicator.startTime,
+                          progress: indicator.progress,
+                          currentStep: indicator.currentStep,
+                          elapsedTime: indicator.elapsedTime,
                         };
 
                         return (
                           <Box
-                            key={kpi.kpiId}
+                            key={indicator.indicatorID}
                             sx={{
                               mb: 1.5,
                               p: 1.5,
@@ -556,7 +556,7 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                                 variant="body2"
                                 sx={{ fontWeight: 600, color: 'warning.dark' }}
                               >
-                                ⚡ {runningKpi.indicator}
+                                ⚡ {runningIndicator.indicator}
                               </Typography>
                               <Chip
                                 label="EXECUTING"
@@ -567,11 +567,11 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                             </Box>
 
                             <Typography variant="caption" color="text.secondary">
-                              {runningKpi.owner} • Started:{' '}
-                              {new Date(runningKpi.startTime).toLocaleTimeString()}
+                              {runningIndicator.owner} • Started:{' '}
+                              {new Date(runningIndicator.startTime).toLocaleTimeString()}
                             </Typography>
 
-                            {runningKpi.progress !== undefined && (
+                            {runningIndicator.progress !== undefined && (
                               <Box sx={{ mt: 1 }}>
                                 <Box
                                   sx={{
@@ -588,12 +588,12 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                                     variant="caption"
                                     sx={{ fontWeight: 600, color: 'warning.dark' }}
                                   >
-                                    {runningKpi.progress}%
+                                    {runningIndicator.progress}%
                                   </Typography>
                                 </Box>
                                 <LinearProgress
                                   variant="determinate"
-                                  value={runningKpi.progress}
+                                  value={runningIndicator.progress}
                                   sx={{
                                     height: 4,
                                     borderRadius: 2,
@@ -603,13 +603,13 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                                     },
                                   }}
                                 />
-                                {runningKpi.currentStep && (
+                                {runningIndicator.currentStep && (
                                   <Typography
                                     variant="caption"
                                     color="text.secondary"
                                     sx={{ mt: 0.5, display: 'block' }}
                                   >
-                                    {runningKpi.currentStep}
+                                    {runningIndicator.currentStep}
                                   </Typography>
                                 )}
                               </Box>
@@ -619,9 +619,9 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                       })}
                     </Box>
 
-                    {realtimeDashboard.runningKpis.length > 2 && (
+                    {realtimeDashboard.runningIndicators.length > 2 && (
                       <Typography variant="caption" color="text.secondary">
-                        +{realtimeDashboard.runningKpis.length - 2} more executing...
+                        +{realtimeDashboard.runningIndicators.length - 2} more executing...
                       </Typography>
                     )}
                   </Box>

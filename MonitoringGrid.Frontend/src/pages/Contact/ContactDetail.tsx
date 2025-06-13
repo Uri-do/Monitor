@@ -170,7 +170,7 @@ const ContactDetail: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Assigned Indicators ({contact.assignedKpis.length})</Typography>
+                <Typography variant="h6">Assigned Indicators ({contact.assignedIndicators.length})</Typography>
                 <Button
                   variant="outlined"
                   startIcon={<AssignIcon />}
@@ -181,7 +181,7 @@ const ContactDetail: React.FC = () => {
                 </Button>
               </Box>
 
-              {contact.assignedKpis.length > 0 ? (
+              {contact.assignedIndicators.length > 0 ? (
                 <TableContainer component={Paper} variant="outlined">
                   <Table>
                     <TableHead>
@@ -194,8 +194,8 @@ const ContactDetail: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {contact.assignedKpis.map(indicator => (
-                        <TableRow key={indicator.kpiId}>
+                      {contact.assignedIndicators.map(indicator => (
+                        <TableRow key={indicator.indicatorID}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
                               {indicator.indicator}
@@ -223,14 +223,14 @@ const ContactDetail: React.FC = () => {
                           <TableCell align="right">
                             <Stack direction="row" spacing={1}>
                               <Tooltip title="View Indicator">
-                                <IconButton size="small" onClick={() => handleIndicatorView(indicator.kpiId)}>
+                                <IconButton size="small" onClick={() => handleIndicatorView(indicator.indicatorID)}>
                                   <ViewIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Execute Indicator">
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleIndicatorExecute(indicator.kpiId)}
+                                  onClick={() => handleIndicatorExecute(indicator.indicatorID)}
                                   disabled={!indicator.isActive}
                                 >
                                   <ExecuteIcon fontSize="small" />

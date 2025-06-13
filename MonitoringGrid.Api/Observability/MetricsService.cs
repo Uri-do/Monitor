@@ -85,8 +85,9 @@ public class MetricsService
             new[] { "operation_type" });
 
     /// <summary>
-    /// Record KPI execution metrics
+    /// Record KPI execution metrics (Legacy - use RecordIndicatorExecution instead)
     /// </summary>
+    [Obsolete("Use RecordIndicatorExecution instead")]
     public void RecordKpiExecution(string kpiName, string owner, double durationSeconds, bool success)
     {
         var status = success ? "success" : "failure";
@@ -95,9 +96,29 @@ public class MetricsService
     }
 
     /// <summary>
-    /// Update KPI status metrics
+    /// Record Indicator execution metrics
     /// </summary>
+    public void RecordIndicatorExecution(string indicatorName, string owner, double durationSeconds, bool success)
+    {
+        var status = success ? "success" : "failure";
+        _kpiExecutions.WithLabels(indicatorName, status, owner).Inc();
+        _kpiExecutionDuration.WithLabels(indicatorName, owner).Observe(durationSeconds);
+    }
+
+    /// <summary>
+    /// Update KPI status metrics (Legacy - use UpdateIndicatorStatus instead)
+    /// </summary>
+    [Obsolete("Use UpdateIndicatorStatus instead")]
     public void UpdateKpiStatus(int activeCount, int staleCount)
+    {
+        _activeKpis.Set(activeCount);
+        _staleKpis.Set(staleCount);
+    }
+
+    /// <summary>
+    /// Update Indicator status metrics
+    /// </summary>
+    public void UpdateIndicatorStatus(int activeCount, int staleCount)
     {
         _activeKpis.Set(activeCount);
         _staleKpis.Set(staleCount);
@@ -106,9 +127,9 @@ public class MetricsService
     /// <summary>
     /// Record alert triggered
     /// </summary>
-    public void RecordAlertTriggered(string kpiName, string owner, string severity)
+    public void RecordAlertTriggered(string indicatorName, string owner, string severity)
     {
-        _alertsTriggered.WithLabels(kpiName, severity, owner).Inc();
+        _alertsTriggered.WithLabels(indicatorName, severity, owner).Inc();
     }
 
     /// <summary>
@@ -188,8 +209,8 @@ public class MetricsService
     {
         return new MetricsSummary
         {
-            ActiveKpis = (int)_activeKpis.Value,
-            StaleKpis = (int)_staleKpis.Value,
+            ActiveIndicators = (int)_activeKpis.Value,
+            StaleIndicators = (int)_staleKpis.Value,
             SystemHealthScore = _systemHealth.Value,
             Timestamp = DateTime.UtcNow
         };
@@ -201,8 +222,8 @@ public class MetricsService
 /// </summary>
 public class MetricsSummary
 {
-    public int ActiveKpis { get; set; }
-    public int StaleKpis { get; set; }
+    public int ActiveIndicators { get; set; }
+    public int StaleIndicators { get; set; }
     public double SystemHealthScore { get; set; }
     public DateTime Timestamp { get; set; }
 }

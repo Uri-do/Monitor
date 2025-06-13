@@ -1,6 +1,6 @@
 import React from 'react';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { AlertNotification, KpiExecutionResult, SystemStatus } from '../types/monitoring';
+import { AlertNotification, IndicatorExecutionResult, SystemStatus } from '../types/monitoring';
 import { RealtimeStatusDto, LiveDashboardDto } from '../types/api';
 
 // Real-time event interfaces
@@ -13,16 +13,16 @@ export interface WorkerStatusUpdate {
   uptime: string;
 }
 
-export interface KpiExecutionStarted {
-  kpiId: number;
+export interface IndicatorExecutionStarted {
+  indicatorID: number;
   indicator: string;
   owner: string;
   startTime: string;
   estimatedDuration?: number;
 }
 
-export interface KpiExecutionProgress {
-  kpiId: number;
+export interface IndicatorExecutionProgress {
+  indicatorID: number;
   indicator: string;
   progress: number; // 0-100
   currentStep: string;
@@ -30,8 +30,8 @@ export interface KpiExecutionProgress {
   estimatedTimeRemaining?: number;
 }
 
-export interface KpiExecutionCompleted {
-  kpiId: number;
+export interface IndicatorExecutionCompleted {
+  indicatorID: number;
   indicator: string;
   success: boolean;
   value?: number;
@@ -42,16 +42,16 @@ export interface KpiExecutionCompleted {
 }
 
 export interface CountdownUpdate {
-  nextKpiId: number;
+  nextIndicatorID: number;
   indicator: string;
   owner: string;
   secondsUntilDue: number;
   scheduledTime: string;
 }
 
-export interface NextKpiScheduleUpdate {
-  nextKpis: Array<{
-    kpiId: number;
+export interface NextIndicatorScheduleUpdate {
+  nextIndicators: Array<{
+    indicatorID: number;
     indicator: string;
     owner: string;
     scheduledTime: string;
@@ -59,9 +59,9 @@ export interface NextKpiScheduleUpdate {
   }>;
 }
 
-export interface RunningKpisUpdate {
-  runningKpis: Array<{
-    kpiId: number;
+export interface RunningIndicatorsUpdate {
+  runningIndicators: Array<{
+    indicatorID: number;
     indicator: string;
     owner: string;
     startTime: string;
@@ -72,7 +72,7 @@ export interface RunningKpisUpdate {
 
 export interface SignalREvents {
   onAlertTriggered: (alert: AlertNotification) => void;
-  onKpiExecuted: (result: KpiExecutionResult) => void;
+  onIndicatorExecuted: (result: IndicatorExecutionResult) => void;
   onSystemStatusChanged: (status: SystemStatus) => void;
   onUserConnected: (userId: string) => void;
   onUserDisconnected: (userId: string) => void;
@@ -81,17 +81,17 @@ export interface SignalREvents {
   onStatusUpdate: (status: RealtimeStatusDto) => void;
   onDashboardUpdate: (dashboard: LiveDashboardDto) => void;
   onSystemHealthUpdate: (health: any) => void;
-  onKpiExecutionWebhook: (data: any) => void;
+  onIndicatorExecutionWebhook: (data: any) => void;
   onAlertWebhook: (data: any) => void;
   onSystemStatusWebhook: (data: any) => void;
   // Worker service real-time events
   onWorkerStatusUpdate: (status: WorkerStatusUpdate) => void;
-  onKpiExecutionStarted: (data: KpiExecutionStarted) => void;
-  onKpiExecutionProgress: (data: KpiExecutionProgress) => void;
-  onKpiExecutionCompleted: (data: KpiExecutionCompleted) => void;
+  onIndicatorExecutionStarted: (data: IndicatorExecutionStarted) => void;
+  onIndicatorExecutionProgress: (data: IndicatorExecutionProgress) => void;
+  onIndicatorExecutionCompleted: (data: IndicatorExecutionCompleted) => void;
   onCountdownUpdate: (data: CountdownUpdate) => void;
-  onNextKpiScheduleUpdate: (data: NextKpiScheduleUpdate) => void;
-  onRunningKpisUpdate: (data: RunningKpisUpdate) => void;
+  onNextIndicatorScheduleUpdate: (data: NextIndicatorScheduleUpdate) => void;
+  onRunningIndicatorsUpdate: (data: RunningIndicatorsUpdate) => void;
 }
 
 class SignalRService {
@@ -174,14 +174,14 @@ class SignalRService {
       // Handle alert resolution
     });
 
-    // KPI execution events
-    this.connection.on('KpiExecuted', (result: KpiExecutionResult) => {
-      console.log('KPI executed:', result);
-      this.eventHandlers.onKpiExecuted?.(result);
+    // Indicator execution events
+    this.connection.on('IndicatorExecuted', (result: IndicatorExecutionResult) => {
+      console.log('Indicator executed:', result);
+      this.eventHandlers.onIndicatorExecuted?.(result);
     });
 
-    this.connection.on('KpiExecutionStarted', (kpiId: number) => {
-      console.log('KPI execution started:', kpiId);
+    this.connection.on('IndicatorExecutionStarted', (indicatorID: number) => {
+      console.log('Indicator execution started:', indicatorID);
       // Handle execution start
     });
 
@@ -225,9 +225,9 @@ class SignalRService {
     });
 
     // Webhook events
-    this.connection.on('KpiExecutionWebhook', (data: any) => {
-      console.log('KPI execution webhook:', data);
-      this.eventHandlers.onKpiExecutionWebhook?.(data);
+    this.connection.on('IndicatorExecutionWebhook', (data: any) => {
+      console.log('Indicator execution webhook:', data);
+      this.eventHandlers.onIndicatorExecutionWebhook?.(data);
     });
 
     this.connection.on('AlertWebhook', (data: any) => {
@@ -246,19 +246,19 @@ class SignalRService {
       this.eventHandlers.onWorkerStatusUpdate?.(status);
     });
 
-    this.connection.on('KpiExecutionStarted', (data: KpiExecutionStarted) => {
-      console.log('KPI execution started (enhanced):', data);
-      this.eventHandlers.onKpiExecutionStarted?.(data);
+    this.connection.on('IndicatorExecutionStarted', (data: IndicatorExecutionStarted) => {
+      console.log('Indicator execution started (enhanced):', data);
+      this.eventHandlers.onIndicatorExecutionStarted?.(data);
     });
 
-    this.connection.on('KpiExecutionProgress', (data: KpiExecutionProgress) => {
-      console.log('KPI execution progress:', data);
-      this.eventHandlers.onKpiExecutionProgress?.(data);
+    this.connection.on('IndicatorExecutionProgress', (data: IndicatorExecutionProgress) => {
+      console.log('Indicator execution progress:', data);
+      this.eventHandlers.onIndicatorExecutionProgress?.(data);
     });
 
-    this.connection.on('KpiExecutionCompleted', (data: KpiExecutionCompleted) => {
-      console.log('KPI execution completed:', data);
-      this.eventHandlers.onKpiExecutionCompleted?.(data);
+    this.connection.on('IndicatorExecutionCompleted', (data: IndicatorExecutionCompleted) => {
+      console.log('Indicator execution completed:', data);
+      this.eventHandlers.onIndicatorExecutionCompleted?.(data);
     });
 
     this.connection.on('CountdownUpdate', (data: CountdownUpdate) => {
@@ -266,14 +266,14 @@ class SignalRService {
       this.eventHandlers.onCountdownUpdate?.(data);
     });
 
-    this.connection.on('NextKpiScheduleUpdate', (data: NextKpiScheduleUpdate) => {
-      console.log('Next KPI schedule update:', data);
-      this.eventHandlers.onNextKpiScheduleUpdate?.(data);
+    this.connection.on('NextIndicatorScheduleUpdate', (data: NextIndicatorScheduleUpdate) => {
+      console.log('Next Indicator schedule update:', data);
+      this.eventHandlers.onNextIndicatorScheduleUpdate?.(data);
     });
 
-    this.connection.on('RunningKpisUpdate', (data: RunningKpisUpdate) => {
-      console.log('Running KPIs update:', data);
-      this.eventHandlers.onRunningKpisUpdate?.(data);
+    this.connection.on('RunningIndicatorsUpdate', (data: RunningIndicatorsUpdate) => {
+      console.log('Running Indicators update:', data);
+      this.eventHandlers.onRunningIndicatorsUpdate?.(data);
     });
 
     // Handle system status updates (if server sends them)

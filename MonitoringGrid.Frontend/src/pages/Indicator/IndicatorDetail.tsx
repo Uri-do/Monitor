@@ -314,7 +314,7 @@ const IndicatorDetail: React.FC = () => {
                 />
                 {indicator.contacts.map((contact) => (
                   <Chip
-                    key={contact.contactId}
+                    key={contact.contactID}
                     label={contact.name}
                     variant="outlined"
                   />

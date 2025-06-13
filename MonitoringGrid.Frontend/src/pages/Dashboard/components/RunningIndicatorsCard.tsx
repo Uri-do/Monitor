@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IndicatorDashboardDto } from '../../../types/api';
-import { RunningKpisDisplay, RunningKpi } from '@/components/Business';
+import { RunningIndicatorsDisplay, RunningIndicator } from '@/components/Business';
 
 interface RealtimeRunningIndicator {
   indicatorId: number;
@@ -26,10 +26,10 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
   const navigate = useNavigate();
 
   // Use real-time data if available, otherwise fall back to dashboard data
-  const runningIndicators: RunningKpi[] =
+  const runningIndicators: RunningIndicator[] =
     realtimeRunningIndicators.length > 0
       ? realtimeRunningIndicators.map(indicator => ({
-          kpiId: indicator.indicatorId,
+          indicatorID: indicator.indicatorId,
           indicator: indicator.indicator,
           owner: indicator.owner,
           startTime: indicator.startTime,
@@ -37,7 +37,7 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
           estimatedCompletion: indicator.estimatedCompletion,
         }))
       : (indicatorDashboard?.runningIndicators || []).map(indicator => ({
-          kpiId: indicator.indicatorId,
+          indicatorID: indicator.indicatorId,
           indicator: indicator.indicatorName,
           owner: 'System', // Fallback since IndicatorStatusDto doesn't have owner
           startTime: new Date().toISOString(), // Fallback since we don't have startTime
@@ -46,8 +46,8 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
         }));
 
   return (
-    <RunningKpisDisplay
-      runningKpis={runningIndicators}
+    <RunningIndicatorsDisplay
+      runningIndicators={runningIndicators}
       variant="card"
       title="Indicator Execution Monitor"
       showNavigateButton={true}

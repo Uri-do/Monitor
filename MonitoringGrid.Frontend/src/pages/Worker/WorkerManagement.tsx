@@ -37,8 +37,8 @@ import {
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import RunningKpisDisplay, { RunningKpi } from '@/components/Business/KPI/RunningKpisDisplay';
-import { workerApi, kpiApi } from '@/services/api';
+import RunningIndicatorsDisplay, { RunningIndicator } from '@/components/Business/Indicator/RunningIndicatorsDisplay';
+import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
 
 interface WorkerService {
@@ -84,9 +84,9 @@ const WorkerManagement: React.FC = () => {
   // Real-time dashboard data
   const {
     workerStatus: realtimeWorkerStatus,
-    runningKpis,
+    runningIndicators,
     countdown,
-    nextKpiDue,
+    nextIndicatorDue,
     isConnected: realtimeConnected,
     lastUpdate: realtimeLastUpdate,
     dashboardData,
@@ -301,8 +301,8 @@ const WorkerManagement: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Running KPIs */}
-        {runningKpis && runningKpis.length > 0 && (
+        {/* Running Indicators */}
+        {runningIndicators && runningIndicators.length > 0 && (
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -312,16 +312,16 @@ const WorkerManagement: React.FC = () => {
                   sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                 >
                   <TrendingUp />
-                  Currently Running KPIs ({runningKpis.length})
+                  Currently Running Indicators ({runningIndicators.length})
                 </Typography>
-                <RunningKpisDisplay runningKpis={runningKpis} />
+                <RunningIndicatorsDisplay runningIndicators={runningIndicators} />
               </CardContent>
             </Card>
           </Grid>
         )}
 
-        {/* Next KPI Due */}
-        {nextKpiDue && (
+        {/* Next Indicator Due */}
+        {nextIndicatorDue && (
           <Grid item xs={12}>
             <Paper
               sx={{
@@ -337,7 +337,7 @@ const WorkerManagement: React.FC = () => {
                 sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 <Timer />
-                Next KPI Execution
+                Next Indicator Execution
                 {countdown !== null && countdown !== undefined && countdown > 0 && (
                   <Chip
                     label={`${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}`}
@@ -347,10 +347,10 @@ const WorkerManagement: React.FC = () => {
                 )}
               </Typography>
               <Typography variant="subtitle1" fontWeight="medium">
-                {nextKpiDue.indicator}
+                {nextIndicatorDue.indicator}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Owner: {nextKpiDue.owner} • Due in: {nextKpiDue.minutesUntilDue} min
+                Owner: {nextIndicatorDue.owner} • Due in: {nextIndicatorDue.minutesUntilDue} min
               </Typography>
             </Paper>
           </Grid>
@@ -369,7 +369,7 @@ const WorkerManagement: React.FC = () => {
                 Worker Services ({status.services.length})
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Background services that handle KPI monitoring, scheduled tasks, health checks, and
+                Background services that handle Indicator monitoring, scheduled tasks, health checks, and
                 alert processing
               </Typography>
 

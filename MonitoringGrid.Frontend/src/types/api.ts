@@ -136,82 +136,35 @@ export interface CronPreset {
   description: string;
 }
 
-// KPI Types
-export enum KpiType {
+// Indicator Types
+export enum IndicatorType {
   SuccessRate = 'success_rate',
   TransactionVolume = 'transaction_volume',
   Threshold = 'threshold',
   TrendAnalysis = 'trend_analysis',
 }
 
-export interface KpiTypeDefinition {
-  type: KpiType;
+export interface IndicatorTypeDefinition {
+  type: IndicatorType;
   name: string;
   description: string;
   requiredFields: string[];
   defaultStoredProcedure?: string;
 }
 
-export interface KpiDto {
-  kpiId: number;
-  indicator: string;
-  owner: string;
-  priority: number;
-  priorityName: string;
-  frequency: number;
-  lastMinutes: number;
-  deviation: number;
-  spName: string;
-  subjectTemplate: string;
-  descriptionTemplate: string;
-  isActive: boolean;
-  lastRun?: string;
-  cooldownMinutes: number;
-  minimumThreshold?: number;
-  createdDate: string;
-  modifiedDate: string;
-  contacts: ContactDto[];
-  // New fields for enhanced KPI system
-  kpiType?: KpiType;
-  scheduleConfiguration?: ScheduleConfiguration;
-  thresholdValue?: number;
-  comparisonOperator?: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
-}
 
-export interface CreateKpiRequest {
-  indicator: string;
-  owner: string;
-  priority: number;
-  frequency: number;
-  lastMinutes: number;
-  deviation: number;
-  spName: string;
-  subjectTemplate: string;
-  descriptionTemplate: string;
-  isActive: boolean;
-  cooldownMinutes: number;
-  minimumThreshold?: number;
-  contactIds: number[];
-  // New fields for enhanced KPI system
-  kpiType?: KpiType;
-  scheduleConfiguration?: ScheduleConfiguration;
-  thresholdValue?: number;
-  comparisonOperator?: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
-}
 
-export interface UpdateKpiRequest extends CreateKpiRequest {
-  kpiId: number;
-}
+
 
 export interface ContactDto {
-  contactId: number;
+  contactID: number;
   name: string;
   email?: string;
   phone?: string;
   isActive: boolean;
   createdDate: string;
   modifiedDate: string;
-  assignedKpis: KpiSummaryDto[];
+  assignedIndicators: IndicatorSummaryDto[];
 }
 
 export interface CreateContactRequest {
@@ -222,11 +175,11 @@ export interface CreateContactRequest {
 }
 
 export interface UpdateContactRequest extends CreateContactRequest {
-  contactId: number;
+  contactID: number;
 }
 
-export interface KpiSummaryDto {
-  kpiId: number;
+export interface IndicatorSummaryDto {
+  indicatorID: number;
   indicator: string;
   owner: string;
   priority: number;
@@ -234,10 +187,10 @@ export interface KpiSummaryDto {
 }
 
 export interface AlertLogDto {
-  alertId: number;
-  kpiId: number;
-  kpiIndicator: string;
-  kpiOwner: string;
+  alertID: number;
+  indicatorID: number;
+  indicatorName: string;
+  indicatorOwner: string;
   triggerTime: string;
   message: string;
   details?: string;

@@ -3,9 +3,9 @@
  *
  * This file has been updated to work with the new root-level API structure:
  *
- * 🎯 KpiController (/api/kpi/*):
- *   - Core KPI operations (CRUD, execute, metrics, dashboard)
- *   - Alert management (KPI-related alerts)
+ * 🎯 IndicatorController (/api/indicator/*):
+ *   - Core Indicator operations (CRUD, execute, metrics, dashboard)
+ *   - Alert management (Indicator-related alerts)
  *   - Contact management (notification contacts)
  *   - Execution history and analytics
  *
@@ -35,29 +35,21 @@ import {
   IndicatorExecutionResultDto,
   IndicatorDashboardDto,
   CollectorDto,
-  // KPI types (Legacy)
-  KpiDto,
-  CreateKpiRequest,
-  UpdateKpiRequest,
+  // Contact and Alert types
   ContactDto,
   CreateContactRequest,
   UpdateContactRequest,
   AlertLogDto,
-  KpiDashboardDto,
   AlertDashboardDto,
-  KpiExecutionResultDto,
-  KpiMetricsDto,
   AlertFilterDto,
   PaginatedAlertsDto,
   AlertStatisticsDto,
   ResolveAlertRequest,
   BulkResolveAlertsRequest,
-  TestKpiRequest,
-  BulkKpiOperationRequest,
   BulkContactOperationRequest,
+  // System and Health types
   HealthCheckResponse,
   SystemAnalyticsDto,
-  KpiPerformanceAnalyticsDto,
   OwnerAnalyticsDto,
   SystemHealthDto,
   RealtimeStatusDto,
@@ -334,108 +326,37 @@ export const monitorStatisticsApi = {
   },
 };
 
-// KPI API endpoints (Legacy - kept for backward compatibility during migration)
-export const kpiApi = {
-  // Get all KPIs with optional filtering
-  getKpis: async (params?: {
-    isActive?: boolean;
-    owner?: string;
-    priority?: number;
-  }): Promise<KpiDto[]> => {
-    const response: AxiosResponse<KpiDto[]> = await api.get('/kpi', { params });
-    return response.data;
-  },
+// Legacy KPI API endpoints have been migrated to Indicator API
+// Use indicatorApi instead for all new development
 
-  // Get KPI by ID
-  getKpi: async (id: number): Promise<KpiDto> => {
-    const response: AxiosResponse<KpiDto> = await api.get(`/kpi/${id}`);
-    return response.data;
-  },
-
-  // Create new KPI
-  createKpi: async (kpi: CreateKpiRequest): Promise<KpiDto> => {
-    const response: AxiosResponse<KpiDto> = await api.post('/kpi', kpi);
-    return response.data;
-  },
-
-  // Update KPI
-  updateKpi: async (kpi: UpdateKpiRequest): Promise<KpiDto> => {
-    const response: AxiosResponse<KpiDto> = await api.put(`/kpi/${kpi.kpiId}`, kpi);
-    return response.data;
-  },
-
-  // Delete KPI
-  deleteKpi: async (id: number): Promise<void> => {
-    await api.delete(`/kpi/${id}`);
-  },
-
-  // Execute KPI manually
-  executeKpi: async (request: TestKpiRequest): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
-      `/kpi/${request.kpiId}/execute`,
-      request
-    );
-    return response.data;
-  },
-
-  // Test KPI (alias for executeKpi for backward compatibility)
-  testKpi: async (request: TestKpiRequest): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
-      `/kpi/${request.kpiId}/execute`,
-      request
-    );
-    return response.data;
-  },
-
-  // Get KPI metrics
-  getKpiMetrics: async (id: number, days: number = 30): Promise<KpiMetricsDto> => {
-    const response: AxiosResponse<KpiMetricsDto> = await api.get(`/kpi/${id}/metrics`, {
-      params: { days },
-    });
-    return response.data;
-  },
-
-  // Get KPI dashboard
-  getDashboard: async (): Promise<KpiDashboardDto> => {
-    const response: AxiosResponse<KpiDashboardDto> = await api.get('/kpi/dashboard');
-    return response.data;
-  },
-
-  // Bulk operations
-  bulkOperation: async (request: BulkKpiOperationRequest): Promise<{ message: string }> => {
-    const response: AxiosResponse<{ message: string }> = await api.post('/kpi/bulk', request);
-    return response.data;
-  },
-};
-
-// Contact API endpoints (now consolidated under KPI controller)
+// Contact API endpoints (now consolidated under Indicator controller)
 export const contactApi = {
   // Get all contacts
   getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
-    // Updated to use KPI controller's contact endpoints
-    const response: AxiosResponse<ContactDto[]> = await api.get('/kpi/contacts', { params });
+    // Updated to use Indicator controller's contact endpoints
+    const response: AxiosResponse<ContactDto[]> = await api.get('/indicator/contacts', { params });
     return response.data;
   },
 
   // Get contact by ID
   getContact: async (id: number): Promise<ContactDto> => {
-    // Updated to use KPI controller's contact endpoints
-    const response: AxiosResponse<ContactDto> = await api.get(`/kpi/contacts/${id}`);
+    // Updated to use Indicator controller's contact endpoints
+    const response: AxiosResponse<ContactDto> = await api.get(`/indicator/contacts/${id}`);
     return response.data;
   },
 
   // Create new contact
   createContact: async (contact: CreateContactRequest): Promise<ContactDto> => {
-    // Updated to use KPI controller's contact endpoints
-    const response: AxiosResponse<ContactDto> = await api.post('/kpi/contacts', contact);
+    // Updated to use Indicator controller's contact endpoints
+    const response: AxiosResponse<ContactDto> = await api.post('/indicator/contacts', contact);
     return response.data;
   },
 
   // Update contact
   updateContact: async (contact: UpdateContactRequest): Promise<ContactDto> => {
-    // Updated to use KPI controller's contact endpoints
+    // Updated to use Indicator controller's contact endpoints
     const response: AxiosResponse<ContactDto> = await api.put(
-      `/kpi/contacts/${contact.contactId}`,
+      `/indicator/contacts/${contact.contactID}`,
       contact
     );
     return response.data;
@@ -443,18 +364,18 @@ export const contactApi = {
 
   // Delete contact
   deleteContact: async (id: number): Promise<void> => {
-    // Updated to use KPI controller's contact endpoints
-    await api.delete(`/kpi/contacts/${id}`);
+    // Updated to use Indicator controller's contact endpoints
+    await api.delete(`/indicator/contacts/${id}`);
   },
 
-  // Assign contact to KPIs
-  assignToKpis: async (id: number, kpiIds: number[]): Promise<{ message: string }> => {
-    // Updated to use KPI controller's contact endpoints
+  // Assign contact to Indicators
+  assignToIndicators: async (id: number, indicatorIDs: number[]): Promise<{ message: string }> => {
+    // Updated to use Indicator controller's contact endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
-      `/kpi/contacts/${id}/assign`,
+      `/indicator/contacts/${id}/assign`,
       {
-        contactId: id,
-        kpiIds,
+        contactID: id,
+        indicatorIDs,
       }
     );
     return response.data;
@@ -462,9 +383,9 @@ export const contactApi = {
 
   // Bulk operations
   bulkOperation: async (request: BulkContactOperationRequest): Promise<{ message: string }> => {
-    // Updated to use KPI controller's contact endpoints
+    // Updated to use Indicator controller's contact endpoints
     const response: AxiosResponse<{ message: string }> = await api.post(
-      '/kpi/contacts/bulk',
+      '/indicator/contacts/bulk',
       request
     );
     return response.data;
@@ -775,14 +696,14 @@ export const analyticsApi = {
     return response.data;
   },
 
-  // Get KPI performance analytics
-  getKpiPerformanceAnalytics: async (
+  // Get Indicator performance analytics
+  getIndicatorPerformanceAnalytics: async (
     id: number,
     days: number = 30
-  ): Promise<KpiPerformanceAnalyticsDto> => {
-    // Updated to use KPI controller's analytics endpoints
-    const response: AxiosResponse<KpiPerformanceAnalyticsDto> = await api.get(
-      `/kpi/${id}/analytics`,
+  ): Promise<any> => {
+    // Updated to use Indicator controller's analytics endpoints
+    const response: AxiosResponse<any> = await api.get(
+      `/indicator/${id}/analytics`,
       {
         params: { days },
       }
@@ -792,8 +713,8 @@ export const analyticsApi = {
 
   // Get owner-based analytics
   getOwnerAnalytics: async (days: number = 30): Promise<OwnerAnalyticsDto[]> => {
-    // Updated to use KPI controller's analytics endpoints
-    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/kpi/analytics/owners', {
+    // Updated to use Indicator controller's analytics endpoints
+    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/indicator/analytics/owners', {
       params: { days },
     });
     return response.data;
@@ -801,8 +722,8 @@ export const analyticsApi = {
 
   // Get real-time system health
   getSystemHealth: async (): Promise<SystemHealthDto> => {
-    // Updated to use KPI controller's analytics endpoints
-    const response: AxiosResponse<SystemHealthDto> = await api.get('/kpi/health');
+    // Updated to use Indicator controller's analytics endpoints
+    const response: AxiosResponse<SystemHealthDto> = await api.get('/indicator/health');
     return response.data;
   },
 };
@@ -815,9 +736,9 @@ export const realtimeApi = {
     return response.data;
   },
 
-  // Execute KPI in real-time
-  executeKpiRealtime: async (id: number): Promise<KpiExecutionResultDto> => {
-    const response: AxiosResponse<KpiExecutionResultDto> = await api.post(
+  // Execute Indicator in real-time
+  executeIndicatorRealtime: async (id: number): Promise<IndicatorExecutionResultDto> => {
+    const response: AxiosResponse<IndicatorExecutionResultDto> = await api.post(
       `/realtime/execute/${id}`
     );
     return response.data;

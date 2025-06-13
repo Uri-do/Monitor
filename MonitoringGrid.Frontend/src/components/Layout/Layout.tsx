@@ -27,6 +27,7 @@ import {
   People as ContactIcon,
   Notifications as AlertIcon,
   Analytics as AnalyticsIcon,
+  BarChart as StatisticsIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
   AdminPanelSettings,
@@ -131,6 +132,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       text: 'Analytics',
       icon: <AnalyticsIcon />,
       path: '/analytics',
+    },
+    {
+      text: 'Statistics',
+      icon: <StatisticsIcon />,
+      path: '/statistics',
     },
     {
       text: 'Execution History',

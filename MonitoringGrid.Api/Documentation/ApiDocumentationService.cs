@@ -75,7 +75,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 GeneratedAt = DateTime.UtcNow,
                 Version = GetApiVersion(),
                 Title = "MonitoringGrid API",
-                Description = "Comprehensive KPI monitoring and alerting system with advanced performance optimization and security features",
+                Description = "Comprehensive Indicator monitoring and alerting system with advanced performance optimization and security features",
                 BaseUrl = GetBaseUrl(),
                 Endpoints = await GetEndpointDocumentationAsync(),
                 Examples = await GetApiExamplesAsync(),
@@ -99,31 +99,31 @@ public class ApiDocumentationService : IApiDocumentationService
     /// <summary>
     /// Gets comprehensive endpoint documentation
     /// </summary>
-    public async Task<List<EndpointDocumentation>> GetEndpointDocumentationAsync()
+    public Task<List<EndpointDocumentation>> GetEndpointDocumentationAsync()
     {
         var endpoints = new List<EndpointDocumentation>
         {
-            // KPI Management Endpoints
+            // Indicator Management Endpoints
             new EndpointDocumentation
             {
                 Method = "GET",
-                Path = "/api/kpi",
-                Summary = "Get all KPIs with advanced filtering and pagination",
-                Description = "Retrieves KPIs with support for filtering by status, priority, category, and advanced search capabilities. Includes performance optimization with caching and response compression.",
+                Path = "/api/indicator",
+                Summary = "Get all Indicators with advanced filtering and pagination",
+                Description = "Retrieves Indicators with support for filtering by status, priority, category, and advanced search capabilities. Includes performance optimization with caching and response compression.",
                 Parameters = new List<ParameterDocumentation>
                 {
                     new() { Name = "isActive", Type = "boolean", Description = "Filter by active status", Required = false },
-                    new() { Name = "search", Type = "string", Description = "Search term for KPI name or description", Required = false },
+                    new() { Name = "search", Type = "string", Description = "Search term for Indicator name or description", Required = false },
                     new() { Name = "priority", Type = "byte", Description = "Filter by priority level (1-5)", Required = false },
-                    new() { Name = "category", Type = "string", Description = "Filter by KPI category", Required = false },
+                    new() { Name = "category", Type = "string", Description = "Filter by Indicator category", Required = false },
                     new() { Name = "page", Type = "integer", Description = "Page number for pagination (default: 1)", Required = false },
                     new() { Name = "pageSize", Type = "integer", Description = "Items per page (default: 10, max: 100)", Required = false },
                     new() { Name = "sortBy", Type = "string", Description = "Sort field (name, priority, lastExecuted)", Required = false },
-                    new() { Name = "includeInactive", Type = "boolean", Description = "Include inactive KPIs in results", Required = false }
+                    new() { Name = "includeInactive", Type = "boolean", Description = "Include inactive Indicators in results", Required = false }
                 },
                 Responses = new List<ResponseDocumentation>
                 {
-                    new() { StatusCode = 200, Description = "Success - Returns paginated KPI list with metadata", Example = GetKpiListExample() },
+                    new() { StatusCode = 200, Description = "Success - Returns paginated Indicator list with metadata", Example = GetIndicatorListExample() },
                     new() { StatusCode = 400, Description = "Bad Request - Invalid parameters", Example = GetErrorExample("Invalid page size") },
                     new() { StatusCode = 429, Description = "Too Many Requests - Rate limit exceeded", Example = GetRateLimitExample() },
                     new() { StatusCode = 500, Description = "Internal Server Error", Example = GetErrorExample("Internal server error") }
@@ -146,12 +146,12 @@ public class ApiDocumentationService : IApiDocumentationService
             new EndpointDocumentation
             {
                 Method = "POST",
-                Path = "/api/kpi/{id}/execute",
-                Summary = "Execute a specific KPI",
-                Description = "Executes a KPI and returns the results. Supports both synchronous and asynchronous execution modes with comprehensive error handling and performance monitoring.",
+                Path = "/api/indicator/{id}/execute",
+                Summary = "Execute a specific Indicator",
+                Description = "Executes an Indicator and returns the results. Supports both synchronous and asynchronous execution modes with comprehensive error handling and performance monitoring.",
                 Parameters = new List<ParameterDocumentation>
                 {
-                    new() { Name = "id", Type = "integer", Description = "KPI identifier", Required = true, Location = "path" },
+                    new() { Name = "id", Type = "integer", Description = "Indicator identifier", Required = true, Location = "path" },
                     new() { Name = "async", Type = "boolean", Description = "Execute asynchronously (default: false)", Required = false },
                     new() { Name = "timeout", Type = "integer", Description = "Execution timeout in seconds (default: 30)", Required = false }
                 },
@@ -159,15 +159,15 @@ public class ApiDocumentationService : IApiDocumentationService
                 {
                     ContentType = "application/json",
                     Description = "Optional execution parameters",
-                    Example = GetKpiExecuteRequestExample(),
-                    Schema = "KpiExecutionRequest"
+                    Example = GetIndicatorExecuteRequestExample(),
+                    Schema = "IndicatorExecutionRequest"
                 },
                 Responses = new List<ResponseDocumentation>
                 {
-                    new() { StatusCode = 200, Description = "Success - KPI executed successfully", Example = GetKpiExecuteResponseExample() },
+                    new() { StatusCode = 200, Description = "Success - Indicator executed successfully", Example = GetIndicatorExecuteResponseExample() },
                     new() { StatusCode = 202, Description = "Accepted - Asynchronous execution started", Example = GetAsyncExecuteExample() },
-                    new() { StatusCode = 400, Description = "Bad Request - Invalid KPI or parameters", Example = GetErrorExample("Invalid KPI configuration") },
-                    new() { StatusCode = 404, Description = "Not Found - KPI not found", Example = GetErrorExample("KPI not found") },
+                    new() { StatusCode = 400, Description = "Bad Request - Invalid Indicator or parameters", Example = GetErrorExample("Invalid Indicator configuration") },
+                    new() { StatusCode = 404, Description = "Not Found - Indicator not found", Example = GetErrorExample("Indicator not found") },
                     new() { StatusCode = 408, Description = "Request Timeout - Execution timeout", Example = GetErrorExample("Execution timeout") },
                     new() { StatusCode = 429, Description = "Too Many Requests - Rate limit exceeded", Example = GetRateLimitExample() }
                 },
@@ -236,44 +236,44 @@ public class ApiDocumentationService : IApiDocumentationService
             }
         };
 
-        return endpoints;
+        return Task.FromResult(endpoints);
     }
 
     /// <summary>
     /// Gets comprehensive API examples
     /// </summary>
-    public async Task<List<ApiExample>> GetApiExamplesAsync()
+    public Task<List<ApiExample>> GetApiExamplesAsync()
     {
-        return new List<ApiExample>
+        var examples = new List<ApiExample>
         {
             new ApiExample
             {
-                Title = "Get KPIs with Filtering",
-                Description = "Example of retrieving KPIs with advanced filtering and pagination",
+                Title = "Get Indicators with Filtering",
+                Description = "Example of retrieving Indicators with advanced filtering and pagination",
                 Method = "GET",
-                Url = "/api/kpi?isActive=true&priority=3&page=1&pageSize=10&sortBy=priority",
+                Url = "/api/indicator?isActive=true&priority=3&page=1&pageSize=10&sortBy=priority",
                 Headers = new Dictionary<string, string>
                 {
                     ["Accept"] = "application/json",
                     ["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                     ["X-Correlation-ID"] = "12345678-1234-1234-1234-123456789012"
                 },
-                Response = GetKpiListExample()
+                Response = GetIndicatorListExample()
             },
 
             new ApiExample
             {
-                Title = "Execute KPI Asynchronously",
-                Description = "Example of executing a KPI in asynchronous mode",
+                Title = "Execute Indicator Asynchronously",
+                Description = "Example of executing an Indicator in asynchronous mode",
                 Method = "POST",
-                Url = "/api/kpi/123/execute?async=true&timeout=60",
+                Url = "/api/indicator/123/execute?async=true&timeout=60",
                 Headers = new Dictionary<string, string>
                 {
                     ["Content-Type"] = "application/json",
                     ["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                     ["X-Correlation-ID"] = "12345678-1234-1234-1234-123456789012"
                 },
-                RequestBody = GetKpiExecuteRequestExample(),
+                RequestBody = GetIndicatorExecuteRequestExample(),
                 Response = GetAsyncExecuteExample()
             },
 
@@ -282,7 +282,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 Title = "Rate Limit Exceeded Response",
                 Description = "Example response when rate limit is exceeded",
                 Method = "GET",
-                Url = "/api/kpi",
+                Url = "/api/indicator",
                 Headers = new Dictionary<string, string>
                 {
                     ["Accept"] = "application/json"
@@ -290,12 +290,14 @@ public class ApiDocumentationService : IApiDocumentationService
                 Response = GetRateLimitExample()
             }
         };
+
+        return Task.FromResult(examples);
     }
 
     /// <summary>
     /// Generates OpenAPI specification document
     /// </summary>
-    public async Task<OpenApiDocument> GenerateOpenApiDocumentAsync()
+    public Task<OpenApiDocument> GenerateOpenApiDocumentAsync()
     {
         var openApiDoc = new OpenApiDocument
         {
@@ -303,7 +305,7 @@ public class ApiDocumentationService : IApiDocumentationService
             {
                 Title = "MonitoringGrid API",
                 Version = GetApiVersion(),
-                Description = "Comprehensive KPI monitoring and alerting system with advanced performance optimization and security features",
+                Description = "Comprehensive Indicator monitoring and alerting system with advanced performance optimization and security features",
                 Contact = new OpenApiContact
                 {
                     Name = "MonitoringGrid Support",
@@ -322,15 +324,15 @@ public class ApiDocumentationService : IApiDocumentationService
             }
         };
 
-        return openApiDoc;
+        return Task.FromResult(openApiDoc);
     }
 
     /// <summary>
     /// Gets performance documentation
     /// </summary>
-    public async Task<PerformanceDocumentation> GetPerformanceDocumentationAsync()
+    public Task<PerformanceDocumentation> GetPerformanceDocumentationAsync()
     {
-        return new PerformanceDocumentation
+        var performanceDoc = new PerformanceDocumentation
         {
             CachingStrategy = new CachingStrategyDocumentation
             {
@@ -368,6 +370,8 @@ public class ApiDocumentationService : IApiDocumentationService
                 QueryOptimizationSuggestions = true
             }
         };
+
+        return Task.FromResult(performanceDoc);
     }
 
     /// <summary>
@@ -419,7 +423,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 new() { Name = "API Layer", Description = "Controllers, middleware, and API-specific services" },
                 new() { Name = "Core Layer", Description = "Domain entities, interfaces, and business logic" },
                 new() { Name = "Infrastructure Layer", Description = "Data access, external services, and infrastructure concerns" },
-                new() { Name = "Worker Layer", Description = "Background services for KPI monitoring and alerting" }
+                new() { Name = "Worker Layer", Description = "Background services for Indicator monitoring and alerting" }
             },
             Patterns = new List<PatternDocumentation>
             {
@@ -442,7 +446,7 @@ public class ApiDocumentationService : IApiDocumentationService
     private string GetApiVersion() => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
     private string GetBaseUrl() => _configuration["ApiSettings:BaseUrl"] ?? "https://api.monitoringgrid.com";
 
-    private string GetKpiListExample() => JsonSerializer.Serialize(new
+    private string GetIndicatorListExample() => JsonSerializer.Serialize(new
     {
         isSuccess = true,
         data = new
@@ -470,7 +474,7 @@ public class ApiDocumentationService : IApiDocumentationService
         timestamp = DateTime.UtcNow
     }, new JsonSerializerOptions { WriteIndented = true });
 
-    private string GetKpiExecuteRequestExample() => JsonSerializer.Serialize(new
+    private string GetIndicatorExecuteRequestExample() => JsonSerializer.Serialize(new
     {
         parameters = new
         {
@@ -479,7 +483,7 @@ public class ApiDocumentationService : IApiDocumentationService
         }
     }, new JsonSerializerOptions { WriteIndented = true });
 
-    private string GetKpiExecuteResponseExample() => JsonSerializer.Serialize(new
+    private string GetIndicatorExecuteResponseExample() => JsonSerializer.Serialize(new
     {
         isSuccess = true,
         data = new
@@ -518,7 +522,7 @@ public class ApiDocumentationService : IApiDocumentationService
                 new
                 {
                     id = 1,
-                    kpiId = 1,
+                    indicatorID = 1,
                     severity = "High",
                     status = "Active",
                     message = "Database response time exceeded threshold",

@@ -73,9 +73,9 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
               <List sx={{ p: 0 }}>
                 {alertDashboard.recentAlerts.slice(0, 5).map(alert => (
                   <ListItem
-                    key={`${alert.kpiId}-${alert.triggerTime}`}
+                    key={`${alert.indicatorID}-${alert.triggerTime}`}
                     button
-                    onClick={() => navigate(`/alerts/${alert.alertId}`)}
+                    onClick={() => navigate(`/alerts/${alert.alertID}`)}
                     sx={{
                       borderRadius: 2,
                       mb: 1,
@@ -100,7 +100,7 @@ const RecentAlertsCard: React.FC<RecentAlertsCardProps> = ({ alertDashboard }) =
                     <ListItemText
                       primary={
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                          {alert.kpiIndicator}
+                          {alert.indicatorName}
                         </Typography>
                       }
                       secondary={

@@ -28,6 +28,7 @@ const ContactCreate = React.lazy(() => import('@/pages/Contact/ContactCreate'));
 const AlertList = React.lazy(() => import('@/pages/Alert/AlertList'));
 const AlertDetail = React.lazy(() => import('@/pages/Alert/AlertDetail'));
 const Analytics = React.lazy(() => import('@/pages/Analytics/Analytics'));
+const Statistics = React.lazy(() => import('@/pages/Statistics/StatisticsPage'));
 const Settings = React.lazy(() => import('@/pages/Settings/Settings'));
 const UserProfile = React.lazy(() => import('@/pages/User/UserProfile'));
 const UserManagement = React.lazy(() => import('@/pages/Users/UserManagement'));
@@ -322,6 +323,16 @@ function App() {
                             element={
                               <LazyRoute>
                                 <Analytics />
+                              </LazyRoute>
+                            }
+                          />
+
+                          {/* Statistics */}
+                          <Route
+                            path="/statistics"
+                            element={
+                              <LazyRoute>
+                                <Statistics />
                               </LazyRoute>
                             }
                           />

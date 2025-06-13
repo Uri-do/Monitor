@@ -138,4 +138,4 @@ Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Update connection strings in appsettings.json" -ForegroundColor White
 Write-Host "  2. Configure Windows Service or run as console app" -ForegroundColor White
 Write-Host "  3. Monitor logs and health endpoints" -ForegroundColor White
-Write-Host "  4. Verify KPI execution and alert processing" -ForegroundColor White
+Write-Host "  4. Verify Indicator execution and alert processing" -ForegroundColor White

@@ -2,8 +2,8 @@
 USE [PopAI]
 GO
 
--- Template procedure for KPI calculations
--- This procedure standardizes the output format for all KPI monitoring procedures
+-- Template procedure for Indicator calculations
+-- This procedure standardizes the output format for all Indicator monitoring procedures
 CREATE OR ALTER PROCEDURE monitoring.usp_MonitorDeposits
     @ForLastMinutes INT,
     @Key NVARCHAR(255) OUTPUT,

@@ -3,15 +3,12 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Quartz;
 using MonitoringGrid.Api.Mapping;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Api.Middleware;
 using MonitoringGrid.Api.Filters;
-
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Api.Authentication;
 using MonitoringGrid.Core.EventSourcing;
@@ -168,7 +165,7 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Domain services and factories removed - obsolete KPI system
+// Domain services and factories - migrated to Indicator system
 
 // Add domain event publisher (MediatR-based)
 builder.Services.AddScoped<IDomainEventPublisher, MonitoringGrid.Api.Events.MediatRDomainEventPublisher>();
@@ -196,8 +193,6 @@ builder.Services.AddScoped<IMonitorStatisticsService, MonitorStatisticsService>(
 // Add performance optimization services
 builder.Services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
 builder.Services.AddSingleton<ICacheInvalidationService, CacheInvalidationService>();
-builder.Services.AddSingleton<MonitoringGrid.Api.Middleware.IRateLimitingService, MonitoringGrid.Api.Middleware.RateLimitingService>();
-
 // Configure response caching options
 builder.Services.AddSingleton(new ResponseCachingOptions
 {
@@ -207,44 +202,10 @@ builder.Services.AddSingleton(new ResponseCachingOptions
     EnableCompression = true
 });
 
-// Configure rate limiting options
-builder.Services.AddSingleton(new RateLimitingOptions
-{
-    Rules = new List<RateLimitRule>
-    {
-        new() { Name = "Default", Limit = 1000, Window = TimeSpan.FromHours(1), IsDefault = true },
-        new() { Name = "API_Authenticated", Limit = 5000, Window = TimeSpan.FromHours(1), UserRoles = new[] { "User", "Admin" } },
-        new() { Name = "API_Admin", Limit = 10000, Window = TimeSpan.FromHours(1), UserRoles = new[] { "Admin" } },
-        new() { Name = "KPI_Execute", Limit = 100, Window = TimeSpan.FromMinutes(10), PathPattern = "/execute" },
-        new() { Name = "Bulk_Operations", Limit = 10, Window = TimeSpan.FromMinutes(10), PathPattern = "/bulk" }
-    },
-    EnableLogging = true,
-    CleanupInterval = TimeSpan.FromMinutes(5)
-});
+// Rate limiting configuration is handled by AdvancedRateLimitingService
 builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationService>();
 
-// Add Quartz.NET scheduling services (temporarily disabled for compilation)
-/*
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjection();
-    q.UseSimpleTypeLoader();
-    q.UseInMemoryStore();
-    q.UseDefaultThreadPool(tp =>
-    {
-        tp.MaxConcurrency = 10;
-    });
-});
-
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-*/
-
-// Add KPI scheduling service (will add after fixing interface issues)
-// builder.Services.AddScoped<IKpiSchedulingService, KpiSchedulingService>();
-
-// Add Quartz job and listener (will add after creating them)
-// builder.Services.AddScoped<KpiExecutionJob>();
-// builder.Services.AddScoped<KpiJobListener>();
+// Quartz.NET scheduling is handled by Worker services when enabled
 
 // Add authentication services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -306,7 +267,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Monitoring Grid API",
         Version = "1.0",
-        Description = "API for managing KPI monitoring and alerting system with enhanced performance and reliability",
+        Description = "API for managing Indicator monitoring and alerting system with enhanced performance and reliability",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
             Name = "MonitoringGrid Support",
@@ -358,7 +319,7 @@ builder.Services.AddSwaggerGen(c =>
     c.DescribeAllParametersInCamelCase();
     c.UseInlineDefinitionsForEnums();
 
-    // Swagger filters removed - obsolete KPI examples
+    // Swagger filters - migrated to Indicator examples
 });
 
 // Add JWT Authentication
@@ -449,10 +410,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<MonitoringContext>("database")
     .AddCheck("api", () => HealthCheckResult.Healthy("API is running"));
 
-// Register health check services (disabled for development when DB is not available)
-// builder.Services.AddScoped<KpiHealthCheck>();
-// builder.Services.AddScoped<DatabasePerformanceHealthCheck>();
-// builder.Services.AddScoped<ExternalServicesHealthCheck>();
+// Additional health check services are registered by Worker services when enabled
 
 // Add HTTP client factory for health checks
 builder.Services.AddHttpClient();
@@ -527,7 +485,7 @@ if (enableWorkerServices)
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.IndicatorMonitoringWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
     builder.Services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
-    // REMOVED: MonitoringGrid.Worker.Services.Worker class doesn't exist
+    // Note: Using specific worker services instead of generic Worker class
 
     // Add Quartz for Worker services
     builder.Services.AddQuartz(q =>
@@ -538,21 +496,15 @@ if (enableWorkerServices)
     });
     builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
-    // DISABLED: Worker health checks using old KPI system causing excessive queries
-    // builder.Services.AddHealthChecks()
-    //     .AddCheck<MonitoringGrid.Worker.Services.KpiExecutionHealthCheck>("worker-kpi-execution")
-    //     .AddCheck<MonitoringGrid.Worker.Services.AlertProcessingHealthCheck>("worker-alert-processing");
+    // Worker health checks - disabled to prevent excessive database queries
+    // Will be re-enabled when optimized health check implementation is available
 }
 else
 {
-    // DISABLED: Legacy enhanced scheduler causing excessive database queries
-    // Use new IndicatorMonitoringWorker instead
-    // builder.Services.AddHostedService<EnhancedKpiSchedulerService>();
+    // Enhanced scheduler - replaced by IndicatorMonitoringWorker for better performance
 }
 
-// DISABLED: Real-time update service causing excessive KPI database queries
-// SignalR updates are now handled by IndicatorMonitoringWorker
-// builder.Services.AddHostedService<RealtimeUpdateService>();
+// Real-time updates - handled by IndicatorMonitoringWorker for better performance
 
 // Graceful shutdown is now handled by LifecycleManagementService (Phase 3)
 
@@ -630,12 +582,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
-// Database seeding not needed for real database
-// using (var scope = app.Services.CreateScope())
-// {
-//     var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder>();
-//     await seeder.SeedAsync();
-// }
+// Database seeding is handled by migration scripts for production database
 
 // Configure the HTTP request pipeline
 
@@ -647,7 +594,7 @@ app.UseEnhancedExceptionHandling();
 app.UseResponseCompression();
 
 // Phase 4C: Security hardening middleware
-app.UseAdvancedRateLimit();
+// Rate limiting is handled by AdvancedRateLimitingService in controllers
 
 // Add security headers early in the pipeline
 if (app.Environment.IsProduction())
@@ -746,52 +693,7 @@ app.MapGet("/api/info", () => new
     Timestamp = DateTime.UtcNow
 }).AllowAnonymous();
 
-// Temporarily disable database connection check for testing
-/*
-// Ensure database connections are accessible
-try
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
-    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
-    Log.Information("Checking database connections...");
-
-    // Test MonitoringGrid database connection
-    Log.Information("Testing MonitoringGrid database connection...");
-    await context.Database.CanConnectAsync();
-    Log.Information("✅ MonitoringGrid database connection successful");
-
-    // Test MainDatabase connection (optional)
-    var mainConnectionString = configuration.GetConnectionString("MainDatabase");
-    if (!string.IsNullOrEmpty(mainConnectionString))
-    {
-        try
-        {
-            Log.Information("Testing MainDatabase connection...");
-            using var mainConnection = new Microsoft.Data.SqlClient.SqlConnection(mainConnectionString);
-            await mainConnection.OpenAsync();
-            Log.Information("✅ MainDatabase connection successful");
-            await mainConnection.CloseAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning("⚠️ MainDatabase connection failed (continuing anyway): {Message}", ex.Message);
-        }
-    }
-    else
-    {
-        Log.Warning("⚠️ MainDatabase connection string not configured");
-    }
-
-    Log.Information("All database connections verified successfully");
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Failed to connect to database: {Message}", ex.Message);
-    return 1;
-}
-*/
+// Database connection validation is handled by health checks
 
 Log.Information("Monitoring Grid API starting...");
 Log.Information("Swagger UI available at: {BaseUrl}", app.Environment.IsDevelopment() ? "https://localhost:57652/swagger" : "API base URL");

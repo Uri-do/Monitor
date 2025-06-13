@@ -46,7 +46,7 @@ const ContactList: React.FC = () => {
 
   const handleDelete = (contact: ContactDto) => {
     if (window.confirm(`Are you sure you want to delete "${contact.name}"?`)) {
-      deleteContactMutation.mutate(contact.contactId);
+      deleteContactMutation.mutate(contact.contactID);
     }
   };
 
@@ -104,8 +104,8 @@ const ContactList: React.FC = () => {
       render: value => <StatusChip status={value ? 'active' : 'inactive'} />,
     },
     {
-      id: 'assignedKpis',
-      label: 'Assigned KPIs',
+      id: 'assignedIndicators',
+      label: 'Assigned Indicators',
       width: 120,
       align: 'center',
       render: value => (
@@ -136,7 +136,7 @@ const ContactList: React.FC = () => {
     <Box>
       <PageHeader
         title="Contact Management"
-        subtitle={`Manage notification contacts and their KPI assignments (${filteredContacts.length} total)`}
+        subtitle={`Manage notification contacts and their Indicator assignments (${filteredContacts.length} total)`}
         primaryAction={{
           label: 'Add Contact',
           icon: <AddIcon />,
@@ -191,22 +191,22 @@ const ContactList: React.FC = () => {
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
         defaultActions={{
-          view: contact => navigate(`/contacts/${contact.contactId}`),
-          edit: contact => navigate(`/contacts/${contact.contactId}/edit`),
+          view: contact => navigate(`/contacts/${contact.contactID}`),
+          edit: contact => navigate(`/contacts/${contact.contactID}/edit`),
           delete: handleDelete,
         }}
         actions={[
           {
-            label: 'Assign KPIs',
+            label: 'Assign Indicators',
             icon: <AssignIcon />,
             onClick: contact => {
-              // TODO: Implement KPI assignment
-              toast('KPI assignment feature coming soon', { icon: 'ℹ️' });
+              // TODO: Implement Indicator assignment
+              toast('Indicator assignment feature coming soon', { icon: 'ℹ️' });
             },
           },
         ]}
         emptyMessage="No contacts found. Add your first contact to get started."
-        rowKey="contactId"
+        rowKey="contactID"
       />
     </Box>
   );

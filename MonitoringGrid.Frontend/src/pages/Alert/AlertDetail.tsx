@@ -119,9 +119,9 @@ const AlertDetail: React.FC = () => {
   return (
     <Box>
       <PageHeader
-        title={`Alert #${alert.alertId}`}
-        subtitle={`${alert.kpiIndicator} • ${alert.severity} severity`}
-        breadcrumbs={[{ label: 'Alerts', href: '/alerts' }, { label: `Alert #${alert.alertId}` }]}
+        title={`Alert #${alert.alertID}`}
+        subtitle={`${alert.indicatorName} • ${alert.severity} severity`}
+        breadcrumbs={[{ label: 'Alerts', href: '/alerts' }, { label: `Alert #${alert.alertID}` }]}
         primaryAction={
           !alert.isResolved
             ? {
@@ -134,9 +134,9 @@ const AlertDetail: React.FC = () => {
         }
         actions={[
           {
-            label: 'View KPI',
+            label: 'View Indicator',
             icon: <ViewIcon />,
-            onClick: () => navigate(`/kpis/${alert.kpiId}`),
+            onClick: () => navigate(`/indicators/${alert.indicatorID}`),
             variant: 'outlined',
           },
         ]}
@@ -178,11 +178,11 @@ const AlertDetail: React.FC = () => {
 
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="textSecondary">
-                    KPI
+                    Indicator
                   </Typography>
-                  <Typography variant="body1">{alert.kpiIndicator}</Typography>
+                  <Typography variant="body1">{alert.indicatorName}</Typography>
                   <Typography variant="caption" color="textSecondary">
-                    Owner: {alert.kpiOwner}
+                    Owner: {alert.indicatorOwner}
                   </Typography>
                 </Grid>
 

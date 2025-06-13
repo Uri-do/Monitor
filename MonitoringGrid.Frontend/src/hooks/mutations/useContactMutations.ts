@@ -19,7 +19,7 @@ export const useCreateContact = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists() });
 
       // Optionally set the new contact in cache
-      queryClient.setQueryData(queryKeys.contacts.detail(newContact.contactId), newContact);
+      queryClient.setQueryData(queryKeys.contacts.detail(newContact.contactID), newContact);
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to create contact');
@@ -39,13 +39,13 @@ export const useUpdateContact = () => {
       toast.success('Contact updated successfully');
 
       // Update the specific contact in cache
-      queryClient.setQueryData(queryKeys.contacts.detail(variables.contactId), updatedContact);
+      queryClient.setQueryData(queryKeys.contacts.detail(variables.contactID), updatedContact);
 
       // Invalidate contact lists to reflect changes
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists() });
 
-      // If contact is used in KPIs, invalidate KPI data too
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+      // If contact is used in Indicators, invalidate Indicator data too
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to update contact');
@@ -70,8 +70,8 @@ export const useDeleteContact = () => {
       // Invalidate contact lists
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.lists() });
 
-      // Invalidate KPI data as contact assignments may have changed
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+      // Invalidate Indicator data as contact assignments may have changed
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to delete contact');
@@ -96,8 +96,8 @@ export const useBulkContactOperation = () => {
       // Invalidate all contact-related queries
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
 
-      // If contacts are used in KPIs, invalidate KPI data too
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+      // If contacts are used in Indicators, invalidate Indicator data too
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to perform bulk operation');

@@ -1,11 +1,11 @@
 {
   "app": {
     "name": "MonitoringGrid",
-    "tagline": "Surveillance Avancée des KPI et Analyses"
+    "tagline": "Surveillance Avancée des Indicateurs et Analyses"
   },
   "navigation": {
     "dashboard": "Tableau de Bord",
-    "kpis": "KPIs",
+    "indicators": "Indicateurs",
     "alerts": "Alertes"
   }
 }

@@ -54,8 +54,9 @@ public class MonitoringHub : Hub
     }
 
     /// <summary>
-    /// Join a specific KPI monitoring group
+    /// Join a specific KPI monitoring group (Legacy - use JoinIndicatorGroup instead)
     /// </summary>
+    [Obsolete("Use JoinIndicatorGroup instead")]
     public async Task JoinKpiGroup(int kpiId)
     {
         var groupName = $"KPI_{kpiId}";
@@ -71,8 +72,9 @@ public class MonitoringHub : Hub
     }
 
     /// <summary>
-    /// Leave a specific KPI monitoring group
+    /// Leave a specific KPI monitoring group (Legacy - use LeaveIndicatorGroup instead)
     /// </summary>
+    [Obsolete("Use LeaveIndicatorGroup instead")]
     public async Task LeaveKpiGroup(int kpiId)
     {
         var groupName = $"KPI_{kpiId}";
@@ -196,12 +198,19 @@ public interface IRealtimeNotificationService
 
     // Enhanced real-time events
     Task SendWorkerStatusUpdateAsync(WorkerStatusUpdateDto workerStatus);
-    Task SendKpiExecutionStartedAsync(KpiExecutionStartedDto kpiExecution);
-    Task SendKpiExecutionProgressAsync(KpiExecutionProgressDto kpiProgress);
-    Task SendKpiExecutionCompletedAsync(KpiExecutionCompletedDto kpiCompletion);
+
+    // Legacy KPI events (deprecated - use Indicator events instead)
+    [Obsolete("Use SendIndicatorExecutionStartedAsync instead")]
+    Task SendKpiExecutionStartedAsync(IndicatorExecutionStartedDto kpiExecution);
+    [Obsolete("Use SendIndicatorExecutionProgressAsync instead")]
+    Task SendKpiExecutionProgressAsync(IndicatorExecutionProgressDto kpiProgress);
+    [Obsolete("Use SendIndicatorExecutionCompletedAsync instead")]
+    Task SendKpiExecutionCompletedAsync(IndicatorExecutionCompletedDto kpiCompletion);
     Task SendCountdownUpdateAsync(CountdownUpdateDto countdown);
-    Task SendNextKpiScheduleUpdateAsync(NextKpiScheduleUpdateDto schedule);
-    Task SendRunningKpisUpdateAsync(RunningKpisUpdateDto runningKpis);
+    [Obsolete("Use SendNextIndicatorScheduleUpdateAsync instead")]
+    Task SendNextKpiScheduleUpdateAsync(NextIndicatorsScheduleUpdateDto schedule);
+    [Obsolete("Use SendRunningIndicatorsUpdateAsync instead")]
+    Task SendRunningKpisUpdateAsync(RunningIndicatorsUpdateDto runningKpis);
 
     // Indicator real-time events
     Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution);
@@ -329,63 +338,66 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         }
     }
 
-    public async Task SendKpiExecutionStartedAsync(KpiExecutionStartedDto kpiExecution)
+    [Obsolete("Use SendIndicatorExecutionStartedAsync instead")]
+    public async Task SendKpiExecutionStartedAsync(IndicatorExecutionStartedDto kpiExecution)
     {
         try
         {
-            _logger.LogDebug("Sending KPI execution started notification for KPI {KpiId}", kpiExecution.KpiId);
+            _logger.LogDebug("Sending KPI execution started notification for Indicator {IndicatorID}", kpiExecution.IndicatorID);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("KpiExecutionStarted", kpiExecution);
 
-            await _hubContext.Clients.Group($"KPI_{kpiExecution.KpiId}")
+            await _hubContext.Clients.Group($"KPI_{kpiExecution.IndicatorID}")
                 .SendAsync("KpiExecutionStarted", kpiExecution);
 
-            _logger.LogDebug("KPI execution started notification sent for KPI {KpiId}", kpiExecution.KpiId);
+            _logger.LogDebug("KPI execution started notification sent for Indicator {IndicatorID}", kpiExecution.IndicatorID);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send KPI execution started notification for KPI {KpiId}", kpiExecution.KpiId);
+            _logger.LogError(ex, "Failed to send KPI execution started notification for Indicator {IndicatorID}", kpiExecution.IndicatorID);
         }
     }
 
-    public async Task SendKpiExecutionProgressAsync(KpiExecutionProgressDto kpiProgress)
+    [Obsolete("Use SendIndicatorExecutionProgressAsync instead")]
+    public async Task SendKpiExecutionProgressAsync(IndicatorExecutionProgressDto kpiProgress)
     {
         try
         {
-            _logger.LogDebug("Sending KPI execution progress for KPI {KpiId}: {Progress}%", kpiProgress.KpiId, kpiProgress.Progress);
+            _logger.LogDebug("Sending KPI execution progress for Indicator {IndicatorId}: {Progress}%", kpiProgress.IndicatorId, kpiProgress.Progress);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("KpiExecutionProgress", kpiProgress);
 
-            await _hubContext.Clients.Group($"KPI_{kpiProgress.KpiId}")
+            await _hubContext.Clients.Group($"KPI_{kpiProgress.IndicatorId}")
                 .SendAsync("KpiExecutionProgress", kpiProgress);
 
-            _logger.LogDebug("KPI execution progress sent for KPI {KpiId}", kpiProgress.KpiId);
+            _logger.LogDebug("KPI execution progress sent for Indicator {IndicatorId}", kpiProgress.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send KPI execution progress for KPI {KpiId}", kpiProgress.KpiId);
+            _logger.LogError(ex, "Failed to send KPI execution progress for Indicator {IndicatorId}", kpiProgress.IndicatorId);
         }
     }
 
-    public async Task SendKpiExecutionCompletedAsync(KpiExecutionCompletedDto kpiCompletion)
+    [Obsolete("Use SendIndicatorExecutionCompletedAsync instead")]
+    public async Task SendKpiExecutionCompletedAsync(IndicatorExecutionCompletedDto kpiCompletion)
     {
         try
         {
-            _logger.LogDebug("Sending KPI execution completed notification for KPI {KpiId}", kpiCompletion.KpiId);
+            _logger.LogDebug("Sending KPI execution completed notification for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("KpiExecutionCompleted", kpiCompletion);
 
-            await _hubContext.Clients.Group($"KPI_{kpiCompletion.KpiId}")
+            await _hubContext.Clients.Group($"KPI_{kpiCompletion.IndicatorId}")
                 .SendAsync("KpiExecutionCompleted", kpiCompletion);
 
-            _logger.LogDebug("KPI execution completed notification sent for KPI {KpiId}", kpiCompletion.KpiId);
+            _logger.LogDebug("KPI execution completed notification sent for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send KPI execution completed notification for KPI {KpiId}", kpiCompletion.KpiId);
+            _logger.LogError(ex, "Failed to send KPI execution completed notification for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
         }
     }
 
@@ -393,7 +405,7 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending countdown update for next KPI {KpiId}: {Seconds} seconds", countdown.NextKpiId, countdown.SecondsUntilDue);
+            _logger.LogDebug("Sending countdown update for next Indicator {IndicatorId}: {Seconds} seconds", countdown.NextIndicatorID, countdown.SecondsUntilDue);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("CountdownUpdate", countdown);
@@ -406,37 +418,39 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         }
     }
 
-    public async Task SendNextKpiScheduleUpdateAsync(NextKpiScheduleUpdateDto schedule)
+    [Obsolete("Use SendNextIndicatorScheduleUpdateAsync instead")]
+    public async Task SendNextKpiScheduleUpdateAsync(NextIndicatorsScheduleUpdateDto schedule)
     {
         try
         {
-            _logger.LogDebug("Sending next KPI schedule update with {Count} upcoming KPIs", schedule.NextKpis.Count);
+            _logger.LogDebug("Sending next Indicator schedule update with {Count} upcoming Indicators", schedule.NextIndicators.Count);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("NextKpiScheduleUpdate", schedule);
 
-            _logger.LogDebug("Next KPI schedule update sent");
+            _logger.LogDebug("Next Indicator schedule update sent");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send next KPI schedule update");
+            _logger.LogError(ex, "Failed to send next Indicator schedule update");
         }
     }
 
-    public async Task SendRunningKpisUpdateAsync(RunningKpisUpdateDto runningKpis)
+    [Obsolete("Use SendRunningIndicatorsUpdateAsync instead")]
+    public async Task SendRunningKpisUpdateAsync(RunningIndicatorsUpdateDto runningKpis)
     {
         try
         {
-            _logger.LogDebug("Sending running KPIs update with {Count} running KPIs", runningKpis.RunningKpis.Count);
+            _logger.LogDebug("Sending running Indicators update with {Count} running Indicators", runningKpis.RunningIndicators.Count);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("RunningKpisUpdate", runningKpis);
 
-            _logger.LogDebug("Running KPIs update sent");
+            _logger.LogDebug("Running Indicators update sent");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send running KPIs update");
+            _logger.LogError(ex, "Failed to send running Indicators update");
         }
     }
 

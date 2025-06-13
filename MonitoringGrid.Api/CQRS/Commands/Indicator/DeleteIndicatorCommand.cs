@@ -10,8 +10,8 @@ public class DeleteIndicatorCommand : IRequest<Result<bool>>
 {
     public long IndicatorID { get; set; }
 
-    public DeleteIndicatorCommand(long indicatorId)
+    public DeleteIndicatorCommand(long indicatorID)
     {
-        IndicatorID = indicatorId;
+        IndicatorID = indicatorID;
     }
 }
