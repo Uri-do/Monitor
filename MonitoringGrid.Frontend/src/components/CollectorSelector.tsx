@@ -11,23 +11,15 @@ import {
   CircularProgress,
   Grid,
   Chip,
-  SelectChangeEvent,
-  Button,
-  Collapse,
-  IconButton,
-  Tooltip
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Database,
   Clock,
-  Activity,
-  BarChart3 as BarChart3Icon,
-  ChevronDown,
-  ChevronUp
+  Activity
 } from 'lucide-react';
 import { useActiveCollectors, useCollectorItemNames } from '../hooks/useMonitorStatistics';
 import { useQueryClient } from '@tanstack/react-query';
-import CollectorStatisticsViewer from './CollectorStatisticsViewer';
 import StatisticsBrowserButton from './StatisticsBrowserButton';
 
 interface CollectorSelectorProps {
@@ -38,7 +30,6 @@ interface CollectorSelectorProps {
   disabled?: boolean;
   className?: string;
   required?: boolean;
-  showStatistics?: boolean; // New prop to enable statistics viewing
 }
 
 export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
@@ -49,10 +40,8 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   disabled = false,
   className = '',
   required = false,
-  showStatistics = false,
 }) => {
   const [internalCollectorId, setInternalCollectorId] = useState<number | undefined>(selectedCollectorId);
-  const [showStatsPanel, setShowStatsPanel] = useState(false);
   const queryClient = useQueryClient();
   
   const {
@@ -295,38 +284,6 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
         </FormControl>
       )}
 
-      {/* Statistics Section */}
-      {showStatistics && internalCollectorId && (
-        <Box sx={{ mt: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <Tooltip title={showStatsPanel ? "Hide Statistics" : "Show Statistics"}>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<BarChart3Icon />}
-                endIcon={showStatsPanel ? <ChevronUp /> : <ChevronDown />}
-                onClick={() => setShowStatsPanel(!showStatsPanel)}
-                disabled={disabled}
-              >
-                {showStatsPanel ? 'Hide' : 'Show'} Statistics
-              </Button>
-            </Tooltip>
-            {selectedCollector && (
-              <Typography variant="caption" color="text.secondary">
-                View data trends and analytics for {selectedCollector.displayName}
-              </Typography>
-            )}
-          </Box>
-
-          <Collapse in={showStatsPanel}>
-            <CollectorStatisticsViewer
-              collectorId={internalCollectorId}
-              collectorName={selectedCollector?.displayName}
-              selectedItemName={selectedItemName}
-            />
-          </Collapse>
-        </Box>
-      )}
     </Box>
   );
 };

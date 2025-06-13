@@ -380,7 +380,6 @@ const IndicatorCreate: React.FC = () => {
                   onCollectorChange={handleCollectorChange}
                   onItemNameChange={handleItemNameChange}
                   disabled={isSubmitting}
-                  showStatistics={true} // Enable statistics viewing
                 />
                 {errors.collectorID && (
                   <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>

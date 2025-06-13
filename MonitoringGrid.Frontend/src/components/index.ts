@@ -50,7 +50,6 @@ export { default as AdvancedChart } from './Charts/AdvancedChart';
 // ===== MONITORING COMPONENTS =====
 // Monitor statistics and collector components
 export { CollectorSelector } from './CollectorSelector';
-export { default as CollectorStatisticsViewer } from './CollectorStatisticsViewer';
 export { default as StatisticsBrowser } from './StatisticsBrowser';
 export { default as StatisticsBrowserButton } from './StatisticsBrowserButton';
 
