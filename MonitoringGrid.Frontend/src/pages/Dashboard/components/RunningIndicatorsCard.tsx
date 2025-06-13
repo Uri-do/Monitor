@@ -36,8 +36,8 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
           progress: indicator.progress,
           estimatedCompletion: indicator.estimatedCompletion,
         }))
-      : (indicatorDashboard?.indicatorStatuses?.filter(status => status.isCurrentlyRunning) || []).map(indicator => ({
-          kpiId: indicator.indicatorID,
+      : (indicatorDashboard?.runningIndicators || []).map(indicator => ({
+          kpiId: indicator.indicatorId,
           indicator: indicator.indicatorName,
           owner: 'System', // Fallback since IndicatorStatusDto doesn't have owner
           startTime: new Date().toISOString(), // Fallback since we don't have startTime

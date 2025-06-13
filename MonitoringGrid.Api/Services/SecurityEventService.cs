@@ -72,22 +72,22 @@ public class SecurityEventService : ISecurityEventService
     /// <summary>
     /// Checks if a token has been used (replay protection)
     /// </summary>
-    public async Task<bool> IsTokenUsedAsync(string tokenId)
+    public Task<bool> IsTokenUsedAsync(string tokenId)
     {
         // Check in-memory cache first for performance
         if (_usedTokens.TryGetValue(tokenId, out var usedTime))
         {
-            return DateTime.UtcNow - usedTime < _tokenReplayWindow;
+            return Task.FromResult(DateTime.UtcNow - usedTime < _tokenReplayWindow);
         }
 
         // Check database for persistent storage
         var cacheKey = $"token_used_{tokenId}";
         if (_cache.TryGetValue(cacheKey, out _))
         {
-            return true;
+            return Task.FromResult(true);
         }
 
-        return false;
+        return Task.FromResult(false);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class SecurityEventService : ISecurityEventService
     /// <summary>
     /// Checks for suspicious activity patterns
     /// </summary>
-    public async Task<bool> IsSuspiciousActivityAsync(string userId, string ipAddress)
+    public Task<bool> IsSuspiciousActivityAsync(string userId, string ipAddress)
     {
         var now = DateTime.UtcNow;
         var windowStart = now - _suspiciousActivityWindow;
@@ -118,19 +118,19 @@ public class SecurityEventService : ISecurityEventService
         if (_userActivity.TryGetValue(userId, out var userRecords))
         {
             var recentActivity = userRecords.Where(r => r.Timestamp > windowStart).ToList();
-            
+
             // Check for too many failed attempts
             var failedAttempts = recentActivity.Count(r => r.EventType == SecurityEventType.AuthenticationFailure);
             if (failedAttempts > _maxFailedAttemptsPerHour)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             // Check for unusual IP addresses
             var uniqueIPs = recentActivity.Select(r => r.IpAddress).Distinct().Count();
             if (uniqueIPs > 5) // More than 5 different IPs in an hour
             {
-                return true;
+                return Task.FromResult(true);
             }
         }
 
@@ -138,29 +138,29 @@ public class SecurityEventService : ISecurityEventService
         if (_ipActivity.TryGetValue(ipAddress, out var ipRecords))
         {
             var recentActivity = ipRecords.Where(r => r.Timestamp > windowStart).ToList();
-            
+
             // Check for too many requests
             var requestCount = recentActivity.Count;
             if (requestCount > _maxRequestsPerMinute * 60) // Per hour
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             // Check for multiple user attempts from same IP
             var uniqueUsers = recentActivity.Select(r => r.UserId).Where(u => !string.IsNullOrEmpty(u)).Distinct().Count();
             if (uniqueUsers > 10) // More than 10 different users from same IP
             {
-                return true;
+                return Task.FromResult(true);
             }
         }
 
-        return false;
+        return Task.FromResult(false);
     }
 
     /// <summary>
     /// Gets security events for analysis
     /// </summary>
-    public async Task<List<SecurityEvent>> GetSecurityEventsAsync(SecurityEventFilter filter)
+    public Task<List<SecurityEvent>> GetSecurityEventsAsync(SecurityEventFilter filter)
     {
         var correlationId = _correlationIdService.GetCorrelationId();
 
@@ -171,12 +171,12 @@ public class SecurityEventService : ISecurityEventService
             var events = new List<SecurityEvent>();
 
             _logger.LogDebug("Retrieved {EventCount} security events [{CorrelationId}]", events.Count, correlationId);
-            return events;
+            return Task.FromResult(events);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve security events [{CorrelationId}]", correlationId);
-            return new List<SecurityEvent>();
+            return Task.FromResult(new List<SecurityEvent>());
         }
     }
 
@@ -295,9 +295,9 @@ public class SecurityEventService : ISecurityEventService
     /// <summary>
     /// Checks for privilege escalation attempts
     /// </summary>
-    private async Task CheckPrivilegeEscalationAsync(SecurityEvent securityEvent)
+    private Task CheckPrivilegeEscalationAsync(SecurityEvent securityEvent)
     {
-        if (string.IsNullOrEmpty(securityEvent.UserId)) return;
+        if (string.IsNullOrEmpty(securityEvent.UserId)) return Task.CompletedTask;
 
         if (_userActivity.TryGetValue(securityEvent.UserId, out var records))
         {
@@ -312,12 +312,14 @@ public class SecurityEventService : ISecurityEventService
                     securityEvent.UserId, recentAuthzFailures);
             }
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Checks for distributed attack patterns
     /// </summary>
-    private async Task CheckDistributedAttackAsync(SecurityEvent securityEvent)
+    private Task CheckDistributedAttackAsync(SecurityEvent securityEvent)
     {
         // Check if multiple IPs are targeting the same resources
         var now = DateTime.UtcNow;
@@ -332,6 +334,8 @@ public class SecurityEventService : ISecurityEventService
         {
             _logger.LogWarning("Potential distributed attack detected - {AttackingIPs} IPs with recent failures", recentAttacks);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

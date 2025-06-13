@@ -30,7 +30,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useAlertStatistics } from '@/hooks/useAlerts';
-import { useKpiDashboard } from '@/hooks/useKpis';
+import { useIndicatorDashboard } from '@/hooks/useIndicators';
 import { PageHeader, LoadingSpinner, StatusChip, Card, Select, MetricCard } from '@/components/UI';
 
 // Analytics data will be loaded from real API endpoints
@@ -42,9 +42,9 @@ const Analytics: React.FC = () => {
   // Use enhanced hooks for data fetching
   const timeRangeDays = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const { data: alertStats, isLoading: alertStatsLoading } = useAlertStatistics(timeRangeDays);
-  const { data: kpiDashboard, isLoading: kpiLoading } = useKpiDashboard();
+  const { data: indicatorDashboard, isLoading: indicatorLoading } = useIndicatorDashboard();
 
-  const isLoading = alertStatsLoading || kpiLoading;
+  const isLoading = alertStatsLoading || indicatorLoading;
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -88,11 +88,11 @@ const Analytics: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
             title="Total KPIs"
-            value={(kpiDashboard?.totalKpis || 0).toString()}
+            value={(indicatorDashboard?.totalIndicators || 0).toString()}
             icon={<Assessment />}
             gradient="primary"
             chip={{
-              label: `${kpiDashboard?.activeKpis || 0} Active`,
+              label: `${indicatorDashboard?.activeIndicators || 0} Active`,
               color: 'success',
             }}
           />
@@ -246,8 +246,9 @@ const Analytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {kpiDashboard?.recentExecutions && kpiDashboard.recentExecutions.length > 0 ? (
-                      kpiDashboard.recentExecutions.map((execution, index) => (
+                    {/* Recent executions not available in IndicatorDashboardDto - showing placeholder */}
+                    {false ? (
+                      [].map((execution: any, index: number) => (
                         <tr key={index} style={{ borderBottom: '1px solid #f0f0f0' }}>
                           <td style={{ padding: '12px', fontWeight: 'medium' }}>
                             {execution.indicator}

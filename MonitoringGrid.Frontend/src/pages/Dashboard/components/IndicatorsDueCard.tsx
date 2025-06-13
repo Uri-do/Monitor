@@ -27,7 +27,7 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
   const theme = useTheme();
 
   // Hide this card if there are 2 or fewer Indicators to avoid redundancy with NextIndicatorExecutionCard
-  if (!indicatorDashboard?.indicatorStatuses || indicatorDashboard.indicatorStatuses.length <= 2) {
+  if (!indicatorDashboard?.dueIndicators || indicatorDashboard.dueIndicators.length <= 2) {
     return null;
   }
 
@@ -58,11 +58,11 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {indicatorDashboard?.indicatorStatuses && indicatorDashboard.indicatorStatuses.length > 0 ? (
+            {indicatorDashboard?.dueIndicators && indicatorDashboard.dueIndicators.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {indicatorDashboard.indicatorStatuses.map(indicator => (
+                {indicatorDashboard.dueIndicators.map(indicator => (
                   <ListItem
-                    key={indicator.indicatorID}
+                    key={indicator.indicatorId}
                     sx={{
                       borderRadius: 1,
                       mb: 1,
@@ -94,10 +94,10 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
                           }}
                         />
                         <Chip
-                          label={indicator.isActive ? 'Active' : 'Inactive'}
+                          label="Active" // isActive not available in IndicatorStatusDto
                           size="small"
                           variant="outlined"
-                          color={indicator.isActive ? 'success' : 'default'}
+                          color="success"
                           sx={{
                             height: 20,
                             fontSize: '0.7rem',
@@ -118,7 +118,7 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
                             Status: {indicator.status}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Next run: {indicator.nextRun ? format(new Date(indicator.nextRun), 'MMM dd, HH:mm') : 'Not scheduled'}
+                            Next run: {indicator.nextDue ? format(new Date(indicator.nextDue), 'MMM dd, HH:mm') : 'Not scheduled'}
                           </Typography>
                         </Box>
                       }

@@ -1,9 +1,9 @@
 import { KpiType, KpiTypeDefinition } from '@/types/api';
 
 /**
- * Complete definitions for all KPI types
+ * Complete definitions for all Indicator types
  */
-export const KPI_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
+export const INDICATOR_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
   {
     type: KpiType.SuccessRate,
     name: 'Success Rate Monitoring',
@@ -39,48 +39,48 @@ export const KPI_TYPE_DEFINITIONS: KpiTypeDefinition[] = [
 ];
 
 /**
- * Gets the definition for a specific KPI type
+ * Gets the definition for a specific Indicator type
  */
-export const getKpiTypeDefinition = (type: KpiType): KpiTypeDefinition | undefined => {
-  return KPI_TYPE_DEFINITIONS.find(def => def.type === type);
+export const getIndicatorTypeDefinition = (type: KpiType): KpiTypeDefinition | undefined => {
+  return INDICATOR_TYPE_DEFINITIONS.find(def => def.type === type);
 };
 
 /**
- * Gets the display name for a KPI type
+ * Gets the display name for an Indicator type
  */
-export const getKpiTypeName = (type: KpiType): string => {
-  const definition = getKpiTypeDefinition(type);
+export const getIndicatorTypeName = (type: KpiType): string => {
+  const definition = getIndicatorTypeDefinition(type);
   return definition?.name || type;
 };
 
 /**
- * Gets the description for a KPI type
+ * Gets the description for an Indicator type
  */
-export const getKpiTypeDescription = (type: KpiType): string => {
-  const definition = getKpiTypeDefinition(type);
+export const getIndicatorTypeDescription = (type: KpiType): string => {
+  const definition = getIndicatorTypeDefinition(type);
   return definition?.description || 'No description available';
 };
 
 /**
- * Gets the required fields for a KPI type
+ * Gets the required fields for an Indicator type
  */
 export const getRequiredFields = (type: KpiType): string[] => {
-  const definition = getKpiTypeDefinition(type);
+  const definition = getIndicatorTypeDefinition(type);
   return definition?.requiredFields || [];
 };
 
 /**
- * Gets the default stored procedure for a KPI type
+ * Gets the default stored procedure for an Indicator type
  */
 export const getDefaultStoredProcedure = (type: KpiType): string => {
-  const definition = getKpiTypeDefinition(type);
+  const definition = getIndicatorTypeDefinition(type);
   return definition?.defaultStoredProcedure || '';
 };
 
 /**
- * Validates a KPI configuration based on its type
+ * Validates an Indicator configuration based on its type
  */
-export const validateKpiConfiguration = (
+export const validateIndicatorConfiguration = (
   type: KpiType,
   config: {
     deviation?: number;
@@ -93,7 +93,7 @@ export const validateKpiConfiguration = (
   const errors: string[] = [];
   const requiredFields = getRequiredFields(type);
 
-  // Check required fields based on KPI type
+  // Check required fields based on Indicator type
   if (requiredFields.includes('deviation')) {
     if (config.deviation === undefined || config.deviation < 0 || config.deviation > 100) {
       errors.push('Deviation must be between 0 and 100 percent');
@@ -154,7 +154,7 @@ export const validateKpiConfiguration = (
 };
 
 /**
- * Gets recommended configuration for a KPI type
+ * Gets recommended configuration for an Indicator type
  */
 export const getRecommendedConfiguration = (type: KpiType) => {
   switch (type) {
@@ -197,9 +197,9 @@ export const getRecommendedConfiguration = (type: KpiType) => {
 };
 
 /**
- * Gets example use cases for a KPI type
+ * Gets example use cases for an Indicator type
  */
-export const getKpiTypeExamples = (type: KpiType): string[] => {
+export const getIndicatorTypeExamples = (type: KpiType): string[] => {
   switch (type) {
     case KpiType.SuccessRate:
       return [
@@ -243,9 +243,9 @@ export const getKpiTypeExamples = (type: KpiType): string[] => {
 };
 
 /**
- * Gets the appropriate icon name for a KPI type
+ * Gets the appropriate icon name for an Indicator type
  */
-export const getKpiTypeIcon = (type: KpiType): string => {
+export const getIndicatorTypeIcon = (type: KpiType): string => {
   switch (type) {
     case KpiType.SuccessRate:
       return 'Speed';
@@ -261,9 +261,9 @@ export const getKpiTypeIcon = (type: KpiType): string => {
 };
 
 /**
- * Gets the color scheme for a KPI type
+ * Gets the color scheme for an Indicator type
  */
-export const getKpiTypeColor = (
+export const getIndicatorTypeColor = (
   type: KpiType
 ): 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' => {
   switch (type) {
@@ -331,3 +331,13 @@ export const getOperatorDescription = (operator: string): string => {
   const op = COMPARISON_OPERATORS.find(o => o.value === operator);
   return op?.description || 'Unknown operator';
 };
+
+// Legacy exports for backward compatibility (will be removed in future versions)
+export const KPI_TYPE_DEFINITIONS = INDICATOR_TYPE_DEFINITIONS;
+export const getKpiTypeDefinition = getIndicatorTypeDefinition;
+export const getKpiTypeName = getIndicatorTypeName;
+export const getKpiTypeDescription = getIndicatorTypeDescription;
+export const validateKpiConfiguration = validateIndicatorConfiguration;
+export const getKpiTypeExamples = getIndicatorTypeExamples;
+export const getKpiTypeIcon = getIndicatorTypeIcon;
+export const getKpiTypeColor = getIndicatorTypeColor;

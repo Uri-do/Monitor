@@ -13,6 +13,7 @@ interface MetricCardProps {
   };
   action?: React.ReactElement;
   onClick?: () => void;
+  size?: 'small' | 'medium' | 'large';
 }
 
 const gradientMap = {
@@ -42,7 +43,35 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   chip,
   action,
   onClick,
+  size = 'medium',
 }) => {
+  const getSizeStyles = () => {
+    switch (size) {
+      case 'small':
+        return {
+          padding: 2,
+          titleVariant: 'subtitle1' as const,
+          valueVariant: 'h4' as const,
+          iconSize: 20,
+        };
+      case 'large':
+        return {
+          padding: 4,
+          titleVariant: 'h5' as const,
+          valueVariant: 'h2' as const,
+          iconSize: 36,
+        };
+      default: // medium
+        return {
+          padding: 3,
+          titleVariant: 'h6' as const,
+          valueVariant: 'h3' as const,
+          iconSize: 28,
+        };
+    }
+  };
+
+  const sizeStyles = getSizeStyles();
   return (
     <Card
       elevation={4}
@@ -59,16 +88,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         },
       }}
     >
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: sizeStyles.padding }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          {icon && <Box sx={{ fontSize: 28 }}>{icon}</Box>}
-          <Typography variant="h6" fontWeight="bold">
+          {icon && <Box sx={{ fontSize: sizeStyles.iconSize }}>{icon}</Box>}
+          <Typography variant={sizeStyles.titleVariant} fontWeight="bold">
             {title}
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography variant="h3" fontWeight="bold">
+          <Typography variant={sizeStyles.valueVariant} fontWeight="bold">
             {value}
           </Typography>
           {chip && (

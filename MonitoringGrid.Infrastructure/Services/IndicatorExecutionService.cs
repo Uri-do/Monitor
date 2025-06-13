@@ -276,12 +276,12 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         }
     }
 
-    public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
+    public Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
         CancellationToken cancellationToken = default)
     {
         // TODO: Implement with new IndicatorsExecutionHistory table
         // For now, return empty list since HistoricalData table is obsolete
-        return new List<IndicatorExecutionHistory>();
+        return Task.FromResult(new List<IndicatorExecutionHistory>());
     }
 
     private static decimal GetValueByField(CollectorStatisticDto data, string field)

@@ -30,7 +30,7 @@ public class EnhancedJwtMiddleware
         _tokenHandler = new JwtSecurityTokenHandler();
 
         var jwtSettings = configuration.GetSection("Security:Jwt");
-        var secretKey = jwtSettings["SecretKey"];
+        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
         var issuer = jwtSettings["Issuer"];
         var audience = jwtSettings["Audience"];
 

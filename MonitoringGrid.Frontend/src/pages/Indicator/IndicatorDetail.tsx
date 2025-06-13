@@ -75,7 +75,7 @@ const IndicatorDetail: React.FC = () => {
     if (!indicator) return;
 
     const request: TestIndicatorRequest = {
-      indicatorId: indicator.indicatorId,
+      indicatorID: indicator.indicatorID,
     };
 
     executeIndicatorMutation.mutate(request, {
@@ -173,7 +173,7 @@ const IndicatorDetail: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <InfoItem
                     label="Last Executed"
-                    value={indicator.lastExecuted ? format(new Date(indicator.lastExecuted), 'MMM dd, yyyy HH:mm') : 'Never'}
+                    value={indicator.lastRun ? format(new Date(indicator.lastRun), 'MMM dd, yyyy HH:mm') : 'Never'}
                     icon={<ScheduleIcon />}
                   />
                 </Grid>
@@ -211,11 +211,9 @@ const IndicatorDetail: React.FC = () => {
                 )}
                 <InfoItem
                   label="Average of Current Hour"
-                  value={indicator.averageOfCurrHour ? 'Yes' : 'No'}
+                  value="N/A" // averageOfCurrHour not available in IndicatorDto
                 />
-                {indicator.averageHour && (
-                  <InfoItem label="Current Hour Average" value={indicator.averageHour} />
-                )}
+                {/* averageHour not available in IndicatorDto */}
                 <Divider />
                 <InfoItem label="Created" value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')} />
                 <InfoItem label="Last Updated" value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')} />

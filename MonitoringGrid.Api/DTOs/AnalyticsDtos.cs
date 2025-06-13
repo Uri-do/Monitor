@@ -3,12 +3,12 @@ using System.ComponentModel.DataAnnotations;
 namespace MonitoringGrid.Api.DTOs;
 
 /// <summary>
-/// KPI performance summary for analytics
+/// Indicator performance summary for analytics
 /// </summary>
-public class KpiPerformanceSummaryDto
+public class IndicatorPerformanceSummaryDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public double PerformanceScore { get; set; }
 }
@@ -40,11 +40,11 @@ public class SystemHealthDto
 {
     public DateTime Timestamp { get; set; }
     public double OverallHealthScore { get; set; }
-    public int TotalKpis { get; set; }
-    public int ActiveKpis { get; set; }
-    public int HealthyKpis { get; set; }
-    public int WarningKpis { get; set; }
-    public int CriticalKpis { get; set; }
+    public int TotalIndicators { get; set; }
+    public int ActiveIndicators { get; set; }
+    public int HealthyIndicators { get; set; }
+    public int WarningIndicators { get; set; }
+    public int CriticalIndicators { get; set; }
     public int AlertsLast24Hours { get; set; }
     public int AlertsLastHour { get; set; }
     public int UnresolvedAlerts { get; set; }
@@ -67,8 +67,8 @@ public class PerformanceAnalyticsDto
     public double SuccessRate { get; set; }
     public List<TrendDataDto> ExecutionTrends { get; set; } = new();
     public List<TrendDataDto> DeviationTrends { get; set; } = new();
-    public List<KpiPerformanceSummaryDto> TopPerformers { get; set; } = new();
-    public List<KpiPerformanceSummaryDto> WorstPerformers { get; set; } = new();
+    public List<IndicatorPerformanceSummaryDto> TopPerformers { get; set; } = new();
+    public List<IndicatorPerformanceSummaryDto> WorstPerformers { get; set; } = new();
 }
 
 /// <summary>
@@ -94,9 +94,9 @@ public class SystemAnalyticsDto
     public int Period { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public int TotalKpis { get; set; }
-    public int ActiveKpis { get; set; }
-    public int InactiveKpis { get; set; }
+    public int TotalIndicators { get; set; }
+    public int ActiveIndicators { get; set; }
+    public int InactiveIndicators { get; set; }
     public int TotalExecutions { get; set; }
     public int TotalAlerts { get; set; }
     public int ResolvedAlerts { get; set; }
@@ -104,20 +104,20 @@ public class SystemAnalyticsDto
     public int CriticalAlerts { get; set; }
     public double AverageExecutionsPerDay { get; set; }
     public double AverageAlertsPerDay { get; set; }
-    public List<KpiPerformanceSummaryDto> TopPerformingKpis { get; set; } = new();
-    public List<KpiPerformanceSummaryDto> WorstPerformingKpis { get; set; } = new();
+    public List<IndicatorPerformanceSummaryDto> TopPerformingIndicators { get; set; } = new();
+    public List<IndicatorPerformanceSummaryDto> WorstPerformingIndicators { get; set; } = new();
     public List<TrendDataDto> AlertTrends { get; set; } = new();
     public List<TrendDataDto> ExecutionTrends { get; set; } = new();
-    public HealthDistributionDto KpiHealthDistribution { get; set; } = new();
+    public HealthDistributionDto IndicatorHealthDistribution { get; set; } = new();
 }
 
 /// <summary>
-/// KPI performance analytics DTO
+/// Indicator performance analytics DTO
 /// </summary>
-public class KpiPerformanceAnalyticsDto
+public class IndicatorPerformanceAnalyticsDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int Period { get; set; }
     public DateTime StartDate { get; set; }
@@ -134,7 +134,7 @@ public class KpiPerformanceAnalyticsDto
     public string TrendDirection { get; set; } = string.Empty;
     public double PerformanceScore { get; set; }
     public List<string> Recommendations { get; set; } = new();
-    public List<KpiTrendPointDto> DetailedTrends { get; set; } = new();
+    public List<IndicatorTrendPointDto> DetailedTrends { get; set; } = new();
 }
 
 /// <summary>
@@ -144,9 +144,9 @@ public class OwnerAnalyticsDto
 {
     public string Owner { get; set; } = string.Empty;
     public string OwnerDomain { get; set; } = string.Empty;
-    public int TotalKpis { get; set; }
-    public int ActiveKpis { get; set; }
-    public int InactiveKpis { get; set; }
+    public int TotalIndicators { get; set; }
+    public int ActiveIndicators { get; set; }
+    public int InactiveIndicators { get; set; }
     public int TotalAlerts { get; set; }
     public int CriticalAlerts { get; set; }
     public int TotalExecutions { get; set; }
@@ -157,9 +157,9 @@ public class OwnerAnalyticsDto
 }
 
 /// <summary>
-/// KPI trend point DTO
+/// Indicator trend point DTO
 /// </summary>
-public class KpiTrendPointDto
+public class IndicatorTrendPointDto
 {
     public DateTime Timestamp { get; set; }
     public decimal Value { get; set; }

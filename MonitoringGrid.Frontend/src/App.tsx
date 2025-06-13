@@ -21,10 +21,7 @@ const IndicatorList = React.lazy(() => import('@/pages/Indicator/IndicatorList')
 const IndicatorDetail = React.lazy(() => import('@/pages/Indicator/IndicatorDetail'));
 const IndicatorCreate = React.lazy(() => import('@/pages/Indicator/IndicatorCreate'));
 
-// KPI Management (Legacy)
-const KpiList = React.lazy(() => import('@/pages/KPI/KpiList'));
-const KpiDetail = React.lazy(() => import('@/pages/KPI/KpiDetail'));
-const KpiCreate = React.lazy(() => import('@/pages/KPI/KpiCreate'));
+// Legacy KPI imports removed - using Indicator system instead
 const ContactList = React.lazy(() => import('@/pages/Contact/ContactList'));
 const ContactDetail = React.lazy(() => import('@/pages/Contact/ContactDetail'));
 const ContactCreate = React.lazy(() => import('@/pages/Contact/ContactCreate'));
@@ -261,39 +258,11 @@ function App() {
                             }
                           />
 
-                          {/* KPI Management (Legacy - kept for backward compatibility) */}
-                          <Route
-                            path="/kpis"
-                            element={
-                              <LazyRoute>
-                                <KpiList />
-                              </LazyRoute>
-                            }
-                          />
-                          <Route
-                            path="/kpis/create"
-                            element={
-                              <LazyRoute>
-                                <KpiCreate />
-                              </LazyRoute>
-                            }
-                          />
-                          <Route
-                            path="/kpis/:id"
-                            element={
-                              <LazyRoute>
-                                <KpiDetail />
-                              </LazyRoute>
-                            }
-                          />
-                          <Route
-                            path="/kpis/:id/edit"
-                            element={
-                              <LazyRoute>
-                                <KpiCreate />
-                              </LazyRoute>
-                            }
-                          />
+                          {/* Legacy KPI routes removed - redirecting to Indicators */}
+                          <Route path="/kpis" element={<Navigate to="/indicators" replace />} />
+                          <Route path="/kpis/create" element={<Navigate to="/indicators/create" replace />} />
+                          <Route path="/kpis/:id" element={<Navigate to="/indicators/:id" replace />} />
+                          <Route path="/kpis/:id/edit" element={<Navigate to="/indicators/:id/edit" replace />} />
 
                           {/* Contact Management */}
                           <Route

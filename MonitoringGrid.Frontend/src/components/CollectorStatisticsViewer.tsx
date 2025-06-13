@@ -470,8 +470,8 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
             <TabPanel value={activeTab} index={0}>
               {/* Chart View */}
               <Box sx={{ height: 400 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartType === 'bar' && (
+                {chartType === 'bar' && (
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={processedData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="displayTime" />
@@ -481,8 +481,10 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       <Bar dataKey="total" fill="#2196f3" name="Total" />
                       <Bar dataKey="marked" fill="#f44336" name="Marked" />
                     </BarChart>
-                  )}
-                  {chartType === 'line' && (
+                  </ResponsiveContainer>
+                )}
+                {chartType === 'line' && (
+                  <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={processedData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="displayTime" />
@@ -493,8 +495,10 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       <Line type="monotone" dataKey="marked" stroke="#f44336" name="Marked" />
                       <Line type="monotone" dataKey="markedPercent" stroke="#4caf50" name="Marked %" />
                     </LineChart>
-                  )}
-                  {chartType === 'pie' && processedData.length > 0 && (
+                  </ResponsiveContainer>
+                )}
+                {chartType === 'pie' && processedData.length > 0 && (
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={processedData.map(d => ({
@@ -514,8 +518,8 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       </Pie>
                       <Tooltip />
                     </PieChart>
-                  )}
-                </ResponsiveContainer>
+                  </ResponsiveContainer>
+                )}
               </Box>
             </TabPanel>
 

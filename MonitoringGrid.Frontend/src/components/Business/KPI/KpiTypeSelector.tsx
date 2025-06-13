@@ -17,7 +17,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { KpiType } from '@/types/api';
-import { KPI_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/kpiTypeUtils';
+import { INDICATOR_TYPE_DEFINITIONS, COMPARISON_OPERATORS } from '@/utils/indicatorTypeUtils';
 import { Card, InputField, Select } from '@/components/UI';
 
 interface KpiTypeSelectorProps {
@@ -55,7 +55,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
   onOperatorChange,
   disabled = false,
 }) => {
-  const selectedDefinition = KPI_TYPE_DEFINITIONS.find(def => def.type === selectedType);
+  const selectedDefinition = INDICATOR_TYPE_DEFINITIONS.find(def => def.type === selectedType);
   const requiresThreshold = selectedDefinition?.requiredFields.includes('thresholdValue');
   const requiresOperator = selectedDefinition?.requiredFields.includes('comparisonOperator');
 
@@ -81,7 +81,7 @@ export const KpiTypeSelector: React.FC<KpiTypeSelectorProps> = ({
               value={selectedType}
               onChange={e => onTypeChange(e.target.value as KpiType)}
               disabled={disabled}
-              options={KPI_TYPE_DEFINITIONS.map(definition => ({
+              options={INDICATOR_TYPE_DEFINITIONS.map(definition => ({
                 value: definition.type,
                 label: definition.name,
                 description: definition.description,

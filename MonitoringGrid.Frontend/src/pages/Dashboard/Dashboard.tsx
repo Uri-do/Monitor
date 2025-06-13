@@ -98,7 +98,16 @@ const Dashboard: React.FC = () => {
         {/* Running Indicators */}
         <RunningIndicatorsCard
           indicatorDashboard={mergedIndicatorDashboard}
-          realtimeRunningIndicators={dashboardState.runningKpis || []}
+          realtimeRunningIndicators={(dashboardState.runningKpis || []).map(kpi => ({
+            indicatorId: kpi.kpiId,
+            indicator: kpi.indicator,
+            owner: kpi.owner,
+            startTime: kpi.startTime,
+            progress: kpi.progress,
+            estimatedCompletion: kpi.estimatedCompletion,
+            currentStep: kpi.currentStep,
+            elapsedTime: kpi.elapsedTime,
+          }))}
         />
 
         {/* Next Indicator Due */}

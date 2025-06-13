@@ -29,7 +29,7 @@ builder.Services.Configure<WorkerConfiguration>(
 var host = builder.Build();
 var config = host.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<WorkerConfiguration>>();
 
-Console.WriteLine($"KPI Monitoring Interval: {config.Value.KpiMonitoring.IntervalSeconds}s");
+Console.WriteLine($"Indicator Monitoring Interval: {config.Value.IndicatorMonitoring.IntervalSeconds}s");
 Console.WriteLine($"Health Check Interval: {config.Value.HealthChecks.IntervalSeconds}s");
 Console.WriteLine($"Alert Processing Enabled: {config.Value.AlertProcessing.EnableEscalation}");
 Console.WriteLine("Configuration test passed!");
@@ -52,11 +52,10 @@ Write-Host "🔌 Checking service registrations..." -ForegroundColor Yellow
 $programCs = Get-Content "MonitoringGrid.Worker/Program.cs" -Raw
 
 $requiredServices = @(
-    "AddHostedService<KpiMonitoringWorker>",
+    "AddHostedService<IndicatorMonitoringWorker>",
     "AddHostedService<ScheduledTaskWorker>",
     "AddHostedService<HealthCheckWorker>",
-    "AddHostedService<AlertProcessingWorker>",
-    "AddScoped<IKpiService",
+    "AddScoped<IIndicatorService",
     "AddDbContext<MonitoringContext>"
 )
 
@@ -111,10 +110,9 @@ Write-Host ""
 # Check worker services
 Write-Host "🔄 Checking worker service implementations..." -ForegroundColor Yellow
 $workerServices = @(
-    "MonitoringGrid.Worker/Services/KpiMonitoringWorker.cs",
+    "MonitoringGrid.Worker/Services/IndicatorMonitoringWorker.cs",
     "MonitoringGrid.Worker/Services/ScheduledTaskWorker.cs",
-    "MonitoringGrid.Worker/Services/HealthCheckWorker.cs",
-    "MonitoringGrid.Worker/Services/AlertProcessingWorker.cs"
+    "MonitoringGrid.Worker/Services/HealthCheckWorker.cs"
 )
 
 foreach ($service in $workerServices) {

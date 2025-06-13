@@ -37,17 +37,20 @@ export const useExecutionDetail = (executionId: number) => {
 };
 
 /**
- * Enhanced useKpiExecutionHistory hook for KPI-specific execution history
+ * Enhanced useIndicatorExecutionHistory hook for Indicator-specific execution history
  */
-export const useKpiExecutionHistory = (kpiId: number, limit?: number) => {
+export const useIndicatorExecutionHistory = (indicatorId: number, limit?: number) => {
   return useQuery({
-    queryKey: queryKeys.executionHistory.byKpi(kpiId, limit),
-    queryFn: () => executionHistoryApi.getExecutionHistory({ kpiId, pageSize: limit }),
-    enabled: !!kpiId && kpiId > 0,
+    queryKey: queryKeys.executionHistory.byKpi(indicatorId, limit), // Note: still using byKpi for backward compatibility
+    queryFn: () => executionHistoryApi.getExecutionHistory({ kpiId: indicatorId, pageSize: limit }),
+    enabled: !!indicatorId && indicatorId > 0,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000, // Auto-refetch every minute for recent executions
   });
 };
+
+// Legacy export for backward compatibility
+export const useKpiExecutionHistory = useIndicatorExecutionHistory;
 
 /**
  * Enhanced useExecutionStatistics hook for execution analytics

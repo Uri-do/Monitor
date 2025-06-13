@@ -121,7 +121,7 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
           </Box>
 
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            {indicatorDashboard?.indicatorStatuses && indicatorDashboard.indicatorStatuses.length > 0 ? (
+            {indicatorDashboard?.nextIndicatorDue ? (
               <Box
                 sx={{
                   p: 3,
@@ -142,7 +142,7 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
                     sx={{
                       '& .MuiBadge-badge': {
                         backgroundColor: theme =>
-                          indicatorDashboard.indicatorStatuses[0]?.status === 'never_run'
+                          indicatorDashboard.nextIndicatorDue?.status === 'never_run'
                             ? theme.palette.warning.main
                             : theme.palette.primary.main,
                         color: 'white',
@@ -156,10 +156,10 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
                       variant="h6"
                       sx={{ fontWeight: 600, color: theme => theme.palette.primary.dark }}
                     >
-                      {indicatorDashboard.indicatorStatuses[0]?.indicatorName}
+                      {indicatorDashboard.nextIndicatorDue?.indicatorName}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Status: {indicatorDashboard.indicatorStatuses[0]?.status}
+                      Status: {indicatorDashboard.nextIndicatorDue?.status}
                     </Typography>
                   </Box>
                 </Box>
@@ -172,8 +172,8 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
                       Next Run
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {indicatorDashboard.indicatorStatuses[0]?.nextRun
-                        ? format(new Date(indicatorDashboard.indicatorStatuses[0].nextRun), 'MMM dd, HH:mm:ss')
+                      {indicatorDashboard.nextIndicatorDue?.nextDue
+                        ? format(new Date(indicatorDashboard.nextIndicatorDue.nextDue), 'MMM dd, HH:mm:ss')
                         : 'N/A'}
                     </Typography>
                   </Box>
@@ -265,16 +265,14 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
 
                 <Box display="flex" alignItems="center" gap={1}>
                   <Chip
-                    label={indicatorDashboard.indicatorStatuses[0]?.status || 'Unknown'}
-                    color={getStatusColor(indicatorDashboard.indicatorStatuses[0]?.status)}
+                    label={indicatorDashboard.nextIndicatorDue?.status || 'Unknown'}
+                    color={getStatusColor(indicatorDashboard.nextIndicatorDue?.status)}
                     size="small"
                     sx={{ fontWeight: 600 }}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    {indicatorDashboard.indicatorStatuses[0]?.isCurrentlyRunning
-                      ? 'Currently running...'
-                      : 'Scheduled'}{' '}
-                    • Active: {indicatorDashboard.indicatorStatuses[0]?.isActive ? 'Yes' : 'No'}
+                    Next execution scheduled
+                    • Priority: {indicatorDashboard.nextIndicatorDue?.priority}
                   </Typography>
                 </Box>
               </Box>

@@ -107,7 +107,7 @@ public class EnhancedExceptionHandlingMiddleware
         if (_environment.IsDevelopment())
         {
             metadata["StackTrace"] = exception.StackTrace ?? "No stack trace available";
-            metadata["InnerException"] = exception.InnerException?.Message;
+            metadata["InnerException"] = exception.InnerException?.Message ?? "No inner exception";
         }
 
         return exception switch

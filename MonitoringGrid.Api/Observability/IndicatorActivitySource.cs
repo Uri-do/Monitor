@@ -3,41 +3,41 @@ using System.Diagnostics;
 namespace MonitoringGrid.Api.Observability;
 
 /// <summary>
-/// Custom activity source for KPI execution tracing
+/// Custom activity source for Indicator execution tracing
 /// </summary>
-public static class KpiActivitySource
+public static class IndicatorActivitySource
 {
-    public static readonly ActivitySource Source = new("MonitoringGrid.KpiExecution", "1.0.0");
+    public static readonly ActivitySource Source = new("MonitoringGrid.IndicatorExecution", "1.0.0");
 
     /// <summary>
-    /// Start a KPI execution activity
+    /// Start an Indicator execution activity
     /// </summary>
-    public static Activity? StartKpiExecution(int kpiId, string indicator)
+    public static Activity? StartIndicatorExecution(long indicatorId, string indicator)
     {
-        return Source.StartActivity("ExecuteKpi", ActivityKind.Internal)
-            ?.SetTag("kpi.id", kpiId)
-            ?.SetTag("kpi.indicator", indicator)
-            ?.SetTag("operation.type", "kpi_execution");
+        return Source.StartActivity("ExecuteIndicator", ActivityKind.Internal)
+            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.name", indicator)
+            ?.SetTag("operation.type", "indicator_execution");
     }
 
     /// <summary>
-    /// Start a KPI validation activity
+    /// Start an Indicator validation activity
     /// </summary>
-    public static Activity? StartKpiValidation(int kpiId, string indicator)
+    public static Activity? StartIndicatorValidation(long indicatorId, string indicator)
     {
-        return Source.StartActivity("ValidateKpi", ActivityKind.Internal)
-            ?.SetTag("kpi.id", kpiId)
-            ?.SetTag("kpi.indicator", indicator)
-            ?.SetTag("operation.type", "kpi_validation");
+        return Source.StartActivity("ValidateIndicator", ActivityKind.Internal)
+            ?.SetTag("indicator.id", indicatorId)
+            ?.SetTag("indicator.name", indicator)
+            ?.SetTag("operation.type", "indicator_validation");
     }
 
     /// <summary>
-    /// Start a database query activity for KPI
+    /// Start a database query activity for Indicator
     /// </summary>
-    public static Activity? StartDatabaseQuery(int kpiId, string storedProcedure)
+    public static Activity? StartDatabaseQuery(long indicatorId, string storedProcedure)
     {
         return Source.StartActivity("ExecuteStoredProcedure", ActivityKind.Client)
-            ?.SetTag("kpi.id", kpiId)
+            ?.SetTag("indicator.id", indicatorId)
             ?.SetTag("db.operation", "stored_procedure")
             ?.SetTag("db.sql.table", storedProcedure)
             ?.SetTag("operation.type", "database_query");
@@ -46,10 +46,10 @@ public static class KpiActivitySource
     /// <summary>
     /// Start an alert processing activity
     /// </summary>
-    public static Activity? StartAlertProcessing(int kpiId, string alertType)
+    public static Activity? StartAlertProcessing(long indicatorId, string alertType)
     {
         return Source.StartActivity("ProcessAlert", ActivityKind.Internal)
-            ?.SetTag("kpi.id", kpiId)
+            ?.SetTag("indicator.id", indicatorId)
             ?.SetTag("alert.type", alertType)
             ?.SetTag("operation.type", "alert_processing");
     }
@@ -135,15 +135,15 @@ public static class ApiActivitySource
     /// <summary>
     /// Start an analytics calculation activity
     /// </summary>
-    public static Activity? StartAnalyticsCalculation(string calculationType, int? kpiId = null)
+    public static Activity? StartAnalyticsCalculation(string calculationType, long? indicatorId = null)
     {
         var activity = Source.StartActivity($"CalculateAnalytics.{calculationType}", ActivityKind.Internal)
             ?.SetTag("analytics.calculation_type", calculationType)
             ?.SetTag("operation.type", "analytics_calculation");
 
-        if (kpiId.HasValue)
+        if (indicatorId.HasValue)
         {
-            activity?.SetTag("kpi.id", kpiId.Value);
+            activity?.SetTag("indicator.id", indicatorId.Value);
         }
 
         return activity;

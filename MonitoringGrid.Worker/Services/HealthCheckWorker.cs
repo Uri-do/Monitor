@@ -132,15 +132,15 @@ public class HealthCheckWorker : BackgroundService
 }
 
 /// <summary>
-/// Health check for KPI execution functionality
+/// Health check for Indicator execution functionality
 /// </summary>
-public class KpiExecutionHealthCheck : IHealthCheck
+public class IndicatorExecutionHealthCheck : IHealthCheck
 {
-    private readonly ILogger<KpiExecutionHealthCheck> _logger;
+    private readonly ILogger<IndicatorExecutionHealthCheck> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public KpiExecutionHealthCheck(
-        ILogger<KpiExecutionHealthCheck> logger,
+    public IndicatorExecutionHealthCheck(
+        ILogger<IndicatorExecutionHealthCheck> logger,
         IServiceProvider serviceProvider)
     {
         _logger = logger;

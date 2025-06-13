@@ -22,13 +22,14 @@ MonitoringGrid.Core/
 Domain entities represent the core business objects with rich behavior:
 
 ### Monitoring Domain
-- **KPI**: Key Performance Indicator configuration with validation and scheduling logic
+- **Indicator**: Performance indicator configuration with validation and scheduling logic
 - **AlertLog**: Alert records with severity calculation and resolution logic
-- **HistoricalData**: Time-based data operations and trend analysis
 - **Contact**: Contact information with validation methods
-- **KpiContact**: Many-to-many relationship between KPIs and contacts
+- **IndicatorContact**: Many-to-many relationship between Indicators and contacts
 - **SystemStatus**: System health monitoring and heartbeat logic
 - **Config**: Type-safe configuration value retrieval
+- **Collector**: Statistics collector configuration for ProgressPlayDB integration
+- **MonitorStatistics**: Statistical data collection and analysis
 
 ### Security Domain
 - **User**: User accounts with authentication logic
@@ -57,11 +58,12 @@ Domain entities represent the core business objects with rich behavior:
 Service contracts that define business operations:
 
 ### Core Services
-- **IKpiExecutionService**: KPI execution and validation
-- **IAlertService**: Alert management and notification
+- **IIndicatorExecutionService**: Indicator execution and validation
+- **IIndicatorService**: Indicator management and configuration
 - **IEmailService**: Email notification abstraction
 - **ISmsService**: SMS notification abstraction
 - **IRepository<T>**: Generic data access pattern
+- **IMonitorStatisticsService**: Statistics collection and analysis
 
 ### Integration Services
 - **ISlackService**: Slack integration
@@ -87,16 +89,16 @@ Service contracts that define business operations:
 Value objects and data transfer models:
 
 ### Core Models
-- **KpiExecutionResult**: KPI execution outcomes with business methods
+- **IndicatorExecutionResult**: Indicator execution outcomes with business methods
 - **AlertResult**: Alert sending results with summary logic
 - **MonitoringConfiguration**: System configuration with validation
 
 ### Analytics Models
-- **KpiTrendAnalysis**: Trend analysis results
-- **KpiPerformanceMetrics**: Performance metrics
-- **KpiPrediction**: Predictive analytics results
-- **KpiCorrelationAnalysis**: Correlation analysis
-- **KpiAnomalyDetection**: Anomaly detection results
+- **IndicatorTrendAnalysis**: Trend analysis results
+- **IndicatorPerformanceMetrics**: Performance metrics
+- **IndicatorPrediction**: Predictive analytics results
+- **IndicatorCorrelationAnalysis**: Correlation analysis
+- **IndicatorAnomalyDetection**: Anomaly detection results
 
 ### Integration Models
 - **AlertNotificationDto**: Alert notification data
@@ -109,8 +111,9 @@ Value objects and data transfer models:
 
 Domain services for complex business logic that doesn't belong to a single entity:
 
-- **KpiDomainService**: KPI business operations, statistics, validation
-- **KpiAnalyticsService**: Advanced analytics and trend analysis
+- **IndicatorDomainService**: Indicator business operations, statistics, validation
+- **IndicatorAnalyticsService**: Advanced analytics and trend analysis
+- **MonitorStatisticsService**: Statistics collection and aggregation service
 
 ## Design Principles
 

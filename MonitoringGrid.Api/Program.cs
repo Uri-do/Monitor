@@ -624,7 +624,7 @@ builder.Services.AddOpenTelemetry()
                 options.SetDbStatementForText = true;
                 options.RecordException = true;
             })
-            .AddSource(KpiActivitySource.Source.Name)
+            .AddSource(IndicatorActivitySource.Source.Name)
             .AddSource(ApiActivitySource.Source.Name);
     });
 

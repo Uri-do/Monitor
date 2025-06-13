@@ -46,7 +46,7 @@ const indicatorSchema = yup.object().shape({
   thresholdField: yup.string().required('Threshold field is required'),
   thresholdComparison: yup.string().required('Threshold comparison is required'),
   thresholdValue: yup.number().required('Threshold value is required'),
-  priority: yup.string().required('Priority is required'),
+  priority: yup.number().required('Priority is required'),
   ownerContactId: yup.number().required('Owner contact is required').min(1),
   averageLastDays: yup.number().optional().min(1),
   averageOfCurrHour: yup.boolean().default(false),
@@ -58,7 +58,7 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID?: number;
+  collectorID?: number | null;
   collectorItemName?: string;
   scheduleConfiguration: string;
   lastMinutes: number;
@@ -66,10 +66,10 @@ interface IndicatorFormData {
   thresholdField: string;
   thresholdComparison: string;
   thresholdValue: number;
-  priority: string;
+  priority: number;
   ownerContactId: number;
   averageLastDays?: number;
-  averageOfCurrHour: boolean;
+  averageOfCurrHour?: boolean;
   isActive: boolean;
   contactIds: number[];
 }
@@ -194,7 +194,7 @@ const IndicatorCreate: React.FC = () => {
       thresholdField: '',
       thresholdComparison: '',
       thresholdValue: 0,
-      priority: 'medium',
+      priority: 2, // 1=High, 2=Medium, 3=Low
       ownerContactId: 0,
       averageOfCurrHour: false,
       isActive: true,
@@ -228,10 +228,10 @@ const IndicatorCreate: React.FC = () => {
         thresholdField: indicator.thresholdField || '',
         thresholdComparison: indicator.thresholdComparison || '',
         thresholdValue: indicator.thresholdValue || 0,
-        priority: indicator.priority || 'medium',
+        priority: typeof indicator.priority === 'number' ? indicator.priority : 2,
         ownerContactId: indicator.ownerContactId,
         averageLastDays: indicator.averageLastDays,
-        averageOfCurrHour: indicator.averageOfCurrHour || false,
+        // averageOfCurrHour: not available in IndicatorDto
         isActive: indicator.isActive,
         contactIds: indicator.contacts.map(c => c.contactId),
       });
@@ -248,6 +248,7 @@ const IndicatorCreate: React.FC = () => {
   const onSubmit = (data: IndicatorFormData) => {
     const formData = {
       ...data,
+      collectorItemName: data.collectorItemName || '',
       contactIds: selectedContacts.map(c => c.contactId),
     };
 
@@ -255,11 +256,11 @@ const IndicatorCreate: React.FC = () => {
       updateIndicatorMutation.mutate({
         ...formData,
         indicatorID: indicatorId,
-      }, {
+      } as UpdateIndicatorRequest, {
         onSuccess: () => navigate(`/indicators/${indicatorId}`),
       });
     } else {
-      createIndicatorMutation.mutate(formData, {
+      createIndicatorMutation.mutate(formData as CreateIndicatorRequest, {
         onSuccess: () => navigate('/indicators'),
       });
     }
@@ -430,9 +431,9 @@ const IndicatorCreate: React.FC = () => {
                       {...field}
                       label="Priority"
                       options={[
-                        { value: 'high', label: 'High' },
-                        { value: 'medium', label: 'Medium' },
-                        { value: 'low', label: 'Low' },
+                        { value: 1, label: 'High' },
+                        { value: 2, label: 'Medium' },
+                        { value: 3, label: 'Low' },
                       ]}
                       error={!!errors.priority}
                       required

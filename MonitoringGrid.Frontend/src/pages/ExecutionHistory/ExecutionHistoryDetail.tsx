@@ -27,9 +27,9 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-import { executionHistoryApi, kpiApi } from '@/services/api';
+import { executionHistoryApi, indicatorApi } from '@/services/api';
 import { useExecutionDetail } from '@/hooks/useExecutionHistory';
-import { useKpi } from '@/hooks/useKpis';
+import { useIndicator } from '@/hooks/useIndicators';
 import { ExecutionHistoryDetailDto } from '@/types/api';
 import { PageHeader, LoadingSpinner, StatusChip } from '@/components';
 
@@ -40,15 +40,15 @@ const ExecutionHistoryDetail: React.FC = () => {
 
   const historicalId = parseInt(id || '0');
 
-  // Check if we came from a KPI details page
-  const fromKpiDetails = location.state?.fromKpiDetails;
-  const kpiId = location.state?.kpiId;
+  // Check if we came from an Indicator details page
+  const fromIndicatorDetails = location.state?.fromIndicatorDetails;
+  const indicatorId = location.state?.indicatorId;
 
   // Use enhanced hooks for data fetching
   const { data: execution, isLoading, error } = useExecutionDetail(historicalId);
 
-  // Fetch KPI details if we came from KPI page and have execution data
-  const { data: kpiData } = useKpi(execution?.kpiId || kpiId);
+  // Fetch Indicator details if we came from Indicator page and have execution data
+  const { data: indicatorData } = useIndicator(execution?.kpiId || indicatorId);
 
   // Handle invalid ID
   React.useEffect(() => {
@@ -97,10 +97,10 @@ const ExecutionHistoryDetail: React.FC = () => {
 
   // Generate breadcrumbs based on navigation context
   const getBreadcrumbs = () => {
-    if (fromKpiDetails && kpiData) {
+    if (fromIndicatorDetails && indicatorData) {
       return [
-        { label: 'KPIs', href: '/kpis' },
-        { label: kpiData.indicator, href: `/kpis/${kpiData.kpiId}` },
+        { label: 'Indicators', href: '/indicators' },
+        { label: indicatorData.indicatorName, href: `/indicators/${indicatorData.indicatorID}` },
         { label: 'Execution Details' },
       ];
     }
@@ -109,7 +109,7 @@ const ExecutionHistoryDetail: React.FC = () => {
 
   // Generate back action based on navigation context
   const getBackAction = () => {
-    if (fromKpiDetails && execution?.kpiId) {
+    if (fromIndicatorDetails && execution?.kpiId) {
       return {
         label: 'Back to KPI',
         icon: <BackIcon />,

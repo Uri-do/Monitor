@@ -135,10 +135,9 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
       }));
 
       // Update TanStack Query cache with fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.detail(data.kpiId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.executions(data.kpiId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.analytics(data.kpiId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.executionHistory.byKpi(data.kpiId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 
       // If execution generated alerts, refresh alert data
@@ -262,7 +261,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
     // Invalidate dashboard-related queries to trigger fresh data fetch
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.kpis.lists() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
     queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
   }, [queryClient]);
 

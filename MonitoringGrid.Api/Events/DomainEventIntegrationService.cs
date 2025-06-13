@@ -73,16 +73,17 @@ public class DomainEventIntegrationService
     }
 
     /// <summary>
-    /// Demonstrates event-driven workflow by simulating a complete KPI lifecycle
+    /// Demonstrates event-driven workflow by simulating a complete Indicator lifecycle
     /// </summary>
-    public async Task DemonstrateEventDrivenWorkflowAsync(CancellationToken cancellationToken = default)
+    public Task DemonstrateEventDrivenWorkflowAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting domain event workflow demonstration");
 
         try
         {
-            // No demo events - only process real domain events from actual KPI operations
+            // No demo events - only process real domain events from actual Indicator operations
             _logger.LogInformation("Domain event service ready - will process real events only");
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {

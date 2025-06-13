@@ -4,14 +4,7 @@
 export type { MutationOptions, MutationResult } from './types';
 export { createMutationHook, handleMutationError } from './utils';
 
-// KPI mutations
-export {
-  useCreateKpi,
-  useUpdateKpi,
-  useDeleteKpi,
-  useExecuteKpi,
-  useBulkKpiOperation,
-} from './useKpiMutations';
+// Legacy KPI mutations removed - use Indicator mutations instead
 
 // Alert mutations
 export { useResolveAlert, useBulkResolveAlerts, useCreateManualAlert } from './useAlertMutations';

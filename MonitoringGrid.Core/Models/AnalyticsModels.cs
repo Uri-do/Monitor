@@ -3,11 +3,11 @@ using MonitoringGrid.Core.Enums;
 namespace MonitoringGrid.Core.Models;
 
 /// <summary>
-/// KPI trend analysis result
+/// Indicator trend analysis result
 /// </summary>
-public class KpiTrendAnalysis
+public class IndicatorTrendAnalysis
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public int AnalysisPeriodDays { get; set; }
     public int DataPoints { get; set; }
     public TrendDirection TrendDirection { get; set; }
@@ -38,12 +38,12 @@ public class TrendChange
 }
 
 /// <summary>
-/// KPI performance metrics
+/// Indicator performance metrics
 /// </summary>
-public class KpiPerformanceMetrics
+public class IndicatorPerformanceMetrics
 {
-    public int KpiId { get; set; }
-    public string KpiName { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public int ExecutionCount { get; set; }
     public double SuccessRate { get; set; }
     public double AverageExecutionTime { get; set; }
@@ -56,11 +56,11 @@ public class KpiPerformanceMetrics
 }
 
 /// <summary>
-/// KPI prediction result
+/// Indicator prediction result
 /// </summary>
-public class KpiPrediction
+public class IndicatorPrediction
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public DateTime PredictionDate { get; set; }
     public decimal PredictedValue { get; set; }
     public double ConfidenceLevel { get; set; }
@@ -82,14 +82,14 @@ public class PredictionDataPoint
 }
 
 /// <summary>
-/// KPI correlation analysis
+/// Indicator correlation analysis
 /// </summary>
-public class KpiCorrelationAnalysis
+public class IndicatorCorrelationAnalysis
 {
-    public int KpiId1 { get; set; }
-    public int KpiId2 { get; set; }
-    public string KpiName1 { get; set; } = string.Empty;
-    public string KpiName2 { get; set; } = string.Empty;
+    public long IndicatorId1 { get; set; }
+    public long IndicatorId2 { get; set; }
+    public string IndicatorName1 { get; set; } = string.Empty;
+    public string IndicatorName2 { get; set; } = string.Empty;
     public double CorrelationCoefficient { get; set; }
     public CorrelationStrength Strength { get; set; }
     public int DataPoints { get; set; }
@@ -100,11 +100,11 @@ public class KpiCorrelationAnalysis
 // CorrelationStrength enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
-/// KPI anomaly detection result
+/// Indicator anomaly detection result
 /// </summary>
-public class KpiAnomalyDetection
+public class IndicatorAnomalyDetection
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public int AnomaliesDetected { get; set; }
     public string Method { get; set; } = string.Empty;
     public decimal Threshold { get; set; }
@@ -128,11 +128,11 @@ public class AnomalyPoint
 // AnomalyType enum moved to MonitoringGrid.Core.Enums.CoreEnums
 
 /// <summary>
-/// KPI seasonality analysis
+/// Indicator seasonality analysis
 /// </summary>
-public class KpiSeasonalityAnalysis
+public class IndicatorSeasonalityAnalysis
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public SeasonalityType Type { get; set; }
     public double Strength { get; set; }
     public int Period { get; set; }
@@ -155,9 +155,9 @@ public class SeasonalComponent
 }
 
 /// <summary>
-/// KPI data point for charts and analysis
+/// Indicator data point for charts and analysis
 /// </summary>
-public class KpiDataPoint
+public class IndicatorDataPoint
 {
     public DateTime Timestamp { get; set; }
     public decimal Value { get; set; }
@@ -193,10 +193,10 @@ public class StatisticalSummary
 /// </summary>
 public class TimeSeriesDecomposition
 {
-    public List<KpiDataPoint> Original { get; set; } = new();
-    public List<KpiDataPoint> Trend { get; set; } = new();
-    public List<KpiDataPoint> Seasonal { get; set; } = new();
-    public List<KpiDataPoint> Residual { get; set; } = new();
+    public List<IndicatorDataPoint> Original { get; set; } = new();
+    public List<IndicatorDataPoint> Trend { get; set; } = new();
+    public List<IndicatorDataPoint> Seasonal { get; set; } = new();
+    public List<IndicatorDataPoint> Residual { get; set; } = new();
     public DecompositionMethod Method { get; set; }
 }
 
@@ -207,7 +207,7 @@ public class TimeSeriesDecomposition
 /// </summary>
 public class ForecastResult
 {
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
     public List<PredictionDataPoint> Forecast { get; set; } = new();
     public string Method { get; set; } = string.Empty;
     public double Accuracy { get; set; }

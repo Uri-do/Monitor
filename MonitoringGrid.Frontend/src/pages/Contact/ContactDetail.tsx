@@ -33,8 +33,8 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContact } from '@/hooks/useContacts';
-import { useKpis } from '@/hooks/useKpis';
-import { useExecuteKpi } from '@/hooks/mutations';
+import { useIndicators } from '@/hooks/useIndicators';
+import { useExecuteIndicator } from '@/hooks/useIndicatorMutations';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { PageHeader, StatusChip, LoadingSpinner } from '@/components';
@@ -48,10 +48,10 @@ const ContactDetail: React.FC = () => {
 
   // Use enhanced hooks for data fetching
   const { data: contact, isLoading: contactLoading } = useContact(contactId);
-  const { data: allKpis = [], isLoading: kpisLoading } = useKpis();
+  const { data: allIndicators = [], isLoading: indicatorsLoading } = useIndicators();
 
-  // Use mutation hook for KPI execution
-  const executeKpiMutation = useExecuteKpi();
+  // Use mutation hook for Indicator execution
+  const executeIndicatorMutation = useExecuteIndicator();
 
   if (contactLoading) {
     return <LoadingSpinner />;
@@ -65,19 +65,19 @@ const ContactDetail: React.FC = () => {
     );
   }
 
-  const handleKpiView = (kpiId: number) => {
-    navigate(`/kpis/${kpiId}`);
+  const handleIndicatorView = (indicatorId: number) => {
+    navigate(`/indicators/${indicatorId}`);
   };
 
-  const handleKpiExecute = (kpiId: number) => {
-    executeKpiMutation.mutate({ kpiId });
+  const handleIndicatorExecute = (indicatorId: number) => {
+    executeIndicatorMutation.mutate({ indicatorID: indicatorId });
   };
 
   return (
     <Box>
       <PageHeader
         title={contact.name}
-        subtitle={`Contact Information and KPI Assignments`}
+        subtitle={`Contact Information and Indicator Assignments`}
         breadcrumbs={[{ label: 'Contacts', href: '/contacts' }, { label: contact.name }]}
         primaryAction={{
           label: 'Edit Contact',
@@ -86,7 +86,7 @@ const ContactDetail: React.FC = () => {
         }}
         actions={[
           {
-            label: 'Assign KPIs',
+            label: 'Assign Indicators',
             icon: <AssignIcon />,
             onClick: () => setAssignDialogOpen(true),
             variant: 'outlined',
@@ -165,12 +165,12 @@ const ContactDetail: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Assigned KPIs */}
+        {/* Assigned Indicators */}
         <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Assigned KPIs ({contact.assignedKpis.length})</Typography>
+                <Typography variant="h6">Assigned Indicators ({contact.assignedKpis.length})</Typography>
                 <Button
                   variant="outlined"
                   startIcon={<AssignIcon />}
@@ -194,23 +194,23 @@ const ContactDetail: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {contact.assignedKpis.map(kpi => (
-                        <TableRow key={kpi.kpiId}>
+                      {contact.assignedKpis.map(indicator => (
+                        <TableRow key={indicator.kpiId}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
-                              {kpi.indicator}
+                              {indicator.indicator}
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2">{kpi.owner}</Typography>
+                            <Typography variant="body2">{indicator.owner}</Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={`Priority ${kpi.priority}`}
+                              label={`Priority ${indicator.priority}`}
                               color={
-                                kpi.priority <= 2
+                                indicator.priority <= 2
                                   ? 'error'
-                                  : kpi.priority === 3
+                                  : indicator.priority === 3
                                     ? 'warning'
                                     : 'success'
                               }
@@ -218,20 +218,20 @@ const ContactDetail: React.FC = () => {
                             />
                           </TableCell>
                           <TableCell>
-                            <StatusChip status={kpi.isActive ? 'active' : 'inactive'} />
+                            <StatusChip status={indicator.isActive ? 'active' : 'inactive'} />
                           </TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1}>
-                              <Tooltip title="View KPI">
-                                <IconButton size="small" onClick={() => handleKpiView(kpi.kpiId)}>
+                              <Tooltip title="View Indicator">
+                                <IconButton size="small" onClick={() => handleIndicatorView(indicator.kpiId)}>
                                   <ViewIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Execute KPI">
+                              <Tooltip title="Execute Indicator">
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleKpiExecute(kpi.kpiId)}
-                                  disabled={!kpi.isActive}
+                                  onClick={() => handleIndicatorExecute(indicator.kpiId)}
+                                  disabled={!indicator.isActive}
                                 >
                                   <ExecuteIcon fontSize="small" />
                                 </IconButton>
@@ -245,7 +245,7 @@ const ContactDetail: React.FC = () => {
                 </TableContainer>
               ) : (
                 <Alert severity="info">
-                  No KPIs assigned to this contact. Click "Manage Assignments" to assign KPIs.
+                  No Indicators assigned to this contact. Click "Manage Assignments" to assign Indicators.
                 </Alert>
               )}
             </CardContent>
@@ -253,22 +253,22 @@ const ContactDetail: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* KPI Assignment Dialog */}
+      {/* Indicator Assignment Dialog */}
       <Dialog
         open={assignDialogOpen}
         onClose={() => setAssignDialogOpen(false)}
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Manage KPI Assignments</DialogTitle>
+        <DialogTitle>Manage Indicator Assignments</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Select KPIs to assign to {contact.name}. This feature will be fully implemented soon.
+            Select Indicators to assign to {contact.name}. This feature will be fully implemented soon.
           </Typography>
-          {/* TODO: Implement KPI assignment interface */}
+          {/* TODO: Implement Indicator assignment interface */}
           <Alert severity="info" sx={{ mt: 2 }}>
-            KPI assignment interface is under development. For now, you can manage assignments
-            through the KPI edit page.
+            Indicator assignment interface is under development. For now, you can manage assignments
+            through the Indicator edit page.
           </Alert>
         </DialogContent>
         <DialogActions>

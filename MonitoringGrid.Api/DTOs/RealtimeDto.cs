@@ -15,27 +15,27 @@ public class WorkerStatusUpdateDto
     public string Uptime { get; set; } = string.Empty;
 }
 
-// Note: WorkerServiceDto is already defined in KpiDtos.cs
+// Note: WorkerServiceDto is already defined in IndicatorDtos.cs
 
 /// <summary>
-/// DTO for KPI execution started event
+/// DTO for Indicator execution started event
 /// </summary>
-public class KpiExecutionStartedDto
+public class IndicatorExecutionStartedDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
     public int? EstimatedDuration { get; set; }
 }
 
 /// <summary>
-/// DTO for KPI execution progress event
+/// DTO for Indicator execution progress event
 /// </summary>
-public class KpiExecutionProgressDto
+public class IndicatorExecutionProgressDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public int Progress { get; set; } // 0-100
     public string CurrentStep { get; set; } = string.Empty;
     public int ElapsedTime { get; set; }
@@ -43,12 +43,12 @@ public class KpiExecutionProgressDto
 }
 
 /// <summary>
-/// DTO for KPI execution completed event
+/// DTO for Indicator execution completed event
 /// </summary>
-public class KpiExecutionCompletedDto
+public class IndicatorExecutionCompletedDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public bool Success { get; set; }
     public decimal? Value { get; set; }
     public int Duration { get; set; }
@@ -61,48 +61,48 @@ public class KpiExecutionCompletedDto
 /// </summary>
 public class CountdownUpdateDto
 {
-    public int NextKpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long NextIndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public int SecondsUntilDue { get; set; }
     public string ScheduledTime { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// DTO for next KPI schedule updates
+/// DTO for next Indicator schedule updates
 /// </summary>
-public class NextKpiScheduleUpdateDto
+public class NextIndicatorScheduleUpdateDto
 {
-    public List<NextKpiDto> NextKpis { get; set; } = new();
+    public List<NextIndicatorDto> NextIndicators { get; set; } = new();
 }
 
 /// <summary>
-/// DTO for next KPI information
+/// DTO for next Indicator information
 /// </summary>
-public class NextKpiDto
+public class NextIndicatorDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string ScheduledTime { get; set; } = string.Empty;
     public int MinutesUntilDue { get; set; }
 }
 
 /// <summary>
-/// DTO for running KPIs updates
+/// DTO for running Indicators updates
 /// </summary>
-public class RunningKpisUpdateDto
+public class RunningIndicatorsUpdateDto
 {
-    public List<RunningKpiDto> RunningKpis { get; set; } = new();
+    public List<RunningIndicatorDto> RunningIndicators { get; set; } = new();
 }
 
 /// <summary>
-/// DTO for running KPI information
+/// DTO for running Indicator information
 /// </summary>
-public class RunningKpiDto
+public class RunningIndicatorDto
 {
-    public int KpiId { get; set; }
-    public string Indicator { get; set; } = string.Empty;
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
     public int? Progress { get; set; }
@@ -115,9 +115,9 @@ public class RunningKpiDto
 public class RealtimeDashboardStateDto
 {
     public WorkerStatusUpdateDto? WorkerStatus { get; set; }
-    public List<RunningKpiDto> RunningKpis { get; set; } = new();
+    public List<RunningIndicatorDto> RunningIndicators { get; set; } = new();
     public CountdownUpdateDto? Countdown { get; set; }
-    public NextKpiDto? NextKpiDue { get; set; }
+    public NextIndicatorDto? NextIndicatorDue { get; set; }
     public DateTime LastUpdate { get; set; }
     public bool IsConnected { get; set; }
 }
@@ -139,7 +139,7 @@ public class SystemMetricsDto
 /// </summary>
 public class PerformanceMetricsDto
 {
-    public int TotalKpisExecuted { get; set; }
+    public int TotalIndicatorsExecuted { get; set; }
     public int SuccessfulExecutions { get; set; }
     public int FailedExecutions { get; set; }
     public double AverageExecutionTime { get; set; }

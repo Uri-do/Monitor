@@ -214,7 +214,7 @@ public class AdvancedCachingService : IAdvancedCachingService
             await SetAsync(key, value, expiration, tags, cancellationToken);
         }
 
-        return value;
+        return value ?? default(T);
     }
 
     /// <summary>
@@ -288,10 +288,10 @@ public class AdvancedCachingService : IAdvancedCachingService
             var correlationId = _correlationIdService.GetCorrelationId();
             _logger.LogInformation("Starting cache warmup [{CorrelationId}]", correlationId);
 
-            // Warmup frequently accessed KPI data
+            // Warmup frequently accessed Indicator data
             var warmupTasks = new List<Task>
             {
-                WarmupKpiDataAsync(cancellationToken),
+                WarmupIndicatorDataAsync(cancellationToken),
                 WarmupSystemConfigurationAsync(cancellationToken),
                 WarmupUserPermissionsAsync(cancellationToken)
             };
@@ -375,14 +375,14 @@ public class AdvancedCachingService : IAdvancedCachingService
     }
 
     /// <summary>
-    /// Warms up KPI-related cache data
+    /// Warms up Indicator-related cache data
     /// </summary>
-    private async Task WarmupKpiDataAsync(CancellationToken cancellationToken)
+    private async Task WarmupIndicatorDataAsync(CancellationToken cancellationToken)
     {
-        // Implementation would load frequently accessed KPI data
+        // Implementation would load frequently accessed Indicator data
         // This is a placeholder for the actual implementation
         await Task.Delay(10, cancellationToken);
-        _logger.LogDebug("KPI data cache warmup completed");
+        _logger.LogDebug("Indicator data cache warmup completed");
     }
 
     /// <summary>

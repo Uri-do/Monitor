@@ -23,8 +23,8 @@ const MonitorStatisticsTest: React.FC = () => {
     error: itemNamesError,
   } = useCollectorItemNames(selectedCollectorId || 0);
 
-  const handleCollectorChange = (collectorId: number) => {
-    setSelectedCollectorId(collectorId);
+  const handleCollectorChange = (collectorId: number | undefined) => {
+    setSelectedCollectorId(collectorId || undefined);
     setSelectedItemName(''); // Reset item name when collector changes
   };
 

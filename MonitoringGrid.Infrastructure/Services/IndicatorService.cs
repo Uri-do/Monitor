@@ -191,13 +191,13 @@ public class IndicatorService : IIndicatorService
         return true;
     }
 
-    public async Task<List<IndicatorValueTrend>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
+    public Task<List<IndicatorValueTrend>> GetIndicatorHistoryAsync(long indicatorId, int days = 30, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving history for indicator {IndicatorId}, last {Days} days", indicatorId, days);
 
         // TODO: Implement with new IndicatorsExecutionHistory table
         // For now, return empty list since HistoricalData table is obsolete
-        return new List<IndicatorValueTrend>();
+        return Task.FromResult(new List<IndicatorValueTrend>());
     }
 
     public async Task<IndicatorDashboard> GetIndicatorDashboardAsync(CancellationToken cancellationToken = default)

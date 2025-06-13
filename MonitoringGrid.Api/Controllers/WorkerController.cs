@@ -337,17 +337,17 @@ public class WorkerController : ControllerBase
     }
 
     /// <summary>
-    /// Execute a specific KPI manually
+    /// Execute a specific Indicator manually
     /// </summary>
-    [HttpPost("execute-kpi/{kpiId}")]
-    public async Task<IActionResult> ExecuteKpi(int kpiId)
+    [HttpPost("execute-indicator/{indicatorId}")]
+    public async Task<IActionResult> ExecuteIndicator(long indicatorId)
     {
         try
         {
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
 
-            var indicator = await context.Indicators.FindAsync(kpiId);
+            var indicator = await context.Indicators.FindAsync(indicatorId);
             if (indicator == null)
             {
                 return NotFound(new { success = false, message = "Indicator not found" });
@@ -357,19 +357,19 @@ public class WorkerController : ControllerBase
             indicator.IsCurrentlyRunning = true;
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("Manual execution requested for Indicator {IndicatorId}: {IndicatorName}", kpiId, indicator.IndicatorName);
+            _logger.LogInformation("Manual execution requested for Indicator {IndicatorId}: {IndicatorName}", indicatorId, indicator.IndicatorName);
 
             return Ok(new {
                 success = true,
                 message = $"Indicator execution started: {indicator.IndicatorName}",
-                indicatorId = kpiId,
+                indicatorId = indicatorId,
                 indicatorName = indicator.IndicatorName
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing KPI {KpiId}", kpiId);
-            return StatusCode(500, new { success = false, message = "Failed to execute KPI" });
+            _logger.LogError(ex, "Error executing Indicator {IndicatorId}", indicatorId);
+            return StatusCode(500, new { success = false, message = "Failed to execute Indicator" });
         }
     }
 
