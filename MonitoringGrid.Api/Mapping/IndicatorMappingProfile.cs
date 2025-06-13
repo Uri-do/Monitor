@@ -24,7 +24,7 @@ public class IndicatorMappingProfile : Profile
         // Scheduler mappings
         CreateMap<Scheduler, SchedulerDto>()
             .ForMember(dest => dest.DisplayText, opt => opt.MapFrom(src => src.GetDisplayText()))
-            .ForMember(dest => dest.NextExecutionTime, opt => opt.MapFrom(src => src.GetNextExecutionTime()))
+            .ForMember(dest => dest.NextExecutionTime, opt => opt.MapFrom(src => src.GetNextExecutionTime(null)))
             .ForMember(dest => dest.IsCurrentlyActive, opt => opt.MapFrom(src => src.IsCurrentlyActive()))
             .ForMember(dest => dest.IndicatorCount, opt => opt.MapFrom(src => src.Indicators.Count));
 
@@ -104,7 +104,7 @@ public class IndicatorMappingProfile : Profile
         CreateMap<Collector, CollectorDto>()
             .ForMember(dest => dest.AvailableItems, opt => opt.MapFrom(src => src.Statistics.Select(s => s.ItemName).Distinct()));
 
-        CreateMap<CollectorStatistic, CollectorStatisticDto>();
+        CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();
 
         // Request to command mappings
         CreateMap<CreateIndicatorRequest, CreateIndicatorCommand>();
