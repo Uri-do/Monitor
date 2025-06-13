@@ -9,6 +9,8 @@ using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Api.Filters;
 using MonitoringGrid.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace MonitoringGrid.Api.Controllers;
 
@@ -392,4 +394,253 @@ public class IndicatorController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    #region Contact Management Endpoints
+
+    /// <summary>
+    /// Get all contacts with optional filtering
+    /// </summary>
+    [HttpGet("contacts")]
+    [ProducesResponseType(typeof(List<ContactDto>), 200)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetContacts([FromQuery] bool? isActive = null, [FromQuery] string? search = null)
+    {
+        try
+        {
+            _logger.LogDebug("Getting contacts with filters - IsActive: {IsActive}, Search: {Search}", isActive, search);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.requests");
+
+            // For now, we'll use direct database access until we implement CQRS for contacts
+            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+            var contactRepository = unitOfWork.Repository<Contact>();
+
+            // Build predicate for filtering
+            Expression<Func<Contact, bool>>? predicate = null;
+
+            if (isActive.HasValue && !string.IsNullOrWhiteSpace(search))
+            {
+                predicate = c => c.IsActive == isActive.Value &&
+                               (c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search)));
+            }
+            else if (isActive.HasValue)
+            {
+                predicate = c => c.IsActive == isActive.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(search))
+            {
+                predicate = c => c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search));
+            }
+
+            var contacts = predicate != null
+                ? await contactRepository.GetAsync(predicate)
+                : await contactRepository.GetAllAsync();
+
+            // Load indicator contacts separately for each contact
+            var indicatorContactRepository = unitOfWork.Repository<IndicatorContact>();
+            foreach (var contact in contacts)
+            {
+                var indicatorContacts = await indicatorContactRepository.GetWithIncludesAsync(
+                    ic => ic.ContactId == contact.ContactId,
+                    ic => ic.Indicator);
+
+                contact.IndicatorContacts = indicatorContacts.ToList();
+            }
+
+            var contactDtos = _mapper.Map<List<ContactDto>>(contacts);
+
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.success");
+            return Ok(contactDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contacts");
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.error");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Get contact by ID
+    /// </summary>
+    [HttpGet("contacts/{id:int}")]
+    [ProducesResponseType(typeof(ContactDto), 200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetContact(int id)
+    {
+        try
+        {
+            _logger.LogDebug("Getting contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_by_id.requests");
+
+            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+            var contactRepository = unitOfWork.Repository<Contact>();
+
+            var contact = await contactRepository.GetByIdAsync(id);
+
+            // If contact exists, load the related data separately
+            if (contact != null)
+            {
+                var indicatorContactRepository = unitOfWork.Repository<IndicatorContact>();
+                var indicatorContacts = await indicatorContactRepository.GetWithIncludesAsync(
+                    ic => ic.ContactId == id,
+                    ic => ic.Indicator);
+
+                contact.IndicatorContacts = indicatorContacts.ToList();
+            }
+
+            if (contact == null)
+            {
+                _performanceMetrics?.IncrementCounter("indicator.contacts.get_by_id.not_found");
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            var contactDto = _mapper.Map<ContactDto>(contact);
+
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_by_id.success");
+            return Ok(contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.get_by_id.error");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Create a new contact
+    /// </summary>
+    [HttpPost("contacts")]
+    [ProducesResponseType(typeof(ContactDto), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> CreateContact([FromBody] CreateContactRequest request)
+    {
+        try
+        {
+            _logger.LogDebug("Creating contact {ContactName}", request.Name);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.create.requests");
+
+            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+            var contactRepository = unitOfWork.Repository<Contact>();
+
+            var contact = new Contact
+            {
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone,
+                IsActive = request.IsActive,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+
+            await contactRepository.AddAsync(contact);
+            await unitOfWork.SaveChangesAsync();
+
+            var contactDto = _mapper.Map<ContactDto>(contact);
+
+            _performanceMetrics?.IncrementCounter("indicator.contacts.create.success");
+            return CreatedAtAction(nameof(GetContact), new { id = contact.ContactId }, contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating contact {ContactName}", request.Name);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.create.error");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Update an existing contact
+    /// </summary>
+    [HttpPut("contacts/{id:int}")]
+    [ProducesResponseType(typeof(ContactDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> UpdateContact(int id, [FromBody] UpdateContactRequest request)
+    {
+        try
+        {
+            _logger.LogDebug("Updating contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.update.requests");
+
+            if (id != request.ContactID)
+            {
+                return BadRequest("Contact ID in URL does not match request body");
+            }
+
+            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+            var contactRepository = unitOfWork.Repository<Contact>();
+
+            var contact = await contactRepository.GetByIdAsync(id);
+            if (contact == null)
+            {
+                _performanceMetrics?.IncrementCounter("indicator.contacts.update.not_found");
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            // Update contact properties
+            contact.Name = request.Name;
+            contact.Email = request.Email;
+            contact.Phone = request.Phone;
+            contact.IsActive = request.IsActive;
+            contact.ModifiedDate = DateTime.UtcNow;
+
+            await contactRepository.UpdateAsync(contact);
+            await unitOfWork.SaveChangesAsync();
+
+            var contactDto = _mapper.Map<ContactDto>(contact);
+
+            _performanceMetrics?.IncrementCounter("indicator.contacts.update.success");
+            return Ok(contactDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.update.error");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Delete a contact
+    /// </summary>
+    [HttpDelete("contacts/{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> DeleteContact(int id)
+    {
+        try
+        {
+            _logger.LogDebug("Deleting contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.delete.requests");
+
+            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+            var contactRepository = unitOfWork.Repository<Contact>();
+
+            var contact = await contactRepository.GetByIdAsync(id);
+            if (contact == null)
+            {
+                _performanceMetrics?.IncrementCounter("indicator.contacts.delete.not_found");
+                return NotFound($"Contact with ID {id} not found");
+            }
+
+            await contactRepository.DeleteAsync(contact);
+            await unitOfWork.SaveChangesAsync();
+
+            _performanceMetrics?.IncrementCounter("indicator.contacts.delete.success");
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting contact {ContactId}", id);
+            _performanceMetrics?.IncrementCounter("indicator.contacts.delete.error");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    #endregion
 }

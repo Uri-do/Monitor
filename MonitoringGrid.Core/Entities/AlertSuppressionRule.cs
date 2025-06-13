@@ -12,7 +12,7 @@ public class AlertSuppressionRule
     [Key]
     public int SuppressionRuleId { get; set; }
     
-    public int? KpiId { get; set; } // null for global rules
+    public long? IndicatorID { get; set; } // null for global rules
     
     [StringLength(100)]
     public string? Owner { get; set; } // null for all owners
@@ -34,6 +34,6 @@ public class AlertSuppressionRule
     public bool IsActive { get; set; } = true;
     
     // Navigation properties
-    [ForeignKey("KpiId")]
+    [ForeignKey("IndicatorID")]
     public virtual Indicator? Indicator { get; set; }
 }

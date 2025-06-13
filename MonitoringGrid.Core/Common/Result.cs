@@ -1,4 +1,4 @@
-namespace MonitoringGrid.Api.Common;
+namespace MonitoringGrid.Core.Common;
 
 /// <summary>
 /// Represents the result of an operation without a return value
@@ -165,4 +165,14 @@ public static class ResultExtensions
             ? onSuccess(result.Value)
             : onFailure(result.Error);
     }
+}
+
+/// <summary>
+/// Extension methods for working with Error-based Results
+/// </summary>
+public static class ErrorResultExtensions
+{
+    public static Result<T> ToResult<T>(this Error error) => Result.Failure<T>(error);
+
+    public static Result ToResult(this Error error) => Result.Failure(error);
 }

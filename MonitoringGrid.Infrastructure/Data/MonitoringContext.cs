@@ -21,6 +21,7 @@ public class MonitoringContext : DbContext
     public DbSet<AlertLog> AlertLogs { get; set; }
     public DbSet<Config> Config { get; set; }
     public DbSet<SystemStatus> SystemStatus { get; set; }
+    public DbSet<Scheduler> Schedulers { get; set; }
 
     public DbSet<ScheduledJob> ScheduledJobs { get; set; }
 
@@ -48,6 +49,7 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new AlertLogConfiguration());
         modelBuilder.ApplyConfiguration(new ConfigConfiguration());
         modelBuilder.ApplyConfiguration(new SystemStatusConfiguration());
+        modelBuilder.ApplyConfiguration(new SchedulerConfiguration());
 
         modelBuilder.ApplyConfiguration(new ScheduledJobConfiguration());
 

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
-using MonitoringGrid.Api.Common;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.DTOs;
 
 namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
@@ -30,8 +30,7 @@ public class UpdateIndicatorCommand : IRequest<Result<IndicatorDto>>
     [MaxLength(255)]
     public string CollectorItemName { get; set; } = string.Empty;
 
-    [Required]
-    public string ScheduleConfiguration { get; set; } = string.Empty;
+    public int? SchedulerID { get; set; }
 
     public bool IsActive { get; set; } = true;
 

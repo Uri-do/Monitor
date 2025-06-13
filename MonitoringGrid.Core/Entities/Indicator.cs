@@ -36,10 +36,9 @@ public class Indicator : AggregateRoot
     public string CollectorItemName { get; set; } = string.Empty;
 
     /// <summary>
-    /// JSON configuration for scheduling (interval, cron, etc.)
+    /// Reference to the scheduler configuration
     /// </summary>
-    [Required]
-    public string ScheduleConfiguration { get; set; } = string.Empty;
+    public int? SchedulerID { get; set; }
 
     public bool IsActive { get; set; } = true;
 
@@ -101,10 +100,7 @@ public class Indicator : AggregateRoot
     /// </summary>
     public int? AverageLastDays { get; set; }
 
-    /// <summary>
-    /// Average of current hour for comparison
-    /// </summary>
-    public bool AverageOfCurrHour { get; set; }
+
 
     /// <summary>
     /// Execution state tracking for real-time monitoring
@@ -115,6 +111,7 @@ public class Indicator : AggregateRoot
 
     // Navigation properties
     public virtual Contact? OwnerContact { get; set; }
+    public virtual Scheduler? Scheduler { get; set; }
     public virtual ICollection<IndicatorContact> IndicatorContacts { get; set; } = new List<IndicatorContact>();
     public virtual ICollection<AlertLog> AlertLogs { get; set; } = new List<AlertLog>();
 
@@ -123,38 +120,25 @@ public class Indicator : AggregateRoot
     // Domain methods
     public bool IsDue()
     {
-        if (!IsActive)
+        if (!IsActive || Scheduler == null)
             return false;
 
-        // Parse schedule configuration to determine if due
-        // For now, use simple frequency-based check
-        var scheduleConfig = System.Text.Json.JsonSerializer.Deserialize<ScheduleConfig>(ScheduleConfiguration);
-        if (scheduleConfig?.IsEnabled != true)
+        if (!Scheduler.IsEnabled || !Scheduler.IsCurrentlyActive())
             return false;
 
         if (!LastRun.HasValue)
             return true;
 
-        return scheduleConfig.ScheduleType switch
-        {
-            "interval" => DateTime.UtcNow >= LastRun.Value.AddMinutes(scheduleConfig.IntervalMinutes ?? 60),
-            _ => false
-        };
+        var nextExecution = Scheduler.GetNextExecutionTime(LastRun);
+        return nextExecution.HasValue && DateTime.UtcNow >= nextExecution.Value;
     }
 
     public DateTime? GetNextRunTime()
     {
-        if (!LastRun.HasValue)
-        {
-            return DateTime.UtcNow.AddMinutes(1); // Run soon if never executed
-        }
+        if (Scheduler == null || !Scheduler.IsEnabled)
+            return null;
 
-        var scheduleConfig = System.Text.Json.JsonSerializer.Deserialize<ScheduleConfig>(ScheduleConfiguration);
-        return scheduleConfig?.ScheduleType switch
-        {
-            "interval" => LastRun.Value.AddMinutes(scheduleConfig.IntervalMinutes ?? 60),
-            _ => null
-        };
+        return Scheduler.GetNextExecutionTime(LastRun);
     }
 
     /// <summary>
@@ -220,16 +204,4 @@ public class Indicator : AggregateRoot
         UpdatedDate = DateTime.UtcNow;
         MarkAsModified();
     }
-}
-
-/// <summary>
-/// Schedule configuration model for JSON serialization
-/// </summary>
-public class ScheduleConfig
-{
-    public string ScheduleType { get; set; } = "interval"; // interval, cron
-    public int? IntervalMinutes { get; set; }
-    public string? CronExpression { get; set; }
-    public bool IsEnabled { get; set; } = true;
-    public string Timezone { get; set; } = "UTC";
 }

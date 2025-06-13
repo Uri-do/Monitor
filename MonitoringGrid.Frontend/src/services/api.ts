@@ -35,6 +35,10 @@ import {
   IndicatorExecutionResultDto,
   IndicatorDashboardDto,
   CollectorDto,
+  // Scheduler types
+  SchedulerDto,
+  CreateSchedulerRequest,
+  UpdateSchedulerRequest,
   // Contact and Alert types
   ContactDto,
   CreateContactRequest,
@@ -323,6 +327,44 @@ export const monitorStatisticsApi = {
     const url = `/monitorstatistics/collectors/${collectorId}/statistics${params.toString() ? `?${params.toString()}` : ''}`;
     const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(url);
     return response.data.value || [];
+  },
+};
+
+// Scheduler API endpoints
+export const schedulerApi = {
+  // Get all schedulers
+  getSchedulers: async (): Promise<SchedulerDto[]> => {
+    const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers');
+    return response.data;
+  },
+
+  // Get scheduler by ID
+  getScheduler: async (id: number): Promise<SchedulerDto> => {
+    const response: AxiosResponse<SchedulerDto> = await api.get(`/schedulers/${id}`);
+    return response.data;
+  },
+
+  // Create new scheduler
+  createScheduler: async (scheduler: CreateSchedulerRequest): Promise<SchedulerDto> => {
+    const response: AxiosResponse<SchedulerDto> = await api.post('/schedulers', scheduler);
+    return response.data;
+  },
+
+  // Update scheduler
+  updateScheduler: async (scheduler: UpdateSchedulerRequest): Promise<SchedulerDto> => {
+    const response: AxiosResponse<SchedulerDto> = await api.put(`/schedulers/${scheduler.schedulerID}`, scheduler);
+    return response.data;
+  },
+
+  // Delete scheduler
+  deleteScheduler: async (id: number): Promise<void> => {
+    await api.delete(`/schedulers/${id}`);
+  },
+
+  // Enable/disable scheduler
+  toggleScheduler: async (id: number, enabled: boolean): Promise<SchedulerDto> => {
+    const response: AxiosResponse<SchedulerDto> = await api.patch(`/schedulers/${id}/toggle`, { enabled });
+    return response.data;
   },
 };
 

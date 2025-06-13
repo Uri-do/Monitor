@@ -24,6 +24,7 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Assessment as KpiIcon,
+  Schedule as ScheduleIcon,
   People as ContactIcon,
   Notifications as AlertIcon,
   Analytics as AnalyticsIcon,
@@ -116,6 +117,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       text: 'Indicators',
       icon: <KpiIcon />,
       path: '/indicators',
+    },
+    {
+      text: 'Schedulers',
+      icon: <ScheduleIcon />,
+      path: '/schedulers',
     },
     {
       text: 'Contacts',

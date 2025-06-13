@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Api.Common;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
@@ -86,10 +86,19 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
                 }
             }
 
-            // Validate schedule configuration
-            if (!IsValidScheduleConfiguration(request.ScheduleConfiguration))
+            // Validate scheduler if provided
+            if (request.SchedulerID.HasValue)
             {
-                return Result.Failure<IndicatorDto>("INVALID_SCHEDULE", "Invalid schedule configuration format");
+                var schedulerRepository = _unitOfWork.Repository<Core.Entities.Scheduler>();
+                var scheduler = await schedulerRepository.GetByIdAsync(request.SchedulerID.Value, cancellationToken);
+                if (scheduler == null)
+                {
+                    return Result.Failure<IndicatorDto>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {request.SchedulerID} not found");
+                }
+                if (!scheduler.IsEnabled)
+                {
+                    return Result.Failure<IndicatorDto>("SCHEDULER_DISABLED", $"Scheduler '{scheduler.SchedulerName}' is disabled");
+                }
             }
 
             // Check for duplicate indicator code (excluding current indicator)
@@ -108,7 +117,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             existingIndicator.IndicatorDesc = request.IndicatorDesc;
             existingIndicator.CollectorID = request.CollectorID;
             existingIndicator.CollectorItemName = request.CollectorItemName;
-            existingIndicator.ScheduleConfiguration = request.ScheduleConfiguration;
+            existingIndicator.SchedulerID = request.SchedulerID;
             existingIndicator.IsActive = request.IsActive;
             existingIndicator.LastMinutes = request.LastMinutes;
             existingIndicator.ThresholdType = request.ThresholdType;
@@ -170,16 +179,5 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
         }
     }
 
-    private static bool IsValidScheduleConfiguration(string scheduleConfiguration)
-    {
-        try
-        {
-            var config = System.Text.Json.JsonSerializer.Deserialize<ScheduleConfig>(scheduleConfiguration);
-            return config != null && !string.IsNullOrEmpty(config.ScheduleType);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+
 }

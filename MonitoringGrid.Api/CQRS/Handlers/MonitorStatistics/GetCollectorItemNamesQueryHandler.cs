@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.MonitorStatistics;
-using MonitoringGrid.Api.Common;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Interfaces;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.MonitorStatistics;

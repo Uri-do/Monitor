@@ -184,6 +184,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Add application services
 builder.Services.AddScoped<IIndicatorService, IndicatorService>();
 builder.Services.AddScoped<IIndicatorExecutionService, IndicatorExecutionService>();
+builder.Services.AddScoped<ISchedulerService, SchedulerService>();
 builder.Services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

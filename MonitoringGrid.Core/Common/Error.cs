@@ -1,4 +1,4 @@
-namespace MonitoringGrid.Api.Common;
+namespace MonitoringGrid.Core.Common;
 
 /// <summary>
 /// Represents an error with type and details
@@ -63,14 +63,4 @@ public enum ErrorType
     BusinessRule = 6,
     External = 7,
     Timeout = 8
-}
-
-/// <summary>
-/// Extension methods for working with Error-based Results
-/// </summary>
-public static class ErrorResultExtensions
-{
-    public static Result<T> ToResult<T>(this Error error) => Result.Failure<T>(error);
-
-    public static Result ToResult(this Error error) => Result.Failure(error);
 }

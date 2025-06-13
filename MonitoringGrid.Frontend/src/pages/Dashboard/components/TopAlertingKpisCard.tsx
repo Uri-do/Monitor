@@ -15,11 +15,11 @@ import { useNavigate } from 'react-router-dom';
 import { AlertDashboardDto } from '../../../types/api';
 import { Card } from '@/components';
 
-interface TopAlertingKpisCardProps {
+interface TopAlertingIndicatorsCardProps {
   alertDashboard?: AlertDashboardDto;
 }
 
-const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboard }) => {
+const TopAlertingIndicatorsCard: React.FC<TopAlertingIndicatorsCardProps> = ({ alertDashboard }) => {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -38,11 +38,11 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
             </Typography>
           </Box>
           <List sx={{ p: 0 }}>
-            {alertDashboard.topAlertingKpis.slice(0, 5).map(kpi => (
+            {alertDashboard.topAlertingKpis.slice(0, 5).map(indicator => (
               <ListItem
-                key={kpi.kpiId}
+                key={indicator.kpiId}
                 button
-                onClick={() => navigate(`/indicators/${kpi.kpiId}`)}
+                onClick={() => navigate(`/indicators/${indicator.kpiId}`)}
                 sx={{
                   borderRadius: 1,
                   mb: 1,
@@ -59,7 +59,7 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
                   primary={
                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white' }}>
-                        {kpi.indicator}
+                        {indicator.indicator}
                       </Typography>
                       <Chip
                         label="Active"
@@ -77,10 +77,10 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
                   secondary={
                     <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
                       <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                        Owner: {kpi.owner}
+                        Owner: {indicator.owner}
                       </Typography>
                       <Chip
-                        label={`${kpi.alertCount} alerts`}
+                        label={`${indicator.alertCount} alerts`}
                         size="small"
                         sx={{
                           backgroundColor: 'rgba(244, 67, 54, 0.3)',
@@ -88,9 +88,9 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
                           fontWeight: 600,
                         }}
                       />
-                      {kpi.unresolvedCount > 0 && (
+                      {indicator.unresolvedCount > 0 && (
                         <Chip
-                          label={`${kpi.unresolvedCount} unresolved`}
+                          label={`${indicator.unresolvedCount} unresolved`}
                           size="small"
                           sx={{
                             backgroundColor: 'rgba(255, 152, 0, 0.3)',
@@ -111,4 +111,4 @@ const TopAlertingKpisCard: React.FC<TopAlertingKpisCardProps> = ({ alertDashboar
   );
 };
 
-export default TopAlertingKpisCard;
+export default TopAlertingIndicatorsCard;

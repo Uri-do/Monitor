@@ -20,6 +20,10 @@ const Dashboard = React.lazy(() => import('@/pages/Dashboard/Dashboard'));
 const IndicatorList = React.lazy(() => import('@/pages/Indicator/IndicatorList'));
 const IndicatorDetail = React.lazy(() => import('@/pages/Indicator/IndicatorDetail'));
 const IndicatorCreate = React.lazy(() => import('@/pages/Indicator/IndicatorCreate'));
+const IndicatorEditSimple = React.lazy(() => import('@/pages/Indicator/IndicatorEditSimple'));
+
+// Scheduler Management
+const SchedulerList = React.lazy(() => import('@/pages/Scheduler/SchedulerList'));
 
 // Legacy KPI imports removed - using Indicator system instead
 const ContactList = React.lazy(() => import('@/pages/Contact/ContactList'));
@@ -254,7 +258,7 @@ function App() {
                             path="/indicators/:id/edit"
                             element={
                               <LazyRoute>
-                                <IndicatorCreate />
+                                <IndicatorEditSimple />
                               </LazyRoute>
                             }
                           />
@@ -264,6 +268,16 @@ function App() {
                           <Route path="/kpis/create" element={<Navigate to="/indicators/create" replace />} />
                           <Route path="/kpis/:id" element={<Navigate to="/indicators/:id" replace />} />
                           <Route path="/kpis/:id/edit" element={<Navigate to="/indicators/:id/edit" replace />} />
+
+                          {/* Scheduler Management */}
+                          <Route
+                            path="/schedulers"
+                            element={
+                              <LazyRoute>
+                                <SchedulerList />
+                              </LazyRoute>
+                            }
+                          />
 
                           {/* Contact Management */}
                           <Route

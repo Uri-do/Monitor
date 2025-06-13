@@ -87,11 +87,7 @@ export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
       indicatorDesc: data.indicator,
       collectorItemName: data.spName,
       priority: data.priority,
-      scheduleConfiguration: JSON.stringify({
-        scheduleType: 'interval',
-        intervalMinutes: data.frequency,
-        isEnabled: data.isActive,
-      }),
+      schedulerID: undefined, // TODO: Add scheduler selection to form
       lastMinutes: data.lastMinutes,
       thresholdValue: data.minimumThreshold || undefined,
       isActive: data.isActive,

@@ -36,9 +36,8 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(i => i.ScheduleConfiguration)
-            .IsRequired()
-            .HasColumnType("nvarchar(max)");
+        builder.Property(i => i.SchedulerID)
+            .IsRequired(false); // Nullable - indicators can be manually executed
 
         builder.Property(i => i.IsActive)
             .IsRequired()
@@ -90,10 +89,6 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
 
         builder.Property(i => i.AverageLastDays);
 
-        builder.Property(i => i.AverageOfCurrHour)
-            .IsRequired()
-            .HasDefaultValue(false);
-
         builder.Property(i => i.IsCurrentlyRunning)
             .IsRequired()
             .HasDefaultValue(false);
@@ -108,6 +103,11 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .WithMany()
             .HasForeignKey(i => i.OwnerContactId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.Scheduler)
+            .WithMany(s => s.Indicators)
+            .HasForeignKey(i => i.SchedulerID)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(i => i.IndicatorContacts)
             .WithOne(ic => ic.Indicator)
@@ -150,6 +150,9 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
 
         builder.HasIndex(i => i.LastRun)
             .HasDatabaseName("IX_Indicators_LastRun");
+
+        builder.HasIndex(i => i.SchedulerID)
+            .HasDatabaseName("IX_Indicators_SchedulerID");
 
         builder.HasIndex(i => new { i.CollectorID, i.CollectorItemName })
             .HasDatabaseName("IX_Indicators_Collector_Item");

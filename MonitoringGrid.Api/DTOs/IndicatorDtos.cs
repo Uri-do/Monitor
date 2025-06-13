@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 
 namespace MonitoringGrid.Api.DTOs;
@@ -14,7 +15,7 @@ public class IndicatorDto
     public string? IndicatorDesc { get; set; }
     public long? CollectorID { get; set; }
     public string CollectorItemName { get; set; } = string.Empty;
-    public string ScheduleConfiguration { get; set; } = string.Empty;
+    public int? SchedulerID { get; set; }
     public bool IsActive { get; set; }
     public int LastMinutes { get; set; }
     public string ThresholdType { get; set; } = string.Empty;
@@ -29,7 +30,6 @@ public class IndicatorDto
     public string? LastRunResult { get; set; }
     public decimal? AverageHour { get; set; }
     public int? AverageLastDays { get; set; }
-    public bool AverageOfCurrHour { get; set; }
     public bool IsCurrentlyRunning { get; set; }
     public DateTime? ExecutionStartTime { get; set; }
     public string? ExecutionContext { get; set; }
@@ -37,6 +37,7 @@ public class IndicatorDto
     // Navigation properties
     public ContactDto? OwnerContact { get; set; }
     public List<ContactDto> Contacts { get; set; } = new();
+    public SchedulerDto? Scheduler { get; set; }
 }
 
 /// <summary>
@@ -61,8 +62,7 @@ public class CreateIndicatorRequest
     [MaxLength(255)]
     public string CollectorItemName { get; set; } = string.Empty;
 
-    [Required]
-    public string ScheduleConfiguration { get; set; } = string.Empty;
+    public int? SchedulerID { get; set; }
 
     public bool IsActive { get; set; } = true;
 
@@ -165,7 +165,7 @@ public class IndicatorExecutionResultDto
     public decimal? ThresholdValue { get; set; }
     public bool ThresholdBreached { get; set; }
     public string? ErrorMessage { get; set; }
-    public List<CollectorStatisticDto> RawData { get; set; } = new();
+    public List<MonitoringGrid.Core.DTOs.CollectorStatisticDto> RawData { get; set; } = new();
     public TimeSpan ExecutionDuration { get; set; }
     public DateTime ExecutionTime { get; set; }
     public string ExecutionContext { get; set; } = string.Empty;

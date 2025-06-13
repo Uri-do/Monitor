@@ -210,10 +210,9 @@ const IndicatorDetail: React.FC = () => {
                   <InfoItem label="Average Last Days" value={indicator.averageLastDays} />
                 )}
                 <InfoItem
-                  label="Average of Current Hour"
-                  value="N/A" // averageOfCurrHour not available in IndicatorDto
+                  label="Average Last Days"
+                  value={indicator.averageLastDays?.toString() || "N/A"}
                 />
-                {/* averageHour not available in IndicatorDto */}
                 <Divider />
                 <InfoItem label="Created" value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')} />
                 <InfoItem label="Last Updated" value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')} />
@@ -324,26 +323,27 @@ const IndicatorDetail: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Schedule Configuration */}
+        {/* Scheduler Information */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Schedule Configuration
+                Scheduler Information
               </Typography>
-              <Box
-                component="pre"
-                sx={{
-                  backgroundColor: 'grey.100',
-                  p: 2,
-                  borderRadius: 1,
-                  overflow: 'auto',
-                  fontSize: '0.875rem',
-                  fontFamily: 'monospace',
-                }}
-              >
-                {JSON.stringify(JSON.parse(indicator.scheduleConfiguration), null, 2)}
-              </Box>
+              {indicator.schedulerID ? (
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Scheduler ID: {indicator.schedulerID}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    This indicator uses a configured scheduler for automatic execution.
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No scheduler assigned - manual execution only
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>

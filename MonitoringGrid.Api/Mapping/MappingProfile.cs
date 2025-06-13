@@ -16,8 +16,16 @@ public class MappingProfile : Profile
     {
         // Contact mappings
         CreateMap<Contact, ContactDto>()
-            .ForMember(dest => dest.AssignedIndicators, opt => opt.MapFrom(src => src.IndicatorContacts.Count))
-            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.ContactID, opt => opt.MapFrom(src => src.ContactId))
+            .ForMember(dest => dest.AssignedIndicators, opt => opt.MapFrom(src =>
+                src.IndicatorContacts != null ? src.IndicatorContacts.Where(ic => ic.IsActive).Select(ic => new IndicatorSummaryDto
+                {
+                    IndicatorId = ic.IndicatorID,
+                    IndicatorName = ic.Indicator != null ? ic.Indicator.IndicatorName : "Unknown",
+                    Owner = ic.Indicator != null ? ic.Indicator.OwnerContactId.ToString() : "Unknown",
+                    Priority = ic.Indicator != null ? ic.Indicator.Priority : "Unknown",
+                    IsActive = ic.Indicator != null ? ic.Indicator.IsActive : false
+                }).ToList() : new List<IndicatorSummaryDto>()));
 
         CreateMap<MonitoringGrid.Api.DTOs.CreateContactRequest, Contact>()
             .ForMember(dest => dest.ContactId, opt => opt.Ignore())
@@ -26,6 +34,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
 
         CreateMap<MonitoringGrid.Api.DTOs.UpdateContactRequest, Contact>()
+            .ForMember(dest => dest.ContactId, opt => opt.MapFrom(src => src.ContactID))
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
             .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
@@ -60,41 +69,7 @@ public class MappingProfile : Profile
 
 
 
-    /// <summary>
-    /// Helper method to deserialize schedule configuration from JSON string
-    /// </summary>
-    private static object? DeserializeScheduleConfiguration(string? scheduleConfigurationJson)
-    {
-        if (string.IsNullOrEmpty(scheduleConfigurationJson))
-            return null;
 
-        try
-        {
-            return JsonSerializer.Deserialize<object>(scheduleConfigurationJson);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Helper method to serialize schedule configuration to JSON string
-    /// </summary>
-    private static string? SerializeScheduleConfiguration(object? scheduleConfiguration)
-    {
-        if (scheduleConfiguration == null)
-            return null;
-
-        try
-        {
-            return JsonSerializer.Serialize(scheduleConfiguration);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }
 
 /// <summary>

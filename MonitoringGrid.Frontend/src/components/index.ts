@@ -26,7 +26,6 @@ export {
   ExecutionProgressDialog,
   IndicatorTypeSelector,
   RunningIndicatorsDisplay,
-  SchedulerComponent,
   // Contact Management
   ContactFormDialog,
   // Worker Management

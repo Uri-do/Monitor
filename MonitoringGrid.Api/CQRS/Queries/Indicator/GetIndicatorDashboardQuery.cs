@@ -1,5 +1,5 @@
 using MediatR;
-using MonitoringGrid.Api.Common;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.DTOs;
 
 namespace MonitoringGrid.Api.CQRS.Queries.Indicator;

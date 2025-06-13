@@ -7,7 +7,7 @@ namespace MonitoringGrid.Api.DTOs;
 /// </summary>
 public class ContactDto
 {
-    public int ContactId { get; set; }
+    public int ContactID { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? Phone { get; set; }
@@ -42,7 +42,7 @@ public class CreateContactRequest
 /// </summary>
 public class UpdateContactRequest : CreateContactRequest
 {
-    public int ContactId { get; set; }
+    public int ContactID { get; set; }
 }
 
 /// <summary>

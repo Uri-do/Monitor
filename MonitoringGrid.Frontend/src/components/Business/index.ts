@@ -6,7 +6,7 @@ export { default as IndicatorFormDialog } from './Indicator/IndicatorFormDialog'
 export { default as ExecutionProgressDialog } from './Indicator/ExecutionProgressDialog';
 export { default as IndicatorTypeSelector } from './Indicator/IndicatorTypeSelector';
 export { default as RunningIndicatorsDisplay } from './Indicator/RunningIndicatorsDisplay';
-export { default as SchedulerComponent } from './Indicator/SchedulerComponent';
+
 
 // Contact Management Components
 export { default as ContactFormDialog } from './Contact/ContactFormDialog';

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.Documentation;
 using MonitoringGrid.Api.Documentation.Models;

@@ -17,7 +17,8 @@ public class IndicatorMappingProfile : Profile
         // Indicator mappings
         CreateMap<Indicator, IndicatorDto>()
             .ForMember(dest => dest.OwnerContact, opt => opt.MapFrom(src => src.OwnerContact))
-            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)));
+            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)))
+            .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
 
         CreateMap<CreateIndicatorRequest, Indicator>()
             .ForMember(dest => dest.IndicatorID, opt => opt.Ignore())
@@ -26,13 +27,13 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.LastRun, opt => opt.Ignore())
             .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
             .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
-            .ForMember(dest => dest.AverageOfCurrHour, opt => opt.Ignore())
             .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
             .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
             .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
             .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore());
+            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
+            .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
 
         CreateMap<UpdateIndicatorRequest, Indicator>()
             .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
@@ -40,13 +41,13 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.LastRun, opt => opt.Ignore())
             .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
             .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
-            .ForMember(dest => dest.AverageOfCurrHour, opt => opt.Ignore())
             .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
             .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
             .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
             .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
             .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore());
+            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
+            .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
 
         // Indicator execution result mappings
         CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();

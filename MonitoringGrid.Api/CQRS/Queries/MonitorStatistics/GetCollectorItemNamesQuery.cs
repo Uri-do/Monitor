@@ -1,4 +1,5 @@
 using MediatR;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.Common;
 
 namespace MonitoringGrid.Api.CQRS.Queries.MonitorStatistics;

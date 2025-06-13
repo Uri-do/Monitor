@@ -10,7 +10,7 @@ export interface IndicatorDto {
   indicatorDesc?: string;
   collectorID?: number;
   collectorItemName: string;
-  scheduleConfiguration: string;
+  schedulerID?: number;
   isActive: boolean;
   lastMinutes: number;
   thresholdType?: string;
@@ -30,6 +30,7 @@ export interface IndicatorDto {
   // Navigation properties
   ownerContact?: ContactDto;
   contacts: ContactDto[];
+  scheduler?: SchedulerDto;
 }
 
 export interface CreateIndicatorRequest {
@@ -38,7 +39,7 @@ export interface CreateIndicatorRequest {
   indicatorDesc?: string;
   collectorID?: number;
   collectorItemName: string;
-  scheduleConfiguration: string;
+  schedulerID?: number;
   isActive: boolean;
   lastMinutes: number;
   thresholdType?: string;
@@ -113,21 +114,49 @@ export interface CollectorDto {
 
 // ===== SCHEDULER TYPES =====
 
-// Scheduler Types
-export interface ScheduleConfiguration {
+export interface SchedulerDto {
+  schedulerID: number;
+  schedulerName: string;
+  schedulerDescription?: string;
   scheduleType: ScheduleType;
-  cronExpression?: string;
   intervalMinutes?: number;
+  cronExpression?: string;
+  executionDateTime?: string;
   startDate?: string;
   endDate?: string;
-  timezone?: string;
+  timezone: string;
   isEnabled: boolean;
+  createdDate: string;
+  createdBy: string;
+  modifiedDate: string;
+  modifiedBy: string;
+  displayText: string;
+  nextExecutionTime?: string;
+  isCurrentlyActive: boolean;
+  indicatorCount: number;
 }
 
 export enum ScheduleType {
   Interval = 'interval',
   Cron = 'cron',
   OneTime = 'onetime',
+}
+
+export interface CreateSchedulerRequest {
+  schedulerName: string;
+  schedulerDescription?: string;
+  scheduleType: string;
+  intervalMinutes?: number;
+  cronExpression?: string;
+  executionDateTime?: string;
+  startDate?: string;
+  endDate?: string;
+  timezone: string;
+  isEnabled: boolean;
+}
+
+export interface UpdateSchedulerRequest extends CreateSchedulerRequest {
+  schedulerID: number;
 }
 
 export interface CronPreset {

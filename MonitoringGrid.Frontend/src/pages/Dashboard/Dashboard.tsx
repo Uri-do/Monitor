@@ -13,7 +13,7 @@ import IndicatorsDueCard from './components/IndicatorsDueCard';
 import RunningIndicatorsCard from './components/RunningIndicatorsCard';
 import NextIndicatorExecutionCard from './components/NextIndicatorExecutionCard';
 import RecentAlertsCard from './components/RecentAlertsCard';
-import TopAlertingKpisCard from './components/TopAlertingKpisCard';
+import TopAlertingIndicatorsCard from './components/TopAlertingKpisCard';
 
 const Dashboard: React.FC = () => {
   const { isEnabled: realtimeEnabled, enableRealtime } = useRealtime();
@@ -121,7 +121,7 @@ const Dashboard: React.FC = () => {
         <RecentAlertsCard alertDashboard={alertDashboard} />
 
         {/* Top Alerting Indicators */}
-        <TopAlertingKpisCard alertDashboard={alertDashboard} />
+        <TopAlertingIndicatorsCard alertDashboard={alertDashboard} />
       </Grid>
     </Box>
   );

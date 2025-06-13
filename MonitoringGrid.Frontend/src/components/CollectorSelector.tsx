@@ -11,12 +11,19 @@ import {
   CircularProgress,
   Grid,
   Chip,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Card,
+  CardContent,
+  Divider,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import {
   Database,
   Clock,
-  Activity
+  Activity,
+  Info,
+  RefreshCw as Refresh
 } from 'lucide-react';
 import { useActiveCollectors, useCollectorItemNames } from '../hooks/useMonitorStatistics';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,6 +37,12 @@ interface CollectorSelectorProps {
   disabled?: boolean;
   className?: string;
   required?: boolean;
+  variant?: 'standard' | 'detailed' | 'compact';
+  showStatisticsButton?: boolean;
+  showRefreshButton?: boolean;
+  showCollectorInfo?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
 export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
@@ -40,6 +53,12 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   disabled = false,
   className = '',
   required = false,
+  variant = 'standard',
+  showStatisticsButton = true,
+  showRefreshButton = false,
+  showCollectorInfo = false,
+  title,
+  subtitle,
 }) => {
   const [internalCollectorId, setInternalCollectorId] = useState<number | undefined>(selectedCollectorId);
   const queryClient = useQueryClient();
@@ -48,12 +67,14 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
     data: collectors,
     isLoading: collectorsLoading,
     error: collectorsError,
+    refetch: refetchCollectors,
   } = useActiveCollectors();
 
   const {
     data: itemNames,
     isLoading: itemNamesLoading,
     error: itemNamesError,
+    refetch: refetchItemNames,
   } = useCollectorItemNames(internalCollectorId || 0);
 
   // Update internal state when props change
