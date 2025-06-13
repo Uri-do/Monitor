@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "MonitoringGrid Team",
+  "classifications": [
+    "Web",
+    "API",
+    "React",
+    "Clean Architecture",
+    "Enterprise"
+  ],
+  "identity": "EnterpriseApp.Template",
+  "name": "Enterprise Application Template",
+  "shortName": "enterprise-app",
+  "description": "A comprehensive enterprise application template with Clean Architecture, CQRS, React frontend, and complete security implementation",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "EnterpriseApp",
+  "preferNameDirectory": true,
+  "symbols": {
+    "name": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "MyApp",
+      "replaces": "EnterpriseApp",
+      "description": "The name of the application (used for namespaces and project names)"
+    },
+    "domain": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "Item",
+      "replaces": "DomainEntity",
+      "description": "The primary domain entity name (e.g., Customer, Product, Order)"
+    },
+    "domainPlural": {
+      "type": "derived",
+      "valueSource": "domain",
+      "valueTransform": "pluralize",
+      "replaces": "DomainEntities"
+    },
+    "domainLower": {
+      "type": "derived",
+      "valueSource": "domain",
+      "valueTransform": "lowerCase",
+      "replaces": "domainentity"
+    },
+    "domainPluralLower": {
+      "type": "derived",
+      "valueSource": "domainPlural",
+      "valueTransform": "lowerCase",
+      "replaces": "domainentities"
+    },
+    "database": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "",
+      "replaces": "DatabaseName",
+      "description": "Database name (defaults to {name}DB if not specified)"
+    },
+    "port": {
+      "type": "parameter",
+      "datatype": "integer",
+      "defaultValue": "5000",
+      "replaces": "5000",
+      "description": "API port number"
+    },
+    "frontendPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "defaultValue": "3000",
+      "replaces": "3000",
+      "description": "Frontend port number"
+    },
+    "enableAuth": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include authentication and authorization system"
+    },
+    "enableWorker": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include background worker service"
+    },
+    "enableDocker": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include Docker configuration"
+    },
+    "enableTesting": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include test projects and configurations"
+    },
+    "enableMonitoring": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include monitoring and observability features"
+    },
+    "enableRealtime": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include SignalR for real-time updates"
+    },
+    "databaseProvider": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "SqlServer",
+          "description": "Microsoft SQL Server"
+        },
+        {
+          "choice": "PostgreSQL",
+          "description": "PostgreSQL"
+        },
+        {
+          "choice": "MySQL",
+          "description": "MySQL"
+        },
+        {
+          "choice": "SQLite",
+          "description": "SQLite (for development)"
+        }
+      ],
+      "defaultValue": "SqlServer",
+      "description": "Database provider to use"
+    },
+    "authProvider": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "JWT",
+          "description": "JWT tokens with local user store"
+        },
+        {
+          "choice": "AzureAD",
+          "description": "Azure Active Directory"
+        },
+        {
+          "choice": "IdentityServer",
+          "description": "IdentityServer4/Duende"
+        }
+      ],
+      "defaultValue": "JWT",
+      "description": "Authentication provider"
+    },
+    "frontendFramework": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "React",
+          "description": "React with TypeScript"
+        },
+        {
+          "choice": "Vue",
+          "description": "Vue.js with TypeScript"
+        },
+        {
+          "choice": "Angular",
+          "description": "Angular with TypeScript"
+        }
+      ],
+      "defaultValue": "React",
+      "description": "Frontend framework"
+    },
+    "uiLibrary": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "MaterialUI",
+          "description": "Material-UI (MUI)"
+        },
+        {
+          "choice": "AntDesign",
+          "description": "Ant Design"
+        },
+        {
+          "choice": "ChakraUI",
+          "description": "Chakra UI"
+        },
+        {
+          "choice": "TailwindCSS",
+          "description": "Tailwind CSS with Headless UI"
+        }
+      ],
+      "defaultValue": "MaterialUI",
+      "description": "UI component library"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Skip restoring NuGet packages and npm packages"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!enableAuth)",
+          "exclude": [
+            "**/Security/**",
+            "**/Authentication/**",
+            "**/Authorization/**",
+            "**/Auth/**",
+            "**/*Auth*",
+            "**/*Security*",
+            "**/Users/**",
+            "**/Roles/**"
+          ]
+        },
+        {
+          "condition": "(!enableWorker)",
+          "exclude": [
+            "**/*.Worker/**",
+            "**/Worker/**",
+            "**/*Worker*"
+          ]
+        },
+        {
+          "condition": "(!enableDocker)",
+          "exclude": [
+            "**/docker/**",
+            "**/k8s/**",
+            "Dockerfile*",
+            "docker-compose*",
+            ".dockerignore"
+          ]
+        },
+        {
+          "condition": "(!enableTesting)",
+          "exclude": [
+            "**/tests/**",
+            "**/*.Tests/**",
+            "**/*Test*"
+          ]
+        },
+        {
+          "condition": "(!enableMonitoring)",
+          "exclude": [
+            "**/prometheus/**",
+            "**/grafana/**",
+            "**/Observability/**",
+            "**/*Monitoring*",
+            "**/*Metrics*"
+          ]
+        },
+        {
+          "condition": "(!enableRealtime)",
+          "exclude": [
+            "**/Hubs/**",
+            "**/SignalR/**",
+            "**/*Hub*",
+            "**/*SignalR*"
+          ]
+        },
+        {
+          "condition": "(databaseProvider != 'SqlServer')",
+          "exclude": [
+            "**/SqlServer/**"
+          ]
+        },
+        {
+          "condition": "(frontendFramework != 'React')",
+          "exclude": [
+            "**/React/**",
+            "**/*.Frontend/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "condition": "(!skipRestore && frontendFramework == 'React')",
+      "description": "Install npm packages",
+      "manualInstructions": [
+        {
+          "text": "Run 'npm install' in the frontend directory"
+        }
+      ],
+      "actionId": "3A7C4B45-1F5D-4A30-960B-2576168DC5DC",
+      "args": {
+        "executable": "npm",
+        "args": "install",
+        "workingDirectory": "./src/EnterpriseApp.Frontend"
+      },
+      "continueOnError": true
+    }
+  ]
+}
