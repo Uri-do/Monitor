@@ -215,7 +215,12 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
 
       {/* Collector Details */}
       {selectedCollector && (
-        <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1, mb: 2 }}>
+        <Box sx={{
+          p: 2,
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+          borderRadius: 1,
+          mb: 2
+        }}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>

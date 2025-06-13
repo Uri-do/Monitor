@@ -16,6 +16,9 @@ export { default as StatusChip } from './StatusChip';
 // Layout Components
 export { default as PageHeader } from './PageHeader';
 export { default as FilterPanel } from './FilterPanel';
+export { default as FormLayout } from './FormLayout';
+export { default as FormSection } from './FormSection';
+export { default as FormActions } from './FormActions';
 
 // Feedback Components
 export { default as LoadingSpinner } from './LoadingSpinner';

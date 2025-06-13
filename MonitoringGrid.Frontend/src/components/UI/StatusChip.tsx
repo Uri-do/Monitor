@@ -91,6 +91,25 @@ const statusConfig = {
     backgroundColor: 'rgba(67, 233, 123, 0.1)',
     icon: <InfoIcon />,
   },
+  // Schedule types
+  interval: {
+    label: 'Interval',
+    color: '#4facfe',
+    backgroundColor: 'rgba(79, 172, 254, 0.1)',
+    icon: <InfoIcon />,
+  },
+  cron: {
+    label: 'Cron',
+    color: '#9c27b0',
+    backgroundColor: 'rgba(156, 39, 176, 0.1)',
+    icon: <InfoIcon />,
+  },
+  onetime: {
+    label: 'One Time',
+    color: '#ff9800',
+    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+    icon: <InfoIcon />,
+  },
 };
 
 export const StatusChip: React.FC<StatusChipProps> = ({

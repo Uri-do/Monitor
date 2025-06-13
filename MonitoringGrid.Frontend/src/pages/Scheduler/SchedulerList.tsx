@@ -1,22 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Container,
-  Typography,
-  Paper,
   Alert,
-  CircularProgress,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,21 +12,29 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid
+  Grid,
+  Button
 } from '@mui/material';
 import {
-  Add,
-  Edit,
-  Delete,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
   Schedule,
   PlayArrow,
   Stop,
-  Visibility
+  Visibility as ViewIcon
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { schedulerApi } from '@/services/api';
 import { SchedulerDto, CreateSchedulerRequest } from '@/types/api';
+import {
+  DataTable,
+  DataTableColumn,
+  PageHeader,
+  StatusChip,
+  LoadingSpinner,
+} from '@/components';
 
 /**
  * SchedulerList component for managing schedulers
@@ -50,12 +44,17 @@ const SchedulerList: React.FC = () => {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+  });
+  const [selectedRows, setSelectedRows] = useState<SchedulerDto[]>([]);
 
   // Fetch schedulers
   const {
-    data: schedulers,
+    data: schedulers = [],
     isLoading,
-    error: loadError
+    error: loadError,
+    refetch
   } = useQuery({
     queryKey: ['schedulers'],
     queryFn: () => schedulerApi.getSchedulers(),
@@ -92,6 +91,18 @@ const SchedulerList: React.FC = () => {
     },
   });
 
+  // Filter schedulers based on search
+  const filteredSchedulers = useMemo(() => {
+    return schedulers.filter(scheduler => {
+      const matchesSearch = !filters.search ||
+        scheduler.schedulerName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        scheduler.schedulerDescription?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        scheduler.scheduleType.toLowerCase().includes(filters.search.toLowerCase());
+
+      return matchesSearch;
+    });
+  }, [schedulers, filters.search]);
+
   // Delete scheduler mutation
   const deleteMutation = useMutation({
     mutationFn: (schedulerId: number) => schedulerApi.deleteScheduler(schedulerId),
@@ -108,9 +119,9 @@ const SchedulerList: React.FC = () => {
     createMutation.mutate(data);
   };
 
-  const handleDeleteScheduler = (schedulerId: number) => {
-    if (window.confirm('Are you sure you want to delete this scheduler?')) {
-      deleteMutation.mutate(schedulerId);
+  const handleDeleteScheduler = (scheduler: SchedulerDto) => {
+    if (window.confirm(`Are you sure you want to delete scheduler "${scheduler.schedulerName}"?`)) {
+      deleteMutation.mutate(scheduler.schedulerID);
     }
   };
 
@@ -127,50 +138,95 @@ const SchedulerList: React.FC = () => {
     }
   };
 
-  const getStatusColor = (isEnabled: boolean) => {
-    return isEnabled ? 'success' : 'error';
+  const getSchedulerStatus = (scheduler: SchedulerDto): string => {
+    return scheduler.isEnabled ? 'active' : 'inactive';
   };
 
-  if (isLoading) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
+  // Define table columns
+  const columns: DataTableColumn<SchedulerDto>[] = [
+    {
+      id: 'schedulerName',
+      label: 'Name',
+      sortable: true,
+      width: 200,
+      render: (value, row) => (
+        <Box>
+          <Box sx={{ fontWeight: 'medium', mb: 0.5 }}>{value}</Box>
+          {row.schedulerDescription && (
+            <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+              {row.schedulerDescription}
+            </Box>
+          )}
         </Box>
-      </Container>
-    );
+      ),
+    },
+    {
+      id: 'scheduleType',
+      label: 'Type',
+      sortable: true,
+      width: 100,
+      render: (value) => <StatusChip status={value} />,
+    },
+    {
+      id: 'displayText',
+      label: 'Schedule',
+      sortable: false,
+      width: 200,
+    },
+    {
+      id: 'isEnabled',
+      label: 'Status',
+      sortable: true,
+      width: 100,
+      render: (value, row) => <StatusChip status={getSchedulerStatus(row)} />,
+    },
+    {
+      id: 'indicatorCount',
+      label: 'Indicators',
+      sortable: true,
+      width: 100,
+      render: value => `${value} indicators`,
+    },
+    {
+      id: 'nextExecutionTime',
+      label: 'Next Run',
+      sortable: true,
+      width: 150,
+      render: value => value ? new Date(value).toLocaleString() : 'N/A',
+    },
+  ];
+
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
   if (loadError) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box>
         <Alert severity="error">
           Failed to load schedulers. Please try again.
         </Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Page Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Schedulers
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage scheduling configurations for indicators
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          Create Scheduler
-        </Button>
-      </Box>
+    <Box>
+      <PageHeader
+        title="Schedulers"
+        subtitle="Manage scheduling configurations for indicators"
+        primaryAction={{
+          label: 'Create Scheduler',
+          icon: <AddIcon />,
+          onClick: () => setCreateDialogOpen(true),
+        }}
+        actions={[
+          {
+            label: 'Refresh',
+            onClick: () => refetch(),
+          },
+        ]}
+      />
 
       {/* Error Alert */}
       {error && (
@@ -179,111 +235,31 @@ const SchedulerList: React.FC = () => {
         </Alert>
       )}
 
-      {/* Schedulers Table */}
-      <Paper elevation={1}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Schedule</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Indicators</TableCell>
-                <TableCell>Next Run</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {schedulers?.map((scheduler) => (
-                <TableRow key={scheduler.schedulerID} hover>
-                  <TableCell>
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {scheduler.schedulerName}
-                      </Typography>
-                      {scheduler.schedulerDescription && (
-                        <Typography variant="caption" color="text.secondary">
-                          {scheduler.schedulerDescription}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={scheduler.scheduleType}
-                      color={getScheduleTypeColor(scheduler.scheduleType)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {scheduler.displayText}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={scheduler.isEnabled ? 'Enabled' : 'Disabled'}
-                      color={getStatusColor(scheduler.isEnabled)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {scheduler.indicatorCount} indicators
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {scheduler.nextExecutionTime 
-                        ? new Date(scheduler.nextExecutionTime).toLocaleString()
-                        : 'N/A'
-                      }
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="View Details">
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(`/schedulers/${scheduler.schedulerID}`)}
-                      >
-                        <Visibility />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit">
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(`/schedulers/${scheduler.schedulerID}/edit`)}
-                      >
-                        <Edit />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteScheduler(scheduler.schedulerID)}
-                        disabled={scheduler.indicatorCount > 0}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {schedulers?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No schedulers found. Create your first scheduler to get started.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <DataTable
+        columns={columns}
+        data={filteredSchedulers}
+        loading={isLoading}
+        selectable={true}
+        selectedRows={selectedRows}
+        onSelectionChange={setSelectedRows}
+        defaultActions={{
+          view: scheduler => navigate(`/schedulers/${scheduler.schedulerID}`),
+          edit: scheduler => navigate(`/schedulers/${scheduler.schedulerID}/edit`),
+          delete: handleDeleteScheduler,
+        }}
+        actions={[
+          {
+            label: 'Toggle Status',
+            icon: <PlayArrow />,
+            onClick: scheduler => {
+              // TODO: Implement toggle functionality
+              console.log('Toggle scheduler:', scheduler.schedulerID);
+            },
+          },
+        ]}
+        emptyMessage="No schedulers found. Create your first scheduler to get started."
+        rowKey="schedulerID"
+      />
 
       {/* Create Scheduler Dialog */}
       <Dialog
@@ -403,7 +379,7 @@ const SchedulerList: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

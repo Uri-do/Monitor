@@ -16,6 +16,9 @@ export {
   MetricCard,
   Snackbar,
   FilterPanel,
+  FormLayout,
+  FormSection,
+  FormActions,
 } from './UI';
 
 // ===== BUSINESS LOGIC COMPONENTS =====

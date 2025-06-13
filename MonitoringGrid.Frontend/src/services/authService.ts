@@ -4,6 +4,7 @@ import {
   RegisterRequest,
   RegisterResponse,
   User,
+  JwtToken,
 } from '../types/auth';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
@@ -73,7 +74,7 @@ class AuthService {
     this.clearToken();
   }
 
-  async refreshToken(): Promise<LoginResponse> {
+  async refreshToken(): Promise<JwtToken> {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
       throw new Error('No refresh token available');
@@ -95,9 +96,9 @@ class AuthService {
 
     const result = await response.json();
 
-    // Handle different response formats
-    const accessToken = result.token?.accessToken || result.accessToken;
-    const newRefreshToken = result.token?.refreshToken || result.refreshToken || refreshToken;
+    // Backend returns JwtTokenDto directly
+    const accessToken = result.accessToken;
+    const newRefreshToken = result.refreshToken || refreshToken;
 
     if (!accessToken) {
       throw new Error('No access token in refresh response');
@@ -128,20 +129,20 @@ class AuthService {
     }
   }
 
-  async getCurrentUser(): Promise<User> {
-    const token = this.getToken();
-    if (!token) {
+  async getCurrentUser(token?: string): Promise<User> {
+    const authToken = token || this.getToken();
+    if (!authToken) {
       throw new Error('No authentication token');
     }
 
-    // Check if token is expired before making the request
-    if (this.isTokenExpired(token)) {
+    // Check if token is expired before making the request (only if using stored token)
+    if (!token && this.isTokenExpired(authToken)) {
       throw new Error('Authentication token expired');
     }
 
     const response = await fetch(`${this.baseUrl}/auth/profile`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authToken}`,
       },
     });
 
@@ -162,8 +163,8 @@ class AuthService {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
 
-      // Check if token expires within the next 5 minutes (300 seconds)
-      return payload.exp && payload.exp < (currentTime + 300);
+      // Check if token is actually expired (not just expiring soon)
+      return payload.exp && payload.exp < currentTime;
     } catch (error) {
       // If we can't decode the token, consider it expired
       console.warn('Failed to decode JWT token:', error);

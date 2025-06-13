@@ -191,10 +191,10 @@ const AuthTest: React.FC = () => {
                   No test results yet. Click the test buttons above to run authentication tests.
                 </Alert>
               ) : (
-                <Box 
-                  sx={{ 
-                    backgroundColor: 'grey.100', 
-                    p: 2, 
+                <Box
+                  sx={{
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                    p: 2,
                     borderRadius: 1,
                     fontFamily: 'monospace',
                     fontSize: '0.875rem',

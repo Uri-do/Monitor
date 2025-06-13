@@ -115,26 +115,26 @@ const IndicatorCreate: React.FC = () => {
 
   if (isEditMode && isLoadingIndicator) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ py: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <CircularProgress />
         </Box>
-      </Container>
+      </Box>
     );
   }
 
   if (isEditMode && loadError) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ py: 4 }}>
         <Alert severity="error">
           Failed to load indicator data. Please try again.
         </Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ py: 4 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link
@@ -221,7 +221,7 @@ const IndicatorCreate: React.FC = () => {
           loading={isLoading}
         />
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

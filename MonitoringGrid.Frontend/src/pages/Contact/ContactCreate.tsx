@@ -28,7 +28,7 @@ import { CreateContactRequest, UpdateContactRequest } from '@/types/api';
 import { useContact } from '@/hooks/useContacts';
 import { useCreateContact, useUpdateContact } from '@/hooks/mutations';
 import toast from 'react-hot-toast';
-import { PageHeader, LoadingSpinner } from '@/components';
+import { PageHeader, LoadingSpinner, FormLayout, FormSection, FormActions } from '@/components';
 
 // Validation schema
 const contactSchema = yup
@@ -151,140 +151,134 @@ const ContactCreate: React.FC = () => {
       />
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={3} maxWidth="md">
-          {/* Basic Information */}
+        <FormLayout fullWidth spacing={3}>
+          {/* Contact Information */}
           <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Contact Information
+            <FormSection
+              title="Contact Information"
+              subtitle="Enter contact details for notifications"
+              icon={<PersonIcon />}
+            >
+              <Grid item xs={12}>
+                <Controller
+                  name="name"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Full Name"
+                      fullWidth
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
+                      placeholder="e.g., John Smith"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Email Address"
+                      type="email"
+                      fullWidth
+                      error={!!errors.email}
+                      helperText={errors.email?.message || 'Primary notification method'}
+                      placeholder="e.g., john.smith@company.com"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Phone Number"
+                      fullWidth
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message || 'Secondary notification method'}
+                      placeholder="e.g., +1 (555) 123-4567"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  name="isActive"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="Active"
+                      sx={{ mt: 1 }}
+                    />
+                  )}
+                />
+                <Typography variant="caption" color="textSecondary" display="block">
+                  Inactive contacts will not receive notifications
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Controller
-                      name="name"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Full Name"
-                          fullWidth
-                          error={!!errors.name}
-                          helperText={errors.name?.message}
-                          placeholder="e.g., John Smith"
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <PersonIcon color="action" />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Controller
-                      name="email"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Email Address"
-                          type="email"
-                          fullWidth
-                          error={!!errors.email}
-                          helperText={errors.email?.message || 'Primary notification method'}
-                          placeholder="e.g., john.smith@company.com"
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <EmailIcon color="action" />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Controller
-                      name="phone"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Phone Number"
-                          fullWidth
-                          error={!!errors.phone}
-                          helperText={errors.phone?.message || 'Secondary notification method'}
-                          placeholder="e.g., +1 (555) 123-4567"
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <PhoneIcon color="action" />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Controller
-                      name="isActive"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          control={<Switch {...field} checked={field.value} />}
-                          label="Active"
-                          sx={{ mt: 1 }}
-                        />
-                      )}
-                    />
-                    <Typography variant="caption" color="textSecondary" display="block">
-                      Inactive contacts will not receive notifications
-                    </Typography>
-                  </Grid>
-                </Grid>
+              </Grid>
 
-                {/* Validation Info */}
-                <Alert severity="info" sx={{ mt: 2 }}>
+              <Grid item xs={12}>
+                <Alert severity="info">
                   <Typography variant="body2">
                     <strong>Note:</strong> At least one contact method (email or phone) is required.
                     Email is recommended as the primary notification method.
                   </Typography>
                 </Alert>
-              </CardContent>
-            </Card>
+              </Grid>
+            </FormSection>
           </Grid>
 
           {/* Form Actions */}
           <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Stack direction="row" spacing={2} justifyContent="flex-end">
-                  <Button
-                    variant="outlined"
-                    startIcon={<CancelIcon />}
-                    onClick={() => navigate('/contacts')}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Saving...' : isEdit ? 'Update Contact' : 'Create Contact'}
-                  </Button>
-                </Stack>
-              </CardContent>
-            </Card>
+            <FormActions
+              secondaryActions={[
+                {
+                  label: 'Cancel',
+                  variant: 'outlined',
+                  startIcon: <CancelIcon />,
+                  onClick: () => navigate('/contacts'),
+                  disabled: isSubmitting,
+                },
+              ]}
+              primaryAction={{
+                label: isSubmitting ? 'Saving...' : isEdit ? 'Update Contact' : 'Create Contact',
+                type: 'submit',
+                startIcon: <SaveIcon />,
+                disabled: isSubmitting,
+                loading: isSubmitting,
+              }}
+            />
           </Grid>
-        </Grid>
+        </FormLayout>
       </form>
     </Box>
   );

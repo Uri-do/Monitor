@@ -445,6 +445,10 @@ public class SecurityController : ControllerBase
         {
             return Unauthorized(new { message = "Invalid or expired refresh token" });
         }
+        catch (Microsoft.IdentityModel.Tokens.SecurityTokenException)
+        {
+            return Unauthorized(new { message = "Invalid or expired refresh token" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing token");

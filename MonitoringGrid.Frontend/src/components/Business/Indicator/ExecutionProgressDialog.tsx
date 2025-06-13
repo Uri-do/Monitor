@@ -273,7 +273,11 @@ const ExecutionProgressDialog: React.FC<ExecutionProgressDialogProps> = ({
 
           {/* Execution Summary */}
           {(startTime || endTime) && (
-            <Paper sx={{ p: 2, mb: 2, backgroundColor: 'grey.50' }}>
+            <Paper sx={{
+              p: 2,
+              mb: 2,
+              backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50'
+            }}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
                   <Typography variant="body2" color="text.secondary">

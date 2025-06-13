@@ -24,6 +24,9 @@ const IndicatorEditSimple = React.lazy(() => import('@/pages/Indicator/Indicator
 
 // Scheduler Management
 const SchedulerList = React.lazy(() => import('@/pages/Scheduler/SchedulerList'));
+const SchedulerDetail = React.lazy(() => import('@/pages/Scheduler/SchedulerDetail'));
+const SchedulerEdit = React.lazy(() => import('@/pages/Scheduler/SchedulerEdit'));
+const SchedulerCreate = React.lazy(() => import('@/pages/Scheduler/SchedulerCreate'));
 
 // Legacy KPI imports removed - using Indicator system instead
 const ContactList = React.lazy(() => import('@/pages/Contact/ContactList'));
@@ -31,6 +34,7 @@ const ContactDetail = React.lazy(() => import('@/pages/Contact/ContactDetail'));
 const ContactCreate = React.lazy(() => import('@/pages/Contact/ContactCreate'));
 const AlertList = React.lazy(() => import('@/pages/Alert/AlertList'));
 const AlertDetail = React.lazy(() => import('@/pages/Alert/AlertDetail'));
+const AlertEdit = React.lazy(() => import('@/pages/Alert/AlertEdit'));
 const Analytics = React.lazy(() => import('@/pages/Analytics/Analytics'));
 const Statistics = React.lazy(() => import('@/pages/Statistics/StatisticsPage'));
 const Settings = React.lazy(() => import('@/pages/Settings/Settings'));
@@ -278,6 +282,30 @@ function App() {
                               </LazyRoute>
                             }
                           />
+                          <Route
+                            path="/schedulers/create"
+                            element={
+                              <LazyRoute>
+                                <SchedulerCreate />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/schedulers/:id"
+                            element={
+                              <LazyRoute>
+                                <SchedulerDetail />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/schedulers/:id/edit"
+                            element={
+                              <LazyRoute>
+                                <SchedulerEdit />
+                              </LazyRoute>
+                            }
+                          />
 
                           {/* Contact Management */}
                           <Route
@@ -327,6 +355,14 @@ function App() {
                             element={
                               <LazyRoute>
                                 <AlertDetail />
+                              </LazyRoute>
+                            }
+                          />
+                          <Route
+                            path="/alerts/:id/edit"
+                            element={
+                              <LazyRoute>
+                                <AlertEdit />
                               </LazyRoute>
                             }
                           />

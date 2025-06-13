@@ -410,6 +410,28 @@ export const DataTable: React.FC<DataTableProps> = ({
           sx={{
             maxHeight,
             borderRadius: 2,
+            // Dark mode scrollbar styling
+            '&::-webkit-scrollbar': {
+              width: '8px',
+              height: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: (theme) => theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.05)'
+                : 'rgba(0, 0, 0, 0.05)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: (theme) => theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.2)'
+                : 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.3)'
+                  : 'rgba(0, 0, 0, 0.3)',
+              },
+            },
           }}
         >
           <Table stickyHeader>
@@ -446,9 +468,12 @@ export const DataTable: React.FC<DataTableProps> = ({
                     style={{ width: column.width }}
                     sx={{
                       fontWeight: 'bold',
-                      background:
-                        'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-                      borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
+                      backgroundColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.05)'
+                        : 'rgba(102, 126, 234, 0.05)',
+                      borderBottom: (theme) => theme.palette.mode === 'dark'
+                        ? '2px solid rgba(255, 255, 255, 0.1)'
+                        : '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
                     {column.sortable ? (
@@ -479,9 +504,15 @@ export const DataTable: React.FC<DataTableProps> = ({
                     align="center"
                     sx={{
                       fontWeight: 'bold',
-                      background:
-                        'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-                      borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
+                      width: '120px',
+                      minWidth: '120px',
+                      maxWidth: '120px',
+                      backgroundColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.05)'
+                        : 'rgba(102, 126, 234, 0.05)',
+                      borderBottom: (theme) => theme.palette.mode === 'dark'
+                        ? '2px solid rgba(255, 255, 255, 0.1)'
+                        : '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
                     Actions
@@ -531,12 +562,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                       sx={{
                         cursor: onRowClick ? 'pointer' : 'default',
                         '&:hover': {
-                          background:
-                            'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+                          backgroundColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.05)'
+                            : 'rgba(102, 126, 234, 0.05)',
                         },
                         '&.Mui-selected': {
-                          background:
-                            'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                          backgroundColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(102, 126, 234, 0.1)',
                         },
                       }}
                     >
@@ -576,8 +609,15 @@ export const DataTable: React.FC<DataTableProps> = ({
 
                       {/* Action Buttons */}
                       {(onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length) && (
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <TableCell
+                          align="center"
+                          sx={{
+                            width: '120px',
+                            minWidth: '120px',
+                            maxWidth: '120px',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                             {/* Default Actions */}
                             {(onRowView || defaultActions?.view) && (
                               <Tooltip title="View">

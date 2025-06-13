@@ -51,16 +51,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
               console.log('Attempting to refresh expired token...');
               const response = await authService.refreshToken();
 
-              if (response.token && response.user) {
+              if (response.accessToken) {
                 console.log('Token refresh successful during initialization');
-                setState({
-                  user: response.user,
-                  token: response.token.accessToken,
-                  isAuthenticated: true,
-                  isLoading: false,
-                  error: null,
-                });
-                return;
+
+                // Get user info using the new token directly
+                try {
+                  const user = await authService.getCurrentUser(response.accessToken);
+                  setState({
+                    user: user,
+                    token: response.accessToken,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    error: null,
+                  });
+                  return;
+                } catch (userError) {
+                  console.log('Failed to get user after token refresh:', userError);
+                }
               }
             } catch (refreshError) {
               console.log('Token refresh failed during initialization:', refreshError);

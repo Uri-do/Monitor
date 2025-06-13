@@ -26,6 +26,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { indicatorApi, schedulerApi } from '@/services/api';
 import { IndicatorDto, UpdateIndicatorRequest } from '@/types/api';
 import { CollectorSelector } from '@/components/CollectorSelector';
+import { PageHeader, FormLayout, FormSection, FormActions } from '@/components';
 
 // Form data interface
 interface IndicatorFormData {
@@ -185,58 +186,16 @@ const IndicatorEditSimple: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/');
-          }}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          <Home sx={{ mr: 0.5 }} fontSize="inherit" />
-          Home
-        </Link>
-        <Link
-          color="inherit"
-          href="/indicators"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/indicators');
-          }}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          <Assessment sx={{ mr: 0.5 }} fontSize="inherit" />
-          Indicators
-        </Link>
-        <Link
-          color="inherit"
-          href={`/indicators/${indicatorId}`}
-          onClick={(e) => {
-            e.preventDefault();
-            navigate(`/indicators/${indicatorId}`);
-          }}
-        >
-          {existingIndicator?.indicatorName || `Indicator ${indicatorId}`}
-        </Link>
-        <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center' }}>
-          <Edit sx={{ mr: 0.5 }} fontSize="inherit" />
-          Edit
-        </Typography>
-      </Breadcrumbs>
-
-      {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Edit Indicator
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Update the indicator configuration and settings.
-        </Typography>
-      </Box>
+    <Box>
+      <PageHeader
+        title="Edit Indicator"
+        subtitle={`Editing: ${existingIndicator?.indicatorName || 'Indicator'}`}
+        breadcrumbs={[
+          { label: 'Indicators', href: '/indicators' },
+          { label: existingIndicator?.indicatorName || `Indicator ${indicatorId}`, href: `/indicators/${indicatorId}` },
+          { label: 'Edit' },
+        ]}
+      />
 
       {/* Error Alert */}
       {error && (
@@ -245,181 +204,179 @@ const IndicatorEditSimple: React.FC = () => {
         </Alert>
       )}
 
-      {/* Form */}
-      <Paper elevation={1} sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <Grid container spacing={3}>
-            {/* Basic Information */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Basic Information
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="indicatorName"
-                control={control}
-                rules={{ required: 'Indicator name is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Indicator Name"
-                    fullWidth
-                    error={!!errors.indicatorName}
-                    helperText={errors.indicatorName?.message}
-                    required
-                  />
-                )}
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="indicatorCode"
-                control={control}
-                rules={{ required: 'Indicator code is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Indicator Code"
-                    fullWidth
-                    error={!!errors.indicatorCode}
-                    helperText={errors.indicatorCode?.message}
-                    required
-                  />
-                )}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Controller
-                name="indicatorDesc"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Description"
-                    fullWidth
-                    multiline
-                    rows={3}
-                    error={!!errors.indicatorDesc}
-                    helperText={errors.indicatorDesc?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Data Source */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Data Source
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <CollectorSelector
-                selectedCollectorId={watchedValues.collectorID ?? undefined}
-                selectedItemName={watchedValues.collectorItemName}
-                onCollectorChange={(collectorId) => setValue('collectorID', collectorId || null)}
-                onItemNameChange={(itemName) => setValue('collectorItemName', itemName)}
-                required
-                variant="detailed"
-                showRefreshButton
-                title="Data Collector"
-                subtitle="Select the data collector and specific item to monitor"
-              />
-            </Grid>
-
-            {/* Scheduling */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Scheduling
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="schedulerID"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Scheduler</InputLabel>
-                    <Select
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <FormLayout fullWidth spacing={3}>
+          {/* Basic Information */}
+          <Grid item xs={12}>
+            <FormSection
+              title="Basic Information"
+              subtitle="Configure indicator name, code, and description"
+              icon={<Assessment />}
+            >
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="indicatorName"
+                  control={control}
+                  rules={{ required: 'Indicator name is required' }}
+                  render={({ field }) => (
+                    <TextField
                       {...field}
-                      value={field.value || ''}
-                      label="Scheduler"
-                      disabled={isLoadingSchedulers}
-                    >
-                      <MenuItem value="">
-                        <em>No scheduler (manual execution only)</em>
-                      </MenuItem>
-                      {schedulers?.map((scheduler) => (
-                        <MenuItem key={scheduler.schedulerID} value={scheduler.schedulerID}>
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {scheduler.schedulerName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {scheduler.displayText}
-                            </Typography>
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="lastMinutes"
-                control={control}
-                rules={{ required: 'Data window is required', min: { value: 1, message: 'Must be at least 1 minute' } }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Data Window (minutes)"
-                    type="number"
-                    fullWidth
-                    error={!!errors.lastMinutes}
-                    helperText={errors.lastMinutes?.message || 'How far back to look for data'}
-                    inputProps={{ min: 1 }}
-                    required
-                  />
-                )}
-              />
-            </Grid>
+                      label="Indicator Name"
+                      fullWidth
+                      error={!!errors.indicatorName}
+                      helperText={errors.indicatorName?.message}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
 
-            {/* Action Buttons */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Button
-                  onClick={handleCancel}
-                  startIcon={<Cancel />}
-                  disabled={isSubmitting || isLoading}
-                >
-                  Cancel
-                </Button>
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="indicatorCode"
+                  control={control}
+                  rules={{ required: 'Indicator code is required' }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Indicator Code"
+                      fullWidth
+                      error={!!errors.indicatorCode}
+                      helperText={errors.indicatorCode?.message}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  startIcon={<Save />}
-                  disabled={isSubmitting || isLoading}
-                >
-                  {isSubmitting || isLoading ? 'Saving...' : 'Update Indicator'}
-                </Button>
-              </Box>
-            </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  name="indicatorDesc"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Description"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      error={!!errors.indicatorDesc}
+                      helperText={errors.indicatorDesc?.message}
+                    />
+                  )}
+                />
+              </Grid>
+            </FormSection>
           </Grid>
-        </form>
-      </Paper>
-    </Container>
+
+          {/* Data Source */}
+          <Grid item xs={12}>
+            <FormSection
+              title="Data Source"
+              subtitle="Select the data collector and specific item to monitor"
+            >
+              <Grid item xs={12}>
+                <CollectorSelector
+                  selectedCollectorId={watchedValues.collectorID ?? undefined}
+                  selectedItemName={watchedValues.collectorItemName}
+                  onCollectorChange={(collectorId) => setValue('collectorID', collectorId || null)}
+                  onItemNameChange={(itemName) => setValue('collectorItemName', itemName)}
+                  required
+                  variant="detailed"
+                  showRefreshButton
+                  title="Data Collector"
+                  subtitle="Select the data collector and specific item to monitor"
+                />
+              </Grid>
+            </FormSection>
+          </Grid>
+
+          {/* Scheduling */}
+          <Grid item xs={12}>
+            <FormSection
+              title="Scheduling"
+              subtitle="Configure when and how often the indicator should run"
+            >
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="schedulerID"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Scheduler</InputLabel>
+                      <Select
+                        {...field}
+                        value={field.value || ''}
+                        label="Scheduler"
+                        disabled={isLoadingSchedulers}
+                      >
+                        <MenuItem value="">
+                          <em>No scheduler (manual execution only)</em>
+                        </MenuItem>
+                        {schedulers?.map((scheduler) => (
+                          <MenuItem key={scheduler.schedulerID} value={scheduler.schedulerID}>
+                            <Box>
+                              <Typography variant="body2" fontWeight="medium">
+                                {scheduler.schedulerName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {scheduler.displayText}
+                              </Typography>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="lastMinutes"
+                  control={control}
+                  rules={{ required: 'Data window is required', min: { value: 1, message: 'Must be at least 1 minute' } }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Data Window (minutes)"
+                      type="number"
+                      fullWidth
+                      error={!!errors.lastMinutes}
+                      helperText={errors.lastMinutes?.message || 'How far back to look for data'}
+                      inputProps={{ min: 1 }}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+            </FormSection>
+          </Grid>
+
+          {/* Form Actions */}
+          <Grid item xs={12}>
+            <FormActions
+              secondaryActions={[
+                {
+                  label: 'Cancel',
+                  variant: 'outlined',
+                  startIcon: <Cancel />,
+                  onClick: handleCancel,
+                  disabled: isSubmitting || isLoading,
+                },
+              ]}
+              primaryAction={{
+                label: isSubmitting || isLoading ? 'Saving...' : 'Update Indicator',
+                type: 'submit',
+                startIcon: <Save />,
+                disabled: isSubmitting || isLoading,
+                loading: isSubmitting || isLoading,
+              }}
+            />
+          </Grid>
+        </FormLayout>
+      </form>
+    </Box>
   );
 };
 
