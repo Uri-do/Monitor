@@ -80,8 +80,6 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   // Update internal state when props change
   useEffect(() => {
     if (selectedCollectorId !== internalCollectorId) {
-      console.log(`CollectorSelector: Collector ID changed from ${internalCollectorId} to ${selectedCollectorId}`);
-
       // Invalidate the old collector's item names cache
       if (internalCollectorId) {
         queryClient.invalidateQueries({
@@ -91,12 +89,9 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
 
       setInternalCollectorId(selectedCollectorId);
 
-      // If the collector changed and we have a selected item name that doesn't match the new collector,
-      // clear it to avoid showing stale data
-      if (selectedItemName) {
-        console.log('Collector changed, clearing item name to avoid stale data');
-        onItemNameChange('');
-      }
+      // If the collector changed and we have a selected item name,
+      // only clear it if it's not available in the new collector's items
+      // We'll let the item validation logic handle this after items are loaded
 
       // Invalidate the new collector's item names cache to force fresh data
       if (selectedCollectorId) {
@@ -106,6 +101,16 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
       }
     }
   }, [selectedCollectorId, internalCollectorId, selectedItemName, onItemNameChange, queryClient]);
+
+  // Validate selected item name when items are loaded
+  React.useEffect(() => {
+    if (selectedItemName && itemNames && itemNames.length > 0) {
+      // If the selected item is not in the available items, clear it
+      if (!itemNames.includes(selectedItemName)) {
+        onItemNameChange('');
+      }
+    }
+  }, [selectedItemName, itemNames, onItemNameChange]);
 
   const handleCollectorChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
@@ -132,8 +137,11 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
         });
       }
     }
-    // Clear item name when collector changes
-    onItemNameChange('');
+    // Only clear item name when collector changes if user manually changed it
+    // (not during initial form loading with existing data)
+    if (selectedItemName) {
+      onItemNameChange('');
+    }
   };
 
   const handleItemNameChange = (event: SelectChangeEvent<string>) => {
@@ -143,18 +151,7 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
 
   const selectedCollector = collectors?.find(c => c.collectorID === internalCollectorId);
 
-  // Debug logging to understand the selection issue
-  useEffect(() => {
-    console.log('CollectorSelector Debug:', {
-      selectedCollectorId,
-      internalCollectorId,
-      selectedItemName,
-      itemNames,
-      itemNamesLoading,
-      itemNamesError,
-      selectedCollector: selectedCollector?.displayName
-    });
-  }, [selectedCollectorId, internalCollectorId, selectedItemName, itemNames, itemNamesLoading, itemNamesError, selectedCollector]);
+
 
   if (collectorsError) {
     return (

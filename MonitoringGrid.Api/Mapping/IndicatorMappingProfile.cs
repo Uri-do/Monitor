@@ -4,6 +4,7 @@ using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.DTOs;
 
 namespace MonitoringGrid.Api.Mapping;
 
@@ -19,6 +20,29 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.OwnerContact, opt => opt.MapFrom(src => src.OwnerContact))
             .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)))
             .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
+
+        // Scheduler mappings
+        CreateMap<Scheduler, SchedulerDto>()
+            .ForMember(dest => dest.DisplayText, opt => opt.MapFrom(src => src.GetDisplayText()))
+            .ForMember(dest => dest.NextExecutionTime, opt => opt.MapFrom(src => src.GetNextExecutionTime()))
+            .ForMember(dest => dest.IsCurrentlyActive, opt => opt.MapFrom(src => src.IsCurrentlyActive()))
+            .ForMember(dest => dest.IndicatorCount, opt => opt.MapFrom(src => src.Indicators.Count));
+
+        CreateMap<CreateSchedulerRequest, Scheduler>()
+            .ForMember(dest => dest.SchedulerID, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.Indicators, opt => opt.Ignore());
+
+        CreateMap<UpdateSchedulerRequest, Scheduler>()
+            .ForMember(dest => dest.SchedulerID, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
+            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.Indicators, opt => opt.Ignore());
 
         CreateMap<CreateIndicatorRequest, Indicator>()
             .ForMember(dest => dest.IndicatorID, opt => opt.Ignore())

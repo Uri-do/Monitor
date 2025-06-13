@@ -142,29 +142,7 @@ const IndicatorEditSimple: React.FC = () => {
       navigate(`/indicators/${updatedIndicator.indicatorID}`);
     },
     onError: (error: any) => {
-      console.error('Failed to update indicator:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-
-      // Extract detailed error message
-      let errorMessage = 'Failed to update indicator';
-      if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        } else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response.data.errors) {
-          // Handle validation errors
-          const validationErrors = Object.entries(error.response.data.errors)
-            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-            .join('; ');
-          errorMessage = `Validation errors: ${validationErrors}`;
-        } else if (error.response.data.error) {
-          errorMessage = error.response.data.error;
-        }
-      }
-
-      setError(errorMessage);
+      setError(error.response?.data?.message || 'Failed to update indicator');
     },
   });
 
@@ -182,22 +160,26 @@ const IndicatorEditSimple: React.FC = () => {
     }
 
     // Transform form data to API request format
-    const requestData: UpdateIndicatorRequest = {
-      ...formData,
+    const requestData = {
       indicatorID: indicatorId!,
-      priority: priorityString, // Convert number to string
-      collectorID: formData.collectorID, // Now required
+      indicatorName: formData.indicatorName,
+      indicatorCode: formData.indicatorCode,
+      indicatorDesc: formData.indicatorDesc,
+      collectorID: formData.collectorID,
+      collectorItemName: formData.collectorItemName,
       schedulerID: formData.schedulerID ?? undefined,
-      averageLastDays: formData.averageLastDays ?? undefined,
-      contactIds: [], // For now, use empty array. TODO: Add contact selection to form
-      // Ensure required fields have values
+      isActive: formData.isActive,
+      lastMinutes: formData.lastMinutes,
       thresholdType: formData.thresholdType || 'volume_average',
       thresholdField: formData.thresholdField || 'Total',
       thresholdComparison: formData.thresholdComparison || 'lt',
       thresholdValue: formData.thresholdValue || 0,
+      priority: priorityString, // Convert number to string
+      ownerContactId: formData.ownerContactId,
+      averageLastDays: formData.averageLastDays ?? undefined,
+      contactIds: [], // For now, use empty array. TODO: Add contact selection to form
     };
 
-    console.log('Sending update request:', requestData);
     updateMutation.mutate(requestData);
   };
 
@@ -322,15 +304,15 @@ const IndicatorEditSimple: React.FC = () => {
                   selectedCollectorId={watchedValues.collectorID}
                   selectedItemName={watchedValues.collectorItemName}
                   onCollectorChange={(collectorId) => {
-                    console.log('CollectorSelector onCollectorChange:', collectorId);
                     if (collectorId) {
                       setValue('collectorID', collectorId);
                     } else {
-                      // Don't set a default value, let validation handle it
                       setValue('collectorID', 0); // Use 0 to indicate no selection
                     }
                   }}
-                  onItemNameChange={(itemName) => setValue('collectorItemName', itemName)}
+                  onItemNameChange={(itemName) => {
+                    setValue('collectorItemName', itemName);
+                  }}
                   required
                   variant="detailed"
                   showRefreshButton
