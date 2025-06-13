@@ -16,10 +16,12 @@ public class ConfigConfiguration : IEntityTypeConfiguration<Config>
         builder.HasKey(c => c.Key);
 
         builder.Property(c => c.Key)
+            .HasColumnName("ConfigKey")
             .IsRequired()
             .HasMaxLength(50);
 
         builder.Property(c => c.Value)
+            .HasColumnName("ConfigValue")
             .IsRequired()
             .HasMaxLength(255);
 

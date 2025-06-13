@@ -59,7 +59,7 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID?: number | null;
+  collectorID: number; // Changed from optional to required
   collectorItemName: string;
   schedulerID?: number | null;
   lastMinutes: number;
@@ -110,7 +110,7 @@ export const EnhancedIndicatorForm: React.FC<EnhancedIndicatorFormProps> = ({
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorID: undefined,
+      collectorID: 1, // Default to first collector
       collectorItemName: '',
       schedulerID: undefined,
       lastMinutes: 60,
@@ -207,9 +207,9 @@ export const EnhancedIndicatorForm: React.FC<EnhancedIndicatorFormProps> = ({
                 <Grid item xs={12}>
                   <Divider sx={{ my: 2 }} />
                   <CollectorSelector
-                    selectedCollectorId={watchedValues.collectorID ?? undefined}
+                    selectedCollectorId={watchedValues.collectorID}
                     selectedItemName={watchedValues.collectorItemName}
-                    onCollectorChange={(collectorId) => setValue('collectorID', collectorId)}
+                    onCollectorChange={(collectorId) => setValue('collectorID', collectorId || 1)}
                     onItemNameChange={(itemName) => setValue('collectorItemName', itemName)}
                     required
                     variant="detailed"

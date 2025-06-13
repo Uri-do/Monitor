@@ -37,16 +37,16 @@ export interface CreateIndicatorRequest {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID?: number;
+  collectorID: number; // Changed from optional to required to match backend
   collectorItemName: string;
   schedulerID?: number;
   isActive: boolean;
   lastMinutes: number;
-  thresholdType?: string;
-  thresholdField?: string;
-  thresholdComparison?: string;
-  thresholdValue?: number;
-  priority: number;
+  thresholdType: string; // Changed from optional to required to match backend
+  thresholdField: string; // Changed from optional to required to match backend
+  thresholdComparison: string; // Changed from optional to required to match backend
+  thresholdValue: number; // Changed from optional to required to match backend
+  priority: string; // Changed from number to string to match backend
   ownerContactId: number;
   averageLastDays?: number;
   contactIds: number[];

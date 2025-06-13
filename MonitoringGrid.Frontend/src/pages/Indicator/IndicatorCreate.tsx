@@ -21,7 +21,7 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID?: number | null;
+  collectorID: number; // Changed from optional to required
   collectorItemName: string;
   schedulerID?: number | null;
   lastMinutes: number;
@@ -87,13 +87,29 @@ const IndicatorCreate: React.FC = () => {
   const handleSubmit = (formData: IndicatorFormData) => {
     setError(null);
 
+    // Convert priority number to string as expected by backend
+    const priorityString = formData.priority === 3 ? 'high' :
+                          formData.priority === 2 ? 'medium' : 'low';
+
+    // Validate required fields
+    if (!formData.collectorID) {
+      setError('Collector is required');
+      return;
+    }
+
     // Transform form data to API request format
     const requestData: CreateIndicatorRequest = {
       ...formData,
-      collectorID: formData.collectorID ?? undefined,
+      priority: priorityString, // Convert number to string
+      collectorID: formData.collectorID, // Now required
       schedulerID: formData.schedulerID ?? undefined,
       averageLastDays: formData.averageLastDays ?? undefined,
       contactIds: [], // For now, use empty array. TODO: Add contact selection to form
+      // Ensure required fields have values
+      thresholdType: formData.thresholdType || 'volume_average',
+      thresholdField: formData.thresholdField || 'Total',
+      thresholdComparison: formData.thresholdComparison || 'lt',
+      thresholdValue: formData.thresholdValue || 0,
     };
 
     if (isEditMode) {

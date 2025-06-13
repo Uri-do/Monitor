@@ -146,12 +146,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Update an existing indicator
     /// </summary>
-    [HttpPut("{id:long}")]
+    [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(IndicatorDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> UpdateIndicator(long id, [FromBody] UpdateIndicatorRequest request)
+    public async Task<IActionResult> UpdateIndicator(int id, [FromBody] UpdateIndicatorRequest request)
     {
         try
         {

@@ -18,7 +18,8 @@ import {
   FormControlLabel,
   Switch,
   Button,
-  Divider
+  Divider,
+  Chip
 } from '@mui/material';
 import { Home, Assessment, Edit, Save, Cancel } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,7 +34,7 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID?: number | null;
+  collectorID: number; // Changed from optional to required
   collectorItemName: string;
   schedulerID?: number | null;
   lastMinutes: number;
@@ -90,7 +91,7 @@ const IndicatorEditSimple: React.FC = () => {
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorID: null,
+      collectorID: 0, // Will be set when data loads
       collectorItemName: '',
       schedulerID: null,
       lastMinutes: 60,
@@ -111,7 +112,7 @@ const IndicatorEditSimple: React.FC = () => {
       setValue('indicatorName', existingIndicator.indicatorName);
       setValue('indicatorCode', existingIndicator.indicatorCode);
       setValue('indicatorDesc', existingIndicator.indicatorDesc || '');
-      setValue('collectorID', existingIndicator.collectorID || null);
+      setValue('collectorID', existingIndicator.collectorID || 0);
       setValue('collectorItemName', existingIndicator.collectorItemName);
       setValue('schedulerID', existingIndicator.schedulerID || null);
       setValue('lastMinutes', existingIndicator.lastMinutes);
@@ -119,9 +120,11 @@ const IndicatorEditSimple: React.FC = () => {
       setValue('thresholdField', existingIndicator.thresholdField || 'Total');
       setValue('thresholdComparison', existingIndicator.thresholdComparison || 'lt');
       setValue('thresholdValue', existingIndicator.thresholdValue || 0);
-      setValue('priority', typeof existingIndicator.priority === 'string' 
+      // Convert string priority to number for form
+      const priorityValue = typeof existingIndicator.priority === 'string'
         ? (existingIndicator.priority === 'high' ? 3 : existingIndicator.priority === 'medium' ? 2 : 1)
-        : existingIndicator.priority);
+        : existingIndicator.priority;
+      setValue('priority', priorityValue);
       setValue('ownerContactId', existingIndicator.ownerContactId);
       setValue('averageLastDays', existingIndicator.averageLastDays || null);
       setValue('isActive', existingIndicator.isActive);
@@ -139,23 +142,62 @@ const IndicatorEditSimple: React.FC = () => {
       navigate(`/indicators/${updatedIndicator.indicatorID}`);
     },
     onError: (error: any) => {
-      setError(error.response?.data?.message || 'Failed to update indicator');
+      console.error('Failed to update indicator:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
+      // Extract detailed error message
+      let errorMessage = 'Failed to update indicator';
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.errors) {
+          // Handle validation errors
+          const validationErrors = Object.entries(error.response.data.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('; ');
+          errorMessage = `Validation errors: ${validationErrors}`;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      }
+
+      setError(errorMessage);
     },
   });
 
   const handleFormSubmit = (formData: IndicatorFormData) => {
     setError(null);
-    
+
+    // Convert priority number to string as expected by backend
+    const priorityString = formData.priority === 3 ? 'high' :
+                          formData.priority === 2 ? 'medium' : 'low';
+
+    // Validate required fields
+    if (!formData.collectorID || formData.collectorID === 0) {
+      setError('Please select a valid collector');
+      return;
+    }
+
     // Transform form data to API request format
     const requestData: UpdateIndicatorRequest = {
       ...formData,
       indicatorID: indicatorId!,
-      collectorID: formData.collectorID ?? undefined,
+      priority: priorityString, // Convert number to string
+      collectorID: formData.collectorID, // Now required
       schedulerID: formData.schedulerID ?? undefined,
       averageLastDays: formData.averageLastDays ?? undefined,
       contactIds: [], // For now, use empty array. TODO: Add contact selection to form
+      // Ensure required fields have values
+      thresholdType: formData.thresholdType || 'volume_average',
+      thresholdField: formData.thresholdField || 'Total',
+      thresholdComparison: formData.thresholdComparison || 'lt',
+      thresholdValue: formData.thresholdValue || 0,
     };
-    
+
+    console.log('Sending update request:', requestData);
     updateMutation.mutate(requestData);
   };
 
@@ -277,9 +319,17 @@ const IndicatorEditSimple: React.FC = () => {
             >
               <Grid item xs={12}>
                 <CollectorSelector
-                  selectedCollectorId={watchedValues.collectorID ?? undefined}
+                  selectedCollectorId={watchedValues.collectorID}
                   selectedItemName={watchedValues.collectorItemName}
-                  onCollectorChange={(collectorId) => setValue('collectorID', collectorId || null)}
+                  onCollectorChange={(collectorId) => {
+                    console.log('CollectorSelector onCollectorChange:', collectorId);
+                    if (collectorId) {
+                      setValue('collectorID', collectorId);
+                    } else {
+                      // Don't set a default value, let validation handle it
+                      setValue('collectorID', 0); // Use 0 to indicate no selection
+                    }
+                  }}
                   onItemNameChange={(itemName) => setValue('collectorItemName', itemName)}
                   required
                   variant="detailed"
@@ -347,6 +397,123 @@ const IndicatorEditSimple: React.FC = () => {
                       inputProps={{ min: 1 }}
                       required
                     />
+                  )}
+                />
+              </Grid>
+            </FormSection>
+          </Grid>
+
+          {/* Threshold Configuration */}
+          <Grid item xs={12}>
+            <FormSection
+              title="Threshold Configuration"
+              subtitle="Configure alert thresholds and conditions"
+            >
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="thresholdType"
+                  control={control}
+                  rules={{ required: 'Threshold type is required' }}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Threshold Type</InputLabel>
+                      <Select {...field} label="Threshold Type" required>
+                        <MenuItem value="volume_average">Volume Average</MenuItem>
+                        <MenuItem value="threshold_value">Threshold Value</MenuItem>
+                        <MenuItem value="percentage">Percentage</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="thresholdField"
+                  control={control}
+                  rules={{ required: 'Threshold field is required' }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Threshold Field"
+                      fullWidth
+                      error={!!errors.thresholdField}
+                      helperText={errors.thresholdField?.message || 'Field to evaluate (e.g., Total, Count)'}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="thresholdComparison"
+                  control={control}
+                  rules={{ required: 'Comparison operator is required' }}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Comparison</InputLabel>
+                      <Select {...field} label="Comparison" required>
+                        <MenuItem value="gt">Greater Than (&gt;)</MenuItem>
+                        <MenuItem value="gte">Greater Than or Equal (&gt;=)</MenuItem>
+                        <MenuItem value="lt">Less Than (&lt;)</MenuItem>
+                        <MenuItem value="lte">Less Than or Equal (&lt;=)</MenuItem>
+                        <MenuItem value="eq">Equal (=)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="thresholdValue"
+                  control={control}
+                  rules={{ required: 'Threshold value is required', min: { value: 0, message: 'Must be non-negative' } }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Threshold Value"
+                      type="number"
+                      fullWidth
+                      error={!!errors.thresholdValue}
+                      helperText={errors.thresholdValue?.message || 'Value to compare against'}
+                      inputProps={{ min: 0, step: 0.01 }}
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="priority"
+                  control={control}
+                  rules={{ required: 'Priority is required' }}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Priority</InputLabel>
+                      <Select {...field} label="Priority" required>
+                        <MenuItem value={3}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="High" color="error" size="small" />
+                            High Priority
+                          </Box>
+                        </MenuItem>
+                        <MenuItem value={2}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="Medium" color="warning" size="small" />
+                            Medium Priority
+                          </Box>
+                        </MenuItem>
+                        <MenuItem value={1}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip label="Low" color="info" size="small" />
+                            Low Priority
+                          </Box>
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
                   )}
                 />
               </Grid>

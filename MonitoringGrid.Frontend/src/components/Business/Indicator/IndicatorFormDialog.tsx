@@ -80,16 +80,25 @@ export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
   }, [open, initialData, reset]);
 
   const handleFormSubmit = (data: IndicatorFormData) => {
+    // Convert priority number to string as expected by backend
+    const priorityString = data.priority === 1 ? 'critical' :
+                          data.priority === 2 ? 'high' :
+                          data.priority === 3 ? 'medium' : 'low';
+
     // Transform form data to API request format
     const apiData: CreateIndicatorRequest = {
       indicatorName: data.indicator,
       indicatorCode: data.indicator.toLowerCase().replace(/\s+/g, '_'),
       indicatorDesc: data.indicator,
+      collectorID: 1, // Default collector ID - TODO: Get from form
       collectorItemName: data.spName,
-      priority: data.priority,
+      priority: priorityString, // Convert number to string
       schedulerID: undefined, // TODO: Add scheduler selection to form
       lastMinutes: data.lastMinutes,
-      thresholdValue: data.minimumThreshold || undefined,
+      thresholdType: 'threshold_value', // Default threshold type
+      thresholdField: 'Total', // Default threshold field
+      thresholdComparison: 'gte', // Default comparison
+      thresholdValue: data.minimumThreshold || 0,
       isActive: data.isActive,
       ownerContactId: 1, // TODO: Get from form or context
       contactIds: [], // TODO: Get from form

@@ -18,8 +18,8 @@ interface StatusChipProps extends Omit<ChipProps, 'color'> {
 const statusConfig = {
   active: {
     label: 'Active',
-    color: '#43e97b',
-    backgroundColor: 'rgba(67, 233, 123, 0.1)',
+    color: '#6b7280',
+    backgroundColor: 'rgba(107, 114, 128, 0.05)',
     icon: <ActiveIcon />,
   },
   inactive: {
