@@ -68,8 +68,8 @@ builder.Services.Configure<EmailConfiguration>(
 // SecurityConfiguration is configured later with JWT and Encryption settings
 
 // Get connection strings
-var connectionString = builder.Configuration.GetConnectionString("MonitoringGrid");
-var progressPlayConnectionString = builder.Configuration.GetConnectionString("ProgressPlayDB");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var progressPlayConnectionString = builder.Configuration.GetConnectionString("SourceDatabase");
 
 // Add Entity Framework - Use real database with retry logic and fallback
 builder.Services.AddDbContext<MonitoringContext>(options =>

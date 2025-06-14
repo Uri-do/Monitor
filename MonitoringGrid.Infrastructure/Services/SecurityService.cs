@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using BCrypt.Net;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
