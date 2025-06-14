@@ -1,53 +1,68 @@
-# Database Scripts
+# 🗄️ MonitoringGrid Database Documentation
 
-This directory contains database scripts for the MonitoringGrid system.
+This directory contains all database-related scripts and documentation for the MonitoringGrid system, organized for clarity and maintainability.
 
-## ⚠️ Legacy Scripts (KPI Era)
+## 📁 Directory Structure
 
-The following scripts are **LEGACY** and use outdated KPI terminology. They are kept for historical reference but should **NOT** be used for new deployments:
+```
+MonitoringGrid.Infrastructure/Database/
+├── README.md                    # This documentation
+├── Setup/                       # Initial database setup scripts
+│   ├── 00_Complete_Database_Setup.sql
+│   ├── 01_CreateSchema.sql
+│   ├── 02_CreateAuthSchema.sql
+│   ├── 03_SeedAuthData.sql
+│   ├── add_missing_auth_tables.sql
+│   ├── check_auth_tables.sql
+│   └── setup_database.sql
+├── Current/                     # Current active scripts
+│   ├── 03_StoredProcedures.sql
+│   ├── 08_CreateSchedulersTable.sql
+│   └── 09_CleanupSchedulingMigration.sql
+├── Performance/                 # Performance optimization scripts
+│   └── PerformanceOptimization.sql
+├── Migrations/                  # Entity Framework migrations
+│   └── [EF migration files]
+└── Archive/                     # Legacy and archived scripts
+    ├── 02_InitialData.sql
+    ├── 06_EnhanceKpiScheduling.sql
+    ├── 07_NewKpiTypeStoredProcedures.sql
+    ├── PerformanceOptimizations.sql
+    └── [other legacy scripts]
+```
 
-### Legacy Scripts:
-- `01_CreateSchema.sql` - Legacy KPI table structure
-- `02_CreateKpiTable.sql` - Legacy KPI table creation
-- `03_CreateContactsTable.sql` - Legacy contacts structure
-- `04_CreateKpiContactsTable.sql` - Legacy KPI-Contact relationships
-- `05_CreateAlertLogTable.sql` - Legacy alert log structure
-- `06_EnhanceKpiScheduling.sql` - Legacy KPI scheduling enhancements
-- `07_CreateHistoricalDataTable.sql` - Legacy historical data structure
-- `08_CreateSystemStatusTable.sql` - Legacy system status structure
-- `09_CreateConfigTable.sql` - Legacy configuration structure
-- `10_AddKpiExecutionTracking.sql` - Legacy KPI execution tracking
+## 🚀 Quick Start
 
-## ✅ Current Schema
+### **1. Initial Database Setup**
 
-The current database schema uses **Indicator** terminology and is managed through Entity Framework migrations:
+For a fresh MonitoringGrid installation:
 
-### Current Tables:
-- `monitoring.Indicators` - Performance indicators configuration
-- `monitoring.IndicatorContacts` - Indicator-Contact relationships
-- `monitoring.AlertLogs` - Alert logging with IndicatorId references
-- `monitoring.Contacts` - Contact information
-- `monitoring.SystemStatus` - System health monitoring
-- `monitoring.Config` - System configuration
-- `monitoring.Collectors` - Statistics collectors configuration
-- `monitoring.MonitorStatistics` - Statistical data collection
-- `monitoring.ScheduledJobs` - Job scheduling with IndicatorID references
+```sql
+-- Run the complete setup script
+sqlcmd -S your-server -d master -i "Setup/00_Complete_Database_Setup.sql"
+```
 
-### Migration Files:
-- Use Entity Framework migrations in the `Migrations/` directory
-- Latest migrations handle KPI → Indicator transition
-- All new development should use EF migrations
+This script will:
+- Create the PopAI database
+- Set up all schemas (monitoring, auth, stats)
+- Create all core tables with modern Indicator terminology
+- Insert default data (schedulers, contacts)
+- Configure optimal database settings
 
-## 🚀 For New Deployments
+### **2. Performance Optimization**
 
-1. **Use Entity Framework migrations** instead of legacy SQL scripts
-2. Run `dotnet ef database update` to apply current schema
-3. All tables use **Indicator** terminology, not KPI
-4. ID fields are `bigint` (long) type, not `int`
+After initial setup, run the performance optimization:
 
-## 📝 Notes
+```sql
+-- Optimize database performance
+sqlcmd -S your-server -d PopAI -i "Performance/PerformanceOptimization.sql"
+```
 
-- Legacy scripts are preserved for reference only
-- Do not modify legacy scripts - they may have been executed in production
-- All new database changes should be done through EF migrations
-- The system has been fully migrated from KPI to Indicator terminology
+### **3. Entity Framework Migrations**
+
+If using Entity Framework migrations:
+
+```bash
+# Apply any pending migrations
+dotnet ef database update --project MonitoringGrid.Infrastructure
+```

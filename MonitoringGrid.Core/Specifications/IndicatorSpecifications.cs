@@ -12,7 +12,51 @@ public class IndicatorsDueForExecutionSpecification : BaseSpecification<Indicato
     {
         AddInclude(i => i.IndicatorContacts);
         AddInclude(i => i.OwnerContact!);
+        AddInclude(i => i.Scheduler!);
         ApplyOrderBy(i => i.LastRun ?? DateTime.MinValue);
+    }
+}
+
+/// <summary>
+/// Specification for high priority Indicators
+/// </summary>
+public class HighPriorityIndicatorsSpecification : BaseSpecification<Indicator>
+{
+    public HighPriorityIndicatorsSpecification()
+        : base(i => i.IsActive && i.Priority == "high")
+    {
+        AddInclude(i => i.IndicatorContacts);
+        AddInclude(i => i.OwnerContact!);
+        ApplyOrderByDescending(i => i.LastRun ?? DateTime.MinValue);
+    }
+}
+
+/// <summary>
+/// Specification for Indicators with performance issues
+/// </summary>
+public class PerformanceIssueIndicatorsSpecification : BaseSpecification<Indicator>
+{
+    public PerformanceIssueIndicatorsSpecification()
+        : base(i => i.IsActive && i.IsCurrentlyRunning)
+    {
+        AddInclude(i => i.OwnerContact!);
+        ApplyOrderByDescending(i => i.LastRun ?? DateTime.MinValue);
+    }
+}
+
+/// <summary>
+/// Specification for searching Indicators by name or code
+/// </summary>
+public class IndicatorSearchSpecification : BaseSpecification<Indicator>
+{
+    public IndicatorSearchSpecification(string searchTerm)
+        : base(i => i.IsActive &&
+                   (i.IndicatorName.Contains(searchTerm) ||
+                    i.IndicatorCode.Contains(searchTerm) ||
+                    (i.IndicatorDesc != null && i.IndicatorDesc.Contains(searchTerm))))
+    {
+        AddInclude(i => i.OwnerContact!);
+        ApplyOrderBy(i => i.IndicatorName);
     }
 }
 

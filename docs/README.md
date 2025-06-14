@@ -1,232 +1,106 @@
-# Monitoring Grid System
+# 📚 MonitoringGrid Documentation
 
-A comprehensive .NET 8 monitoring system that tracks Key Performance Indicators (KPIs) and sends automated alerts via email and SMS when thresholds are exceeded.
+Welcome to the comprehensive documentation for the MonitoringGrid system - a modern, scalable monitoring solution built with Clean Architecture principles.
 
-## Features
+## 🚀 Quick Start
 
-- **Real-time KPI Monitoring**: Continuously monitors database metrics using stored procedures
-- **Historical Comparison**: Compares current values with historical averages (4-week lookback)
-- **Multi-channel Alerts**: Sends notifications via email and SMS based on priority levels
-- **Configurable Thresholds**: Supports both percentage deviation and absolute value thresholds
-- **Cooldown Periods**: Prevents alert flooding with configurable cooldown intervals
-- **Parallel Processing**: Processes multiple KPIs concurrently for better performance
-- **Comprehensive Logging**: Detailed logging with Serilog for monitoring and debugging
-- **Health Checks**: Built-in health monitoring and status reporting
-- **Data Retention**: Automatic cleanup of old alert logs and historical data
+- **New to MonitoringGrid?** Start with [Development Guide](Development/API_AND_FRONTEND_README.md)
+- **Setting up the system?** See [Deployment Guide](Deployment/DUAL_DATABASE_SETUP.md)
+- **Understanding the architecture?** Read [Clean Architecture Guide](Architecture/CLEAN_ARCHITECTURE_GUIDE.md)
+- **Looking for recent changes?** Check [Latest Cleanup Plan](COMPREHENSIVE_CLEANUP_PLAN.md)
 
-## Architecture
+## 📖 Documentation Structure
 
-### Database Schema
-- **monitoring.KPIs**: KPI configuration and metadata
-- **monitoring.Contacts**: Contact information for notifications
-- **monitoring.KpiContacts**: Many-to-many mapping between KPIs and contacts
-- **monitoring.AlertLogs**: Historical record of all alerts sent
-- **monitoring.HistoricalData**: Time-series data for trend analysis
-- **monitoring.Config**: System configuration settings
-- **monitoring.SystemStatus**: Service health and status tracking
+### 🏗️ [Architecture](Architecture/)
+Core architectural decisions, patterns, and design principles:
+- **[Clean Architecture Guide](Architecture/CLEAN_ARCHITECTURE_GUIDE.md)** - Domain-driven design implementation
+- **[CQRS Implementation](Architecture/CQRS_IMPLEMENTATION_SUMMARY.md)** - Command Query Responsibility Segregation
+- **[Result Pattern](Architecture/RESULT_PATTERN_IMPLEMENTATION_SUMMARY.md)** - Error handling strategy
+- **[Architecture Status](Architecture/CLEAN_ARCHITECTURE_STATUS.md)** - Current implementation status
 
-### Core Components
-- **MonitoringWorker**: Background service that orchestrates KPI processing
-- **KpiExecutionService**: Executes stored procedures and calculates deviations
-- **AlertService**: Manages alert logic and notification coordination
-- **EmailService**: Handles email notifications via SMTP
-- **SmsService**: Sends SMS via email-to-SMS gateway
+### 💻 [Development](Development/)
+Developer guides, setup instructions, and integration documentation:
+- **[API & Frontend Guide](Development/API_AND_FRONTEND_README.md)** - Complete development setup
+- **[Worker Integration](Development/WORKER_INTEGRATION_GUIDE.md)** - Background service integration
+- **[Authentication Testing](Development/test-authentication-flow.md)** - Auth flow testing guide
+- **[System Review](Development/monitoring-grid-review.md)** - Comprehensive system overview
+- **[Worker Project Summary](Development/WORKER_PROJECT_SUMMARY.md)** - Worker service documentation
 
-## Setup Instructions
+### 🚀 [Deployment](Deployment/)
+Production deployment, configuration, and operations:
+- **[Dual Database Setup](Deployment/DUAL_DATABASE_SETUP.md)** - PopAI & ProgressPlayDB configuration
+- **[Observability Endpoints](Deployment/OBSERVABILITY_ENDPOINTS.md)** - Monitoring and health checks
 
-### 1. Database Setup
+### ⚡ [Features](Features/)
+Feature implementations, enhancements, and capabilities:
+- **[Real-time Implementation](Features/REALTIME_IMPLEMENTATION.md)** - Live monitoring capabilities
+- **[Scheduler & KPI Types](Features/SCHEDULER_AND_KPI_TYPES_IMPLEMENTATION.md)** - Scheduling system
+- **[User Management](Features/USER_MANAGEMENT_IMPLEMENTATION.md)** - Authentication & authorization
+- **[Whole Time Scheduling](Features/WHOLE_TIME_SCHEDULING.md)** - Precise scheduling implementation
+- **[API Enhancements](Features/API_ENHANCEMENT_SUMMARY.md)** - API improvements and features
+- **[High Priority Features](Features/HIGH_PRIORITY_FEATURES_IMPLEMENTATION_SUMMARY.md)** - Critical feature implementations
 
-The monitoring system uses two databases:
-- **PopAI**: Contains monitoring tables, configuration, and stored procedures
-- **ProgressPlayDBTest**: Main application database (read-only access for monitoring)
+### 🔒 [Security](Security/)
+Security implementations, authentication, and access control:
+- **[Authentication Logout Fix](Security/AUTHENTICATION_LOGOUT_FIX.md)** - Auth system improvements
+- **[Security Services Consolidation](Security/SECURITY_SERVICES_CONSOLIDATION_PLAN.md)** - Security architecture
 
-Execute the SQL scripts in order:
+### 📜 [History](History/)
+Historical development phases, cleanup summaries, and evolution:
+- **[Phase 1-7 Cleanup Reports](History/)** - Detailed cleanup and enhancement phases
+- **[Infrastructure Cleanup](History/INFRASTRUCTURE_DEEP_CLEANUP_SUMMARY.md)** - Infrastructure improvements
+- **[Backend Integration](History/BACKEND_INTEGRATION_SUMMARY.md)** - Backend system integration
+- **[Compilation & Testing](History/COMPILATION_TEST_RESULTS.md)** - Build and test improvements
 
-```bash
-# Create the PopAI database (if it doesn't exist)
-sqlcmd -S 192.168.166.11,1433 -U saturn -P XXXXXXXX -i Database/00_CreateDatabase.sql
+## 🎯 Current Status
 
-# Create the monitoring schema in PopAI
-sqlcmd -S 192.168.166.11,1433 -d PopAI -U saturn -P XXXXXXXX -i Database/01_CreateSchema.sql
+### ✅ **Recently Completed**
+- **Phase 7**: Utility Project Cleanup - Removed 5 utility projects, consolidated functionality
+- **Phase 6**: Test Project Consolidation - Streamlined from 3 to 2 test projects
+- **Phase 8**: Documentation Organization - Structured 50+ docs into organized categories
 
-# Insert initial configuration data
-sqlcmd -S 192.168.166.11,1433 -d PopAI -U saturn -P XXXXXXXX -i Database/02_InitialData.sql
+### 🔄 **In Progress**
+- Ongoing system enhancements and optimizations
+- Performance monitoring and improvements
+- Security hardening initiatives
 
-# Create monitoring stored procedures (these will query ProgressPlayDBTest)
-sqlcmd -S 192.168.166.11,1433 -d PopAI -U saturn -P XXXXXXXX -i Database/03_StoredProcedures.sql
-```
+### 📋 **Next Priorities**
+- Phase 10: Configuration Standardization
+- Phase 2: Infrastructure Cleanup
+- Continued feature development
 
-**Important**: Ensure the `saturn` user has:
-- Full access to the `PopAI` database (created by script 00)
-- Read access to the `ProgressPlayDBTest` database for cross-database queries
+## 🛠️ System Overview
 
-### 2. Configuration
+**MonitoringGrid** is a comprehensive monitoring solution featuring:
 
-Update `appsettings.json` with your environment-specific settings:
+- **🏗️ Clean Architecture** - Domain-driven design with clear separation of concerns
+- **⚡ Real-time Monitoring** - Live indicator execution and alerting
+- **📊 Dual Database Support** - PopAI (monitoring) + ProgressPlayDB (data source)
+- **🔄 CQRS Pattern** - Command Query Responsibility Segregation
+- **🔒 Security First** - JWT authentication, RBAC, audit trails
+- **📈 Performance Optimized** - Caching, compression, rate limiting
+- **🧪 Comprehensive Testing** - Unit, integration, and performance tests
 
-```json
-{
-  "ConnectionStrings": {
-    "MonitoringGrid": "data source=192.168.166.11,1433;initial catalog=PopAI;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true",
-    "MainDatabase": "data source=192.168.166.11,1433;initial catalog=ProgressPlayDBTest;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true"
-  },
-  "Monitoring": {
-    "SmsGateway": "your-sms-gateway@example.com",
-    "AdminEmail": "admin@yourcompany.com",
-    "EnableSms": true,
-    "EnableEmail": true
-  },
-  "Email": {
-    "SmtpServer": "your-smtp-server.com",
-    "SmtpPort": 587,
-    "Username": "your-email@yourcompany.com",
-    "Password": "your-email-password",
-    "FromAddress": "monitoring@yourcompany.com"
-  }
-}
-```
+## 🤝 Contributing
 
-### 3. Build and Run
+1. **Read the Architecture Guide** - Understand the system design
+2. **Follow Development Setup** - Use the development guide
+3. **Review Security Guidelines** - Ensure secure implementations
+4. **Write Tests** - Maintain high test coverage
+5. **Update Documentation** - Keep docs current with changes
 
-```bash
-# Restore packages
-dotnet restore
+## 📞 Support
 
-# Build the application
-dotnet build
+For questions, issues, or contributions:
+- Review the appropriate documentation section
+- Check the [History](History/) for similar past issues
+- Follow the development and deployment guides
+- Ensure security best practices are followed
 
-# Run in development mode
-dotnet run
+---
 
-# Or publish for production
-dotnet publish -c Release -o ./publish
-```
+**Last Updated**: June 2025
+**Documentation Version**: 2.0 (Post-Organization)
+**System Version**: MonitoringGrid v2.x
 
-### 4. Windows Service Installation
 
-To run as a Windows Service using the deployment script:
-
-```powershell
-# Run the automated deployment script
-.\Scripts\Deploy.ps1 -MonitoringConnectionString "data source=192.168.166.11,1433;initial catalog=PopAI;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true" -MainConnectionString "data source=192.168.166.11,1433;initial catalog=ProgressPlayDBTest;user id=saturn;password=XXXXXXXX;asynchronous processing=true;TrustServerCertificate=true"
-
-# Or manually:
-# Publish the application
-dotnet publish -c Release -o C:\Services\MonitoringGrid
-
-# Install as Windows Service
-sc create "MonitoringGrid" binPath="C:\Services\MonitoringGrid\MonitoringGrid.exe"
-
-# Start the service
-sc start MonitoringGrid
-```
-
-## Configuration Options
-
-### Monitoring Settings
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `MaxParallelExecutions` | Maximum concurrent KPI processing | 5 |
-| `ServiceIntervalSeconds` | Delay between processing cycles | 30 |
-| `AlertRetryCount` | Number of retry attempts for failed alerts | 3 |
-| `EnableSms` | Enable SMS notifications | true |
-| `EnableEmail` | Enable email notifications | true |
-| `EnableHistoricalComparison` | Enable historical trend analysis | true |
-| `BatchSize` | Number of KPIs to process per cycle | 10 |
-| `MaxAlertHistoryDays` | Days to retain alert history | 90 |
-
-### KPI Configuration
-
-Each KPI supports the following settings:
-
-- **Indicator**: Descriptive name for the KPI
-- **Owner**: Person responsible for this metric
-- **Priority**: 1 = SMS + Email, 2 = Email only
-- **Frequency**: How often to check (in minutes)
-- **Deviation**: Acceptable percentage deviation from historical average
-- **SpName**: Stored procedure to execute
-- **SubjectTemplate**: Email/SMS subject with placeholders
-- **DescriptionTemplate**: Email body with placeholders
-- **CooldownMinutes**: Minimum time between alerts
-- **MinimumThreshold**: Absolute minimum value threshold
-
-### Template Placeholders
-
-Use these placeholders in subject and description templates:
-
-- `{frequency}`: KPI frequency in minutes
-- `{current}`: Current measured value
-- `{historical}`: Historical average value
-- `{deviation}`: Calculated deviation percentage
-- `{indicator}`: KPI name
-- `{owner}`: KPI owner
-- `{timestamp}`: Current timestamp
-- `{threshold}`: Minimum threshold value
-
-## Monitoring and Health Checks
-
-The system provides health check endpoints for monitoring:
-
-- Database connectivity
-- Service heartbeat status
-- KPI processing statistics
-- Recent alert activity
-
-Access health checks at: `http://localhost:5000/health`
-
-## Logging
-
-Logs are written to:
-- Console (for development)
-- File: `logs/monitoring-grid-YYYY-MM-DD.log`
-- Windows Event Log (warnings and errors only)
-
-Log levels can be configured in `appsettings.json` under the `Serilog` section.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Errors**
-   - Verify connection string
-   - Check SQL Server accessibility
-   - Ensure user has necessary permissions
-
-2. **Email Sending Failures**
-   - Verify SMTP settings
-   - Check firewall rules
-   - Validate credentials
-
-3. **KPI Execution Errors**
-   - Check stored procedure syntax
-   - Verify required database objects exist
-   - Review SQL Server logs
-
-4. **High Memory Usage**
-   - Reduce `MaxParallelExecutions`
-   - Decrease `BatchSize`
-   - Increase cleanup frequency
-
-### Performance Tuning
-
-- Adjust `ServiceIntervalSeconds` based on monitoring requirements
-- Optimize stored procedures for better performance
-- Consider database indexing for large datasets
-- Monitor resource usage and adjust parallel execution limits
-
-## Security Considerations
-
-- Store sensitive configuration in Azure Key Vault or similar
-- Use SQL Server integrated authentication when possible
-- Implement network security for database access
-- Regular security updates for dependencies
-- Monitor for suspicious alert patterns
-
-## Support
-
-For issues and questions:
-1. Check the logs for detailed error information
-2. Verify configuration settings
-3. Test database connectivity manually
-4. Review health check status

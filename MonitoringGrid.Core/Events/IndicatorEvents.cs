@@ -51,9 +51,12 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
     public decimal? CurrentValue { get; }
     public decimal? HistoricalValue { get; }
     public string? ErrorMessage { get; }
+    public TimeSpan? ExecutionDuration { get; }
+    public string? CollectorName { get; }
 
     public IndicatorExecutedEvent(long indicatorId, string indicatorName, string owner, bool wasSuccessful,
-        decimal? currentValue = null, decimal? historicalValue = null, string? errorMessage = null)
+        decimal? currentValue = null, decimal? historicalValue = null, string? errorMessage = null,
+        TimeSpan? executionDuration = null, string? collectorName = null)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -62,6 +65,54 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
         CurrentValue = currentValue;
         HistoricalValue = historicalValue;
         ErrorMessage = errorMessage;
+        ExecutionDuration = executionDuration;
+        CollectorName = collectorName;
+    }
+
+    /// <summary>
+    /// Gets the execution performance category
+    /// </summary>
+    public string GetPerformanceCategory()
+    {
+        if (!ExecutionDuration.HasValue)
+            return "Unknown";
+
+        return ExecutionDuration.Value.TotalSeconds switch
+        {
+            < 1 => "Excellent",
+            < 5 => "Good",
+            < 15 => "Acceptable",
+            < 30 => "Slow",
+            _ => "Very Slow"
+        };
+    }
+
+    /// <summary>
+    /// Determines if this execution indicates a performance issue
+    /// </summary>
+    public bool HasPerformanceIssue()
+    {
+        return ExecutionDuration?.TotalSeconds > 15;
+    }
+
+    /// <summary>
+    /// Gets the deviation percentage if both values are available
+    /// </summary>
+    public decimal? GetDeviationPercentage()
+    {
+        if (!CurrentValue.HasValue || !HistoricalValue.HasValue || HistoricalValue.Value == 0)
+            return null;
+
+        return Math.Abs((CurrentValue.Value - HistoricalValue.Value) / HistoricalValue.Value) * 100;
+    }
+
+    /// <summary>
+    /// Determines if this execution result indicates an anomaly
+    /// </summary>
+    public bool IsAnomaly()
+    {
+        var deviation = GetDeviationPercentage();
+        return deviation.HasValue && deviation.Value > 50;
     }
 }
 

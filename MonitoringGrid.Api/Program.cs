@@ -20,6 +20,7 @@ using Prometheus;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Security;
+using MonitoringGrid.Infrastructure;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
@@ -64,8 +65,7 @@ builder.Services.Configure<MonitoringConfiguration>(
     builder.Configuration.GetSection("Monitoring"));
 builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("Email"));
-builder.Services.Configure<SecurityConfiguration>(
-    builder.Configuration.GetSection("Security"));
+// SecurityConfiguration is configured later with JWT and Encryption settings
 
 // Get connection strings
 var connectionString = builder.Configuration.GetConnectionString("MonitoringGrid");
@@ -175,21 +175,11 @@ builder.Services.AddScoped<MonitoringGrid.Api.Events.DomainEventIntegrationServi
 
 
 
-// Add repository services
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(IProjectionRepository<>), typeof(ProjectionRepository<>));
-builder.Services.AddScoped<IAlertRepository, AlertRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// Add Infrastructure services (includes repositories, caching, performance monitoring, and core services)
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// Add application services
-builder.Services.AddScoped<IIndicatorService, IndicatorService>();
-builder.Services.AddScoped<IIndicatorExecutionService, IndicatorExecutionService>();
+// Add additional API-specific services not covered by Infrastructure
 builder.Services.AddScoped<ISchedulerService, SchedulerService>();
-builder.Services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
-builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ISmsService, SmsService>();
-builder.Services.AddScoped<IMonitorStatisticsService, MonitorStatisticsService>();
 
 // Add performance optimization services
 builder.Services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
@@ -212,10 +202,10 @@ builder.Services.AddScoped<IRealtimeNotificationService, RealtimeNotificationSer
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
 
-// Configure security settings
-builder.Services.Configure<SecurityConfiguration>(builder.Configuration.GetSection("Security"));
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Security:Jwt"));
-builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("Security:Encryption"));
+// Configure security settings - Use Infrastructure standardized configuration paths
+builder.Services.Configure<SecurityConfiguration>(builder.Configuration.GetSection("MonitoringGrid:Security"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("MonitoringGrid:Security:Jwt"));
+builder.Services.Configure<EncryptionSettings>(builder.Configuration.GetSection("MonitoringGrid:Security:Encryption"));
 
 // Add unified security service (replaces 6 separate services)
 builder.Services.AddScoped<ISecurityService, SecurityService>();
@@ -323,9 +313,9 @@ builder.Services.AddSwaggerGen(c =>
     // Swagger filters - migrated to Indicator examples
 });
 
-// Add JWT Authentication
-var securityConfig = builder.Configuration.GetSection("Security").Get<SecurityConfiguration>();
-if (securityConfig?.Jwt != null)
+// Add JWT Authentication - Use Infrastructure standardized configuration path
+var securityConfig = builder.Configuration.GetSection("MonitoringGrid:Security").Get<SecurityConfiguration>();
+if (securityConfig?.Jwt != null && !string.IsNullOrEmpty(securityConfig.Jwt.SecretKey))
 {
     var key = Encoding.UTF8.GetBytes(securityConfig.Jwt.SecretKey);
 
@@ -381,6 +371,45 @@ if (securityConfig?.Jwt != null)
     .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
         ApiKeyAuthenticationOptions.DefaultScheme,
         options => { });
+}
+else
+{
+    // Log configuration issue and provide fallback
+    Log.Warning("JWT configuration is missing or invalid. SecretKey: {SecretKey}, Issuer: {Issuer}, Audience: {Audience}",
+        securityConfig?.Jwt?.SecretKey ?? "NULL",
+        securityConfig?.Jwt?.Issuer ?? "NULL",
+        securityConfig?.Jwt?.Audience ?? "NULL");
+
+    // For development, add a fallback JWT configuration
+    if (builder.Environment.IsDevelopment())
+    {
+        Log.Warning("Using fallback JWT configuration for development");
+        var fallbackKey = Encoding.UTF8.GetBytes("MonitoringGrid-Development-Secret-Key-That-Is-Long-Enough-For-HMAC-SHA256-Algorithm-2024");
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(fallbackKey),
+                ValidateIssuer = true,
+                ValidIssuer = "MonitoringGrid.Api",
+                ValidateAudience = true,
+                ValidAudience = "MonitoringGrid.Frontend",
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero,
+                RequireExpirationTime = true
+            };
+        });
+    }
 }
 
 // Add Authorization policies
@@ -450,16 +479,7 @@ builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
     options.Level = CompressionLevel.Optimal;
 });
 
-// Add enhanced memory cache for Phase 4B advanced caching
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 200 * 1024 * 1024; // 200MB for advanced caching
-    options.CompactionPercentage = 0.25; // Compact when 25% over limit
-    options.ExpirationScanFrequency = TimeSpan.FromMinutes(2); // Scan every 2 minutes
-});
-
-// Add distributed cache (in-memory for Phase 4B - can be upgraded to Redis later)
-builder.Services.AddDistributedMemoryCache();
+// Memory cache and distributed cache are already configured by Infrastructure layer
 
 // Phase 4C: Advanced rate limiting configuration is handled by AdvancedRateLimitingService
 

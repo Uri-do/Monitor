@@ -7,30 +7,44 @@ using MonitoringGrid.Infrastructure.Data;
 namespace MonitoringGrid.Infrastructure.Services;
 
 /// <summary>
-/// Service implementation for Indicator management operations
-/// Replaces KpiService
+/// Optimized service implementation for Indicator management operations
+/// Includes caching and performance optimizations
 /// </summary>
 public class IndicatorService : IIndicatorService
 {
     private readonly MonitoringContext _context;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<IndicatorService> _logger;
 
-    public IndicatorService(MonitoringContext context, ILogger<IndicatorService> logger)
+    public IndicatorService(
+        MonitoringContext context,
+        ICacheService cacheService,
+        ILogger<IndicatorService> logger)
     {
         _context = context;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
     public async Task<List<Indicator>> GetAllIndicatorsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving all indicators");
-        
-        return await _context.Indicators
-            .Include(i => i.IndicatorContacts)
-                .ThenInclude(ic => ic.Contact)
-            .Include(i => i.OwnerContact)
-            .OrderBy(i => i.IndicatorName)
-            .ToListAsync(cancellationToken);
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.AllIndicators,
+            async () =>
+            {
+                return await _context.Indicators
+                    .Include(i => i.IndicatorContacts)
+                        .ThenInclude(ic => ic.Contact)
+                    .Include(i => i.OwnerContact)
+                    .Include(i => i.Scheduler)
+                    .AsSplitQuery() // Optimize for multiple includes
+                    .OrderBy(i => i.IndicatorName)
+                    .ToListAsync(cancellationToken);
+            },
+            CacheExpirations.Indicators,
+            cancellationToken);
     }
 
     public async Task<Indicator?> GetIndicatorByIdAsync(long indicatorId, CancellationToken cancellationToken = default)
@@ -47,78 +61,118 @@ public class IndicatorService : IIndicatorService
     public async Task<List<Indicator>> GetActiveIndicatorsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving active indicators");
-        
-        return await _context.Indicators
-            .Include(i => i.IndicatorContacts)
-                .ThenInclude(ic => ic.Contact)
-            .Include(i => i.OwnerContact)
-            .Where(i => i.IsActive)
-            .OrderBy(i => i.IndicatorName)
-            .ToListAsync(cancellationToken);
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.ActiveIndicators,
+            async () =>
+            {
+                return await _context.Indicators
+                    .Include(i => i.IndicatorContacts)
+                        .ThenInclude(ic => ic.Contact)
+                    .Include(i => i.OwnerContact)
+                    .Include(i => i.Scheduler)
+                    .Where(i => i.IsActive)
+                    .AsSplitQuery()
+                    .OrderBy(i => i.IndicatorName)
+                    .ToListAsync(cancellationToken);
+            },
+            CacheExpirations.Indicators,
+            cancellationToken);
     }
 
     public async Task<List<Indicator>> GetIndicatorsByOwnerAsync(int ownerContactId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving indicators for owner {OwnerContactId}", ownerContactId);
-        
-        return await _context.Indicators
-            .Include(i => i.IndicatorContacts)
-                .ThenInclude(ic => ic.Contact)
-            .Include(i => i.OwnerContact)
-            .Where(i => i.OwnerContactId == ownerContactId && i.IsActive)
-            .OrderBy(i => i.IndicatorName)
-            .ToListAsync(cancellationToken);
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.IndicatorsByOwner(ownerContactId),
+            async () =>
+            {
+                return await _context.Indicators
+                    .Include(i => i.IndicatorContacts)
+                        .ThenInclude(ic => ic.Contact)
+                    .Include(i => i.OwnerContact)
+                    .Include(i => i.Scheduler)
+                    .Where(i => i.OwnerContactId == ownerContactId && i.IsActive)
+                    .AsSplitQuery()
+                    .OrderBy(i => i.IndicatorName)
+                    .ToListAsync(cancellationToken);
+            },
+            CacheExpirations.Indicators,
+            cancellationToken);
     }
 
     public async Task<List<Indicator>> GetIndicatorsByPriorityAsync(string priority, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving indicators with priority {Priority}", priority);
-        
-        return await _context.Indicators
-            .Include(i => i.IndicatorContacts)
-                .ThenInclude(ic => ic.Contact)
-            .Include(i => i.OwnerContact)
-            .Where(i => i.Priority == priority && i.IsActive)
-            .OrderBy(i => i.IndicatorName)
-            .ToListAsync(cancellationToken);
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.IndicatorsByPriority(priority),
+            async () =>
+            {
+                return await _context.Indicators
+                    .Include(i => i.IndicatorContacts)
+                        .ThenInclude(ic => ic.Contact)
+                    .Include(i => i.OwnerContact)
+                    .Include(i => i.Scheduler)
+                    .Where(i => i.Priority == priority && i.IsActive)
+                    .AsSplitQuery()
+                    .OrderBy(i => i.IndicatorName)
+                    .ToListAsync(cancellationToken);
+            },
+            CacheExpirations.Indicators,
+            cancellationToken);
     }
 
     public async Task<List<Indicator>> GetDueIndicatorsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving indicators due for execution");
-        
-        var indicators = await GetActiveIndicatorsAsync(cancellationToken);
-        return indicators.Where(i => i.IsDue()).ToList();
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.DueIndicators,
+            async () =>
+            {
+                var indicators = await GetActiveIndicatorsAsync(cancellationToken);
+                return indicators.Where(i => i.IsDue()).ToList();
+            },
+            CacheExpirations.Short, // Short cache for due indicators as they change frequently
+            cancellationToken);
     }
 
     public async Task<Indicator> CreateIndicatorAsync(Indicator indicator, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Creating new indicator {IndicatorName}", indicator.IndicatorName);
-        
+
         indicator.CreatedDate = DateTime.UtcNow;
         indicator.UpdatedDate = DateTime.UtcNow;
-        
+
         _context.Indicators.Add(indicator);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
+        // Invalidate relevant caches
+        await InvalidateIndicatorCachesAsync(indicator, cancellationToken);
+
         _logger.LogInformation("Created indicator {IndicatorId}: {IndicatorName}",
             indicator.IndicatorID, indicator.IndicatorName);
-        
+
         return indicator;
     }
 
     public async Task<Indicator> UpdateIndicatorAsync(Indicator indicator, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Updating indicator {IndicatorId}", indicator.IndicatorID);
-        
+
         indicator.UpdatedDate = DateTime.UtcNow;
-        
+
         _context.Indicators.Update(indicator);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
+        // Invalidate relevant caches
+        await InvalidateIndicatorCachesAsync(indicator, cancellationToken);
+
         _logger.LogInformation("Updated indicator {IndicatorId}: {IndicatorName}",
             indicator.IndicatorID, indicator.IndicatorName);
-        
+
         return indicator;
     }
 
@@ -298,5 +352,34 @@ public class IndicatorService : IIndicatorService
             NextExecution = indicator.GetNextRunTime(),
             ValueTrend = new List<IndicatorValueTrend>() // TODO: Get from new table
         };
+    }
+
+    /// <summary>
+    /// Invalidates relevant caches when an indicator is modified
+    /// </summary>
+    private async Task InvalidateIndicatorCachesAsync(Indicator indicator, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Invalidate general caches
+            await _cacheService.RemoveAsync(CacheKeys.AllIndicators, cancellationToken);
+            await _cacheService.RemoveAsync(CacheKeys.ActiveIndicators, cancellationToken);
+            await _cacheService.RemoveAsync(CacheKeys.DueIndicators, cancellationToken);
+
+            // Invalidate specific indicator cache
+            await _cacheService.RemoveAsync(CacheKeys.IndicatorById(indicator.IndicatorID), cancellationToken);
+
+            // Invalidate owner-specific cache
+            await _cacheService.RemoveAsync(CacheKeys.IndicatorsByOwner(indicator.OwnerContactId), cancellationToken);
+
+            // Invalidate priority-specific cache
+            await _cacheService.RemoveAsync(CacheKeys.IndicatorsByPriority(indicator.Priority), cancellationToken);
+
+            _logger.LogDebug("Invalidated caches for indicator {IndicatorId}", indicator.IndicatorID);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error invalidating caches for indicator {IndicatorId}", indicator.IndicatorID);
+        }
     }
 }

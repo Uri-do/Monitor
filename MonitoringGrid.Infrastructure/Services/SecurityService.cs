@@ -768,6 +768,13 @@ public class SecurityService : ISecurityService
     {
         try
         {
+            // Handle BCrypt format (for seeded admin user)
+            if (hash.StartsWith("$2a$") || hash.StartsWith("$2b$") || hash.StartsWith("$2y$"))
+            {
+                return BCrypt.Net.BCrypt.Verify(password, hash);
+            }
+
+            // Handle PBKDF2 format (salt:hash)
             var parts = hash.Split(':');
             if (parts.Length != 2) return false;
 

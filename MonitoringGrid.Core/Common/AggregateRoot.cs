@@ -39,12 +39,53 @@ public abstract class AggregateRoot
     }
 
     /// <summary>
+    /// Gets events of a specific type
+    /// </summary>
+    public IEnumerable<T> GetEventsOfType<T>() where T : IDomainEvent
+    {
+        return _domainEvents.OfType<T>();
+    }
+
+    /// <summary>
+    /// Checks if any events of a specific type have been raised
+    /// </summary>
+    public bool HasEventsOfType<T>() where T : IDomainEvent
+    {
+        return _domainEvents.Any(e => e is T);
+    }
+
+    /// <summary>
+    /// Gets the total number of domain events
+    /// </summary>
+    public int TotalEventCount => _domainEvents.Count;
+
+    /// <summary>
+    /// Clears events of a specific type
+    /// </summary>
+    public void ClearEventsOfType<T>() where T : IDomainEvent
+    {
+        var eventsToRemove = _domainEvents.OfType<T>().ToList();
+        foreach (var eventToRemove in eventsToRemove)
+        {
+            RemoveDomainEvent(eventToRemove);
+        }
+    }
+
+    /// <summary>
     /// Marks the aggregate as having unsaved changes
     /// </summary>
     protected void MarkAsModified()
     {
         // This can be used by the infrastructure layer to track changes
         // For example, updating a ModifiedDate property
+    }
+
+    /// <summary>
+    /// Gets a summary of the aggregate's current state for debugging
+    /// </summary>
+    public virtual string GetStateSummary()
+    {
+        return $"{GetType().Name} with {TotalEventCount} pending events";
     }
 }
 

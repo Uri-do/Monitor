@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Infrastructure.Configuration;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
@@ -18,10 +19,16 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Add standardized configuration
+        services.AddMonitoringGridConfiguration(configuration);
+
+        // Validate configuration on startup
+        configuration.ValidateConfiguration();
+
         // Database Context
         services.AddDbContext<MonitoringContext>(options =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionStringOrThrow("DefaultConnection");
             options.UseSqlServer(connectionString, b =>
             {
                 b.MigrationsAssembly(typeof(MonitoringContext).Assembly.FullName);
@@ -31,6 +38,17 @@ public static class DependencyInjection
                     errorNumbersToAdd: null);
             });
         });
+
+        // Caching Infrastructure
+        services.AddMemoryCache();
+
+        // Add distributed cache (in-memory for now, can be replaced with Redis in production)
+        services.AddDistributedMemoryCache();
+
+        services.AddSingleton<ICacheService, CacheService>();
+
+        // Performance Monitoring
+        services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
 
         // Repository Pattern
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -44,21 +62,21 @@ public static class DependencyInjection
         services.AddScoped<IMonitorStatisticsService, MonitorStatisticsService>();
         services.AddScoped<IConfigurationService, ConfigurationService>();
 
-        // Notification Services
-        services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<ISmsService, SmsService>();
+        // Notification Services - Optimized lifetimes
+        services.AddSingleton<IEmailService, EmailService>(); // Singleton for better performance
+        services.AddSingleton<ISmsService, SmsService>(); // Singleton for better performance
         services.AddScoped<INotificationService, NotificationService>();
 
-        // Integration Services
-        services.AddScoped<ISlackService, SlackService>();
-        services.AddScoped<ITeamsService, TeamsService>();
-        services.AddScoped<IWebhookService, WebhookService>();
+        // Integration Services - Fixed lifetimes for database dependencies
+        services.AddSingleton<ISlackService, SlackService>(); // Singleton - no database dependencies
+        services.AddSingleton<ITeamsService, TeamsService>(); // Singleton - no database dependencies
+        services.AddScoped<IWebhookService, WebhookService>(); // Scoped - depends on MonitoringContext
 
         // External Services
         services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
 
-        // Security Services
-        services.AddScoped<ISecurityService, SecurityService>();
+        // Security Services - Fixed lifetimes for database dependencies
+        services.AddScoped<ISecurityService, SecurityService>(); // Scoped - depends on MonitoringContext
         services.AddScoped<IRoleManagementService, RoleManagementService>();
 
         return services;
