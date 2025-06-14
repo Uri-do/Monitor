@@ -3,7 +3,7 @@ import { roleService, userService } from '@/services';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
- * Enhanced useRoles hook using TanStack Query
+ * useRoles hook using TanStack Query
  * Provides automatic caching, background refetching, and error handling
  */
 export const useRoles = () => {
@@ -17,7 +17,7 @@ export const useRoles = () => {
 };
 
 /**
- * Enhanced useRole hook for single role details
+ * useRole hook for single role details
  */
 export const useRole = (roleId: string) => {
   return useQuery({
@@ -30,7 +30,7 @@ export const useRole = (roleId: string) => {
 };
 
 /**
- * Enhanced usePermissions hook for all permissions
+ * usePermissions hook for all permissions
  */
 export const usePermissions = () => {
   return useQuery({
@@ -43,7 +43,7 @@ export const usePermissions = () => {
 };
 
 /**
- * Enhanced useUserRoles hook for user's roles
+ * useUserRoles hook for user's roles
  */
 export const useUserRoles = (userId: string) => {
   return useQuery({

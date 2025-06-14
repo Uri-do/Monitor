@@ -37,7 +37,9 @@ import {
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import RunningIndicatorsDisplay, { RunningIndicator } from '@/components/Business/Indicator/RunningIndicatorsDisplay';
+import RunningIndicatorsDisplay, {
+  RunningIndicator,
+} from '@/components/Business/Indicator/RunningIndicatorsDisplay';
 import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
 
@@ -377,8 +379,8 @@ const WorkerManagement: React.FC = () => {
                 Worker Services ({status.services.length})
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Background services that handle Indicator monitoring, scheduled tasks, health checks, and
-                alert processing
+                Background services that handle Indicator monitoring, scheduled tasks, health
+                checks, and alert processing
               </Typography>
 
               {status.services.length > 0 ? (

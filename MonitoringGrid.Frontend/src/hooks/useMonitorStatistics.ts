@@ -66,7 +66,9 @@ export const useAllCollectors = (): UseQueryResult<MonitorStatisticsCollector[],
 };
 
 // Hook to fetch specific collector
-export const useCollector = (collectorId: number): UseQueryResult<MonitorStatisticsCollector, Error> => {
+export const useCollector = (
+  collectorId: number
+): UseQueryResult<MonitorStatisticsCollector, Error> => {
   return useQuery({
     queryKey: ['monitor-statistics', 'collectors', collectorId],
     queryFn: () => monitorStatisticsApi.getCollector(collectorId),
@@ -84,7 +86,10 @@ export const useCollectorItemNames = (collectorId: number): UseQueryResult<strin
       console.log(`Fetching item names for collector ${collectorId}`);
       try {
         const result = await monitorStatisticsApi.getCollectorItemNames(collectorId);
-        console.log(`Successfully fetched ${result.length} item names for collector ${collectorId}:`, result);
+        console.log(
+          `Successfully fetched ${result.length} item names for collector ${collectorId}:`,
+          result
+        );
         return result;
       } catch (error: any) {
         console.error(`Failed to fetch item names for collector ${collectorId}:`, error);
@@ -116,8 +121,15 @@ export const useCollectorStatistics = (
   const { fromDate, toDate, hours = 24 } = options || {};
 
   return useQuery({
-    queryKey: ['monitor-statistics', 'collectors', collectorId, 'statistics', { fromDate, toDate, hours }],
-    queryFn: () => monitorStatisticsApi.getCollectorStatistics(collectorId, { fromDate, toDate, hours }),
+    queryKey: [
+      'monitor-statistics',
+      'collectors',
+      collectorId,
+      'statistics',
+      { fromDate, toDate, hours },
+    ],
+    queryFn: () =>
+      monitorStatisticsApi.getCollectorStatistics(collectorId, { fromDate, toDate, hours }),
     enabled: !!collectorId,
     staleTime: 2 * 60 * 1000, // 2 minutes (statistics are more dynamic)
     retry: 2,

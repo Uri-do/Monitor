@@ -173,7 +173,10 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
                       {indicatorDashboard.nextIndicatorDue?.nextDue
-                        ? format(new Date(indicatorDashboard.nextIndicatorDue.nextDue), 'MMM dd, HH:mm:ss')
+                        ? format(
+                            new Date(indicatorDashboard.nextIndicatorDue.nextDue),
+                            'MMM dd, HH:mm:ss'
+                          )
                         : 'N/A'}
                     </Typography>
                   </Box>
@@ -271,8 +274,8 @@ const NextIndicatorExecutionCard: React.FC<NextIndicatorExecutionCardProps> = ({
                     sx={{ fontWeight: 600 }}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    Next execution scheduled
-                    • Priority: {indicatorDashboard.nextIndicatorDue?.priority}
+                    Next execution scheduled • Priority:{' '}
+                    {indicatorDashboard.nextIndicatorDue?.priority}
                   </Typography>
                 </Box>
               </Box>

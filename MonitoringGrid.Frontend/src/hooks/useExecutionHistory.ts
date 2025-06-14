@@ -3,7 +3,7 @@ import { executionHistoryApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
- * Enhanced useExecutionHistory hook using TanStack Query
+ * useExecutionHistory hook using TanStack Query
  * Provides automatic caching, background refetching, and error handling
  */
 export const useExecutionHistory = (filters?: {
@@ -24,7 +24,7 @@ export const useExecutionHistory = (filters?: {
 };
 
 /**
- * Enhanced useExecutionDetail hook for single execution details
+ * useExecutionDetail hook for single execution details
  */
 export const useExecutionDetail = (executionId: number) => {
   return useQuery({
@@ -37,7 +37,7 @@ export const useExecutionDetail = (executionId: number) => {
 };
 
 /**
- * Enhanced useIndicatorExecutionHistory hook for Indicator-specific execution history
+ * useIndicatorExecutionHistory hook for Indicator-specific execution history
  */
 export const useIndicatorExecutionHistory = (indicatorId: number, limit?: number) => {
   return useQuery({
@@ -53,7 +53,7 @@ export const useIndicatorExecutionHistory = (indicatorId: number, limit?: number
 export const useKpiExecutionHistory = useIndicatorExecutionHistory;
 
 /**
- * Enhanced useExecutionStatistics hook for execution analytics
+ * useExecutionStatistics hook for execution analytics
  */
 export const useExecutionStatistics = (timeRangeDays: number = 30) => {
   return useQuery({
@@ -68,7 +68,7 @@ export const useExecutionStatistics = (timeRangeDays: number = 30) => {
 };
 
 /**
- * Enhanced useRecentExecutions hook for dashboard recent executions
+ * useRecentExecutions hook for dashboard recent executions
  */
 export const useRecentExecutions = (limit: number = 10) => {
   return useQuery({

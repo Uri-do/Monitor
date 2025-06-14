@@ -1,32 +1,34 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { expect, afterEach, vi } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+// Extend Vitest's expect with jest-dom matchers
+expect.extend(matchers);
+
+// Cleanup after each test case (e.g. clearing jsdom)
+afterEach(() => {
+  cleanup();
+});
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-  root = null;
-  rootMargin = '';
-  thresholds = [];
-  takeRecords() {
-    return [];
-  }
-} as any;
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
 
 // Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-} as any;
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
+  value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
@@ -65,3 +67,24 @@ const sessionStorageMock = {
 Object.defineProperty(window, 'sessionStorage', {
   value: sessionStorageMock,
 });
+
+// Mock fetch
+global.fetch = vi.fn();
+
+// Mock console methods to reduce noise in tests
+global.console = {
+  ...console,
+  // Uncomment to ignore specific console methods
+  // log: vi.fn(),
+  // debug: vi.fn(),
+  // info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+};
+
+// Mock environment variables
+vi.mock('@/utils/env', () => ({
+  API_BASE_URL: 'http://localhost:3000/api',
+  APP_VERSION: '1.0.0-test',
+  NODE_ENV: 'test',
+}));

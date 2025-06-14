@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Divider,
-} from '@mui/material';
+import { Box, Card, CardContent, Typography, Grid, Divider } from '@mui/material';
 import { BarChart as StatisticsIcon } from '@mui/icons-material';
 import { PageHeader } from '@/components/UI';
 import { StatsExplorer } from '@/components/StatsExplorer';

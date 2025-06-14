@@ -25,7 +25,7 @@ import {
   CircularProgress,
   Stack,
   Divider,
-  SelectChangeEvent
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   BarChart,
@@ -50,7 +50,7 @@ import {
   Refresh as RefreshIcon,
   TrendingUp,
   TrendingDown,
-  Analytics
+  Analytics,
 } from '@mui/icons-material';
 import { useCollectorStatistics, MonitorStatistics } from '../hooks/useMonitorStatistics';
 import { MetricCard } from './UI';
@@ -157,21 +157,24 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
 
         const hourlyData = filteredStatistics
           .filter(stat => stat.day === latestDay)
-          .reduce((acc, stat) => {
-            const hour = stat.hour;
-            if (!acc[hour]) {
-              acc[hour] = {
-                hour,
-                total: 0,
-                marked: 0,
-                count: 0,
-              };
-            }
-            acc[hour].total += stat.total || 0;
-            acc[hour].marked += stat.marked || 0;
-            acc[hour].count += 1;
-            return acc;
-          }, {} as Record<number, any>);
+          .reduce(
+            (acc, stat) => {
+              const hour = stat.hour;
+              if (!acc[hour]) {
+                acc[hour] = {
+                  hour,
+                  total: 0,
+                  marked: 0,
+                  count: 0,
+                };
+              }
+              acc[hour].total += stat.total || 0;
+              acc[hour].marked += stat.marked || 0;
+              acc[hour].count += 1;
+              return acc;
+            },
+            {} as Record<number, any>
+          );
 
         return Object.values(hourlyData)
           .map((item: any) => ({
@@ -182,21 +185,24 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
           .sort((a, b) => a.hour - b.hour);
       } else {
         // Show items breakdown (default for "All Items")
-        const itemStats = filteredStatistics.reduce((acc, stat) => {
-          const itemName = stat.itemName || 'Unknown';
-          if (!acc[itemName]) {
-            acc[itemName] = {
-              itemName,
-              totalSum: 0,
-              markedSum: 0,
-              recordCount: 0,
-            };
-          }
-          acc[itemName].totalSum += stat.total || 0;
-          acc[itemName].markedSum += stat.marked || 0;
-          acc[itemName].recordCount += 1;
-          return acc;
-        }, {} as Record<string, any>);
+        const itemStats = filteredStatistics.reduce(
+          (acc, stat) => {
+            const itemName = stat.itemName || 'Unknown';
+            if (!acc[itemName]) {
+              acc[itemName] = {
+                itemName,
+                totalSum: 0,
+                markedSum: 0,
+                recordCount: 0,
+              };
+            }
+            acc[itemName].totalSum += stat.total || 0;
+            acc[itemName].markedSum += stat.marked || 0;
+            acc[itemName].recordCount += 1;
+            return acc;
+          },
+          {} as Record<string, any>
+        );
 
         return Object.values(itemStats)
           .map((item: any) => ({
@@ -231,22 +237,25 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
       switch (viewMode) {
         case 'total':
           // Group by day and sum totals
-          const dailyTotals = filteredStatistics.reduce((acc, stat) => {
-            const day = stat.day;
-            if (!acc[day]) {
-              acc[day] = {
-                day,
-                total: 0,
-                marked: 0,
-                markedPercent: 0,
-                count: 0,
-              };
-            }
-            acc[day].total += stat.total || 0;
-            acc[day].marked += stat.marked || 0;
-            acc[day].count += 1;
-            return acc;
-          }, {} as Record<string, any>);
+          const dailyTotals = filteredStatistics.reduce(
+            (acc, stat) => {
+              const day = stat.day;
+              if (!acc[day]) {
+                acc[day] = {
+                  day,
+                  total: 0,
+                  marked: 0,
+                  markedPercent: 0,
+                  count: 0,
+                };
+              }
+              acc[day].total += stat.total || 0;
+              acc[day].marked += stat.marked || 0;
+              acc[day].count += 1;
+              return acc;
+            },
+            {} as Record<string, any>
+          );
 
           return Object.values(dailyTotals).map((item: any) => ({
             ...item,
@@ -256,21 +265,24 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
 
         case 'average':
           // Group by day and calculate averages
-          const dailyAverages = filteredStatistics.reduce((acc, stat) => {
-            const day = stat.day;
-            if (!acc[day]) {
-              acc[day] = {
-                day,
-                totalSum: 0,
-                markedSum: 0,
-                count: 0,
-              };
-            }
-            acc[day].totalSum += stat.total || 0;
-            acc[day].markedSum += stat.marked || 0;
-            acc[day].count += 1;
-            return acc;
-          }, {} as Record<string, any>);
+          const dailyAverages = filteredStatistics.reduce(
+            (acc, stat) => {
+              const day = stat.day;
+              if (!acc[day]) {
+                acc[day] = {
+                  day,
+                  totalSum: 0,
+                  markedSum: 0,
+                  count: 0,
+                };
+              }
+              acc[day].totalSum += stat.total || 0;
+              acc[day].markedSum += stat.marked || 0;
+              acc[day].count += 1;
+              return acc;
+            },
+            {} as Record<string, any>
+          );
 
           return Object.values(dailyAverages).map((item: any) => ({
             day: item.day,
@@ -291,24 +303,27 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
     if (selectedItemName || !filteredStatistics.length) return [];
 
     // Group data by day and item
-    const timeSeriesData = filteredStatistics.reduce((acc, stat) => {
-      const day = stat.day;
-      const itemName = stat.itemName || 'Unknown';
+    const timeSeriesData = filteredStatistics.reduce(
+      (acc, stat) => {
+        const day = stat.day;
+        const itemName = stat.itemName || 'Unknown';
 
-      if (!acc[day]) {
-        acc[day] = {
-          day,
-          displayTime: new Date(day).toLocaleDateString(),
-        };
-      }
+        if (!acc[day]) {
+          acc[day] = {
+            day,
+            displayTime: new Date(day).toLocaleDateString(),
+          };
+        }
 
-      if (!acc[day][itemName]) {
-        acc[day][itemName] = 0;
-      }
+        if (!acc[day][itemName]) {
+          acc[day][itemName] = 0;
+        }
 
-      acc[day][itemName] += stat.total || 0;
-      return acc;
-    }, {} as Record<string, any>);
+        acc[day][itemName] += stat.total || 0;
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
     return Object.values(timeSeriesData).sort((a: any, b: any) => a.day.localeCompare(b.day));
   }, [filteredStatistics, selectedItemName]);
@@ -359,9 +374,7 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
 
     // Count unique items in the filtered data
     const uniqueItems = new Set(
-      filteredStatistics
-        .map(stat => stat.itemName)
-        .filter(name => name && name.trim() !== '')
+      filteredStatistics.map(stat => stat.itemName).filter(name => name && name.trim() !== '')
     ).size;
 
     return {
@@ -374,8 +387,6 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
       uniqueItems,
     };
   }, [processedData, filteredStatistics]);
-
-
 
   const handleViewModeChange = (event: SelectChangeEvent<ViewMode>) => {
     setViewMode(event.target.value as ViewMode);
@@ -414,19 +425,9 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
             <Typography variant="h6">
               Statistics: {collectorName}
               {selectedItemName ? (
-                <Chip
-                  label={selectedItemName}
-                  size="small"
-                  color="primary"
-                  sx={{ ml: 1 }}
-                />
+                <Chip label={selectedItemName} size="small" color="primary" sx={{ ml: 1 }} />
               ) : (
-                <Chip
-                  label="All Items"
-                  size="small"
-                  color="success"
-                  sx={{ ml: 1 }}
-                />
+                <Chip label="All Items" size="small" color="success" sx={{ ml: 1 }} />
               )}
             </Typography>
           </Box>
@@ -446,12 +447,10 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
               <InputLabel>Time Mode</InputLabel>
-              <Select
-                value={timeMode}
-                onChange={handleTimeModeChange}
-                label="Time Mode"
-              >
-                <MenuItem value="daily">{selectedItemName ? 'Daily View' : 'Items Breakdown'}</MenuItem>
+              <Select value={timeMode} onChange={handleTimeModeChange} label="Time Mode">
+                <MenuItem value="daily">
+                  {selectedItemName ? 'Daily View' : 'Items Breakdown'}
+                </MenuItem>
                 <MenuItem value="hourly">Hourly (24h)</MenuItem>
                 {!selectedItemName && (
                   <MenuItem value="timeseries">Time Series (All Items)</MenuItem>
@@ -465,11 +464,7 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel>View Mode</InputLabel>
-                <Select
-                  value={viewMode}
-                  onChange={handleViewModeChange}
-                  label="View Mode"
-                >
+                <Select value={viewMode} onChange={handleViewModeChange} label="View Mode">
                   <MenuItem value="total">Daily Totals</MenuItem>
                   <MenuItem value="average">Daily Averages</MenuItem>
                 </Select>
@@ -481,11 +476,7 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
               <InputLabel>Chart Type</InputLabel>
-              <Select
-                value={chartType}
-                onChange={handleChartTypeChange}
-                label="Chart Type"
-              >
+              <Select value={chartType} onChange={handleChartTypeChange} label="Chart Type">
                 <MenuItem value="bar">Bar Chart</MenuItem>
                 <MenuItem value="line">Line Chart</MenuItem>
                 <MenuItem value="pie">Pie Chart</MenuItem>
@@ -585,13 +576,19 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                           size="small"
                           sx={{
                             opacity: hiddenItems.has(itemName) ? 0.5 : 1,
-                            '&:hover': { opacity: 0.8 }
+                            '&:hover': { opacity: 0.8 },
                           }}
                         />
                       ))}
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      {hiddenItems.size > 0 ? `${hiddenItems.size} item(s) hidden` : 'All items visible'}
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 1, display: 'block' }}
+                    >
+                      {hiddenItems.size > 0
+                        ? `${hiddenItems.size} item(s) hidden`
+                        : 'All items visible'}
                     </Typography>
                   </Box>
 
@@ -611,7 +608,7 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                               key={itemName}
                               type="monotone"
                               dataKey={itemName}
-                              stroke={`hsl(${index * 360 / uniqueItemNames.length}, 70%, 50%)`}
+                              stroke={`hsl(${(index * 360) / uniqueItemNames.length}, 70%, 50%)`}
                               strokeWidth={2}
                               name={itemName}
                               connectNulls={false}
@@ -641,33 +638,44 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       </BarChart>
                     </ResponsiveContainer>
                   )}
-                {chartType === 'line' && (
-                  (selectedItemName || timeMode === 'hourly') ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={processedData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="displayTime"
-                          angle={timeMode === 'hourly' ? 0 : -45}
-                          textAnchor={timeMode === 'hourly' ? 'middle' : 'end'}
-                          height={timeMode === 'hourly' ? 60 : 100}
-                        />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="total" stroke="#2196f3" name="Total" />
-                        <Line type="monotone" dataKey="marked" stroke="#f44336" name="Marked" />
-                        <Line type="monotone" dataKey="markedPercent" stroke="#4caf50" name="Marked %" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Line chart is available for specific items or hourly view
-                      </Typography>
-                    </Box>
-                  )
-                )}
+                  {chartType === 'line' &&
+                    (selectedItemName || timeMode === 'hourly' ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={processedData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="displayTime"
+                            angle={timeMode === 'hourly' ? 0 : -45}
+                            textAnchor={timeMode === 'hourly' ? 'middle' : 'end'}
+                            height={timeMode === 'hourly' ? 60 : 100}
+                          />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="total" stroke="#2196f3" name="Total" />
+                          <Line type="monotone" dataKey="marked" stroke="#f44336" name="Marked" />
+                          <Line
+                            type="monotone"
+                            dataKey="markedPercent"
+                            stroke="#4caf50"
+                            name="Marked %"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Line chart is available for specific items or hourly view
+                        </Typography>
+                      </Box>
+                    ))}
                   {chartType === 'pie' && processedData.length > 0 && (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -696,27 +704,28 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
             </TabPanel>
 
             <TabPanel value={activeTab} index={1}>
-              {/* Data Table - Unified for both item-specific and all-items views */}
+              {/* Data Table - For both item-specific and all-items views */}
               <Typography variant="h6" gutterBottom>
-                {selectedItemName ? (
-                  timeMode === 'hourly' ? 'Hourly Breakdown' : 'Time Series Data'
-                ) : (
-                  timeMode === 'hourly' ? 'Hourly Aggregated Data' :
-                  timeMode === 'timeseries' ? 'Time Series Data (All Items)' : 'Items Breakdown'
-                )}
+                {selectedItemName
+                  ? timeMode === 'hourly'
+                    ? 'Hourly Breakdown'
+                    : 'Time Series Data'
+                  : timeMode === 'hourly'
+                    ? 'Hourly Aggregated Data'
+                    : timeMode === 'timeseries'
+                      ? 'Time Series Data (All Items)'
+                      : 'Items Breakdown'}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {selectedItemName ? (
-                  timeMode === 'hourly'
+                {selectedItemName
+                  ? timeMode === 'hourly'
                     ? `Hourly statistics for ${selectedItemName} on the latest day`
                     : `${viewMode === 'total' ? 'Daily totals' : 'Daily averages'} for ${selectedItemName}`
-                ) : (
-                  timeMode === 'hourly'
+                  : timeMode === 'hourly'
                     ? 'Statistics aggregated by hour across all items for the latest day'
                     : timeMode === 'timeseries'
-                    ? 'Daily time series data showing each item as a separate column'
-                    : 'Statistics aggregated by item name across the selected time period'
-                )}
+                      ? 'Daily time series data showing each item as a separate column'
+                      : 'Statistics aggregated by item name across the selected time period'}
               </Typography>
 
               <TableContainer component={Paper} variant="outlined">
@@ -737,65 +746,83 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       ) : (
                         <>
                           <TableCell>
-                            {selectedItemName ? 'Time' : (timeMode === 'hourly' ? 'Hour' : 'Item Name')}
+                            {selectedItemName
+                              ? 'Time'
+                              : timeMode === 'hourly'
+                                ? 'Hour'
+                                : 'Item Name'}
                           </TableCell>
                           <TableCell align="right">Total</TableCell>
                           <TableCell align="right">Marked</TableCell>
                           <TableCell align="right">Marked %</TableCell>
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">Records</TableCell>}
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">Avg Total</TableCell>}
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">Avg Marked</TableCell>}
+                          {!selectedItemName && timeMode !== 'hourly' && (
+                            <TableCell align="right">Records</TableCell>
+                          )}
+                          {!selectedItemName && timeMode !== 'hourly' && (
+                            <TableCell align="right">Avg Total</TableCell>
+                          )}
+                          {!selectedItemName && timeMode !== 'hourly' && (
+                            <TableCell align="right">Avg Marked</TableCell>
+                          )}
                           {timeMode === 'hourly' && <TableCell align="right">Hour</TableCell>}
                         </>
                       )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {timeMode === 'timeseries' && !selectedItemName ? (
-                      multiLineData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {row.displayTime}
-                            </Typography>
-                          </TableCell>
-                          {uniqueItemNames
-                            .filter(itemName => !hiddenItems.has(itemName))
-                            .map(itemName => (
-                              <TableCell key={itemName} align="right">
-                                {(row[itemName] || 0).toFixed(1)}
-                              </TableCell>
-                            ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      processedData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            {selectedItemName ? row.displayTime : (
-                              timeMode === 'hourly' ? row.displayTime : (
+                    {timeMode === 'timeseries' && !selectedItemName
+                      ? multiLineData.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {row.displayTime}
+                              </Typography>
+                            </TableCell>
+                            {uniqueItemNames
+                              .filter(itemName => !hiddenItems.has(itemName))
+                              .map(itemName => (
+                                <TableCell key={itemName} align="right">
+                                  {(row[itemName] || 0).toFixed(1)}
+                                </TableCell>
+                              ))}
+                          </TableRow>
+                        ))
+                      : processedData.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              {selectedItemName ? (
+                                row.displayTime
+                              ) : timeMode === 'hourly' ? (
+                                row.displayTime
+                              ) : (
                                 <Typography variant="body2" fontWeight="medium">
                                   {row.itemName}
                                 </Typography>
-                              )
+                              )}
+                            </TableCell>
+                            <TableCell align="right">{(row.total || 0).toFixed(1)}</TableCell>
+                            <TableCell align="right">{(row.marked || 0).toFixed(1)}</TableCell>
+                            <TableCell align="right">
+                              <Chip
+                                label={`${(row.markedPercent || 0).toFixed(1)}%`}
+                                size="small"
+                                color={(row.markedPercent || 0) > 50 ? 'warning' : 'default'}
+                              />
+                            </TableCell>
+                            {!selectedItemName && timeMode !== 'hourly' && (
+                              <TableCell align="right">{row.recordCount}</TableCell>
                             )}
-                          </TableCell>
-                          <TableCell align="right">{(row.total || 0).toFixed(1)}</TableCell>
-                          <TableCell align="right">{(row.marked || 0).toFixed(1)}</TableCell>
-                          <TableCell align="right">
-                            <Chip
-                              label={`${(row.markedPercent || 0).toFixed(1)}%`}
-                              size="small"
-                              color={(row.markedPercent || 0) > 50 ? 'warning' : 'default'}
-                            />
-                          </TableCell>
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">{row.recordCount}</TableCell>}
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">{(row.avgTotal || 0).toFixed(1)}</TableCell>}
-                          {!selectedItemName && timeMode !== 'hourly' && <TableCell align="right">{(row.avgMarked || 0).toFixed(1)}</TableCell>}
-                          {timeMode === 'hourly' && <TableCell align="right">{row.hour || 'N/A'}</TableCell>}
-                        </TableRow>
-                      ))
-                    )}
+                            {!selectedItemName && timeMode !== 'hourly' && (
+                              <TableCell align="right">{(row.avgTotal || 0).toFixed(1)}</TableCell>
+                            )}
+                            {!selectedItemName && timeMode !== 'hourly' && (
+                              <TableCell align="right">{(row.avgMarked || 0).toFixed(1)}</TableCell>
+                            )}
+                            {timeMode === 'hourly' && (
+                              <TableCell align="right">{row.hour || 'N/A'}</TableCell>
+                            )}
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -806,8 +833,6 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                 </Alert>
               )}
             </TabPanel>
-
-
 
             {processedData.length === 0 && (
               <Alert severity="info" sx={{ mt: 2 }}>

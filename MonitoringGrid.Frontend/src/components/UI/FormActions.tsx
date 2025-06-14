@@ -76,7 +76,7 @@ const FormActions: React.FC<FormActionsProps> = ({
         >
           {allActions.map((action, index) => {
             const isCustomButton = action.gradient;
-            
+
             if (isCustomButton) {
               return (
                 <Button

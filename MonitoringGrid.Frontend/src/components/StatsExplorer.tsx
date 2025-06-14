@@ -23,10 +23,10 @@ import {
   FilterList as FilterIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
-import { 
-  useActiveCollectors, 
+import {
+  useActiveCollectors,
   useCollectorItemNames,
-  MonitorStatisticsCollector 
+  MonitorStatisticsCollector,
 } from '../hooks/useMonitorStatistics';
 import CollectorStatisticsViewer from './CollectorStatisticsViewer';
 
@@ -39,7 +39,9 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
   initialCollectorId,
   initialItemName,
 }) => {
-  const [selectedCollectorId, setSelectedCollectorId] = useState<number | undefined>(initialCollectorId);
+  const [selectedCollectorId, setSelectedCollectorId] = useState<number | undefined>(
+    initialCollectorId
+  );
   const [selectedItemName, setSelectedItemName] = useState<string>(initialItemName || '');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -66,19 +68,20 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
   // Filter collectors based on search term
   const filteredCollectors = useMemo(() => {
     if (!searchTerm.trim()) return collectors;
-    
+
     const term = searchTerm.toLowerCase();
-    return collectors.filter(collector =>
-      collector.displayName.toLowerCase().includes(term) ||
-      (collector.collectorCode && collector.collectorCode.toLowerCase().includes(term)) ||
-      (collector.collectorDesc && collector.collectorDesc.toLowerCase().includes(term))
+    return collectors.filter(
+      collector =>
+        collector.displayName.toLowerCase().includes(term) ||
+        (collector.collectorCode && collector.collectorCode.toLowerCase().includes(term)) ||
+        (collector.collectorDesc && collector.collectorDesc.toLowerCase().includes(term))
     );
   }, [collectors, searchTerm]);
 
   // Calculate collector summary stats
   const collectorSummary = useMemo(() => {
     if (!collectors.length) return { total: 0, active: 0, withData: 0 };
-    
+
     return {
       total: collectors.length,
       active: collectors.filter(c => c.isActiveStatus).length,
@@ -114,9 +117,7 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AnalyticsIcon color="primary" />
-          <Typography variant="h5">
-            Statistics Explorer
-          </Typography>
+          <Typography variant="h5">Statistics Explorer</Typography>
         </Box>
         <Button
           startIcon={<RefreshIcon />}
@@ -171,7 +172,7 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
           <Typography variant="h6" gutterBottom>
             Select Collector & Item
           </Typography>
-          
+
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth size="small">
@@ -185,12 +186,10 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
                   <MenuItem value="">
                     <em>Select a collector</em>
                   </MenuItem>
-                  {filteredCollectors.map((collector) => (
+                  {filteredCollectors.map(collector => (
                     <MenuItem key={collector.collectorID} value={collector.collectorID}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2">
-                          {collector.displayName}
-                        </Typography>
+                        <Typography variant="body2">{collector.displayName}</Typography>
                         {collector.statisticsCount > 0 && (
                           <Chip
                             label={`${collector.statisticsCount} records`}
@@ -200,12 +199,7 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
                           />
                         )}
                         {!collector.isActiveStatus && (
-                          <Chip
-                            label="Inactive"
-                            size="small"
-                            color="warning"
-                            variant="outlined"
-                          />
+                          <Chip label="Inactive" size="small" color="warning" variant="outlined" />
                         )}
                       </Box>
                     </MenuItem>
@@ -213,7 +207,7 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>Item Name (Optional)</InputLabel>
@@ -226,7 +220,7 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
                   <MenuItem value="">
                     <em>All Items</em>
                   </MenuItem>
-                  {itemNames.map((itemName) => (
+                  {itemNames.map(itemName => (
                     <MenuItem key={itemName} value={itemName}>
                       {itemName}
                     </MenuItem>
@@ -242,13 +236,13 @@ export const StatsExplorer: React.FC<StatsExplorerProps> = ({
               <Typography variant="caption">Loading items...</Typography>
             </Box>
           )}
-          
+
           {itemNamesError && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               Failed to load item names
             </Alert>
           )}
-          
+
           {itemNames.length > 0 && !itemNamesLoading && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
               {itemNames.length} items available

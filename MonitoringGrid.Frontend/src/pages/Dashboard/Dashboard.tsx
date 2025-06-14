@@ -34,7 +34,11 @@ const Dashboard: React.FC = () => {
   const dashboardState = realtimeDashboard;
 
   // Use enhanced hooks for dashboard data with optimized real-time updates
-  const { data: indicatorDashboard, isLoading: indicatorLoading, refetch: refetchIndicator } = useIndicatorDashboard();
+  const {
+    data: indicatorDashboard,
+    isLoading: indicatorLoading,
+    refetch: refetchIndicator,
+  } = useIndicatorDashboard();
 
   const {
     data: alertDashboard,

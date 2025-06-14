@@ -30,28 +30,24 @@ export const StatisticsBrowserButton: React.FC<StatisticsBrowserButtonProps> = (
     setOpen(false);
   };
 
-  const buttonContent = variant === 'icon' ? (
-    <Tooltip title={tooltip}>
-      <IconButton
+  const buttonContent =
+    variant === 'icon' ? (
+      <Tooltip title={tooltip}>
+        <IconButton onClick={handleOpen} disabled={disabled} size={size} color="primary">
+          <AnalyticsIcon />
+        </IconButton>
+      </Tooltip>
+    ) : (
+      <Button
+        variant="outlined"
+        size={size}
+        startIcon={<BarChartIcon />}
         onClick={handleOpen}
         disabled={disabled}
-        size={size}
-        color="primary"
       >
-        <AnalyticsIcon />
-      </IconButton>
-    </Tooltip>
-  ) : (
-    <Button
-      variant="outlined"
-      size={size}
-      startIcon={<BarChartIcon />}
-      onClick={handleOpen}
-      disabled={disabled}
-    >
-      Statistics
-    </Button>
-  );
+        Statistics
+      </Button>
+    );
 
   return (
     <>

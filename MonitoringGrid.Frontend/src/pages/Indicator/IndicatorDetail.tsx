@@ -42,16 +42,14 @@ import { useCollector, useCollectorStatistics } from '@/hooks/useMonitorStatisti
 import { useQuery } from '@tanstack/react-query';
 import { schedulerApi } from '@/services/api';
 import { TestIndicatorRequest } from '@/types/api';
-import {
-  PageHeader,
-  LoadingSpinner,
-  Card,
-  Button,
-  StatusChip,
-} from '@/components';
+import { PageHeader, LoadingSpinner, Card, Button, StatusChip } from '@/components';
 
 // Temporary InfoItem component until it's added to the component library
-const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode }> = ({ label, value, icon }) => (
+const InfoItem: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode }> = ({
+  label,
+  value,
+  icon,
+}) => (
   <Box>
     <Typography variant="body2" color="text.secondary" gutterBottom>
       {label}
@@ -94,27 +92,32 @@ const CollectorItemsExpander: React.FC<{
     if (!statistics || !showStats) return null;
 
     // Group by item name and calculate totals
-    const itemGroups = statistics.reduce((acc, stat) => {
-      const itemName = stat.itemName || 'Unknown';
-      if (!acc[itemName]) {
-        acc[itemName] = { totalSum: 0, markedSum: 0, recordCount: 0 };
-      }
-      acc[itemName].totalSum += stat.total || 0;
-      acc[itemName].markedSum += stat.marked || 0;
-      acc[itemName].recordCount += 1;
-      return acc;
-    }, {} as Record<string, { totalSum: number; markedSum: number; recordCount: number }>);
+    const itemGroups = statistics.reduce(
+      (acc, stat) => {
+        const itemName = stat.itemName || 'Unknown';
+        if (!acc[itemName]) {
+          acc[itemName] = { totalSum: 0, markedSum: 0, recordCount: 0 };
+        }
+        acc[itemName].totalSum += stat.total || 0;
+        acc[itemName].markedSum += stat.marked || 0;
+        acc[itemName].recordCount += 1;
+        return acc;
+      },
+      {} as Record<string, { totalSum: number; markedSum: number; recordCount: number }>
+    );
 
     // Convert to array and calculate percentages
-    return Object.entries(itemGroups).map(([itemName, stats]) => ({
-      itemName,
-      totalSum: stats.totalSum,
-      markedSum: stats.markedSum,
-      avgTotal: stats.recordCount > 0 ? stats.totalSum / stats.recordCount : 0,
-      avgMarked: stats.recordCount > 0 ? stats.markedSum / stats.recordCount : 0,
-      markedPercent: stats.totalSum > 0 ? (stats.markedSum / stats.totalSum) * 100 : 0,
-      recordCount: stats.recordCount
-    })).sort((a, b) => b.totalSum - a.totalSum); // Sort by total descending
+    return Object.entries(itemGroups)
+      .map(([itemName, stats]) => ({
+        itemName,
+        totalSum: stats.totalSum,
+        markedSum: stats.markedSum,
+        avgTotal: stats.recordCount > 0 ? stats.totalSum / stats.recordCount : 0,
+        avgMarked: stats.recordCount > 0 ? stats.markedSum / stats.recordCount : 0,
+        markedPercent: stats.totalSum > 0 ? (stats.markedSum / stats.totalSum) * 100 : 0,
+        recordCount: stats.recordCount,
+      }))
+      .sort((a, b) => b.totalSum - a.totalSum); // Sort by total descending
   }, [statistics, showStats]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -139,7 +142,8 @@ const CollectorItemsExpander: React.FC<{
     );
   }
 
-  const collectorName = collector?.displayName || collector?.collectorDesc || collector?.collectorCode || 'Collector';
+  const collectorName =
+    collector?.displayName || collector?.collectorDesc || collector?.collectorCode || 'Collector';
 
   return (
     <>
@@ -151,8 +155,8 @@ const CollectorItemsExpander: React.FC<{
           borderColor: 'divider',
           borderRadius: 1,
           '&:hover': {
-            bgcolor: 'action.hover'
-          }
+            bgcolor: 'action.hover',
+          },
         }}
         onClick={handleClick}
       >
@@ -183,9 +187,9 @@ const CollectorItemsExpander: React.FC<{
             sx: {
               width: anchorEl?.offsetWidth || 'auto',
               maxHeight: 500,
-              overflow: 'auto'
-            }
-          }
+              overflow: 'auto',
+            },
+          },
         }}
       >
         <Box sx={{ p: 3 }}>
@@ -202,7 +206,7 @@ const CollectorItemsExpander: React.FC<{
                 <CircularProgress size={16} />
               ) : (
                 <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                  {allItemsStats.map((itemStat) => (
+                  {allItemsStats.map(itemStat => (
                     <Box
                       key={itemStat.itemName}
                       sx={{
@@ -213,11 +217,14 @@ const CollectorItemsExpander: React.FC<{
                         px: 1,
                         borderBottom: '1px solid',
                         borderColor: 'divider',
-                        '&:last-child': { borderBottom: 'none' }
+                        '&:last-child': { borderBottom: 'none' },
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: itemStat.itemName === selectedItemName ? 600 : 400 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: itemStat.itemName === selectedItemName ? 600 : 400 }}
+                        >
                           {itemStat.itemName}
                         </Typography>
                         {itemStat.itemName === selectedItemName && (
@@ -225,7 +232,8 @@ const CollectorItemsExpander: React.FC<{
                         )}
                       </Box>
                       <Typography variant="caption" color="text.secondary">
-                        {itemStat.totalSum.toLocaleString()} • {itemStat.markedSum.toLocaleString()} ({itemStat.markedPercent.toFixed(1)}%)
+                        {itemStat.totalSum.toLocaleString()} • {itemStat.markedSum.toLocaleString()}{' '}
+                        ({itemStat.markedPercent.toFixed(1)}%)
                       </Typography>
                     </Box>
                   ))}
@@ -233,8 +241,6 @@ const CollectorItemsExpander: React.FC<{
               )}
             </Box>
           )}
-
-
         </Box>
       </Popover>
     </>
@@ -272,10 +278,7 @@ const SchedulerDetails: React.FC<{ schedulerId: number }> = ({ schedulerId }) =>
           value={format(new Date(scheduler.nextExecutionTime), 'MMM dd, yyyy HH:mm')}
         />
       )}
-      <InfoItem
-        label="Status"
-        value={scheduler.isEnabled ? 'Enabled' : 'Disabled'}
-      />
+      <InfoItem label="Status" value={scheduler.isEnabled ? 'Enabled' : 'Disabled'} />
     </Stack>
   );
 };
@@ -332,25 +335,41 @@ const IndicatorDetail: React.FC = () => {
       return priority.charAt(0).toUpperCase() + priority.slice(1);
     }
     switch (priority) {
-      case 1: return 'High';
-      case 2: return 'Medium';
-      case 3: return 'Normal';
-      case 4: return 'Low';
-      case 5: return 'Very Low';
-      default: return 'Unknown';
+      case 1:
+        return 'High';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Normal';
+      case 4:
+        return 'Low';
+      case 5:
+        return 'Very Low';
+      default:
+        return 'Unknown';
     }
   };
 
   // Threshold helper functions
   const getThresholdStatusIcon = () => {
-    if (!indicator?.thresholdType || !indicator?.thresholdField || !indicator?.thresholdComparison || indicator?.thresholdValue === undefined) {
+    if (
+      !indicator?.thresholdType ||
+      !indicator?.thresholdField ||
+      !indicator?.thresholdComparison ||
+      indicator?.thresholdValue === undefined
+    ) {
       return <ErrorIcon sx={{ color: 'warning.main' }} />;
     }
     return <CheckIcon sx={{ color: 'success.main' }} />;
   };
 
   const getThresholdDescription = () => {
-    if (!indicator?.thresholdType || !indicator?.thresholdField || !indicator?.thresholdComparison || indicator?.thresholdValue === undefined) {
+    if (
+      !indicator?.thresholdType ||
+      !indicator?.thresholdField ||
+      !indicator?.thresholdComparison ||
+      indicator?.thresholdValue === undefined
+    ) {
       return 'Threshold configuration is incomplete. Please configure all threshold settings.';
     }
 
@@ -364,32 +383,48 @@ const IndicatorDetail: React.FC = () => {
 
   const getComparisonSymbol = (comparison?: string) => {
     switch (comparison) {
-      case 'gt': return '>';
-      case 'gte': return '≥';
-      case 'lt': return '<';
-      case 'lte': return '≤';
-      case 'eq': return '=';
-      default: return comparison || 'Not Set';
+      case 'gt':
+        return '>';
+      case 'gte':
+        return '≥';
+      case 'lt':
+        return '<';
+      case 'lte':
+        return '≤';
+      case 'eq':
+        return '=';
+      default:
+        return comparison || 'Not Set';
     }
   };
 
   const getComparisonText = (comparison?: string) => {
     switch (comparison) {
-      case 'gt': return 'greater than';
-      case 'gte': return 'greater than or equal to';
-      case 'lt': return 'less than';
-      case 'lte': return 'less than or equal to';
-      case 'eq': return 'equal to';
-      default: return 'compared to';
+      case 'gt':
+        return 'greater than';
+      case 'gte':
+        return 'greater than or equal to';
+      case 'lt':
+        return 'less than';
+      case 'lte':
+        return 'less than or equal to';
+      case 'eq':
+        return 'equal to';
+      default:
+        return 'compared to';
     }
   };
 
   const formatThresholdType = (type?: string) => {
     switch (type) {
-      case 'volume_average': return 'Volume Average';
-      case 'threshold_value': return 'Threshold Value';
-      case 'percentage': return 'Percentage';
-      default: return type || 'Not Set';
+      case 'volume_average':
+        return 'Volume Average';
+      case 'threshold_value':
+        return 'Threshold Value';
+      case 'percentage':
+        return 'Percentage';
+      default:
+        return type || 'Not Set';
     }
   };
 
@@ -448,20 +483,30 @@ const IndicatorDetail: React.FC = () => {
                 <DatabaseIcon sx={{ fontSize: '2.5rem', color: 'primary.main' }} />
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 600, mb: 0.5, color: 'primary.main' }}>
-                    {collector?.displayName || collector?.collectorDesc || collector?.collectorCode || 'Unknown Collector'}
+                    {collector?.displayName ||
+                      collector?.collectorDesc ||
+                      collector?.collectorCode ||
+                      'Unknown Collector'}
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 500, mb: 1, color: 'text.primary' }}>
                     Item: {indicator.collectorItemName || 'Not specified'}
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    {indicator.lastMinutes} minute intervals • Collector ID: {indicator.collectorID || 'N/A'}
+                    {indicator.lastMinutes} minute intervals • Collector ID:{' '}
+                    {indicator.collectorID || 'N/A'}
                   </Typography>
                 </Box>
               </Box>
 
               <Typography variant="body1" color="text.secondary">
                 This indicator monitors <strong>{indicator.collectorItemName}</strong> from the{' '}
-                <strong>{collector?.displayName || collector?.collectorDesc || collector?.collectorCode || 'collector'}</strong> data source
+                <strong>
+                  {collector?.displayName ||
+                    collector?.collectorDesc ||
+                    collector?.collectorCode ||
+                    'collector'}
+                </strong>{' '}
+                data source
               </Typography>
             </Grid>
 
@@ -589,7 +634,9 @@ const IndicatorDetail: React.FC = () => {
                 Last Executed
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {indicator.lastRun ? format(new Date(indicator.lastRun), 'MMM dd, yyyy HH:mm') : 'Never'}
+                {indicator.lastRun
+                  ? format(new Date(indicator.lastRun), 'MMM dd, yyyy HH:mm')
+                  : 'Never'}
               </Typography>
             </CardContent>
           </Card>
@@ -613,7 +660,11 @@ const IndicatorDetail: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <ScheduleIcon color="primary" />
                 Scheduler & Execution
               </Typography>
@@ -637,10 +688,7 @@ const IndicatorDetail: React.FC = () => {
                   />
                 )}
                 {indicator.executionContext && (
-                  <InfoItem
-                    label="Execution Context"
-                    value={indicator.executionContext}
-                  />
+                  <InfoItem label="Execution Context" value={indicator.executionContext} />
                 )}
                 {indicator.isCurrentlyRunning && indicator.executionStartTime && (
                   <InfoItem
@@ -657,7 +705,11 @@ const IndicatorDetail: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <SettingsIcon color="primary" />
                 Execution Details
               </Typography>
@@ -667,8 +719,14 @@ const IndicatorDetail: React.FC = () => {
                   <InfoItem label="Average Last Days" value={indicator.averageLastDays} />
                 )}
                 <Divider />
-                <InfoItem label="Created" value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')} />
-                <InfoItem label="Last Updated" value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')} />
+                <InfoItem
+                  label="Created"
+                  value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')}
+                />
+                <InfoItem
+                  label="Last Updated"
+                  value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')}
+                />
                 {indicator.lastRunResult && (
                   <InfoItem label="Last Run Result" value={indicator.lastRunResult} />
                 )}
@@ -687,7 +745,11 @@ const IndicatorDetail: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <PersonIcon color="primary" />
                 Notification Contacts
               </Typography>
@@ -697,12 +759,8 @@ const IndicatorDetail: React.FC = () => {
                   color="primary"
                   variant="outlined"
                 />
-                {indicator.contacts.map((contact) => (
-                  <Chip
-                    key={contact.contactID}
-                    label={contact.name}
-                    variant="outlined"
-                  />
+                {indicator.contacts.map(contact => (
+                  <Chip key={contact.contactID} label={contact.name} variant="outlined" />
                 ))}
               </Stack>
             </CardContent>
@@ -715,15 +773,13 @@ const IndicatorDetail: React.FC = () => {
         <DialogTitle>Delete Indicator</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{indicator.indicatorName}"? This action cannot be undone.
+            Are you sure you want to delete "{indicator.indicatorName}"? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleteIndicatorMutation.isPending}
-          >
+          <Button onClick={handleDelete} disabled={deleteIndicatorMutation.isPending}>
             Delete
           </Button>
         </DialogActions>
@@ -734,15 +790,13 @@ const IndicatorDetail: React.FC = () => {
         <DialogTitle>Execute Indicator</DialogTitle>
         <DialogContent>
           <Typography>
-            Execute "{indicator.indicatorName}" now? This will run the indicator outside of its normal schedule.
+            Execute "{indicator.indicatorName}" now? This will run the indicator outside of its
+            normal schedule.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setExecuteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleExecute}
-            disabled={executeIndicatorMutation.isPending}
-          >
+          <Button onClick={handleExecute} disabled={executeIndicatorMutation.isPending}>
             Execute
           </Button>
         </DialogActions>

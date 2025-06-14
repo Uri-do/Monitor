@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Typography,
+  Grid,
+  Chip,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Alert,
   AlertTitle,
-  Box,
-  Typography,
-  CircularProgress,
-  Grid,
-  Chip,
   SelectChangeEvent,
-  Card,
-  CardContent,
-  Divider,
-  Tooltip,
-  IconButton
 } from '@mui/material';
-import {
-  Database,
-  Clock,
-  Activity,
-  Info,
-  RefreshCw as Refresh
-} from 'lucide-react';
+import { Clock, Activity } from 'lucide-react';
 import { useActiveCollectors, useCollectorItemNames } from '../hooks/useMonitorStatistics';
-import { useQueryClient } from '@tanstack/react-query';
 import StatisticsBrowserButton from './StatisticsBrowserButton';
+import { GenericSelector, GenericSelectorOption } from './UI/GenericSelector';
+
+// Transform collector data to match GenericSelectorOption interface
+interface CollectorOption extends GenericSelectorOption {
+  collectorID: number;
+  collectorName: string;
+  collectorDescription?: string;
+  isActive: boolean;
+  lastRunTime?: string;
+  status?: string;
+}
 
 interface CollectorSelectorProps {
   selectedCollectorId?: number;
@@ -60,50 +58,53 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   title,
   subtitle,
 }) => {
-  const [internalCollectorId, setInternalCollectorId] = useState<number | undefined>(selectedCollectorId);
-  const queryClient = useQueryClient();
-  
+  const [internalCollectorId, setInternalCollectorId] = useState<number | undefined>(
+    selectedCollectorId
+  );
+
   const {
     data: collectors,
     isLoading: collectorsLoading,
     error: collectorsError,
-    refetch: refetchCollectors,
   } = useActiveCollectors();
 
   const {
     data: itemNames,
     isLoading: itemNamesLoading,
     error: itemNamesError,
-    refetch: refetchItemNames,
   } = useCollectorItemNames(internalCollectorId || 0);
 
-  // Update internal state when props change
+  // Transform collectors to match GenericSelectorOption interface
+  const collectorOptions: CollectorOption[] = (collectors || []).map(collector => ({
+    id: collector.collectorID,
+    name: collector.displayName || collector.collectorCode || `Collector ${collector.collectorID}`,
+    description: collector.collectorDesc,
+    isEnabled: collector.isActiveStatus,
+    isActive: collector.isActiveStatus,
+    displayText: `${collector.displayName} - ${collector.statusDisplay}`,
+    metadata: {
+      type: 'collector',
+      status: collector.statusDisplay,
+      lastRunTime: collector.lastRunDisplay,
+      frequency: collector.frequencyDisplay,
+    },
+    // Original properties for backward compatibility
+    collectorID: collector.collectorID,
+    collectorName: collector.displayName,
+    collectorDescription: collector.collectorDesc,
+    lastRunTime: collector.lastRunDisplay,
+    status: collector.statusDisplay,
+  }));
+
+  // Sync internal state with props
   useEffect(() => {
     if (selectedCollectorId !== internalCollectorId) {
-      // Invalidate the old collector's item names cache
-      if (internalCollectorId) {
-        queryClient.invalidateQueries({
-          queryKey: ['monitor-statistics', 'collectors', internalCollectorId, 'items']
-        });
-      }
-
       setInternalCollectorId(selectedCollectorId);
-
-      // If the collector changed and we have a selected item name,
-      // only clear it if it's not available in the new collector's items
-      // We'll let the item validation logic handle this after items are loaded
-
-      // Invalidate the new collector's item names cache to force fresh data
-      if (selectedCollectorId) {
-        queryClient.invalidateQueries({
-          queryKey: ['monitor-statistics', 'collectors', selectedCollectorId, 'items']
-        });
-      }
     }
-  }, [selectedCollectorId, internalCollectorId, selectedItemName, onItemNameChange, queryClient]);
+  }, [selectedCollectorId, internalCollectorId]);
 
   // Validate selected item name when items are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedItemName && itemNames && itemNames.length > 0) {
       // If the selected item is not in the available items, clear it
       if (!itemNames.includes(selectedItemName)) {
@@ -112,46 +113,51 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
     }
   }, [selectedItemName, itemNames, onItemNameChange]);
 
-  const handleCollectorChange = (event: SelectChangeEvent<string>) => {
-    const value = event.target.value;
+  // Handle collector selection for GenericSelector
+  const handleCollectorChange = (collectorId: string | number | undefined) => {
+    const numericId = collectorId ? Number(collectorId) : undefined;
+    setInternalCollectorId(numericId);
+    onCollectorChange(numericId);
 
-    // Invalidate current collector's cache before changing
-    if (internalCollectorId) {
-      queryClient.invalidateQueries({
-        queryKey: ['monitor-statistics', 'collectors', internalCollectorId, 'items']
-      });
-    }
-
-    if (value === '') {
-      setInternalCollectorId(undefined);
-      onCollectorChange(undefined);
-    } else {
-      const collectorId = parseInt(value, 10);
-      if (!isNaN(collectorId)) {
-        setInternalCollectorId(collectorId);
-        onCollectorChange(collectorId);
-
-        // Invalidate new collector's cache to force fresh data
-        queryClient.invalidateQueries({
-          queryKey: ['monitor-statistics', 'collectors', collectorId, 'items']
-        });
-      }
-    }
-    // Only clear item name when collector changes if user manually changed it
-    // (not during initial form loading with existing data)
-    if (selectedItemName) {
+    // Clear item name when collector changes
+    if (numericId !== selectedCollectorId) {
       onItemNameChange('');
     }
   };
 
+  // Handle item name selection
   const handleItemNameChange = (event: SelectChangeEvent<string>) => {
-    const value = event.target.value;
-    onItemNameChange(value);
+    const itemName = event.target.value;
+    onItemNameChange(itemName);
   };
 
+  // Get selected collector for display
   const selectedCollector = collectors?.find(c => c.collectorID === internalCollectorId);
 
-
+  // Custom render for collector info card
+  const renderCollectorInfo = (collector: CollectorOption) => (
+    <Box>
+      <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
+        {collector.name}
+      </Typography>
+      {collector.description && (
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {collector.description}
+        </Typography>
+      )}
+      <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+        <Typography variant="caption" color="text.secondary">
+          <strong>Status:</strong> {collector.metadata?.status}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          <strong>Frequency:</strong> {collector.metadata?.frequency}
+        </Typography>
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+        <strong>Last Run:</strong> {collector.metadata?.lastRunTime}
+      </Typography>
+    </Box>
+  );
 
   if (collectorsError) {
     return (
@@ -163,66 +169,78 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   }
 
   return (
-    <Box className={className} sx={{ mb: 2 }}>
-      {/* Collector Selection */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <FormControl fullWidth>
-          <InputLabel id="collector-select-label">
-            Data Collector {required && <span style={{ color: 'red' }}>*</span>}
-          </InputLabel>
-          <Select
-            labelId="collector-select-label"
-            value={internalCollectorId ? internalCollectorId.toString() : ''}
-            onChange={handleCollectorChange}
-            disabled={disabled || collectorsLoading}
-            label={`Data Collector ${required ? '*' : ''}`}
-          >
-            {!required && (
-              <MenuItem value="">
-                <Typography color="text.secondary">No collector (optional)</Typography>
-              </MenuItem>
-            )}
-            {collectors?.map((collector) => (
-              <MenuItem key={collector.collectorID} value={collector.collectorID.toString()}>
-                <Box>
-                  <Typography variant="body2" fontWeight="medium">
-                    {collector.displayName}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    ID: {collector.collectorID} • {collector.frequencyDisplay}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <Box className={className}>
+      {/* Title and Subtitle */}
+      {(title || subtitle) && (
+        <Box sx={{ mb: 2 }}>
+          {title && (
+            <Typography variant="h6" gutterBottom>
+              {title}
+            </Typography>
+          )}
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      )}
+
+      <Grid container spacing={2}>
+        {/* Collector Selection using GenericSelector */}
+        <Grid item xs={12} md={showStatisticsButton ? 10 : 12}>
+          <GenericSelector
+            data={collectorOptions}
+            loading={collectorsLoading}
+            error={collectorsError}
+            selectedId={internalCollectorId}
+            onSelectionChange={handleCollectorChange}
+            label="Data Collector"
+            required={required}
+            disabled={disabled}
+            variant={variant}
+            showRefreshButton={showRefreshButton}
+            showInfoCard={showCollectorInfo}
+            queryKey={['monitor-statistics', 'collectors', 'active']}
+            renderInfoCard={renderCollectorInfo}
+            emptyMessage="No collectors found."
+          />
+        </Grid>
 
         {/* Statistics Browser Button */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-          <StatisticsBrowserButton
-            collectorId={internalCollectorId}
-            itemName={selectedItemName}
-            variant="icon"
-            size="medium"
-            disabled={disabled}
-            tooltip="Browse All Statistics"
-          />
-        </Box>
-      </Box>
+        {showStatisticsButton && (
+          <Grid item xs={12} md={2}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+              <StatisticsBrowserButton
+                collectorId={internalCollectorId}
+                itemName={selectedItemName}
+                variant="icon"
+                size="medium"
+                disabled={disabled}
+                tooltip="Browse All Statistics"
+              />
+            </Box>
+          </Grid>
+        )}
+      </Grid>
 
       {/* Collector Details */}
       {selectedCollector && (
-        <Box sx={{
-          p: 2,
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
-          borderRadius: 1,
-          mb: 2
-        }}>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: theme => (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50'),
+            borderRadius: 1,
+            mb: 2,
+          }}
+        >
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Activity style={{ width: 12, height: 12, marginRight: 4 }} />
-                <Typography variant="caption" color="text.secondary">Status:</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Status:
+                </Typography>
                 <Chip
                   label={selectedCollector.statusDisplay}
                   color={selectedCollector.isActiveStatus ? 'success' : 'error'}
@@ -234,7 +252,9 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
             <Grid item xs={6}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Clock style={{ width: 12, height: 12, marginRight: 4 }} />
-                <Typography variant="caption" color="text.secondary">Last Run:</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Last Run:
+                </Typography>
                 <Typography variant="caption" fontWeight="medium" sx={{ ml: 1 }}>
                   {selectedCollector.lastRunDisplay}
                 </Typography>
@@ -278,7 +298,7 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
                   </Box>
                 </MenuItem>
               )}
-              {itemNames?.map((itemName) => (
+              {itemNames?.map(itemName => (
                 <MenuItem key={itemName} value={itemName}>
                   {itemName}
                 </MenuItem>
@@ -298,15 +318,18 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
             </Alert>
           )}
 
-          {selectedItemName && itemNames && !itemNames.includes(selectedItemName) && !itemNamesLoading && (
-            <Alert severity="warning" sx={{ mt: 1 }}>
-              The previously selected item "{selectedItemName}" is not available in the current data.
-              You may need to select a different item or check if the data source has changed.
-            </Alert>
-          )}
+          {selectedItemName &&
+            itemNames &&
+            !itemNames.includes(selectedItemName) &&
+            !itemNamesLoading && (
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                The previously selected item "{selectedItemName}" is not available in the current
+                data. You may need to select a different item or check if the data source has
+                changed.
+              </Alert>
+            )}
         </FormControl>
       )}
-
     </Box>
   );
 };

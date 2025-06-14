@@ -9,10 +9,7 @@ import {
   Typography,
   IconButton,
 } from '@mui/material';
-import {
-  Close as CloseIcon,
-  Analytics as AnalyticsIcon,
-} from '@mui/icons-material';
+import { Close as CloseIcon, Analytics as AnalyticsIcon } from '@mui/icons-material';
 import StatsExplorer from './StatsExplorer';
 
 interface StatisticsBrowserProps {
@@ -28,7 +25,6 @@ export const StatisticsBrowser: React.FC<StatisticsBrowserProps> = ({
   initialCollectorId,
   initialItemName,
 }) => {
-
   return (
     <Dialog
       open={open}
@@ -36,7 +32,7 @@ export const StatisticsBrowser: React.FC<StatisticsBrowserProps> = ({
       maxWidth="xl"
       fullWidth
       PaperProps={{
-        sx: { height: '90vh', maxHeight: '90vh' }
+        sx: { height: '90vh', maxHeight: '90vh' },
       }}
     >
       <DialogTitle>
@@ -52,10 +48,7 @@ export const StatisticsBrowser: React.FC<StatisticsBrowserProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ p: 2 }}>
-        <StatsExplorer
-          initialCollectorId={initialCollectorId}
-          initialItemName={initialItemName}
-        />
+        <StatsExplorer initialCollectorId={initialCollectorId} initialItemName={initialItemName} />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>

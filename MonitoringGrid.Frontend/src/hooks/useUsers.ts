@@ -3,7 +3,7 @@ import { userService, roleService } from '@/services';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
- * Enhanced useUsers hook using TanStack Query
+ * useUsers hook using TanStack Query
  * Provides automatic caching, background refetching, and error handling
  */
 export const useUsers = (isActive?: boolean) => {

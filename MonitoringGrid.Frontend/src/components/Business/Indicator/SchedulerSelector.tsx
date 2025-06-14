@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Box,
   Typography,
-  Chip,
   Button,
   Dialog,
   DialogTitle,
@@ -14,427 +9,251 @@ import {
   DialogActions,
   TextField,
   Grid,
-  Alert,
-  Divider,
-  Card,
-  CardContent,
-  IconButton,
-  Tooltip,
-  SelectChangeEvent
 } from '@mui/material';
-import {
-  Schedule,
-  Add,
-  Edit,
-  Info,
-  AccessTime,
-  Event,
-  Refresh
-} from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Schedule, Add } from '@mui/icons-material';
+import { GenericSelector, GenericSelectorOption } from '../../UI/GenericSelector';
+import { useStableQuery } from '../../../hooks/useGenericQuery';
+import { schedulerApi } from '../../../services/api';
 
-interface SchedulerOption {
+// Transform scheduler data to match GenericSelectorOption interface
+interface SchedulerOption extends GenericSelectorOption {
   schedulerID: number;
   schedulerName: string;
   schedulerDescription?: string;
-  scheduleType: string;
-  intervalMinutes?: number;
   cronExpression?: string;
-  executionDateTime?: string;
-  timezone: string;
+  timezone?: string;
   isEnabled: boolean;
-  displayText: string;
-  nextExecutionTime?: string;
-  isCurrentlyActive: boolean;
-  indicatorCount: number;
+  nextRunTime?: string;
+  lastRunTime?: string;
 }
 
 interface SchedulerSelectorProps {
   selectedSchedulerId?: number;
   onSchedulerChange: (schedulerId: number | undefined) => void;
   disabled?: boolean;
+  className?: string;
   required?: boolean;
+  variant?: 'standard' | 'detailed' | 'compact';
   showCreateButton?: boolean;
-  showScheduleInfo?: boolean;
-  variant?: 'standard' | 'detailed';
+  showRefreshButton?: boolean;
+  showSchedulerInfo?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
 export const SchedulerSelector: React.FC<SchedulerSelectorProps> = ({
   selectedSchedulerId,
   onSchedulerChange,
   disabled = false,
+  className = '',
   required = false,
+  variant = 'detailed',
   showCreateButton = true,
-  showScheduleInfo = true,
-  variant = 'standard',
+  showRefreshButton = true,
+  showSchedulerInfo = true,
+  title,
+  subtitle,
 }) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const [newSchedulerName, setNewSchedulerName] = useState('');
+  const [newSchedulerCron, setNewSchedulerCron] = useState('');
 
-  // Fetch schedulers
+  // Fetch schedulers using the new generic query hook
   const {
-    data: schedulers = [],
+    data: schedulers,
     isLoading: schedulersLoading,
     error: schedulersError,
     refetch: refetchSchedulers,
-  } = useQuery({
-    queryKey: ['schedulers'],
-    queryFn: async () => {
-      const response = await fetch('/api/schedulers');
-      if (!response.ok) {
-        throw new Error('Failed to fetch schedulers');
-      }
-      return response.json();
-    },
+  } = useStableQuery(['schedulers'], () => schedulerApi.getSchedulers(), {
+    graceful404: true,
+    fallbackValue: [],
+    errorContext: 'Loading schedulers',
   });
 
-  const selectedScheduler = schedulers.find((s: SchedulerOption) => s.schedulerID === selectedSchedulerId);
+  // Transform schedulers to match GenericSelectorOption interface
+  const schedulerOptions: SchedulerOption[] = (schedulers || []).map(scheduler => ({
+    id: scheduler.schedulerID,
+    name: scheduler.schedulerName || `Scheduler ${scheduler.schedulerID}`,
+    description: scheduler.schedulerDescription,
+    isEnabled: scheduler.isEnabled ?? true,
+    isActive: scheduler.isEnabled ?? true,
+    displayText: `${scheduler.schedulerName} - ${scheduler.cronExpression || 'No schedule'}`,
+    metadata: {
+      type: 'scheduler',
+      cronExpression: scheduler.cronExpression,
+      timezone: scheduler.timezone,
+      nextRunTime: scheduler.nextRunTime,
+      lastRunTime: scheduler.lastRunTime,
+    },
+    // Original properties for backward compatibility
+    schedulerID: scheduler.schedulerID,
+    schedulerName: scheduler.schedulerName,
+    schedulerDescription: scheduler.schedulerDescription,
+    cronExpression: scheduler.cronExpression,
+    timezone: scheduler.timezone,
+    nextRunTime: scheduler.nextRunTime,
+    lastRunTime: scheduler.lastRunTime,
+  }));
 
-  const handleSchedulerChange = (event: SelectChangeEvent<string>) => {
-    const value = event.target.value;
-    if (value === '') {
-      onSchedulerChange(undefined);
-    } else {
-      const schedulerId = parseInt(value, 10);
-      if (!isNaN(schedulerId)) {
-        onSchedulerChange(schedulerId);
-      }
+  // Handle scheduler selection
+  const handleSchedulerChange = (schedulerId: string | number | undefined) => {
+    const numericId = schedulerId ? Number(schedulerId) : undefined;
+    onSchedulerChange(numericId);
+  };
+
+  // Handle create new scheduler
+  const handleCreateScheduler = async () => {
+    try {
+      const newScheduler = await schedulerApi.createScheduler({
+        schedulerName: newSchedulerName,
+        cronExpression: newSchedulerCron,
+        isEnabled: true,
+      });
+
+      // Refresh the list and select the new scheduler
+      await refetchSchedulers();
+      onSchedulerChange(newScheduler.schedulerID);
+
+      // Close dialog and reset form
+      setCreateDialogOpen(false);
+      setNewSchedulerName('');
+      setNewSchedulerCron('');
+    } catch (error) {
+      // Handle error through error handling system
+      // Error will be handled by the error handling system
     }
   };
 
-  const handleCreateScheduler = () => {
-    setCreateDialogOpen(true);
-  };
-
-  const handleRefresh = () => {
-    refetchSchedulers();
-  };
-
-  const getScheduleTypeIcon = (scheduleType: string) => {
-    switch (scheduleType) {
-      case 'interval':
-        return <AccessTime fontSize="small" />;
-      case 'cron':
-        return <Schedule fontSize="small" />;
-      case 'onetime':
-        return <Event fontSize="small" />;
-      default:
-        return <Schedule fontSize="small" />;
-    }
-  };
-
-  const getScheduleTypeColor = (scheduleType: string) => {
-    switch (scheduleType) {
-      case 'interval':
-        return 'primary';
-      case 'cron':
-        return 'secondary';
-      case 'onetime':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
-
-  const renderSchedulerOption = (scheduler: SchedulerOption) => {
-    if (variant === 'detailed') {
-      return (
-        <Box sx={{ py: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            {getScheduleTypeIcon(scheduler.scheduleType)}
-            <Typography variant="body2" fontWeight="medium">
-              {scheduler.schedulerName}
-            </Typography>
-            <Chip
-              label={scheduler.scheduleType}
-              size="small"
-              color={getScheduleTypeColor(scheduler.scheduleType) as any}
-              variant="outlined"
-            />
-            {!scheduler.isEnabled && (
-              <Chip label="Disabled" size="small" color="error" variant="outlined" />
-            )}
-          </Box>
-          <Typography variant="caption" color="text.secondary" sx={{ ml: 3, display: 'block' }}>
-            {scheduler.displayText}
-          </Typography>
-          {scheduler.schedulerDescription && (
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 3, display: 'block', fontStyle: 'italic' }}>
-              {scheduler.schedulerDescription}
-            </Typography>
-          )}
-          {scheduler.nextExecutionTime && (
-            <Typography variant="caption" color="success.main" sx={{ ml: 3, display: 'block' }}>
-              Next: {new Date(scheduler.nextExecutionTime).toLocaleString()}
-            </Typography>
-          )}
-        </Box>
-      );
-    } else {
-      return (
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {getScheduleTypeIcon(scheduler.scheduleType)}
-            <Typography variant="body2" fontWeight="medium">
-              {scheduler.schedulerName}
-            </Typography>
-            <Chip
-              label={scheduler.scheduleType}
-              size="small"
-              color={getScheduleTypeColor(scheduler.scheduleType) as any}
-              variant="outlined"
-            />
-          </Box>
-          <Typography variant="caption" color="text.secondary">
-            {scheduler.displayText}
-          </Typography>
-        </Box>
-      );
-    }
-  };
-
-  if (schedulersError) {
-    return (
-      <Alert severity="error">
-        Failed to load schedulers. Please try again later.
-      </Alert>
-    );
-  }
-
-  return (
+  // Custom render for scheduler info card
+  const renderSchedulerInfo = (scheduler: SchedulerOption) => (
     <Box>
-      {/* Scheduler Selection */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <FormControl fullWidth>
-          <InputLabel id="scheduler-select-label">
-            Scheduler {required && <span style={{ color: 'red' }}>*</span>}
-          </InputLabel>
-          <Select
-            labelId="scheduler-select-label"
-            value={selectedSchedulerId ? selectedSchedulerId.toString() : ''}
-            onChange={handleSchedulerChange}
-            disabled={disabled || schedulersLoading}
-            label={`Scheduler ${required ? '*' : ''}`}
-            MenuProps={{
-              PaperProps: {
-                sx: { maxHeight: variant === 'detailed' ? 500 : 400 }
-              }
-            }}
-          >
-            {!required && (
-              <MenuItem value="">
-                <Typography color="text.secondary">No scheduler (manual execution only)</Typography>
-              </MenuItem>
-            )}
-            {schedulers
-              .filter((scheduler: SchedulerOption) => scheduler.isEnabled)
-              .map((scheduler: SchedulerOption) => (
-                <MenuItem key={scheduler.schedulerID} value={scheduler.schedulerID.toString()}>
-                  {renderSchedulerOption(scheduler)}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-
-        {/* Action Buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.5 }}>
-          <Tooltip title="Refresh Schedulers">
-            <IconButton
-              onClick={handleRefresh}
-              disabled={disabled || schedulersLoading}
-              size="medium"
-              color="primary"
-            >
-              <Refresh />
-            </IconButton>
-          </Tooltip>
-          
-          {showCreateButton && (
-            <Tooltip title="Create New Scheduler">
-              <IconButton
-                onClick={handleCreateScheduler}
-                disabled={disabled}
-                size="medium"
-                color="primary"
-              >
-                <Add />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
-      </Box>
-
-      {/* Selected Scheduler Info */}
-      {showScheduleInfo && selectedScheduler && (
-        <Card variant="outlined" sx={{ mb: 2 }}>
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              {getScheduleTypeIcon(selectedScheduler.scheduleType)}
-              <Typography variant="subtitle2" fontWeight="medium">
-                {selectedScheduler.schedulerName}
-              </Typography>
-              <Chip
-                label={selectedScheduler.scheduleType}
-                size="small"
-                color={getScheduleTypeColor(selectedScheduler.scheduleType) as any}
-                variant="outlined"
-              />
-            </Box>
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {selectedScheduler.displayText}
-            </Typography>
-            
-            {selectedScheduler.schedulerDescription && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
-                {selectedScheduler.schedulerDescription}
-              </Typography>
-            )}
-            
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary">
-                  Timezone: {selectedScheduler.timezone}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="text.secondary">
-                  Used by {selectedScheduler.indicatorCount} indicator(s)
-                </Typography>
-              </Grid>
-              {selectedScheduler.nextExecutionTime && (
-                <Grid item xs={12}>
-                  <Typography variant="caption" color="success.main">
-                    Next execution: {new Date(selectedScheduler.nextExecutionTime).toLocaleString()}
-                  </Typography>
-                </Grid>
-              )}
-            </Grid>
-          </CardContent>
-        </Card>
+      <Typography variant="subtitle2" fontWeight="medium" gutterBottom>
+        {scheduler.name}
+      </Typography>
+      {scheduler.description && (
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {scheduler.description}
+        </Typography>
       )}
-
-      {/* Create Scheduler Dialog */}
-      <CreateSchedulerDialog
-        open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-        onCreated={(newScheduler) => {
-          queryClient.invalidateQueries({ queryKey: ['schedulers'] });
-          onSchedulerChange(newScheduler.schedulerID);
-          setCreateDialogOpen(false);
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
+        <Typography variant="caption" color="text.secondary">
+          <strong>Schedule:</strong> {scheduler.metadata?.cronExpression || 'Not set'}
+        </Typography>
+        {scheduler.metadata?.timezone && (
+          <Typography variant="caption" color="text.secondary">
+            <strong>Timezone:</strong> {scheduler.metadata.timezone}
+          </Typography>
+        )}
+      </Box>
+      {scheduler.metadata?.nextRunTime && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          <strong>Next Run:</strong> {scheduler.metadata.nextRunTime}
+        </Typography>
+      )}
+      {scheduler.metadata?.lastRunTime && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          <strong>Last Run:</strong> {scheduler.metadata.lastRunTime}
+        </Typography>
+      )}
     </Box>
   );
-};
-
-// Simple create scheduler dialog component
-interface CreateSchedulerDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onCreated: (scheduler: SchedulerOption) => void;
-}
-
-const CreateSchedulerDialog: React.FC<CreateSchedulerDialogProps> = ({
-  open,
-  onClose,
-  onCreated,
-}) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [scheduleType, setScheduleType] = useState('interval');
-  const [intervalMinutes, setIntervalMinutes] = useState(60);
-
-  const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await fetch('/api/schedulers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create scheduler');
-      }
-      return response.json();
-    },
-    onSuccess: (newScheduler) => {
-      onCreated(newScheduler);
-      setName('');
-      setDescription('');
-      setScheduleType('interval');
-      setIntervalMinutes(60);
-    },
-  });
-
-  const handleSubmit = () => {
-    createMutation.mutate({
-      schedulerName: name,
-      schedulerDescription: description,
-      scheduleType,
-      intervalMinutes: scheduleType === 'interval' ? intervalMinutes : undefined,
-      isEnabled: true,
-    });
-  };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create New Scheduler</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Scheduler Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+    <Box className={className}>
+      {/* Title and Subtitle */}
+      {(title || subtitle) && (
+        <Box sx={{ mb: 2 }}>
+          {title && (
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <Schedule color="primary" />
+              {title}
+            </Typography>
+          )}
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+      )}
+
+      {/* Scheduler Selection using GenericSelector */}
+      <GenericSelector
+        data={schedulerOptions}
+        loading={schedulersLoading}
+        error={schedulersError}
+        selectedId={selectedSchedulerId}
+        onSelectionChange={handleSchedulerChange}
+        label="Scheduler"
+        required={required}
+        disabled={disabled}
+        variant={variant}
+        showRefreshButton={showRefreshButton}
+        showCreateButton={showCreateButton}
+        showInfoCard={showSchedulerInfo}
+        onCreateClick={() => setCreateDialogOpen(true)}
+        onRefresh={() => refetchSchedulers()}
+        queryKey={['schedulers']}
+        renderInfoCard={renderSchedulerInfo}
+        emptyMessage="No schedulers found. Create one to get started."
+        placeholder="No scheduler selected"
+      />
+
+      {/* Create Scheduler Dialog */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Add color="primary" />
+            Create New Scheduler
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Scheduler Name"
+                value={newSchedulerName}
+                onChange={e => setNewSchedulerName(e.target.value)}
+                placeholder="Enter scheduler name"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Cron Expression"
+                value={newSchedulerCron}
+                onChange={e => setNewSchedulerCron(e.target.value)}
+                placeholder="0 0 * * * (every hour)"
+                helperText="Use cron format: minute hour day month weekday"
+                required
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              multiline
-              rows={2}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel>Schedule Type</InputLabel>
-              <Select
-                value={scheduleType}
-                onChange={(e) => setScheduleType(e.target.value)}
-                label="Schedule Type"
-              >
-                <MenuItem value="interval">Interval</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Interval (minutes)"
-              type="number"
-              value={intervalMinutes}
-              onChange={(e) => setIntervalMinutes(Number(e.target.value))}
-              inputProps={{ min: 1 }}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!name || createMutation.isPending}
-        >
-          {createMutation.isPending ? 'Creating...' : 'Create'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleCreateScheduler}
+            variant="contained"
+            disabled={!newSchedulerName.trim() || !newSchedulerCron.trim()}
+            startIcon={<Add />}
+          >
+            Create Scheduler
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

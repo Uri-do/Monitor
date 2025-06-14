@@ -177,7 +177,9 @@ const ContactDetail: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Assigned Indicators ({contact.assignedIndicators.length})</Typography>
+                <Typography variant="h6">
+                  Assigned Indicators ({contact.assignedIndicators.length})
+                </Typography>
                 <Button
                   variant="outlined"
                   startIcon={<AssignIcon />}
@@ -230,7 +232,10 @@ const ContactDetail: React.FC = () => {
                           <TableCell align="right">
                             <Stack direction="row" spacing={1}>
                               <Tooltip title="View Indicator">
-                                <IconButton size="small" onClick={() => handleIndicatorView(indicator.indicatorID)}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleIndicatorView(indicator.indicatorID)}
+                                >
                                   <ViewIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
@@ -252,7 +257,8 @@ const ContactDetail: React.FC = () => {
                 </TableContainer>
               ) : (
                 <Alert severity="info">
-                  No Indicators assigned to this contact. Click "Manage Assignments" to assign Indicators.
+                  No Indicators assigned to this contact. Click "Manage Assignments" to assign
+                  Indicators.
                 </Alert>
               )}
             </CardContent>
@@ -270,7 +276,8 @@ const ContactDetail: React.FC = () => {
         <DialogTitle>Manage Indicator Assignments</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Select Indicators to assign to {contact.name}. This feature will be fully implemented soon.
+            Select Indicators to assign to {contact.name}. This feature will be fully implemented
+            soon.
           </Typography>
           {/* TODO: Implement Indicator assignment interface */}
           <Alert severity="info" sx={{ mt: 2 }}>

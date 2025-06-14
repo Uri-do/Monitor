@@ -32,18 +32,28 @@ import { PageHeader, FormLayout, FormSection, FormActions } from '@/components';
 
 // Validation schema
 const schedulerSchema = yup.object({
-  schedulerName: yup.string().required('Scheduler name is required').max(100, 'Name must be less than 100 characters'),
-  schedulerDescription: yup.string().max(500, 'Description must be less than 500 characters').nullable(),
-  scheduleType: yup.string().oneOf(['interval', 'cron', 'onetime']).required('Schedule type is required'),
+  schedulerName: yup
+    .string()
+    .required('Scheduler name is required')
+    .max(100, 'Name must be less than 100 characters'),
+  schedulerDescription: yup
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .nullable(),
+  scheduleType: yup
+    .string()
+    .oneOf(['interval', 'cron', 'onetime'])
+    .required('Schedule type is required'),
   intervalMinutes: yup.number().when('scheduleType', {
     is: 'interval',
-    then: (schema) => schema.required('Interval is required').min(1, 'Interval must be at least 1 minute'),
-    otherwise: (schema) => schema.nullable(),
+    then: schema =>
+      schema.required('Interval is required').min(1, 'Interval must be at least 1 minute'),
+    otherwise: schema => schema.nullable(),
   }),
   cronExpression: yup.string().when('scheduleType', {
     is: 'cron',
-    then: (schema) => schema.required('Cron expression is required'),
-    otherwise: (schema) => schema.nullable(),
+    then: schema => schema.required('Cron expression is required'),
+    otherwise: schema => schema.nullable(),
   }),
   timezone: yup.string().nullable(),
   isEnabled: yup.boolean(),
@@ -80,7 +90,7 @@ const SchedulerCreate: React.FC = () => {
   // Create scheduler mutation
   const createMutation = useMutation({
     mutationFn: (data: CreateSchedulerRequest) => schedulerApi.createScheduler(data),
-    onSuccess: (newScheduler) => {
+    onSuccess: newScheduler => {
       toast.success('Scheduler created successfully');
       queryClient.invalidateQueries({ queryKey: ['schedulers'] });
       navigate(`/schedulers/${newScheduler.schedulerID}`);
@@ -94,7 +104,7 @@ const SchedulerCreate: React.FC = () => {
 
   const onSubmit = (data: SchedulerFormData) => {
     setError(null);
-    
+
     const requestData: CreateSchedulerRequest = {
       schedulerName: data.schedulerName,
       schedulerDescription: data.schedulerDescription || undefined,
@@ -173,7 +183,10 @@ const SchedulerCreate: React.FC = () => {
                       multiline
                       rows={3}
                       error={!!errors.schedulerDescription}
-                      helperText={errors.schedulerDescription?.message || 'Optional description of when and why this scheduler runs'}
+                      helperText={
+                        errors.schedulerDescription?.message ||
+                        'Optional description of when and why this scheduler runs'
+                      }
                       placeholder="Describe the purpose and timing of this scheduler..."
                       InputProps={{
                         startAdornment: (
@@ -225,7 +238,9 @@ const SchedulerCreate: React.FC = () => {
                         type="number"
                         fullWidth
                         error={!!errors.intervalMinutes}
-                        helperText={errors.intervalMinutes?.message || 'How often to run (in minutes)'}
+                        helperText={
+                          errors.intervalMinutes?.message || 'How often to run (in minutes)'
+                        }
                         inputProps={{ min: 1 }}
                       />
                     )}
@@ -244,7 +259,9 @@ const SchedulerCreate: React.FC = () => {
                         label="Cron Expression"
                         fullWidth
                         error={!!errors.cronExpression}
-                        helperText={errors.cronExpression?.message || "e.g., '0 */6 * * *' for every 6 hours"}
+                        helperText={
+                          errors.cronExpression?.message || "e.g., '0 */6 * * *' for every 6 hours"
+                        }
                         placeholder="0 */6 * * *"
                       />
                     )}
@@ -278,10 +295,7 @@ const SchedulerCreate: React.FC = () => {
 
           {/* Settings */}
           <Grid item xs={12}>
-            <FormSection
-              title="Settings"
-              subtitle="Configure scheduler behavior and status"
-            >
+            <FormSection title="Settings" subtitle="Configure scheduler behavior and status">
               <Grid item xs={12}>
                 <Controller
                   name="isEnabled"

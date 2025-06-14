@@ -20,7 +20,7 @@ const Dashboard = React.lazy(() => import('@/pages/Dashboard/Dashboard'));
 const IndicatorList = React.lazy(() => import('@/pages/Indicator/IndicatorList'));
 const IndicatorDetail = React.lazy(() => import('@/pages/Indicator/IndicatorDetail'));
 const IndicatorCreate = React.lazy(() => import('@/pages/Indicator/IndicatorCreate'));
-const IndicatorEditSimple = React.lazy(() => import('@/pages/Indicator/IndicatorEditSimple'));
+const IndicatorEdit = React.lazy(() => import('@/pages/Indicator/IndicatorEdit'));
 
 // Scheduler Management
 const SchedulerList = React.lazy(() => import('@/pages/Scheduler/SchedulerList'));
@@ -51,7 +51,6 @@ const ExecutionHistoryDetail = React.lazy(
   () => import('@/pages/ExecutionHistory/ExecutionHistoryDetail')
 );
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
-const AuthTest = React.lazy(() => import('@/pages/AuthTest'));
 
 // Auth Provider
 import { AuthProvider } from '@/hooks/useAuth';
@@ -61,6 +60,11 @@ import { CustomThemeProvider } from '@/hooks/useTheme';
 
 // Realtime Provider
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
+
+// Performance and Security Providers
+import { PerformanceProvider, PerformanceDebugger } from '@/contexts/PerformanceContext';
+import { SecurityProvider, SecurityMonitor } from '@/contexts/SecurityContext';
+import { SecurityHeaders, CSPViolationReporter } from '@/components/Security/SecurityHeaders';
 
 // Error Boundary for catching routing errors
 interface ErrorBoundaryState {
@@ -198,15 +202,18 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
         <CustomThemeProvider>
-          <CssBaseline />
-          <ErrorBoundary>
-            <AuthProvider>
-              <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <SecurityProvider>
+            <PerformanceProvider>
+              <CssBaseline />
+              <SecurityHeaders />
+              <CSPViolationReporter />
+              <ErrorBoundary>
+                <AuthProvider>
+                  <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/auth-test" element={<React.Suspense fallback={<div>Loading...</div>}><AuthTest /></React.Suspense>} />
 
                   {/* Authenticated Routes */}
                   <Route
@@ -262,16 +269,25 @@ function App() {
                             path="/indicators/:id/edit"
                             element={
                               <LazyRoute>
-                                <IndicatorEditSimple />
+                                <IndicatorEdit />
                               </LazyRoute>
                             }
                           />
 
                           {/* Legacy KPI routes removed - redirecting to Indicators */}
                           <Route path="/kpis" element={<Navigate to="/indicators" replace />} />
-                          <Route path="/kpis/create" element={<Navigate to="/indicators/create" replace />} />
-                          <Route path="/kpis/:id" element={<Navigate to="/indicators/:id" replace />} />
-                          <Route path="/kpis/:id/edit" element={<Navigate to="/indicators/:id/edit" replace />} />
+                          <Route
+                            path="/kpis/create"
+                            element={<Navigate to="/indicators/create" replace />}
+                          />
+                          <Route
+                            path="/kpis/:id"
+                            element={<Navigate to="/indicators/:id" replace />}
+                          />
+                          <Route
+                            path="/kpis/:id/edit"
+                            element={<Navigate to="/indicators/:id/edit" replace />}
+                          />
 
                           {/* Scheduler Management */}
                           <Route
@@ -518,6 +534,16 @@ function App() {
 
           {/* Toast notifications */}
           <ThemedToaster />
+
+          {/* Development monitoring components */}
+          {process.env.NODE_ENV === 'development' && (
+            <>
+              <PerformanceDebugger />
+              <SecurityMonitor />
+            </>
+          )}
+        </PerformanceProvider>
+      </SecurityProvider>
         </CustomThemeProvider>
       </I18nextProvider>
     </QueryClientProvider>

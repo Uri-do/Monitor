@@ -130,12 +130,14 @@ api.interceptors.response.use(
         // If we're already refreshing, queue this request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
       }
 
       originalRequest._retry = true;
@@ -195,7 +197,9 @@ api.interceptors.response.use(
         // Redirect to login page if not already there or in demo mode
         const currentPath = window.location.pathname;
         const isPublicPath =
-          currentPath === '/login' || currentPath === '/auth-test' || currentPath.startsWith('/demo');
+          currentPath === '/login' ||
+          currentPath === '/auth-test' ||
+          currentPath.startsWith('/demo');
 
         if (!isPublicPath) {
           console.log('Redirecting to login due to authentication failure');
@@ -244,7 +248,10 @@ export const indicatorApi = {
 
   // Update Indicator
   updateIndicator: async (indicator: UpdateIndicatorRequest): Promise<IndicatorDto> => {
-    const response: AxiosResponse<IndicatorDto> = await api.put(`/indicator/${indicator.indicatorID}`, indicator);
+    const response: AxiosResponse<IndicatorDto> = await api.put(
+      `/indicator/${indicator.indicatorID}`,
+      indicator
+    );
     return response.data;
   },
 
@@ -288,34 +295,45 @@ export const collectorApi = {
 export const monitorStatisticsApi = {
   // Get active collectors
   getActiveCollectors: async (): Promise<any[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get('/monitorstatistics/collectors?activeOnly=true');
+    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
+      '/monitorstatistics/collectors?activeOnly=true'
+    );
     return response.data.value || [];
   },
 
   // Get all collectors
   getAllCollectors: async (): Promise<any[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get('/monitorstatistics/collectors?activeOnly=false');
+    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
+      '/monitorstatistics/collectors?activeOnly=false'
+    );
     return response.data.value || [];
   },
 
   // Get collector by ID
   getCollector: async (collectorId: number): Promise<any> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any }> = await api.get(`/monitorstatistics/collectors/${collectorId}`);
+    const response: AxiosResponse<{ isSuccess: boolean; value: any }> = await api.get(
+      `/monitorstatistics/collectors/${collectorId}`
+    );
     return response.data.value;
   },
 
   // Get collector item names
   getCollectorItemNames: async (collectorId: number): Promise<string[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: string[] }> = await api.get(`/monitorstatistics/collectors/${collectorId}/items`);
+    const response: AxiosResponse<{ isSuccess: boolean; value: string[] }> = await api.get(
+      `/monitorstatistics/collectors/${collectorId}/items`
+    );
     return response.data.value || [];
   },
 
   // Get collector statistics
-  getCollectorStatistics: async (collectorId: number, options?: {
-    fromDate?: string;
-    toDate?: string;
-    hours?: number;
-  }): Promise<any[]> => {
+  getCollectorStatistics: async (
+    collectorId: number,
+    options?: {
+      fromDate?: string;
+      toDate?: string;
+      hours?: number;
+    }
+  ): Promise<any[]> => {
     const params = new URLSearchParams();
     if (options?.fromDate && options?.toDate) {
       params.append('fromDate', options.fromDate);
@@ -352,7 +370,10 @@ export const schedulerApi = {
 
   // Update scheduler
   updateScheduler: async (scheduler: UpdateSchedulerRequest): Promise<SchedulerDto> => {
-    const response: AxiosResponse<SchedulerDto> = await api.put(`/schedulers/${scheduler.schedulerID}`, scheduler);
+    const response: AxiosResponse<SchedulerDto> = await api.put(
+      `/schedulers/${scheduler.schedulerID}`,
+      scheduler
+    );
     return response.data;
   },
 
@@ -363,7 +384,9 @@ export const schedulerApi = {
 
   // Enable/disable scheduler
   toggleScheduler: async (id: number, enabled: boolean): Promise<SchedulerDto> => {
-    const response: AxiosResponse<SchedulerDto> = await api.patch(`/schedulers/${id}/toggle`, { enabled });
+    const response: AxiosResponse<SchedulerDto> = await api.patch(`/schedulers/${id}/toggle`, {
+      enabled,
+    });
     return response.data;
   },
 };
@@ -371,7 +394,7 @@ export const schedulerApi = {
 // Legacy KPI API endpoints have been migrated to Indicator API
 // Use indicatorApi instead for all new development
 
-// Contact API endpoints (now consolidated under Indicator controller)
+// Contact API endpoints (now under Indicator controller)
 export const contactApi = {
   // Get all contacts
   getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
@@ -677,7 +700,7 @@ export const systemApi = {
   },
 };
 
-// Execution History API endpoints (now consolidated under KPI controller)
+// Execution History API endpoints (now under KPI controller)
 export const executionHistoryApi = {
   // Get execution history with pagination and filters
   getExecutionHistory: async (params: {
@@ -727,7 +750,7 @@ export const executionHistoryApi = {
   },
 };
 
-// Enhanced Analytics API endpoints (now consolidated under KPI controller)
+// Analytics API endpoints (now under KPI controller)
 export const analyticsApi = {
   // Get system-wide analytics
   getSystemAnalytics: async (days: number = 30): Promise<SystemAnalyticsDto> => {
@@ -739,26 +762,23 @@ export const analyticsApi = {
   },
 
   // Get Indicator performance analytics
-  getIndicatorPerformanceAnalytics: async (
-    id: number,
-    days: number = 30
-  ): Promise<any> => {
+  getIndicatorPerformanceAnalytics: async (id: number, days: number = 30): Promise<any> => {
     // Updated to use Indicator controller's analytics endpoints
-    const response: AxiosResponse<any> = await api.get(
-      `/indicator/${id}/analytics`,
-      {
-        params: { days },
-      }
-    );
+    const response: AxiosResponse<any> = await api.get(`/indicator/${id}/analytics`, {
+      params: { days },
+    });
     return response.data;
   },
 
   // Get owner-based analytics
   getOwnerAnalytics: async (days: number = 30): Promise<OwnerAnalyticsDto[]> => {
     // Updated to use Indicator controller's analytics endpoints
-    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get('/indicator/analytics/owners', {
-      params: { days },
-    });
+    const response: AxiosResponse<OwnerAnalyticsDto[]> = await api.get(
+      '/indicator/analytics/owners',
+      {
+        params: { days },
+      }
+    );
     return response.data;
   },
 

@@ -55,7 +55,7 @@ export interface ChartSeries {
   yAxisId?: 'left' | 'right';
 }
 
-export interface AdvancedChartProps {
+export interface ChartProps {
   title?: string;
   subtitle?: string;
   data: ChartDataPoint[];
@@ -80,7 +80,7 @@ export interface AdvancedChartProps {
   responsive?: boolean;
 }
 
-export const AdvancedChart: React.FC<AdvancedChartProps> = ({
+export const Chart: React.FC<ChartProps> = ({
   title,
   subtitle,
   data,
@@ -492,4 +492,4 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
   );
 };
 
-export default AdvancedChart;
+export default Chart;

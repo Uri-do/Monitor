@@ -13,7 +13,7 @@ import {
   Select,
   MenuItem,
   Grid,
-  Button
+  Button,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -22,19 +22,13 @@ import {
   Schedule,
   PlayArrow,
   Stop,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { schedulerApi } from '@/services/api';
 import { SchedulerDto, CreateSchedulerRequest } from '@/types/api';
-import {
-  DataTable,
-  DataTableColumn,
-  PageHeader,
-  StatusChip,
-  LoadingSpinner,
-} from '@/components';
+import { DataTable, DataTableColumn, PageHeader, StatusChip, LoadingSpinner } from '@/components';
 
 /**
  * SchedulerList component for managing schedulers
@@ -54,7 +48,7 @@ const SchedulerList: React.FC = () => {
     data: schedulers = [],
     isLoading,
     error: loadError,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['schedulers'],
     queryFn: () => schedulerApi.getSchedulers(),
@@ -94,7 +88,8 @@ const SchedulerList: React.FC = () => {
   // Filter schedulers based on search
   const filteredSchedulers = useMemo(() => {
     return schedulers.filter(scheduler => {
-      const matchesSearch = !filters.search ||
+      const matchesSearch =
+        !filters.search ||
         scheduler.schedulerName.toLowerCase().includes(filters.search.toLowerCase()) ||
         scheduler.schedulerDescription?.toLowerCase().includes(filters.search.toLowerCase()) ||
         scheduler.scheduleType.toLowerCase().includes(filters.search.toLowerCase());
@@ -165,7 +160,7 @@ const SchedulerList: React.FC = () => {
       label: 'Type',
       sortable: true,
       width: 100,
-      render: (value) => <StatusChip status={value} />,
+      render: value => <StatusChip status={value} />,
     },
     {
       id: 'displayText',
@@ -192,7 +187,7 @@ const SchedulerList: React.FC = () => {
       label: 'Next Run',
       sortable: true,
       width: 150,
-      render: value => value ? new Date(value).toLocaleString() : 'N/A',
+      render: value => (value ? new Date(value).toLocaleString() : 'N/A'),
     },
   ];
 
@@ -203,9 +198,7 @@ const SchedulerList: React.FC = () => {
   if (loadError) {
     return (
       <Box>
-        <Alert severity="error">
-          Failed to load schedulers. Please try again.
-        </Alert>
+        <Alert severity="error">Failed to load schedulers. Please try again.</Alert>
       </Box>
     );
   }
@@ -295,7 +288,7 @@ const SchedulerList: React.FC = () => {
                   )}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Controller
                   name="scheduleType"
@@ -312,23 +305,17 @@ const SchedulerList: React.FC = () => {
                   )}
                 />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Controller
                   name="schedulerDescription"
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      fullWidth
-                      multiline
-                      rows={2}
-                    />
+                    <TextField {...field} label="Description" fullWidth multiline rows={2} />
                   )}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Controller
                   name="intervalMinutes"
@@ -345,7 +332,7 @@ const SchedulerList: React.FC = () => {
                   )}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Controller
                   name="timezone"
@@ -367,14 +354,8 @@ const SchedulerList: React.FC = () => {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setCreateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting}
-            >
+            <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
               {isSubmitting ? 'Creating...' : 'Create Scheduler'}
             </Button>
           </DialogActions>

@@ -34,7 +34,10 @@ import { PageHeader, LoadingSpinner, FormLayout, FormSection, FormActions } from
 // Validation schema - Only allow resolving alerts, not editing content
 const alertSchema = yup.object({
   isResolved: yup.boolean(),
-  resolutionNotes: yup.string().max(1000, 'Resolution notes must be less than 1000 characters').nullable(),
+  resolutionNotes: yup
+    .string()
+    .max(1000, 'Resolution notes must be less than 1000 characters')
+    .nullable(),
 });
 
 type AlertFormData = yup.InferType<typeof alertSchema>;
@@ -244,7 +247,9 @@ const AlertEdit: React.FC = () => {
                         multiline
                         rows={3}
                         error={!!errors.resolutionNotes}
-                        helperText={errors.resolutionNotes?.message || 'Describe how the issue was resolved'}
+                        helperText={
+                          errors.resolutionNotes?.message || 'Describe how the issue was resolved'
+                        }
                         placeholder="Explain the resolution steps taken..."
                       />
                     )}

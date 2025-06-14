@@ -5,7 +5,7 @@ import { contactApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
- * Enhanced useContacts hook using TanStack Query
+ * useContacts hook using TanStack Query
  * Provides automatic caching, background refetching, and error handling
  */
 export const useContacts = (filters?: { isActive?: boolean; search?: string }) => {

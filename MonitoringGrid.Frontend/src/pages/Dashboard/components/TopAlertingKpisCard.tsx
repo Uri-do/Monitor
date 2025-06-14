@@ -19,7 +19,9 @@ interface TopAlertingIndicatorsCardProps {
   alertDashboard?: AlertDashboardDto;
 }
 
-const TopAlertingIndicatorsCard: React.FC<TopAlertingIndicatorsCardProps> = ({ alertDashboard }) => {
+const TopAlertingIndicatorsCard: React.FC<TopAlertingIndicatorsCardProps> = ({
+  alertDashboard,
+}) => {
   const navigate = useNavigate();
   const theme = useTheme();
 

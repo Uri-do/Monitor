@@ -271,7 +271,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       <Box
                         component="pre"
                         sx={{
-                          backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                          backgroundColor: theme =>
+                            theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
                           p: 2,
                           borderRadius: 1,
                           overflow: 'auto',
@@ -291,7 +292,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                       <Box
                         component="pre"
                         sx={{
-                          backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                          backgroundColor: theme =>
+                            theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
                           p: 2,
                           borderRadius: 1,
                           overflow: 'auto',

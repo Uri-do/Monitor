@@ -130,13 +130,17 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     (data: IndicatorExecutionCompleted) => {
       setState(prev => ({
         ...prev,
-        runningIndicators: prev.runningIndicators.filter(indicator => indicator.indicatorID !== data.indicatorID),
+        runningIndicators: prev.runningIndicators.filter(
+          indicator => indicator.indicatorID !== data.indicatorID
+        ),
         lastUpdate: new Date(),
       }));
 
       // Update TanStack Query cache with fresh data
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.indicatorID) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.executionHistory.byIndicator(data.indicatorID) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.executionHistory.byIndicator(data.indicatorID),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 

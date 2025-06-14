@@ -28,13 +28,7 @@ import * as yup from 'yup';
 import { schedulerApi } from '@/services/api';
 import { UpdateSchedulerRequest } from '@/types/api';
 import toast from 'react-hot-toast';
-import {
-  PageHeader,
-  LoadingSpinner,
-  FormLayout,
-  FormSection,
-  FormActions,
-} from '@/components';
+import { PageHeader, LoadingSpinner, FormLayout, FormSection, FormActions } from '@/components';
 
 /**
  * SchedulerEdit component for editing scheduler information
@@ -50,7 +44,7 @@ const SchedulerEdit: React.FC = () => {
   const {
     data: scheduler,
     isLoading,
-    error: loadError
+    error: loadError,
   } = useQuery({
     queryKey: ['scheduler', schedulerId],
     queryFn: () => schedulerApi.getScheduler(schedulerId!),
@@ -132,9 +126,7 @@ const SchedulerEdit: React.FC = () => {
   if (loadError || !scheduler) {
     return (
       <Box>
-        <Alert severity="error">
-          Failed to load scheduler details. Please try again.
-        </Alert>
+        <Alert severity="error">Failed to load scheduler details. Please try again.</Alert>
       </Box>
     );
   }
@@ -221,7 +213,10 @@ const SchedulerEdit: React.FC = () => {
                       multiline
                       rows={3}
                       error={!!errors.schedulerDescription}
-                      helperText={errors.schedulerDescription?.message || 'Optional description of when and why this scheduler runs'}
+                      helperText={
+                        errors.schedulerDescription?.message ||
+                        'Optional description of when and why this scheduler runs'
+                      }
                       placeholder="Describe the purpose and timing of this scheduler..."
                       InputProps={{
                         startAdornment: (
@@ -256,7 +251,9 @@ const SchedulerEdit: React.FC = () => {
                         type="number"
                         fullWidth
                         error={!!errors.intervalMinutes}
-                        helperText={errors.intervalMinutes?.message || 'How often to run (in minutes)'}
+                        helperText={
+                          errors.intervalMinutes?.message || 'How often to run (in minutes)'
+                        }
                         inputProps={{ min: 1 }}
                       />
                     )}
@@ -275,7 +272,9 @@ const SchedulerEdit: React.FC = () => {
                         label="Cron Expression"
                         fullWidth
                         error={!!errors.cronExpression}
-                        helperText={errors.cronExpression?.message || "e.g., '0 */6 * * *' for every 6 hours"}
+                        helperText={
+                          errors.cronExpression?.message || "e.g., '0 */6 * * *' for every 6 hours"
+                        }
                         placeholder="0 */6 * * *"
                       />
                     )}
@@ -329,10 +328,7 @@ const SchedulerEdit: React.FC = () => {
 
           {/* Settings */}
           <Grid item xs={12}>
-            <FormSection
-              title="Settings"
-              subtitle="Configure scheduler behavior and status"
-            >
+            <FormSection title="Settings" subtitle="Configure scheduler behavior and status">
               <Grid item xs={12}>
                 <Controller
                   name="isEnabled"

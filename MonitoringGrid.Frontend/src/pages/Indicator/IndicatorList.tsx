@@ -48,11 +48,12 @@ const IndicatorList: React.FC = () => {
   // Filter indicators based on search
   const filteredIndicators = useMemo(() => {
     return indicators.filter(indicator => {
-      const matchesSearch = !filters.search || 
+      const matchesSearch =
+        !filters.search ||
         indicator.indicatorName.toLowerCase().includes(filters.search.toLowerCase()) ||
         indicator.indicatorCode.toLowerCase().includes(filters.search.toLowerCase()) ||
         indicator.collectorItemName.toLowerCase().includes(filters.search.toLowerCase());
-      
+
       return matchesSearch;
     });
   }, [indicators, filters.search]);
@@ -110,7 +111,9 @@ const IndicatorList: React.FC = () => {
       label: 'Priority',
       sortable: true,
       width: 100,
-      render: (value) => <StatusChip status={value === 1 ? 'high' : value === 2 ? 'medium' : 'low'} />,
+      render: value => (
+        <StatusChip status={value === 1 ? 'high' : value === 2 ? 'medium' : 'low'} />
+      ),
     },
     {
       id: 'isActive',
@@ -131,7 +134,7 @@ const IndicatorList: React.FC = () => {
       label: 'Last Executed',
       sortable: true,
       width: 150,
-      render: value => value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never',
+      render: value => (value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never'),
     },
     {
       id: 'ownerContact',

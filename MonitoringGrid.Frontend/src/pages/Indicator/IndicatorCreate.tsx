@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Box,
-  Paper,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Paper, Alert, CircularProgress } from '@mui/material';
 import { Assessment, ArrowBack as BackIcon } from '@mui/icons-material';
 import { PageHeader } from '@/components/UI';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -48,7 +43,7 @@ const IndicatorCreate: React.FC = () => {
   const {
     data: existingIndicator,
     isLoading: isLoadingIndicator,
-    error: loadError
+    error: loadError,
   } = useQuery({
     queryKey: ['indicator', indicatorId],
     queryFn: () => indicatorApi.getIndicator(indicatorId!),
@@ -58,7 +53,7 @@ const IndicatorCreate: React.FC = () => {
   // Create indicator mutation
   const createMutation = useMutation({
     mutationFn: (data: CreateIndicatorRequest) => indicatorApi.createIndicator(data),
-    onSuccess: (newIndicator) => {
+    onSuccess: newIndicator => {
       queryClient.invalidateQueries({ queryKey: ['indicators'] });
       navigate(`/indicators/${newIndicator.indicatorID}`);
     },
@@ -71,7 +66,7 @@ const IndicatorCreate: React.FC = () => {
   const updateMutation = useMutation({
     mutationFn: (data: CreateIndicatorRequest) =>
       indicatorApi.updateIndicator({ ...data, indicatorID: indicatorId! }),
-    onSuccess: (updatedIndicator) => {
+    onSuccess: updatedIndicator => {
       queryClient.invalidateQueries({ queryKey: ['indicators'] });
       queryClient.invalidateQueries({ queryKey: ['indicator', indicatorId] });
       navigate(`/indicators/${updatedIndicator.indicatorID}`);
@@ -85,8 +80,8 @@ const IndicatorCreate: React.FC = () => {
     setError(null);
 
     // Convert priority number to string as expected by backend
-    const priorityString = formData.priority === 3 ? 'high' :
-                          formData.priority === 2 ? 'medium' : 'low';
+    const priorityString =
+      formData.priority === 3 ? 'high' : formData.priority === 2 ? 'medium' : 'low';
 
     // Validate required fields
     if (!formData.collectorID) {
@@ -139,9 +134,7 @@ const IndicatorCreate: React.FC = () => {
   if (isEditMode && loadError) {
     return (
       <Box sx={{ py: 4 }}>
-        <Alert severity="error">
-          Failed to load indicator data. Please try again.
-        </Alert>
+        <Alert severity="error">Failed to load indicator data. Please try again.</Alert>
       </Box>
     );
   }
@@ -150,9 +143,10 @@ const IndicatorCreate: React.FC = () => {
     <Box>
       <PageHeader
         title={isEditMode ? 'Edit Indicator' : 'Create New Indicator'}
-        subtitle={isEditMode
-          ? `Editing: ${existingIndicator?.indicatorName || 'Indicator'}`
-          : 'Configure a new indicator to monitor your system metrics and performance.'
+        subtitle={
+          isEditMode
+            ? `Editing: ${existingIndicator?.indicatorName || 'Indicator'}`
+            : 'Configure a new indicator to monitor your system metrics and performance.'
         }
         icon={<Assessment />}
         backAction={{
@@ -172,12 +166,21 @@ const IndicatorCreate: React.FC = () => {
       {/* Form */}
       <Paper elevation={1} sx={{ p: 3 }}>
         <EnhancedIndicatorForm
-          initialData={existingIndicator ? {
-            ...existingIndicator,
-            priority: typeof existingIndicator.priority === 'string'
-              ? (existingIndicator.priority === 'high' ? 3 : existingIndicator.priority === 'medium' ? 2 : 1)
-              : existingIndicator.priority
-          } : undefined}
+          initialData={
+            existingIndicator
+              ? {
+                  ...existingIndicator,
+                  priority:
+                    typeof existingIndicator.priority === 'string'
+                      ? existingIndicator.priority === 'high'
+                        ? 3
+                        : existingIndicator.priority === 'medium'
+                          ? 2
+                          : 1
+                      : existingIndicator.priority,
+                }
+              : undefined
+          }
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isEdit={isEditMode}

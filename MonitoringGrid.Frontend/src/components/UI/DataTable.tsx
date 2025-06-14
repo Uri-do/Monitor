@@ -253,10 +253,12 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   const isSelected = (row: any) => {
     const rowId = rowKey ? row[rowKey] : row.id;
-    return selected.findIndex(item => {
-      const itemId = rowKey ? item[rowKey] : item.id;
-      return itemId === rowId;
-    }) !== -1;
+    return (
+      selected.findIndex(item => {
+        const itemId = rowKey ? item[rowKey] : item.id;
+        return itemId === rowId;
+      }) !== -1
+    );
   };
 
   return (
@@ -416,20 +418,17 @@ export const DataTable: React.FC<DataTableProps> = ({
               height: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              backgroundColor: (theme) => theme.palette.mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.05)'
-                : 'rgba(0, 0, 0, 0.05)',
+              backgroundColor: theme =>
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               borderRadius: '4px',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: (theme) => theme.palette.mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.2)'
-                : 'rgba(0, 0, 0, 0.2)',
+              backgroundColor: theme =>
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
               borderRadius: '4px',
               '&:hover': {
-                backgroundColor: (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.3)'
-                  : 'rgba(0, 0, 0, 0.3)',
+                backgroundColor: theme =>
+                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
               },
             },
           }}
@@ -468,12 +467,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                     style={{ width: column.width }}
                     sx={{
                       fontWeight: 'bold',
-                      backgroundColor: (theme) => theme.palette.mode === 'dark'
-                        ? 'rgba(255, 255, 255, 0.05)'
-                        : 'rgba(102, 126, 234, 0.05)',
-                      borderBottom: (theme) => theme.palette.mode === 'dark'
-                        ? '2px solid rgba(255, 255, 255, 0.1)'
-                        : '2px solid rgba(102, 126, 234, 0.2)',
+                      backgroundColor: theme =>
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'rgba(102, 126, 234, 0.05)',
+                      borderBottom: theme =>
+                        theme.palette.mode === 'dark'
+                          ? '2px solid rgba(255, 255, 255, 0.1)'
+                          : '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
                     {column.sortable ? (
@@ -499,7 +500,13 @@ export const DataTable: React.FC<DataTableProps> = ({
                 ))}
 
                 {/* Actions Column */}
-                {(onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length) && (
+                {(onRowEdit ||
+                  onRowDelete ||
+                  onRowView ||
+                  defaultActions?.edit ||
+                  defaultActions?.delete ||
+                  defaultActions?.view ||
+                  actions?.length) && (
                   <TableCell
                     align="center"
                     sx={{
@@ -507,12 +514,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                       width: '120px',
                       minWidth: '120px',
                       maxWidth: '120px',
-                      backgroundColor: (theme) => theme.palette.mode === 'dark'
-                        ? 'rgba(255, 255, 255, 0.05)'
-                        : 'rgba(102, 126, 234, 0.05)',
-                      borderBottom: (theme) => theme.palette.mode === 'dark'
-                        ? '2px solid rgba(255, 255, 255, 0.1)'
-                        : '2px solid rgba(102, 126, 234, 0.2)',
+                      backgroundColor: theme =>
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'rgba(102, 126, 234, 0.05)',
+                      borderBottom: theme =>
+                        theme.palette.mode === 'dark'
+                          ? '2px solid rgba(255, 255, 255, 0.1)'
+                          : '2px solid rgba(102, 126, 234, 0.2)',
                     }}
                   >
                     Actions
@@ -528,7 +537,15 @@ export const DataTable: React.FC<DataTableProps> = ({
                     colSpan={
                       columns.length +
                       (selectable ? 1 : 0) +
-                      (onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length ? 1 : 0)
+                      (onRowEdit ||
+                      onRowDelete ||
+                      onRowView ||
+                      defaultActions?.edit ||
+                      defaultActions?.delete ||
+                      defaultActions?.view ||
+                      actions?.length
+                        ? 1
+                        : 0)
                     }
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -542,11 +559,21 @@ export const DataTable: React.FC<DataTableProps> = ({
                     colSpan={
                       columns.length +
                       (selectable ? 1 : 0) +
-                      (onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length ? 1 : 0)
+                      (onRowEdit ||
+                      onRowDelete ||
+                      onRowView ||
+                      defaultActions?.edit ||
+                      defaultActions?.delete ||
+                      defaultActions?.view ||
+                      actions?.length
+                        ? 1
+                        : 0)
                     }
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <Typography color="text.secondary">{emptyMessage || 'No data available'}</Typography>
+                      <Typography color="text.secondary">
+                        {emptyMessage || 'No data available'}
+                      </Typography>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -562,14 +589,16 @@ export const DataTable: React.FC<DataTableProps> = ({
                       sx={{
                         cursor: onRowClick ? 'pointer' : 'default',
                         '&:hover': {
-                          backgroundColor: (theme) => theme.palette.mode === 'dark'
-                            ? 'rgba(255, 255, 255, 0.05)'
-                            : 'rgba(102, 126, 234, 0.05)',
+                          backgroundColor: theme =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(255, 255, 255, 0.05)'
+                              : 'rgba(102, 126, 234, 0.05)',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: (theme) => theme.palette.mode === 'dark'
-                            ? 'rgba(255, 255, 255, 0.1)'
-                            : 'rgba(102, 126, 234, 0.1)',
+                          backgroundColor: theme =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(255, 255, 255, 0.1)'
+                              : 'rgba(102, 126, 234, 0.1)',
                         },
                       }}
                     >
@@ -608,7 +637,13 @@ export const DataTable: React.FC<DataTableProps> = ({
                       ))}
 
                       {/* Action Buttons */}
-                      {(onRowEdit || onRowDelete || onRowView || defaultActions?.edit || defaultActions?.delete || defaultActions?.view || actions?.length) && (
+                      {(onRowEdit ||
+                        onRowDelete ||
+                        onRowView ||
+                        defaultActions?.edit ||
+                        defaultActions?.delete ||
+                        defaultActions?.view ||
+                        actions?.length) && (
                         <TableCell
                           align="center"
                           sx={{

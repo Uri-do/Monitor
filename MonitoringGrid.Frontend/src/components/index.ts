@@ -47,7 +47,7 @@ export { default as UserMenu } from './Auth/UserMenu';
 
 // ===== CHART COMPONENTS =====
 // Data visualization components
-export { default as AdvancedChart } from './Charts/AdvancedChart';
+export { default as Chart } from './Charts/Chart';
 
 // ===== MONITORING COMPONENTS =====
 // Monitor statistics and collector components

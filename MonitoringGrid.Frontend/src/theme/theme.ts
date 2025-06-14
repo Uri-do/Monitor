@@ -109,20 +109,16 @@ export const createAppTheme = (mode: PaletteMode): Theme => {
               height: '8px',
             },
             '&::-webkit-scrollbar-track': {
-              backgroundColor: mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.05)'
-                : 'rgba(0, 0, 0, 0.05)',
+              backgroundColor:
+                mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
               borderRadius: '4px',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.2)'
-                : 'rgba(0, 0, 0, 0.2)',
+              backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
               borderRadius: '4px',
               '&:hover': {
-                backgroundColor: mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.3)'
-                  : 'rgba(0, 0, 0, 0.3)',
+                backgroundColor:
+                  mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
               },
             },
           },

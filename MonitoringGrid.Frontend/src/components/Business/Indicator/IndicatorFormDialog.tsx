@@ -81,9 +81,14 @@ export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
 
   const handleFormSubmit = (data: IndicatorFormData) => {
     // Convert priority number to string as expected by backend
-    const priorityString = data.priority === 1 ? 'critical' :
-                          data.priority === 2 ? 'high' :
-                          data.priority === 3 ? 'medium' : 'low';
+    const priorityString =
+      data.priority === 1
+        ? 'critical'
+        : data.priority === 2
+          ? 'high'
+          : data.priority === 3
+            ? 'medium'
+            : 'low';
 
     // Transform form data to API request format
     const apiData: CreateIndicatorRequest = {
@@ -128,9 +133,7 @@ export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
       onClose={handleClose}
       title={isEdit ? 'Edit Indicator' : 'Create New Indicator'}
       subtitle={
-        isEdit
-          ? 'Update Indicator configuration and monitoring settings'
-          : 'Create a new Indicator'
+        isEdit ? 'Update Indicator configuration and monitoring settings' : 'Create a new Indicator'
       }
       icon={<KpiIcon />}
       gradient="primary"

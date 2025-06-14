@@ -85,7 +85,8 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
                           icon={<Warning sx={{ fontSize: '14px !important' }} />}
                           sx={{
                             fontWeight: 600,
-                            animation: indicator.status !== 'never_run' ? 'pulse 2s infinite' : 'none',
+                            animation:
+                              indicator.status !== 'never_run' ? 'pulse 2s infinite' : 'none',
                             '@keyframes pulse': {
                               '0%': { opacity: 1 },
                               '50%': { opacity: 0.7 },
@@ -118,7 +119,10 @@ const IndicatorsDueCard: React.FC<IndicatorsDueCardProps> = ({ indicatorDashboar
                             Status: {indicator.status}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Next run: {indicator.nextDue ? format(new Date(indicator.nextDue), 'MMM dd, HH:mm') : 'Not scheduled'}
+                            Next run:{' '}
+                            {indicator.nextDue
+                              ? format(new Date(indicator.nextDue), 'MMM dd, HH:mm')
+                              : 'Not scheduled'}
                           </Typography>
                         </Box>
                       }

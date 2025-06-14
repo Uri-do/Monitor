@@ -7,7 +7,6 @@ export { default as ExecutionProgressDialog } from './Indicator/ExecutionProgres
 export { default as IndicatorTypeSelector } from './Indicator/IndicatorTypeSelector';
 export { default as RunningIndicatorsDisplay } from './Indicator/RunningIndicatorsDisplay';
 
-
 // Contact Management Components
 export { default as ContactFormDialog } from './Contact/ContactFormDialog';
 

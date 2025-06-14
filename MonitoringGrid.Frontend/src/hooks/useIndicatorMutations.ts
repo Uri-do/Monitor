@@ -12,21 +12,19 @@ export const useCreateIndicator = () => {
 
   return useMutation({
     mutationFn: (data: CreateIndicatorRequest) => indicatorApi.createIndicator(data),
-    onSuccess: (newIndicator) => {
+    onSuccess: newIndicator => {
       // Invalidate and refetch indicators list
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.dashboard() });
-      
+
       // Add the new indicator to the cache
-      queryClient.setQueryData(
-        queryKeys.indicators.detail(newIndicator.indicatorID),
-        newIndicator
-      );
+      queryClient.setQueryData(queryKeys.indicators.detail(newIndicator.indicatorID), newIndicator);
 
       toast.success(`Indicator "${newIndicator.indicatorName}" created successfully`);
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Failed to create indicator';
+      const message =
+        error.response?.data?.message || error.message || 'Failed to create indicator';
       toast.error(message);
     },
   });
@@ -40,7 +38,7 @@ export const useUpdateIndicator = () => {
 
   return useMutation({
     mutationFn: (data: UpdateIndicatorRequest) => indicatorApi.updateIndicator(data),
-    onSuccess: (updatedIndicator) => {
+    onSuccess: updatedIndicator => {
       // Update the specific indicator in cache
       queryClient.setQueryData(
         queryKeys.indicators.detail(updatedIndicator.indicatorID),
@@ -54,7 +52,8 @@ export const useUpdateIndicator = () => {
       toast.success(`Indicator "${updatedIndicator.indicatorName}" updated successfully`);
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Failed to update indicator';
+      const message =
+        error.response?.data?.message || error.message || 'Failed to update indicator';
       toast.error(message);
     },
   });
@@ -71,7 +70,7 @@ export const useDeleteIndicator = () => {
     onSuccess: (_, deletedId) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: queryKeys.indicators.detail(deletedId) });
-      
+
       // Invalidate lists
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.dashboard() });
@@ -79,7 +78,8 @@ export const useDeleteIndicator = () => {
       toast.success('Indicator deleted successfully');
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Failed to delete indicator';
+      const message =
+        error.response?.data?.message || error.message || 'Failed to delete indicator';
       toast.error(message);
     },
   });
@@ -96,9 +96,9 @@ export const useExecuteIndicator = () => {
     onSuccess: (result, request) => {
       // Invalidate the specific indicator to refresh its status
       queryClient.invalidateQueries({
-        queryKey: queryKeys.indicators.detail(request.indicatorID)
+        queryKey: queryKeys.indicators.detail(request.indicatorID),
       });
-      
+
       // Invalidate dashboard for updated counts
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.dashboard() });
 
@@ -109,7 +109,8 @@ export const useExecuteIndicator = () => {
       }
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Failed to execute indicator';
+      const message =
+        error.response?.data?.message || error.message || 'Failed to execute indicator';
       toast.error(message);
     },
   });

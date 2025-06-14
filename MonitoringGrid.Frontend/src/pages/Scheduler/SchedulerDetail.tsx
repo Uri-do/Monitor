@@ -16,7 +16,7 @@ import {
   TableHead,
   TableRow,
   Typography,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -25,16 +25,12 @@ import {
   Stop,
   Visibility as ViewIcon,
   Schedule as ScheduleIcon,
-  ArrowBack as BackIcon
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { schedulerApi, indicatorApi } from '@/services/api';
 import { SchedulerDto } from '@/types/api';
-import {
-  PageHeader,
-  LoadingSpinner,
-  StatusChip,
-} from '@/components';
+import { PageHeader, LoadingSpinner, StatusChip } from '@/components';
 
 /**
  * SchedulerDetail component for viewing scheduler information
@@ -49,7 +45,7 @@ const SchedulerDetail: React.FC = () => {
   const {
     data: scheduler,
     isLoading,
-    error: loadError
+    error: loadError,
   } = useQuery({
     queryKey: ['scheduler', schedulerId],
     queryFn: () => schedulerApi.getScheduler(schedulerId!),
@@ -57,10 +53,7 @@ const SchedulerDetail: React.FC = () => {
   });
 
   // Fetch indicators using this scheduler
-  const {
-    data: indicators,
-    isLoading: isLoadingIndicators
-  } = useQuery({
+  const { data: indicators, isLoading: isLoadingIndicators } = useQuery({
     queryKey: ['indicators'],
     queryFn: () => indicatorApi.getIndicators(),
   });
@@ -79,7 +72,7 @@ const SchedulerDetail: React.FC = () => {
 
   // Toggle scheduler mutation
   const toggleMutation = useMutation({
-    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) => 
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
       schedulerApi.toggleScheduler(id, enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduler', schedulerId] });
@@ -91,7 +84,10 @@ const SchedulerDetail: React.FC = () => {
   });
 
   const handleDelete = () => {
-    if (scheduler && window.confirm(`Are you sure you want to delete scheduler "${scheduler.schedulerName}"?`)) {
+    if (
+      scheduler &&
+      window.confirm(`Are you sure you want to delete scheduler "${scheduler.schedulerName}"?`)
+    ) {
       deleteMutation.mutate(schedulerId!);
     }
   };
@@ -129,9 +125,7 @@ const SchedulerDetail: React.FC = () => {
   if (loadError || !scheduler) {
     return (
       <Box>
-        <Alert severity="error">
-          Failed to load scheduler details. Please try again.
-        </Alert>
+        <Alert severity="error">Failed to load scheduler details. Please try again.</Alert>
       </Box>
     );
   }
@@ -147,24 +141,32 @@ const SchedulerDetail: React.FC = () => {
           icon: <BackIcon />,
           onClick: () => navigate('/schedulers'),
         }}
-        primaryAction={!toggleMutation.isPending ? {
-          label: scheduler.isEnabled ? 'Disable' : 'Enable',
-          icon: scheduler.isEnabled ? <Stop /> : <PlayArrow />,
-          onClick: handleToggle,
-          gradient: scheduler.isEnabled ? 'warning' : 'success',
-        } : undefined}
+        primaryAction={
+          !toggleMutation.isPending
+            ? {
+                label: scheduler.isEnabled ? 'Disable' : 'Enable',
+                icon: scheduler.isEnabled ? <Stop /> : <PlayArrow />,
+                onClick: handleToggle,
+                gradient: scheduler.isEnabled ? 'warning' : 'success',
+              }
+            : undefined
+        }
         actions={[
           {
             label: 'Edit',
             icon: <EditIcon />,
             onClick: () => navigate(`/schedulers/${schedulerId}/edit`),
           },
-          ...(deleteMutation.isPending || schedulerIndicators.length > 0 ? [] : [{
-            label: 'Delete',
-            icon: <DeleteIcon />,
-            onClick: handleDelete,
-            gradient: 'error' as const,
-          }]),
+          ...(deleteMutation.isPending || schedulerIndicators.length > 0
+            ? []
+            : [
+                {
+                  label: 'Delete',
+                  icon: <DeleteIcon />,
+                  onClick: handleDelete,
+                  gradient: 'error' as const,
+                },
+              ]),
         ]}
       />
 
@@ -177,26 +179,22 @@ const SchedulerDetail: React.FC = () => {
                 Scheduler Configuration
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">
                     Schedule Type
                   </Typography>
-                  <StatusChip
-                    status={scheduler.scheduleType}
-                  />
+                  <StatusChip status={scheduler.scheduleType} />
                 </Grid>
-                
+
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">
                     Status
                   </Typography>
-                  <StatusChip
-                    status={scheduler.isEnabled ? 'active' : 'inactive'}
-                  />
+                  <StatusChip status={scheduler.isEnabled ? 'active' : 'inactive'} />
                 </Grid>
-                
+
                 <Grid item xs={12}>
                   <Typography variant="body2" color="text.secondary">
                     Schedule Display
@@ -205,7 +203,7 @@ const SchedulerDetail: React.FC = () => {
                     {scheduler.displayText}
                   </Typography>
                 </Grid>
-                
+
                 {scheduler.timezone && (
                   <Grid item xs={12}>
                     <Typography variant="body2" color="text.secondary">
@@ -216,7 +214,7 @@ const SchedulerDetail: React.FC = () => {
                     </Typography>
                   </Grid>
                 )}
-                
+
                 {scheduler.nextExecutionTime && (
                   <Grid item xs={12}>
                     <Typography variant="body2" color="text.secondary">
@@ -240,7 +238,7 @@ const SchedulerDetail: React.FC = () => {
                 Assigned Indicators ({schedulerIndicators.length})
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               {isLoadingIndicators ? (
                 <CircularProgress size={24} />
               ) : schedulerIndicators.length > 0 ? (
@@ -254,7 +252,7 @@ const SchedulerDetail: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {schedulerIndicators.map((indicator) => (
+                      {schedulerIndicators.map(indicator => (
                         <TableRow key={indicator.indicatorID}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
@@ -265,9 +263,7 @@ const SchedulerDetail: React.FC = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <StatusChip
-                              status={indicator.isActive ? 'active' : 'inactive'}
-                            />
+                            <StatusChip status={indicator.isActive ? 'active' : 'inactive'} />
                           </TableCell>
                           <TableCell align="right">
                             <Button
@@ -300,7 +296,7 @@ const SchedulerDetail: React.FC = () => {
                 Metadata
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="text.secondary">
@@ -310,16 +306,14 @@ const SchedulerDetail: React.FC = () => {
                     {new Date(scheduler.createdDate).toLocaleString()}
                   </Typography>
                 </Grid>
-                
+
                 <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="text.secondary">
                     Created By
                   </Typography>
-                  <Typography variant="body1">
-                    {scheduler.createdBy}
-                  </Typography>
+                  <Typography variant="body1">{scheduler.createdBy}</Typography>
                 </Grid>
-                
+
                 <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="text.secondary">
                     Modified Date
@@ -328,14 +322,12 @@ const SchedulerDetail: React.FC = () => {
                     {new Date(scheduler.modifiedDate).toLocaleString()}
                   </Typography>
                 </Grid>
-                
+
                 <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="text.secondary">
                     Modified By
                   </Typography>
-                  <Typography variant="body1">
-                    {scheduler.modifiedBy}
-                  </Typography>
+                  <Typography variant="body1">{scheduler.modifiedBy}</Typography>
                 </Grid>
               </Grid>
             </CardContent>

@@ -181,10 +181,6 @@ export interface IndicatorTypeDefinition {
   defaultStoredProcedure?: string;
 }
 
-
-
-
-
 export interface ContactDto {
   contactID: number;
   name: string;

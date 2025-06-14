@@ -5,7 +5,7 @@ import { AlertFilterDto } from '@/types/api';
 import { queryKeys } from '@/utils/queryKeys';
 
 /**
- * Enhanced useAlerts hook using TanStack Query
+ * useAlerts hook using TanStack Query
  * Provides automatic caching, background refetching, and error handling
  */
 export const useAlerts = (filters: AlertFilterDto) => {
@@ -19,7 +19,7 @@ export const useAlerts = (filters: AlertFilterDto) => {
 };
 
 /**
- * Enhanced useAlertStatistics hook for analytics
+ * useAlertStatistics hook for analytics
  */
 export const useAlertStatistics = (timeRangeDays: number) => {
   return useQuery({
@@ -32,7 +32,7 @@ export const useAlertStatistics = (timeRangeDays: number) => {
 };
 
 /**
- * Enhanced useAlertDashboard hook for dashboard data with real-time optimization
+ * useAlertDashboard hook for dashboard data with real-time optimization
  */
 export const useAlertDashboard = () => {
   return useQuery({

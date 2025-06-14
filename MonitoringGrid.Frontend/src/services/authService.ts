@@ -122,7 +122,7 @@ class AuthService {
       const currentTime = Math.floor(Date.now() / 1000);
 
       // Refresh if token expires within the next 10 minutes (600 seconds)
-      return payload.exp && payload.exp < (currentTime + 600);
+      return payload.exp && payload.exp < currentTime + 600;
     } catch (error) {
       // If we can't decode the token, we should refresh
       return true;

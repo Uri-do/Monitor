@@ -41,7 +41,9 @@ export const INDICATOR_TYPE_DEFINITIONS: IndicatorTypeDefinition[] = [
 /**
  * Gets the definition for a specific Indicator type
  */
-export const getIndicatorTypeDefinition = (type: IndicatorType): IndicatorTypeDefinition | undefined => {
+export const getIndicatorTypeDefinition = (
+  type: IndicatorType
+): IndicatorTypeDefinition | undefined => {
   return INDICATOR_TYPE_DEFINITIONS.find(def => def.type === type);
 };
 

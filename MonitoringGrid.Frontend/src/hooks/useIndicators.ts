@@ -1,78 +1,329 @@
-import { useQuery } from '@tanstack/react-query';
-import { indicatorApi, collectorApi, monitorStatisticsApi } from '@/services/api';
-import { queryKeys } from '@/utils/queryKeys';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useGenericQuery,
+  useStableQuery,
+  useDynamicQuery,
+  useOneTimeQuery,
+  useOptionalQuery,
+  useConditionalQuery,
+} from './useGenericQuery';
+import {
+  indicatorService,
+  Indicator,
+  CreateIndicatorRequest,
+  UpdateIndicatorRequest,
+} from '../services/indicatorService';
+import { ErrorHandlers } from '../utils/errorHandling';
 
-/**
- * Enhanced useIndicators hook using TanStack Query
- * Provides automatic caching, background refetching, and error handling
- */
-export const useIndicators = (filters?: { 
-  isActive?: boolean; 
-  search?: string; 
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-}) => {
-  return useQuery({
-    queryKey: queryKeys.indicators.list(filters || {}),
-    queryFn: () => indicatorApi.getIndicators(filters),
-    placeholderData: previousData => previousData, // Prevents UI flickering during refetch
-    staleTime: 30 * 1000, // Consider data fresh for 30 seconds
-    refetchInterval: 2 * 60 * 1000, // Auto-refetch every 2 minutes for updated lastExecuted times
+// Query keys for indicators
+export const indicatorQueryKeys = {
+  all: ['indicators'] as const,
+  lists: () => [...indicatorQueryKeys.all, 'list'] as const,
+  list: (filters: Record<string, any>) => [...indicatorQueryKeys.lists(), { filters }] as const,
+  details: () => [...indicatorQueryKeys.all, 'detail'] as const,
+  detail: (id: number) => [...indicatorQueryKeys.details(), id] as const,
+  executions: (id: number) => [...indicatorQueryKeys.detail(id), 'executions'] as const,
+  statistics: (id: number) => [...indicatorQueryKeys.detail(id), 'statistics'] as const,
+  search: (query: string) => [...indicatorQueryKeys.all, 'search', query] as const,
+  byCollector: (collectorId: number) =>
+    [...indicatorQueryKeys.all, 'by-collector', collectorId] as const,
+  byOwner: (ownerId: number) => [...indicatorQueryKeys.all, 'by-owner', ownerId] as const,
+};
+
+// Hook to fetch all indicators
+export const useIndicators = (filters?: Record<string, any>) => {
+  return useDynamicQuery(indicatorQueryKeys.list(filters || {}), () => indicatorService.getAll(), {
+    errorContext: 'Loading indicators',
+    graceful404: true,
+    fallbackValue: [],
   });
 };
 
-/**
- * Hook to fetch a single Indicator by ID
- */
-export const useIndicator = (id: number) => {
-  return useQuery({
-    queryKey: queryKeys.indicators.detail(id),
-    queryFn: () => indicatorApi.getIndicator(id),
-    enabled: !!id && id > 0,
-    staleTime: 30 * 1000,
+// Hook to fetch a specific indicator
+export const useIndicator = (id: number, enabled: boolean = true) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.detail(id),
+    () => indicatorService.getById(id),
+    [id, enabled],
+    {
+      errorContext: `Loading indicator ${id}`,
+      preset: 'oneTime',
+    }
+  );
+};
+
+// Hook to fetch indicator execution history
+export const useIndicatorExecutions = (
+  id: number,
+  options?: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+    fromDate?: string;
+    toDate?: string;
+  }
+) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.executions(id),
+    () => indicatorService.getExecutionHistory(id, options),
+    [id],
+    {
+      errorContext: `Loading execution history for indicator ${id}`,
+      preset: 'dynamic',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+// Hook to fetch indicator statistics
+export const useIndicatorStatistics = (id: number) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.statistics(id),
+    () => indicatorService.getStatistics(id),
+    [id],
+    {
+      errorContext: `Loading statistics for indicator ${id}`,
+      preset: 'dynamic',
+    }
+  );
+};
+
+// Hook to search indicators
+export const useIndicatorSearch = (
+  query: string,
+  filters?: {
+    isActive?: boolean;
+    priority?: number;
+    collectorID?: number;
+    ownerContactId?: number;
+  }
+) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.search(query),
+    () => indicatorService.search(query, filters),
+    [query],
+    {
+      errorContext: 'Searching indicators',
+      preset: 'oneTime',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+// Hook to fetch indicators by collector
+export const useIndicatorsByCollector = (collectorId: number) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.byCollector(collectorId),
+    () => indicatorService.getByCollector(collectorId),
+    [collectorId],
+    {
+      errorContext: `Loading indicators for collector ${collectorId}`,
+      preset: 'stable',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+// Hook to fetch indicators by owner
+export const useIndicatorsByOwner = (ownerId: number) => {
+  return useConditionalQuery(
+    indicatorQueryKeys.byOwner(ownerId),
+    () => indicatorService.getByOwner(ownerId),
+    [ownerId],
+    {
+      errorContext: `Loading indicators for owner ${ownerId}`,
+      preset: 'stable',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+// Mutation hooks with error handling
+export const useCreateIndicator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateIndicatorRequest) => indicatorService.create(data),
+    onSuccess: newIndicator => {
+      // Invalidate and refetch indicators list
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.lists() });
+
+      // Add the new indicator to the cache
+      queryClient.setQueryData(indicatorQueryKeys.detail(newIndicator.indicatorID), newIndicator);
+
+      // If the indicator belongs to a collector, invalidate that list too
+      if (newIndicator.collectorID) {
+        queryClient.invalidateQueries({
+          queryKey: indicatorQueryKeys.byCollector(newIndicator.collectorID),
+        });
+      }
+
+      // If the indicator has an owner, invalidate that list too
+      queryClient.invalidateQueries({
+        queryKey: indicatorQueryKeys.byOwner(newIndicator.ownerContactId),
+      });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to create indicator');
+    },
   });
 };
 
-/**
- * Enhanced useIndicatorDashboard hook for dashboard data with real-time optimization
- */
-export const useIndicatorDashboard = () => {
-  return useQuery({
-    queryKey: queryKeys.indicators.dashboard(),
-    queryFn: indicatorApi.getDashboard,
-    placeholderData: previousData => previousData,
-    staleTime: 5 * 1000, // Consider data fresh for 5 seconds for real-time dashboard
-    refetchInterval: 5 * 1000, // Auto-refetch every 5 seconds for real-time updates
-    retry: 2,
-    retryDelay: 1000,
+export const useUpdateIndicator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateIndicatorRequest }) =>
+      indicatorService.update(id, data),
+    onSuccess: updatedIndicator => {
+      // Update the specific indicator in cache
+      queryClient.setQueryData(
+        indicatorQueryKeys.detail(updatedIndicator.indicatorID),
+        updatedIndicator
+      );
+
+      // Invalidate lists to ensure consistency
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.lists() });
+
+      // Invalidate related queries
+      if (updatedIndicator.collectorID) {
+        queryClient.invalidateQueries({
+          queryKey: indicatorQueryKeys.byCollector(updatedIndicator.collectorID),
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: indicatorQueryKeys.byOwner(updatedIndicator.ownerContactId),
+      });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to update indicator');
+    },
   });
 };
 
-/**
- * Hook to fetch all collectors for dropdown selection
- * Updated to use new monitor statistics API
- */
-export const useCollectors = () => {
-  return useQuery({
-    queryKey: queryKeys.collectors.list(),
-    queryFn: monitorStatisticsApi.getActiveCollectors,
-    staleTime: 5 * 60 * 1000, // Collectors don't change often, cache for 5 minutes
-    refetchInterval: 10 * 60 * 1000, // Refetch every 10 minutes
+export const useDeleteIndicator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => indicatorService.delete(id),
+    onSuccess: (_, deletedId) => {
+      // Remove from cache
+      queryClient.removeQueries({ queryKey: indicatorQueryKeys.detail(deletedId) });
+
+      // Invalidate lists
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.all });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to delete indicator');
+    },
   });
 };
 
-/**
- * Hook to fetch collector item names for a specific collector
- * Updated to use new monitor statistics API
- */
-export const useCollectorItemNames = (collectorId: number) => {
-  return useQuery({
-    queryKey: queryKeys.collectors.items(collectorId),
-    queryFn: () => monitorStatisticsApi.getCollectorItemNames(collectorId),
-    enabled: !!collectorId && collectorId > 0,
-    staleTime: 5 * 60 * 1000, // Item names don't change often
-    refetchInterval: 10 * 60 * 1000,
+export const useExecuteIndicator = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => indicatorService.execute(id),
+    onSuccess: (result, id) => {
+      // Invalidate execution history and statistics
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.executions(id) });
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.statistics(id) });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to execute indicator');
+    },
   });
+};
+
+// Bulk operation hooks
+export const useBulkDeleteIndicators = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => indicatorService.bulkDelete(ids),
+    onSuccess: (_, deletedIds) => {
+      // Remove all deleted indicators from cache
+      deletedIds.forEach(id => {
+        queryClient.removeQueries({ queryKey: indicatorQueryKeys.detail(id) });
+      });
+
+      // Invalidate all lists
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.all });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to delete indicators');
+    },
+  });
+};
+
+export const useBulkActivateIndicators = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => indicatorService.bulkActivate(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.all });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to activate indicators');
+    },
+  });
+};
+
+export const useBulkDeactivateIndicators = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => indicatorService.bulkDeactivate(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: indicatorQueryKeys.all });
+    },
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Failed to deactivate indicators');
+    },
+  });
+};
+
+// Validation and testing hooks
+export const useValidateIndicator = () => {
+  return useMutation({
+    mutationFn: (data: CreateIndicatorRequest) => indicatorService.validateConfiguration(data),
+    onError: error => {
+      ErrorHandlers.silent(error, 'Validation failed');
+    },
+  });
+};
+
+export const useTestIndicator = () => {
+  return useMutation({
+    mutationFn: (data: CreateIndicatorRequest) => indicatorService.testExecution(data),
+    onError: error => {
+      ErrorHandlers.mutation(error, 'Test execution failed');
+    },
+  });
+};
+
+export default {
+  useIndicators,
+  useIndicator,
+  useIndicatorExecutions,
+  useIndicatorStatistics,
+  useIndicatorSearch,
+  useIndicatorsByCollector,
+  useIndicatorsByOwner,
+  useCreateIndicator,
+  useUpdateIndicator,
+  useDeleteIndicator,
+  useExecuteIndicator,
+  useBulkDeleteIndicators,
+  useBulkActivateIndicators,
+  useBulkDeactivateIndicators,
+  useValidateIndicator,
+  useTestIndicator,
 };
