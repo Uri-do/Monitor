@@ -18,6 +18,7 @@ import {
   Schedule as ScheduleIcon,
   AccessTime as TimeIcon,
   Description as DescriptionIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -112,10 +113,12 @@ const SchedulerCreate: React.FC = () => {
       <PageHeader
         title="Create Scheduler"
         subtitle="Create a new scheduler for automated indicator execution"
-        breadcrumbs={[
-          { label: 'Schedulers', href: '/schedulers' },
-          { label: 'Create' },
-        ]}
+        icon={<ScheduleIcon />}
+        backAction={{
+          label: 'Back to Schedulers',
+          icon: <BackIcon />,
+          onClick: () => navigate('/schedulers'),
+        }}
       />
 
       {/* Error Alert */}

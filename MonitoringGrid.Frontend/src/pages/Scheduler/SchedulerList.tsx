@@ -215,6 +215,7 @@ const SchedulerList: React.FC = () => {
       <PageHeader
         title="Schedulers"
         subtitle="Manage scheduling configurations for indicators"
+        icon={<Schedule />}
         primaryAction={{
           label: 'Create Scheduler',
           icon: <AddIcon />,

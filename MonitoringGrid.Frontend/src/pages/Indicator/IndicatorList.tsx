@@ -6,6 +6,7 @@ import {
   Delete as DeleteIcon,
   PlayArrow as ExecuteIcon,
   Visibility as ViewIcon,
+  Assessment as KpiIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { IndicatorDto, TestIndicatorRequest } from '@/types/api';
@@ -170,6 +171,7 @@ const IndicatorList: React.FC = () => {
       <PageHeader
         title="Indicators"
         subtitle="Monitor and manage your performance indicators"
+        icon={<KpiIcon />}
         primaryAction={{
           label: 'Create Indicator',
           icon: <AddIcon />,

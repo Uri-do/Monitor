@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Stack, IconButton, Tooltip } from '@mui/material';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
+import { Refresh as RefreshIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 import Button from './Button';
 import Card from './Card';
 
@@ -8,6 +8,11 @@ export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: React.ReactElement;
+  backAction?: {
+    label: string;
+    icon?: React.ReactElement;
+    onClick: () => void;
+  };
   primaryAction?: {
     label: string;
     icon?: React.ReactElement;
@@ -40,6 +45,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
   icon,
+  backAction,
   primaryAction,
   secondaryActions = [],
   actions = [],
@@ -131,6 +137,25 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
           {/* Actions */}
           <Stack direction="row" spacing={1} alignItems="center">
+            {/* Back Button */}
+            {backAction && (
+              <Button
+                variant="outlined"
+                startIcon={backAction.icon}
+                onClick={backAction.onClick}
+                sx={{
+                  color: 'white',
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': {
+                    borderColor: 'rgba(255, 255, 255, 0.6)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                {backAction.label}
+              </Button>
+            )}
+
             {/* Refresh Button */}
             {onRefresh && (
               <Tooltip title="Refresh">

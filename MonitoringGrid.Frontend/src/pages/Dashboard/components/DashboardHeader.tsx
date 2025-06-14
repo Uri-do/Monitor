@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Chip, IconButton, Tooltip } from '@mui/material';
-import { Refresh, Timer } from '@mui/icons-material';
+import { Refresh, Timer, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import {
   formatCountdownWithContext,
@@ -21,6 +21,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown
       <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ p: 3 }}>
         <Box>
           <Box display="flex" alignItems="center" gap={2} mb={1}>
+            <DashboardIcon sx={{ fontSize: '2rem', color: 'white' }} />
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               Dashboard
             </Typography>

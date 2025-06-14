@@ -11,6 +11,7 @@ import {
   Warning,
   CheckCircle,
   Error,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -55,6 +56,7 @@ const Analytics: React.FC = () => {
       <PageHeader
         title="Analytics & Insights"
         subtitle="Comprehensive monitoring system analytics and performance metrics"
+        icon={<AnalyticsIcon />}
         secondaryActions={[
           {
             label: 'Export Report',

@@ -140,7 +140,15 @@ const WorkerManagement: React.FC = () => {
 
       if (result.success) {
         toast.success(result.message);
-        await fetchStatus();
+
+        // Add a small delay for worker initialization before checking status
+        if (action === 'start' || action === 'restart') {
+          setTimeout(async () => {
+            await fetchStatus();
+          }, 2000); // 2 second delay for worker to initialize
+        } else {
+          await fetchStatus();
+        }
 
         if (action === 'stop' && realtimeEnabled) {
           await toggleRealtime();

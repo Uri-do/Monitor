@@ -21,6 +21,8 @@ import {
   Person as PersonIcon,
   Settings as SettingsIcon,
   TrendingUp as TrendingUpIcon,
+  Assessment as KpiIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -126,6 +128,12 @@ const IndicatorDetail: React.FC = () => {
       <PageHeader
         title={indicator.indicatorName}
         subtitle={`${indicator.indicatorCode} • ${indicator.collectorItemName}`}
+        icon={<KpiIcon />}
+        backAction={{
+          label: 'Back to Indicators',
+          icon: <BackIcon />,
+          onClick: () => navigate('/indicators'),
+        }}
         primaryAction={{
           label: 'Edit Indicator',
           icon: <EditIcon />,

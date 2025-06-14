@@ -19,6 +19,8 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Person as PersonIcon,
+  People as ContactIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -144,10 +146,12 @@ const ContactCreate: React.FC = () => {
       <PageHeader
         title={isEdit ? 'Edit Contact' : 'Create Contact'}
         subtitle={isEdit ? `Editing: ${contact?.name}` : 'Create a new notification contact'}
-        breadcrumbs={[
-          { label: 'Contacts', href: '/contacts' },
-          { label: isEdit ? 'Edit' : 'Create' },
-        ]}
+        icon={<ContactIcon />}
+        backAction={{
+          label: isEdit ? 'Back to Contact' : 'Back to Contacts',
+          icon: <BackIcon />,
+          onClick: () => navigate(isEdit ? `/contacts/${contactId}` : '/contacts'),
+        }}
       />
 
       <form onSubmit={handleSubmit(onSubmit)}>

@@ -21,7 +21,7 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { Home, Assessment, Edit, Save, Cancel } from '@mui/icons-material';
+import { Home, Assessment, Edit, Save, Cancel, ArrowBack as BackIcon } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { indicatorApi, schedulerApi } from '@/services/api';
@@ -214,11 +214,12 @@ const IndicatorEditSimple: React.FC = () => {
       <PageHeader
         title="Edit Indicator"
         subtitle={`Editing: ${existingIndicator?.indicatorName || 'Indicator'}`}
-        breadcrumbs={[
-          { label: 'Indicators', href: '/indicators' },
-          { label: existingIndicator?.indicatorName || `Indicator ${indicatorId}`, href: `/indicators/${indicatorId}` },
-          { label: 'Edit' },
-        ]}
+        icon={<Assessment />}
+        backAction={{
+          label: 'Back to Indicator',
+          icon: <BackIcon />,
+          onClick: () => navigate(`/indicators/${indicatorId}`),
+        }}
       />
 
       {/* Error Alert */}

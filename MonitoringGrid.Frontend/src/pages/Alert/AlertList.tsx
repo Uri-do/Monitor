@@ -5,6 +5,7 @@ import {
   Download as ExportIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
+  Notifications as AlertIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -221,6 +222,7 @@ const AlertList: React.FC = () => {
       <PageHeader
         title="Alert Management"
         subtitle={`Monitor and manage system alerts (${filteredAlerts.length} total)`}
+        icon={<AlertIcon />}
         secondaryActions={[
           {
             label: 'Bulk Resolve',

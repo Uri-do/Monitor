@@ -19,6 +19,7 @@ import {
   Schedule as ScheduleIcon,
   AccessTime as TimeIcon,
   Description as DescriptionIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -143,11 +144,12 @@ const SchedulerEdit: React.FC = () => {
       <PageHeader
         title="Edit Scheduler"
         subtitle="Modify scheduler configuration and settings"
-        breadcrumbs={[
-          { label: 'Schedulers', href: '/schedulers' },
-          { label: scheduler.schedulerName, href: `/schedulers/${schedulerId}` },
-          { label: 'Edit' },
-        ]}
+        icon={<ScheduleIcon />}
+        backAction={{
+          label: 'Back to Scheduler',
+          icon: <BackIcon />,
+          onClick: () => navigate(`/schedulers/${schedulerId}`),
+        }}
       />
 
       {/* Error Alert */}

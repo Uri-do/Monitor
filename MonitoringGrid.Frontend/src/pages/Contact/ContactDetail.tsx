@@ -30,6 +30,8 @@ import {
   Assignment as AssignIcon,
   Visibility as ViewIcon,
   PlayArrow as ExecuteIcon,
+  People as ContactIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContact } from '@/hooks/useContacts';
@@ -78,7 +80,12 @@ const ContactDetail: React.FC = () => {
       <PageHeader
         title={contact.name}
         subtitle={`Contact Information and Indicator Assignments`}
-        breadcrumbs={[{ label: 'Contacts', href: '/contacts' }, { label: contact.name }]}
+        icon={<ContactIcon />}
+        backAction={{
+          label: 'Back to Contacts',
+          icon: <BackIcon />,
+          onClick: () => navigate('/contacts'),
+        }}
         primaryAction={{
           label: 'Edit Contact',
           icon: <EditIcon />,

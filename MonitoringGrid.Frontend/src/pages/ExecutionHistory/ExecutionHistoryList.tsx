@@ -26,6 +26,7 @@ import {
   Storage as DatabaseIcon,
   Timer as TimerIcon,
   TrendingUp as KpiIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -253,6 +254,7 @@ const ExecutionHistoryList: React.FC = () => {
       <PageHeader
         title="Execution History"
         subtitle={`View detailed execution logs and performance metrics (${historyData?.totalCount || 0} total executions)`}
+        icon={<HistoryIcon />}
         onRefresh={refetch}
         refreshing={isLoading}
         secondaryActions={[

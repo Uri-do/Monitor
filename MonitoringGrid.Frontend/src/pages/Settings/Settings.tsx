@@ -131,6 +131,7 @@ const Settings: React.FC = () => {
       <PageHeader
         title="User Settings"
         subtitle="Configure your personal preferences and notification settings"
+        icon={<SystemIcon />}
       />
 
       <Paper sx={{ width: '100%' }}>

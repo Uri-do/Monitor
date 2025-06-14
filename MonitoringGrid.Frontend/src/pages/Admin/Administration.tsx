@@ -170,6 +170,7 @@ const Administration: React.FC = () => {
         <PageHeader
           title="Security Settings"
           subtitle="Configure authentication, authorization, and security policies"
+          icon={<SecurityIcon />}
         />
         <SecuritySettings />
       </Box>
@@ -186,6 +187,7 @@ const Administration: React.FC = () => {
         <PageHeader
           title="Security Audit Log"
           subtitle="View security events and authentication logs"
+          icon={<AuditIcon />}
         />
         <Alert severity="info">
           Security audit log functionality will be implemented in the next phase.
@@ -199,6 +201,7 @@ const Administration: React.FC = () => {
       <PageHeader
         title="Administration"
         subtitle="Manage users, security, and system configuration"
+        icon={<AdminIcon />}
       />
 
       <Paper sx={{ width: '100%' }}>

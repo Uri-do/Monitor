@@ -90,6 +90,9 @@ public class WorkerController : ControllerBase
                             status.StartTime = originalStartTime;
                             status.Uptime = uptime.TotalSeconds > 0 ? uptime : TimeSpan.Zero;
                             status.Services = GetWorkerServices();
+
+                            _logger.LogDebug("Tracked worker process {ProcessId} is running, uptime: {Uptime}",
+                                _workerProcess.Id, uptime);
                         }
                         catch (Exception ex)
                         {
@@ -124,7 +127,8 @@ public class WorkerController : ControllerBase
                                 status.Uptime = uptime.TotalSeconds > 0 ? uptime : TimeSpan.Zero;
                                 status.Services = GetWorkerServices();
 
-                                _logger.LogInformation("Detected external Worker process with PID: {ProcessId}", externalWorkerProcess.Id);
+                                _logger.LogInformation("Detected external Worker process with PID: {ProcessId}, uptime: {Uptime}",
+                                    externalWorkerProcess.Id, uptime);
                             }
                             catch (Exception ex)
                             {
@@ -138,6 +142,7 @@ public class WorkerController : ControllerBase
                         }
                         else
                         {
+                            _logger.LogDebug("No external worker processes found, status: stopped");
                             status.IsRunning = false;
                             status.Mode = "Manual";
                             status.Services = new List<WorkerServiceDto>();
@@ -159,7 +164,7 @@ public class WorkerController : ControllerBase
     /// Start Worker service
     /// </summary>
     [HttpPost("start")]
-    public ActionResult<WorkerActionResultDto> StartWorker()
+    public async Task<ActionResult<WorkerActionResultDto>> StartWorker()
     {
         try
         {
@@ -174,6 +179,9 @@ public class WorkerController : ControllerBase
                     Timestamp = DateTime.UtcNow
                 });
             }
+
+            Process? newWorkerProcess = null;
+            int? processId = null;
 
             lock (_processLock)
             {
@@ -204,9 +212,9 @@ public class WorkerController : ControllerBase
                     CreateNoWindow = true
                 };
 
-                _workerProcess = Process.Start(startInfo);
-                
-                if (_workerProcess == null)
+                newWorkerProcess = Process.Start(startInfo);
+
+                if (newWorkerProcess == null)
                 {
                     return StatusCode(500, new WorkerActionResultDto
                     {
@@ -216,16 +224,34 @@ public class WorkerController : ControllerBase
                     });
                 }
 
-                _logger.LogInformation("Started Worker process with PID: {ProcessId}", _workerProcess.Id);
+                _workerProcess = newWorkerProcess;
+                processId = newWorkerProcess.Id;
+                _logger.LogInformation("Started Worker process with PID: {ProcessId}", processId);
+            }
 
-                return Ok(new WorkerActionResultDto
+            // Give the process a moment to initialize (outside the lock)
+            await Task.Delay(1000);
+
+            // Verify the process is still running
+            if (newWorkerProcess.HasExited)
+            {
+                _logger.LogWarning("Worker process {ProcessId} exited immediately after start", processId);
+                return StatusCode(500, new WorkerActionResultDto
                 {
-                    Success = true,
-                    Message = $"Worker started successfully (PID: {_workerProcess.Id})",
-                    ProcessId = _workerProcess.Id,
+                    Success = false,
+                    Message = $"Worker process started but exited immediately (PID: {processId})",
+                    ProcessId = processId,
                     Timestamp = DateTime.UtcNow
                 });
             }
+
+            return Ok(new WorkerActionResultDto
+            {
+                Success = true,
+                Message = $"Worker started successfully (PID: {processId})",
+                ProcessId = processId,
+                Timestamp = DateTime.UtcNow
+            });
         }
         catch (Exception ex)
         {
@@ -307,7 +333,7 @@ public class WorkerController : ControllerBase
     /// Restart Worker service
     /// </summary>
     [HttpPost("restart")]
-    public ActionResult<WorkerActionResultDto> RestartWorker()
+    public async Task<ActionResult<WorkerActionResultDto>> RestartWorker()
     {
         try
         {
@@ -316,10 +342,10 @@ public class WorkerController : ControllerBase
             if (stopResult.Result is OkObjectResult)
             {
                 // Wait a moment
-                Thread.Sleep(2000);
-                
+                await Task.Delay(2000);
+
                 // Start again
-                return StartWorker();
+                return await StartWorker();
             }
 
             return stopResult;

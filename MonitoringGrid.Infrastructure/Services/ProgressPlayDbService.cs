@@ -350,14 +350,15 @@ public class ProgressPlayDbService : IProgressPlayDbService
             return configConnectionString;
         }
 
-        // Fallback to appsettings
-        var fallbackConnectionString = _configuration.GetConnectionString("ProgressPlayDB");
+        // Fallback to appsettings - try standardized name first, then legacy
+        var fallbackConnectionString = _configuration.GetConnectionString("SourceDatabase") ??
+                                     _configuration.GetConnectionString("ProgressPlayDB");
         if (!string.IsNullOrEmpty(fallbackConnectionString))
         {
-            _logger.LogDebug("Using ProgressPlayDB connection string from appsettings");
+            _logger.LogDebug("Using SourceDatabase connection string from appsettings");
             return fallbackConnectionString;
         }
 
-        throw new InvalidOperationException("ProgressPlayDB connection string not found in configuration service or appsettings");
+        throw new InvalidOperationException("SourceDatabase (or legacy ProgressPlayDB) connection string not found in configuration service or appsettings");
     }
 }

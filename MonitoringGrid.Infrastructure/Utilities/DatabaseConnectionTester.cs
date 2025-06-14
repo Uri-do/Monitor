@@ -98,13 +98,14 @@ public class DatabaseConnectionTester
 
         try
         {
-            var connectionString = _configuration.GetConnectionString("ProgressPlayDB") ??
-                                 "Data Source=192.168.166.11,1433;Initial Catalog=ProgressPlayDB;User ID=saturn;Password=Vt0zXXc800;MultipleActiveResultSets=true;TrustServerCertificate=true;ApplicationIntent=ReadOnly";
+            var connectionString = _configuration.GetConnectionString("SourceDatabase") ??
+                                 _configuration.GetConnectionString("ProgressPlayDB") ??
+                                 "Data Source=192.168.166.11,1433;Initial Catalog=ProgressPlayDBTest;User ID=saturn;Password=Vt0zXXc800;MultipleActiveResultSets=true;TrustServerCertificate=true;ApplicationIntent=ReadOnly";
 
             using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync();
 
-            Console.WriteLine($"✅ ProgressPlayDB connection successful");
+            Console.WriteLine($"✅ SourceDatabase (ProgressPlayDBTest) connection successful");
             Console.WriteLine($"   Server: {connection.DataSource}");
             Console.WriteLine($"   Database: {connection.Database}");
             Console.WriteLine($"   State: {connection.State}");
@@ -116,8 +117,8 @@ public class DatabaseConnectionTester
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "ProgressPlayDB connection failed");
-            Console.WriteLine($"❌ ProgressPlayDB connection failed: {ex.Message}");
+            _logger.LogError(ex, "SourceDatabase connection failed");
+            Console.WriteLine($"❌ SourceDatabase connection failed: {ex.Message}");
             return false;
         }
     }
@@ -204,7 +205,7 @@ public class DatabaseConnectionTester
     {
         try
         {
-            Console.WriteLine("  🔍 Checking ProgressPlayDB tables...");
+            Console.WriteLine("  🔍 Checking ProgressPlayDBTest tables...");
 
             const string collectorsQuery = @"
                 SELECT COUNT(*) FROM [stats].[tbl_Monitor_StatisticsCollectors]
@@ -232,7 +233,7 @@ public class DatabaseConnectionTester
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"  ❌ Error checking ProgressPlayDB tables: {ex.Message}");
+            Console.WriteLine($"  ❌ Error checking ProgressPlayDBTest tables: {ex.Message}");
         }
     }
 

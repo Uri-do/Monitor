@@ -8,6 +8,7 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Assignment as AssignIcon,
+  People as ContactIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { ContactDto } from '@/types/api';
@@ -137,6 +138,7 @@ const ContactList: React.FC = () => {
       <PageHeader
         title="Contact Management"
         subtitle={`Manage notification contacts and their Indicator assignments (${filteredContacts.length} total)`}
+        icon={<ContactIcon />}
         primaryAction={{
           label: 'Add Contact',
           icon: <AddIcon />,

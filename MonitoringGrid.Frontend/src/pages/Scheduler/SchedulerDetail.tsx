@@ -23,7 +23,9 @@ import {
   Delete as DeleteIcon,
   PlayArrow,
   Stop,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  Schedule as ScheduleIcon,
+  ArrowBack as BackIcon
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { schedulerApi, indicatorApi } from '@/services/api';
@@ -139,10 +141,12 @@ const SchedulerDetail: React.FC = () => {
       <PageHeader
         title={scheduler.schedulerName}
         subtitle={scheduler.schedulerDescription || 'Scheduler configuration details'}
-        breadcrumbs={[
-          { label: 'Schedulers', href: '/schedulers' },
-          { label: scheduler.schedulerName },
-        ]}
+        icon={<ScheduleIcon />}
+        backAction={{
+          label: 'Back to Schedulers',
+          icon: <BackIcon />,
+          onClick: () => navigate('/schedulers'),
+        }}
         primaryAction={!toggleMutation.isPending ? {
           label: scheduler.isEnabled ? 'Disable' : 'Enable',
           icon: scheduler.isEnabled ? <Stop /> : <PlayArrow />,

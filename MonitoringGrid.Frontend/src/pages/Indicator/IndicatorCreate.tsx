@@ -2,19 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
-  Container,
-  Typography,
   Paper,
   Alert,
   CircularProgress,
-  Breadcrumbs,
-  Link
 } from '@mui/material';
-import { Home, Assessment, Add, Edit } from '@mui/icons-material';
+import { Assessment, ArrowBack as BackIcon } from '@mui/icons-material';
+import { PageHeader } from '@/components/UI';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EnhancedIndicatorForm } from '@/components/Business/Indicator/EnhancedIndicatorForm';
 import { indicatorApi } from '@/services/api';
-import { IndicatorDto, CreateIndicatorRequest, UpdateIndicatorRequest } from '@/types/api';
+import { CreateIndicatorRequest } from '@/types/api';
 
 // Define the form data type that matches what the form component expects
 interface IndicatorFormData {
@@ -150,70 +147,20 @@ const IndicatorCreate: React.FC = () => {
   }
 
   return (
-    <Box sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/');
-          }}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          <Home sx={{ mr: 0.5 }} fontSize="inherit" />
-          Home
-        </Link>
-        <Link
-          color="inherit"
-          href="/indicators"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/indicators');
-          }}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          <Assessment sx={{ mr: 0.5 }} fontSize="inherit" />
-          Indicators
-        </Link>
-        {isEditMode ? (
-          <>
-            <Link
-              color="inherit"
-              href={`/indicators/${indicatorId}`}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate(`/indicators/${indicatorId}`);
-              }}
-            >
-              {existingIndicator?.indicatorName || `Indicator ${indicatorId}`}
-            </Link>
-            <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center' }}>
-              <Edit sx={{ mr: 0.5 }} fontSize="inherit" />
-              Edit
-            </Typography>
-          </>
-        ) : (
-          <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center' }}>
-            <Add sx={{ mr: 0.5 }} fontSize="inherit" />
-            Create New
-          </Typography>
-        )}
-      </Breadcrumbs>
-
-      {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {isEditMode ? 'Edit Indicator' : 'Create New Indicator'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {isEditMode 
-            ? 'Update the indicator configuration and settings.'
-            : 'Configure a new indicator to monitor your system metrics and performance.'
-          }
-        </Typography>
-      </Box>
+    <Box>
+      <PageHeader
+        title={isEditMode ? 'Edit Indicator' : 'Create New Indicator'}
+        subtitle={isEditMode
+          ? `Editing: ${existingIndicator?.indicatorName || 'Indicator'}`
+          : 'Configure a new indicator to monitor your system metrics and performance.'
+        }
+        icon={<Assessment />}
+        backAction={{
+          label: isEditMode ? 'Back to Indicator' : 'Back to Indicators',
+          icon: <BackIcon />,
+          onClick: () => navigate(isEditMode ? `/indicators/${indicatorId}` : '/indicators'),
+        }}
+      />
 
       {/* Error Alert */}
       {error && (

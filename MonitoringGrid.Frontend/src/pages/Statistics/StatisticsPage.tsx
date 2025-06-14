@@ -7,6 +7,7 @@ import {
   Grid,
   Divider,
 } from '@mui/material';
+import { BarChart as StatisticsIcon } from '@mui/icons-material';
 import { PageHeader } from '@/components/UI';
 import { StatsExplorer } from '@/components/StatsExplorer';
 import { CollectorSelector } from '@/components/CollectorSelector';
@@ -20,6 +21,7 @@ const StatisticsPage: React.FC = () => {
       <PageHeader
         title="Statistics & Analytics"
         subtitle="Browse and analyze collector statistics and performance data"
+        icon={<StatisticsIcon />}
       />
 
       <Grid container spacing={3}>
