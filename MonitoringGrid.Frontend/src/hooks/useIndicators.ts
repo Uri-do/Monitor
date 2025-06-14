@@ -309,6 +309,40 @@ export const useTestIndicator = () => {
   });
 };
 
+// Hook for dashboard data
+export const useIndicatorDashboard = () => {
+  return useDynamicQuery(
+    ['indicators', 'dashboard'],
+    () => indicatorService.getDashboardData(),
+    {
+      errorContext: 'Loading dashboard data',
+      graceful404: true,
+      fallbackValue: {
+        totalIndicators: 0,
+        activeIndicators: 0,
+        recentExecutions: [],
+        alerts: [],
+        statistics: {}
+      },
+    }
+  );
+};
+
+// Hook for collector item names
+export const useCollectorItemNames = (collectorId: number) => {
+  return useConditionalQuery(
+    ['collectors', collectorId, 'items'],
+    () => indicatorService.getCollectorItemNames(collectorId),
+    [collectorId],
+    {
+      errorContext: `Loading collector ${collectorId} item names`,
+      preset: 'stable',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
 export default {
   useIndicators,
   useIndicator,

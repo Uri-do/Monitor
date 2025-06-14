@@ -39,4 +39,5 @@ const FormLayout: React.FC<FormLayoutProps> = ({
   );
 };
 
+export { FormLayout };
 export default FormLayout;

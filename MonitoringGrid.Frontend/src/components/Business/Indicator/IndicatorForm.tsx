@@ -488,8 +488,12 @@ export const EditIndicatorDialog: React.FC<EditIndicatorDialogProps> = ({
   );
 };
 
+// Export IndicatorForm as an alias for IndicatorFormFields for compatibility
+export const IndicatorForm = IndicatorFormFields;
+
 export default {
   CreateIndicatorDialog,
   EditIndicatorDialog,
   IndicatorFormFields,
+  IndicatorForm,
 };

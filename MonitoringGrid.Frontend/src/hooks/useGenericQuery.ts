@@ -92,7 +92,7 @@ export function useGenericQuery<T>(
     dependencies.every(dep => dep !== undefined && dep !== null && dep !== '');
 
   // Query function with error handling
-  const queryFn = async (): Promise<T> => {
+  const wrappedQueryFn = async (): Promise<T> => {
     try {
       return await queryFn();
     } catch (error) {
@@ -145,7 +145,7 @@ export function useGenericQuery<T>(
     ...presetConfig,
     ...customOptions,
     queryKey: queryKey.filter(key => key !== undefined && key !== null),
-    queryFn: queryFn,
+    queryFn: wrappedQueryFn,
     enabled: enabled && customOptions.enabled !== false,
     retry: retryFn,
     placeholderData: (previousData: T | undefined) => {
@@ -172,6 +172,14 @@ export function useRealtimeQuery<T>(
   options: Omit<GenericQueryOptions<T>, 'preset'> = {}
 ) {
   return useGenericQuery(queryKey, queryFn, { ...options, preset: 'realtime' });
+}
+
+export function useDynamicQuery<T>(
+  queryKey: (string | number | boolean | undefined | null)[],
+  queryFn: () => Promise<T>,
+  options: Omit<GenericQueryOptions<T>, 'preset'> = {}
+) {
+  return useGenericQuery(queryKey, queryFn, { ...options, preset: 'dynamic' });
 }
 
 export function useStableQuery<T>(
