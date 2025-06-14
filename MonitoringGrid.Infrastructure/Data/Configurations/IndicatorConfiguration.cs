@@ -30,7 +30,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
             .HasMaxLength(500);
 
         builder.Property(i => i.CollectorID)
-            .IsRequired(false); // Nullable for backward compatibility
+            .IsRequired(); // Required to match database schema
 
         builder.Property(i => i.CollectorItemName)
             .IsRequired()

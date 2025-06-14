@@ -57,7 +57,7 @@ public class CreateIndicatorRequest
     public string? IndicatorDesc { get; set; }
 
     [Required]
-    public int CollectorID { get; set; }
+    public long CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -102,7 +102,7 @@ public class CreateIndicatorRequest
 /// </summary>
 public class UpdateIndicatorRequest : CreateIndicatorRequest
 {
-    public int IndicatorID { get; set; }
+    public long IndicatorID { get; set; }
 }
 
 /// <summary>

@@ -1,16 +1,15 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import IndicatorCreate from './IndicatorCreate';
+import IndicatorEditSimple from './IndicatorEditSimple';
 
 /**
- * IndicatorEdit component - wrapper around IndicatorCreate for editing mode
+ * IndicatorEdit component - uses the simple edit form without wizard
  */
 const IndicatorEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  
-  // The IndicatorCreate component already handles edit mode when an ID is present
-  // This component serves as a dedicated route for editing
-  return <IndicatorCreate />;
+
+  // Use the simple edit form for better UX
+  return <IndicatorEditSimple />;
 };
 
 export default IndicatorEdit;

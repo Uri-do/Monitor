@@ -26,7 +26,7 @@ public class Indicator : AggregateRoot
     /// <summary>
     /// Reference to the collector in ProgressPlayDB.stats.tbl_Monitor_StatisticsCollectors
     /// </summary>
-    public long? CollectorID { get; set; }
+    public long CollectorID { get; set; }
 
     /// <summary>
     /// The specific ItemName from ProgressPlayDB.stats.tbl_Monitor_Statistics for this collector

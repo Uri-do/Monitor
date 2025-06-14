@@ -83,7 +83,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             try
             {
                 // Check if collector is configured
-                if (!indicator.CollectorID.HasValue)
+                if (indicator.CollectorID == 0)
                 {
                     return CreateFailureResult(indicator, "No collector configured for this indicator",
                         stopwatch.Elapsed, executionTime, executionContext);
@@ -91,7 +91,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
                 // Execute the collector stored procedure to get current data
                 var rawData = await _progressPlayDbService.ExecuteCollectorStoredProcedureAsync(
-                    indicator.CollectorID.Value,
+                    indicator.CollectorID,
                     indicator.LastMinutes,
                     cancellationToken);
 
@@ -108,10 +108,10 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
                 // Get historical average if needed for threshold type
                 decimal? historicalAverage = null;
-                if (indicator.ThresholdType == "volume_average" && indicator.CollectorID.HasValue)
+                if (indicator.ThresholdType == "volume_average" && indicator.CollectorID > 0)
                 {
                     historicalAverage = await _progressPlayDbService.GetCollectorItemAverageAsync(
-                        indicator.CollectorID.Value,
+                        indicator.CollectorID,
                         indicator.CollectorItemName,
                         indicator.ThresholdField,
                         DateTime.UtcNow.Hour,

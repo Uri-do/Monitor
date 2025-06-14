@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -13,8 +14,26 @@ import { StatsExplorer } from '@/components/StatsExplorer';
 import { CollectorSelector } from '@/components/CollectorSelector';
 
 const StatisticsPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [selectedCollectorId, setSelectedCollectorId] = useState<number | undefined>();
   const [selectedItemName, setSelectedItemName] = useState<string>('');
+
+  // Initialize from URL parameters
+  useEffect(() => {
+    const collectorIdParam = searchParams.get('collectorId');
+    const itemParam = searchParams.get('item');
+
+    if (collectorIdParam) {
+      const collectorId = parseInt(collectorIdParam, 10);
+      if (!isNaN(collectorId)) {
+        setSelectedCollectorId(collectorId);
+      }
+    }
+
+    if (itemParam) {
+      setSelectedItemName(decodeURIComponent(itemParam));
+    }
+  }, [searchParams]);
 
   return (
     <Box>

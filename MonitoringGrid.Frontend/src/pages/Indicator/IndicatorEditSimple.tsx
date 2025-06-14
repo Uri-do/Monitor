@@ -21,7 +21,7 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { Home, Assessment, Edit, Save, Cancel, ArrowBack as BackIcon } from '@mui/icons-material';
+import { Home, Assessment, Edit, Save, Cancel, ArrowBack as BackIcon, Warning as ThresholdIcon, Storage as CollectorIcon } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { indicatorApi, schedulerApi } from '@/services/api';
@@ -34,7 +34,7 @@ interface IndicatorFormData {
   indicatorName: string;
   indicatorCode: string;
   indicatorDesc?: string;
-  collectorID: number; // Changed from optional to required
+  collectorID: number; // Required to match backend
   collectorItemName: string;
   schedulerID?: number | null;
   lastMinutes: number;
@@ -91,7 +91,7 @@ const IndicatorEditSimple: React.FC = () => {
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorID: 0, // Will be set when data loads
+      collectorID: 1, // Default to first collector
       collectorItemName: '',
       schedulerID: null,
       lastMinutes: 60,
@@ -139,7 +139,11 @@ const IndicatorEditSimple: React.FC = () => {
     onSuccess: (updatedIndicator) => {
       queryClient.invalidateQueries({ queryKey: ['indicators'] });
       queryClient.invalidateQueries({ queryKey: ['indicator', indicatorId] });
-      navigate(`/indicators/${updatedIndicator.indicatorID}`);
+      // Show success message briefly before navigating
+      setError(null);
+      navigate(`/indicators/${updatedIndicator.indicatorID}`, {
+        state: { message: 'Indicator updated successfully!' }
+      });
     },
     onError: (error: any) => {
       setError(error.response?.data?.message || 'Failed to update indicator');
@@ -154,7 +158,7 @@ const IndicatorEditSimple: React.FC = () => {
                           formData.priority === 2 ? 'medium' : 'low';
 
     // Validate required fields
-    if (!formData.collectorID || formData.collectorID === 0) {
+    if (!formData.collectorID || formData.collectorID <= 0) {
       setError('Please select a valid collector');
       return;
     }
@@ -214,12 +218,29 @@ const IndicatorEditSimple: React.FC = () => {
       <PageHeader
         title="Edit Indicator"
         subtitle={`Editing: ${existingIndicator?.indicatorName || 'Indicator'}`}
-        icon={<Assessment />}
+        icon={<Edit />}
         backAction={{
           label: 'Back to Indicator',
           icon: <BackIcon />,
           onClick: () => navigate(`/indicators/${indicatorId}`),
         }}
+        actions={[
+          {
+            label: 'Cancel',
+            variant: 'outlined',
+            startIcon: <Cancel />,
+            onClick: handleCancel,
+            disabled: isSubmitting || isLoading,
+          },
+          {
+            label: isSubmitting || isLoading ? 'Saving...' : 'Save Changes',
+            variant: 'contained',
+            startIcon: <Save />,
+            onClick: handleSubmit(handleFormSubmit),
+            disabled: isSubmitting || isLoading,
+            loading: isSubmitting || isLoading,
+          },
+        ]}
       />
 
       {/* Error Alert */}
@@ -294,34 +315,41 @@ const IndicatorEditSimple: React.FC = () => {
             </FormSection>
           </Grid>
 
-          {/* Data Source */}
+          {/* Data Source - Prominent Section */}
           <Grid item xs={12}>
-            <FormSection
-              title="Data Source"
-              subtitle="Select the data collector and specific item to monitor"
-            >
-              <Grid item xs={12}>
-                <CollectorSelector
-                  selectedCollectorId={watchedValues.collectorID}
-                  selectedItemName={watchedValues.collectorItemName}
-                  onCollectorChange={(collectorId) => {
-                    if (collectorId) {
-                      setValue('collectorID', collectorId);
-                    } else {
-                      setValue('collectorID', 0); // Use 0 to indicate no selection
-                    }
-                  }}
-                  onItemNameChange={(itemName) => {
-                    setValue('collectorItemName', itemName);
-                  }}
-                  required
-                  variant="detailed"
-                  showRefreshButton
-                  title="Data Collector"
-                  subtitle="Select the data collector and specific item to monitor"
-                />
-              </Grid>
-            </FormSection>
+            <Paper sx={{ p: 3, border: '2px solid', borderColor: 'primary.main' }}>
+              <Box display="flex" alignItems="center" gap={2} mb={3}>
+                <CollectorIcon sx={{ fontSize: '2rem', color: 'primary.main' }} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    Data Source Configuration
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Select the data collector and specific item to monitor
+                  </Typography>
+                </Box>
+              </Box>
+
+              <CollectorSelector
+                selectedCollectorId={watchedValues.collectorID}
+                selectedItemName={watchedValues.collectorItemName}
+                onCollectorChange={(collectorId) => {
+                  if (collectorId) {
+                    setValue('collectorID', collectorId);
+                  } else {
+                    setValue('collectorID', 1); // Default to first collector
+                  }
+                }}
+                onItemNameChange={(itemName) => {
+                  setValue('collectorItemName', itemName);
+                }}
+                required
+                variant="detailed"
+                showRefreshButton
+                title="Data Collector"
+                subtitle="Select the data collector and specific item to monitor"
+              />
+            </Paper>
           </Grid>
 
           {/* Scheduling */}
@@ -386,12 +414,22 @@ const IndicatorEditSimple: React.FC = () => {
             </FormSection>
           </Grid>
 
-          {/* Threshold Configuration */}
+          {/* Threshold Configuration - Prominent Section */}
           <Grid item xs={12}>
-            <FormSection
-              title="Threshold Configuration"
-              subtitle="Configure alert thresholds and conditions"
-            >
+            <Paper sx={{ p: 3, border: '1px solid', borderColor: 'warning.main', bgcolor: 'warning.50' }}>
+              <Box display="flex" alignItems="center" gap={2} mb={3}>
+                <ThresholdIcon sx={{ fontSize: '2rem', color: 'warning.main' }} />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'warning.main' }}>
+                    Alert Threshold Configuration
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Configure alert thresholds and conditions
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
                 <Controller
                   name="thresholdType"
@@ -500,30 +538,68 @@ const IndicatorEditSimple: React.FC = () => {
                   )}
                 />
               </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* Additional Configuration */}
+          <Grid item xs={12}>
+            <FormSection
+              title="Additional Configuration"
+              subtitle="Configure additional settings and status"
+            >
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="averageLastDays"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Average Last Days"
+                      type="number"
+                      fullWidth
+                      error={!!errors.averageLastDays}
+                      helperText={errors.averageLastDays?.message || 'Number of days to calculate average (optional)'}
+                      inputProps={{ min: 1 }}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="ownerContactId"
+                  control={control}
+                  rules={{ required: 'Owner contact is required' }}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Owner Contact</InputLabel>
+                      <Select {...field} label="Owner Contact" required>
+                        <MenuItem value={1}>Default Contact</MenuItem>
+                        {/* TODO: Load actual contacts */}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Controller
+                  name="isActive"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch {...field} checked={field.value} />}
+                      label="Active"
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                />
+              </Grid>
             </FormSection>
           </Grid>
 
-          {/* Form Actions */}
-          <Grid item xs={12}>
-            <FormActions
-              secondaryActions={[
-                {
-                  label: 'Cancel',
-                  variant: 'outlined',
-                  startIcon: <Cancel />,
-                  onClick: handleCancel,
-                  disabled: isSubmitting || isLoading,
-                },
-              ]}
-              primaryAction={{
-                label: isSubmitting || isLoading ? 'Saving...' : 'Update Indicator',
-                type: 'submit',
-                startIcon: <Save />,
-                disabled: isSubmitting || isLoading,
-                loading: isSubmitting || isLoading,
-              }}
-            />
-          </Grid>
+
         </FormLayout>
       </form>
     </Box>
