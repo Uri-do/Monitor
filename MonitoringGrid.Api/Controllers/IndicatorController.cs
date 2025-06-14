@@ -45,6 +45,7 @@ public class IndicatorController : ControllerBase
     /// Get all indicators with optional filtering and pagination
     /// </summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(List<IndicatorDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]

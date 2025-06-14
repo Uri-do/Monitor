@@ -69,7 +69,7 @@ export interface IndicatorStatistics {
 // Indicator service extending BaseApiService
 class IndicatorService extends BaseApiService {
   constructor() {
-    super('indicators');
+    super('indicator');
   }
 
   // Get all indicators
@@ -271,6 +271,38 @@ class IndicatorService extends BaseApiService {
       }>('/test', data);
     } catch (error) {
       ErrorHandlers.mutation(error, 'Failed to test indicator execution');
+      throw error;
+    }
+  }
+
+  // Get dashboard data
+  async getDashboardData(): Promise<{
+    totalIndicators: number;
+    activeIndicators: number;
+    recentExecutions: any[];
+    alerts: any[];
+    statistics: any;
+  }> {
+    try {
+      return await this.get<{
+        totalIndicators: number;
+        activeIndicators: number;
+        recentExecutions: any[];
+        alerts: any[];
+        statistics: any;
+      }>('/dashboard');
+    } catch (error) {
+      ErrorHandlers.query(error, 'Failed to fetch dashboard data');
+      throw error;
+    }
+  }
+
+  // Get collector item names
+  async getCollectorItemNames(collectorId: number): Promise<string[]> {
+    try {
+      return await this.get<string[]>(`/collectors/${collectorId}/items`);
+    } catch (error) {
+      ErrorHandlers.query(error, `Failed to fetch collector ${collectorId} item names`);
       throw error;
     }
   }

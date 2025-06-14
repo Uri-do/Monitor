@@ -216,7 +216,12 @@ export abstract class BaseApiService {
             },
           });
         }
-        return data.data || data;
+        // Return the data property if it exists, otherwise return empty array for arrays or the data object
+        if (data.data !== undefined) {
+          return data.data;
+        }
+        // If no data property but isSuccess is true, return appropriate fallback
+        return Array.isArray(data) ? data : (data.value || data);
       }
 
       return data;

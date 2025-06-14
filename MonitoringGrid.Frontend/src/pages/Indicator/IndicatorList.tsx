@@ -47,6 +47,12 @@ const IndicatorList: React.FC = () => {
 
   // Filter indicators based on search
   const filteredIndicators = useMemo(() => {
+    // Ensure indicators is an array before filtering
+    if (!Array.isArray(indicators)) {
+      console.warn('indicators is not an array, returning empty array');
+      return [];
+    }
+
     return indicators.filter(indicator => {
       const matchesSearch =
         !filters.search ||

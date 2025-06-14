@@ -32,11 +32,32 @@ export const indicatorQueryKeys = {
 
 // Hook to fetch all indicators
 export const useIndicators = (filters?: Record<string, any>) => {
-  return useDynamicQuery(indicatorQueryKeys.list(filters || {}), () => indicatorService.getAll(), {
-    errorContext: 'Loading indicators',
-    graceful404: true,
-    fallbackValue: [],
-  });
+  return useDynamicQuery(
+    indicatorQueryKeys.list(filters || {}),
+    async () => {
+      try {
+        const result = await indicatorService.getAll();
+        // Ensure we always return an array
+        if (!Array.isArray(result)) {
+          console.warn('Indicators API returned non-array data:', result);
+          return [];
+        }
+        return result;
+      } catch (error: any) {
+        // Handle authentication errors gracefully
+        if (error?.status === 401) {
+          console.warn('Authentication required for indicators endpoint');
+          return [];
+        }
+        throw error;
+      }
+    },
+    {
+      errorContext: 'Loading indicators',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
 };
 
 // Hook to fetch a specific indicator
