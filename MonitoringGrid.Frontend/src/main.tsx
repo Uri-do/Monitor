@@ -4,10 +4,18 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import { initializePerformanceMonitoring } from './utils/performance';
 import { validateEnvironment } from './utils/security';
+import { initializeAdvancedPerformanceMonitoring } from './utils/advancedPerformance';
+import { initializeAdvancedSecurity } from './security/advancedSecurity';
+import { initializeEnterpriseMonitoring } from './monitoring/enterpriseMonitoring';
+import { initializeMicrofrontendArchitecture } from './architecture/microfrontend';
 
-// Initialize security and performance monitoring
+// Initialize enterprise-grade systems
 validateEnvironment();
-const performanceMonitor = initializePerformanceMonitoring();
+initializePerformanceMonitoring();
+initializeAdvancedPerformanceMonitoring();
+initializeAdvancedSecurity();
+initializeEnterpriseMonitoring();
+initializeMicrofrontendArchitecture();
 
 // Performance monitoring for initial load
 const startTime = performance.now();

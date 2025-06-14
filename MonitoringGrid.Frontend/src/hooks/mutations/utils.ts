@@ -1,28 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CreateMutationOptions, MutationResult, ApiError } from './types';
+import { handleError, ErrorHandlers } from '@/utils/errorHandling';
 
-// Enhanced error handling utility
+// Enhanced error handling utility - now using centralized error handling
 export const handleMutationError = (error: any): string => {
-  if (error?.response?.data?.message) {
-    return error.response.data.message;
-  }
-
-  if (error?.response?.data?.errors) {
-    const errors = error.response.data.errors;
-    if (Array.isArray(errors)) {
-      return errors.join(', ');
-    }
-    if (typeof errors === 'object') {
-      return Object.values(errors).flat().join(', ');
-    }
-  }
-
-  if (error?.message) {
-    return error.message;
-  }
-
-  return 'An unexpected error occurred';
+  const errorInfo = ErrorHandlers.mutation(error);
+  return errorInfo.message;
 };
 
 // Generic mutation hook creator

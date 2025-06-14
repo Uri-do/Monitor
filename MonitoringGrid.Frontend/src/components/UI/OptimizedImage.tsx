@@ -71,7 +71,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       .join(', ');
   };
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading - optimized
   useEffect(() => {
     if (!lazy || priority || isInView) return;
 
@@ -84,14 +84,20 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           }
         });
       },
-      { rootMargin: '50px' }
+      {
+        rootMargin: '50px',
+        threshold: 0.1 // Trigger when 10% visible
+      }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
+    const currentContainer = containerRef.current;
+    if (currentContainer) {
+      observer.observe(currentContainer);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [lazy, priority, isInView]);
 
   // Load image when in view

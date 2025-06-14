@@ -81,7 +81,7 @@ const WorkerManagement: React.FC = () => {
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true); // Enable auto-refresh by default
 
   // Real-time dashboard data
   const {
@@ -116,7 +116,7 @@ const WorkerManagement: React.FC = () => {
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const interval = setInterval(fetchStatus, 5000);
+    const interval = setInterval(fetchStatus, 3000); // More frequent polling when auto-refresh is enabled
     return () => clearInterval(interval);
   }, [autoRefresh]);
 
@@ -143,11 +143,18 @@ const WorkerManagement: React.FC = () => {
       if (result.success) {
         toast.success(result.message);
 
-        // Add a small delay for worker initialization before checking status
+        // Add a delay for worker initialization before checking status
         if (action === 'start' || action === 'restart') {
+          // Check status multiple times to catch the transition
           setTimeout(async () => {
             await fetchStatus();
-          }, 2000); // 2 second delay for worker to initialize
+          }, 1000); // First check after 1 second
+          setTimeout(async () => {
+            await fetchStatus();
+          }, 3000); // Second check after 3 seconds
+          setTimeout(async () => {
+            await fetchStatus();
+          }, 5000); // Final check after 5 seconds
         } else {
           await fetchStatus();
         }

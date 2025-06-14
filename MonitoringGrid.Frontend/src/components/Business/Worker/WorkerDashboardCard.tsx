@@ -100,7 +100,14 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
 
       if (result.success) {
         toast.success(result.message);
-        await fetchStatus(); // Refresh status
+        // Multiple status checks for start/restart actions to catch transitions
+        if (action === 'start' || action === 'restart') {
+          setTimeout(fetchStatus, 1000);  // First check after 1 second
+          setTimeout(fetchStatus, 3000);  // Second check after 3 seconds
+          setTimeout(fetchStatus, 5000);  // Final check after 5 seconds
+        } else {
+          await fetchStatus(); // Immediate check for stop action
+        }
       } else {
         toast.error(result.message);
       }
@@ -177,6 +184,9 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
     return `${hours}h ${remainingMinutes}m`;
   };
 
+  // Track status changes for notifications
+  const [previousStatus, setPreviousStatus] = React.useState<boolean | null>(null);
+
   // Merge real-time status with fetched status
   const currentStatus = React.useMemo(() => {
     if (realtimeWorkerStatus) {
@@ -193,11 +203,25 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
     return status;
   }, [realtimeWorkerStatus, status]);
 
+  // Notify on status changes
+  React.useEffect(() => {
+    if (currentStatus && previousStatus !== null && previousStatus !== currentStatus.isRunning) {
+      if (currentStatus.isRunning) {
+        toast.success('Worker service started successfully');
+      } else {
+        toast.info('Worker service stopped');
+      }
+    }
+    if (currentStatus) {
+      setPreviousStatus(currentStatus.isRunning);
+    }
+  }, [currentStatus?.isRunning, previousStatus]);
+
   useEffect(() => {
     fetchStatus();
 
-    // Reduce auto-refresh interval since we have real-time updates
-    const interval = setInterval(fetchStatus, 60000); // Reduced to 60 seconds
+    // More frequent polling for worker status since it's critical
+    const interval = setInterval(fetchStatus, 10000); // Poll every 10 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -291,7 +315,13 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                       <Box>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                           {currentStatus.isRunning ? 'Running' : 'Stopped'}
-                          {realtimeWorkerStatus && (
+                          {loading && (
+                            <CircularProgress
+                              size={12}
+                              sx={{ ml: 1, color: 'primary.main' }}
+                            />
+                          )}
+                          {realtimeWorkerStatus && !loading && (
                             <Chip
                               label="Live"
                               size="small"

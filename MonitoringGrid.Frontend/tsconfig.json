@@ -20,6 +20,16 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
+    /* Advanced Type Checking */
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true,
+
     /* Path mapping */
     "baseUrl": ".",
     "paths": {

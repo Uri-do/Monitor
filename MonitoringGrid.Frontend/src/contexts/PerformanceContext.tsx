@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import {
   initializePerformanceMonitoring,
   getPerformanceMetrics,
@@ -121,27 +121,31 @@ export const usePerformance = (): PerformanceContextType => {
   return context;
 };
 
-// Performance monitoring hook for components
+// Performance monitoring hook for components - optimized to avoid unnecessary re-renders
 export const useComponentPerformance = (componentName: string) => {
-  const [renderTime, setRenderTime] = useState<number>(0);
-  const [renderCount, setRenderCount] = useState<number>(0);
+  const renderCountRef = useRef<number>(0);
+  const lastRenderTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const startTime = performance.now();
-    setRenderCount(prev => prev + 1);
+    renderCountRef.current += 1;
 
     return () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      setRenderTime(duration);
+      lastRenderTimeRef.current = duration;
 
-      if (duration > 16) { // More than one frame (60fps)
-        console.warn(`Slow render detected in ${componentName}: ${duration.toFixed(2)}ms`);
+      // Only warn in development and for significant delays
+      if (process.env.NODE_ENV === 'development' && duration > 16) {
+        console.warn(`Slow render detected in ${componentName}: ${duration.toFixed(2)}ms (render #${renderCountRef.current})`);
       }
     };
   });
 
-  return { renderTime, renderCount };
+  return {
+    get renderTime() { return lastRenderTimeRef.current; },
+    get renderCount() { return renderCountRef.current; }
+  };
 };
 
 // Hook for measuring async operations
