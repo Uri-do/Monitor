@@ -30,7 +30,7 @@ export const indicatorQueryKeys = {
   byOwner: (ownerId: number) => [...indicatorQueryKeys.all, 'by-owner', ownerId] as const,
 };
 
-// Hook to fetch all indicators
+// Hook to fetch all indicators with optimized caching
 export const useIndicators = (filters?: Record<string, any>) => {
   return useDynamicQuery(
     indicatorQueryKeys.list(filters || {}),
@@ -56,6 +56,10 @@ export const useIndicators = (filters?: Record<string, any>) => {
       errorContext: 'Loading indicators',
       graceful404: true,
       fallbackValue: [],
+      // Cache indicators for 2 minutes since they don't change frequently
+      staleTime: 2 * 60 * 1000,
+      // Keep in cache for 5 minutes
+      cacheTime: 5 * 60 * 1000,
     }
   );
 };
@@ -330,7 +334,7 @@ export const useTestIndicator = () => {
   });
 };
 
-// Hook for dashboard data
+// Hook for dashboard data with optimized caching
 export const useIndicatorDashboard = () => {
   return useDynamicQuery(
     ['indicators', 'dashboard'],
@@ -345,6 +349,10 @@ export const useIndicatorDashboard = () => {
         alerts: [],
         statistics: {}
       },
+      // Cache for 15 seconds to reduce API calls while keeping data fresh
+      staleTime: 15 * 1000,
+      // Keep data fresh for 30 seconds
+      cacheTime: 30 * 1000,
     }
   );
 };

@@ -210,6 +210,7 @@ public static class CacheKeys
     public static string IndicatorsByPriority(string priority) => $"indicators:priority:{priority}";
     public static string DueIndicators => "indicators:due";
     public static string IndicatorById(long id) => $"indicator:{id}";
+    public static string IndicatorDashboard => "indicators:dashboard";
     
     // Contact cache keys
     public static string AllContacts => "contacts:all";

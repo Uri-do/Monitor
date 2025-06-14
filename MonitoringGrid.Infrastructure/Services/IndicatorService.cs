@@ -257,27 +257,41 @@ public class IndicatorService : IIndicatorService
     public async Task<IndicatorDashboard> GetIndicatorDashboardAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving indicator dashboard data");
-        
-        var today = DateTime.UtcNow.Date;
-        var indicators = await GetAllIndicatorsAsync(cancellationToken);
-        
-        var dashboard = new IndicatorDashboard
-        {
-            TotalIndicators = indicators.Count,
-            ActiveIndicators = indicators.Count(i => i.IsActive),
-            DueIndicators = indicators.Count(i => i.IsDue()),
-            RunningIndicators = indicators.Count(i => i.IsCurrentlyRunning),
-            IndicatorsExecutedToday = indicators.Count(i => i.LastRun?.Date == today),
-            CountByPriority = indicators
-                .GroupBy(i => i.Priority)
-                .Select(g => new IndicatorCountByPriority { Priority = g.Key, Count = g.Count() })
-                .ToList()
-        };
-        
+
+        return await _cacheService.GetOrSetAsync(
+            CacheKeys.IndicatorDashboard,
+            async () =>
+            {
+                var today = DateTime.UtcNow.Date;
+
+                // Use efficient database queries instead of loading all indicators into memory
+                var dashboard = new IndicatorDashboard();
+
+        // Get counts with single database queries
+        dashboard.TotalIndicators = await _context.Indicators.CountAsync(cancellationToken);
+        dashboard.ActiveIndicators = await _context.Indicators.CountAsync(i => i.IsActive, cancellationToken);
+        dashboard.RunningIndicators = await _context.Indicators.CountAsync(i => i.IsCurrentlyRunning, cancellationToken);
+        dashboard.IndicatorsExecutedToday = await _context.Indicators
+            .CountAsync(i => i.LastRun != null && i.LastRun.Value.Date == today, cancellationToken);
+
+        // Get priority counts with a single group by query
+        dashboard.CountByPriority = await _context.Indicators
+            .GroupBy(i => i.Priority)
+            .Select(g => new IndicatorCountByPriority { Priority = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        // Calculate due indicators efficiently using database query
+        var now = DateTime.UtcNow;
+        dashboard.DueIndicators = await _context.Indicators
+            .Where(i => i.IsActive &&
+                       (i.LastRun == null ||
+                        EF.Functions.DateDiffMinute(i.LastRun.Value, now) >= i.LastMinutes))
+            .CountAsync(cancellationToken);
+
         // TODO: Get recent executions from new IndicatorsExecutionHistory table
         // For now, return empty list since HistoricalData table is obsolete
         dashboard.RecentExecutions = new List<IndicatorExecutionSummary>();
-        
+
         // Get alerts triggered today - use a safe default if AlertLogs doesn't exist
         try
         {
@@ -290,8 +304,12 @@ public class IndicatorService : IIndicatorService
             _logger.LogWarning(ex, "Could not retrieve alert count, using default value");
             dashboard.AlertsTriggeredToday = 0;
         }
-        
-        return dashboard;
+
+                _logger.LogDebug("Dashboard data retrieved efficiently with optimized queries");
+                return dashboard;
+            },
+            CacheExpirations.Short, // Cache for 30 seconds since dashboard data changes frequently
+            cancellationToken);
     }
 
     public async Task<IndicatorTestResult> TestIndicatorAsync(long indicatorId, CancellationToken cancellationToken = default)
@@ -365,6 +383,7 @@ public class IndicatorService : IIndicatorService
             await _cacheService.RemoveAsync(CacheKeys.AllIndicators, cancellationToken);
             await _cacheService.RemoveAsync(CacheKeys.ActiveIndicators, cancellationToken);
             await _cacheService.RemoveAsync(CacheKeys.DueIndicators, cancellationToken);
+            await _cacheService.RemoveAsync(CacheKeys.IndicatorDashboard, cancellationToken);
 
             // Invalidate specific indicator cache
             await _cacheService.RemoveAsync(CacheKeys.IndicatorById(indicator.IndicatorID), cancellationToken);
