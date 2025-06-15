@@ -24,9 +24,8 @@ public static class ApiVersioningExtensions
             options.DefaultApiVersion = new ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
 
-            // Version reading strategies
+            // Version reading strategies (exclude URL segment for auth endpoints)
             options.ApiVersionReader = ApiVersionReader.Combine(
-                new UrlSegmentApiVersionReader(),           // /api/v1/indicators
                 new HeaderApiVersionReader("X-Version"),    // X-Version: 1.0
                 new QueryStringApiVersionReader("version"), // ?version=1.0
                 new MediaTypeApiVersionReader("version")    // Accept: application/json;version=1.0
@@ -44,10 +43,10 @@ public static class ApiVersioningExtensions
         {
             // Group name format for Swagger
             options.GroupNameFormat = "'v'VVV";
-            
-            // Substitute version in URL
-            options.SubstituteApiVersionInUrl = true;
-            
+
+            // Don't substitute version in URL (use headers/query params instead)
+            options.SubstituteApiVersionInUrl = false;
+
             // Assume default version when unspecified
             options.AssumeDefaultVersionWhenUnspecified = true;
         });

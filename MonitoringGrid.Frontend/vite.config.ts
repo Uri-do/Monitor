@@ -131,21 +131,22 @@ export default defineConfig(({ command, mode }) => {
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss: ws: http://localhost:* https://localhost:*;",
     },
     proxy: {
       '/api': {
-        target: 'https://localhost:57652',
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates in development
       },
       '/monitoring-hub': {
-        target: 'https://localhost:57652',
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates in development
         ws: true, // Enable WebSocket proxying for SignalR
       },
       '/health': {
-        target: 'https://localhost:57652',
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false,
       },

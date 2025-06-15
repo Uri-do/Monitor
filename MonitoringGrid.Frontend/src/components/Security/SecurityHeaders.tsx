@@ -20,11 +20,7 @@ export const SecurityHeaders: React.FC<SecurityHeadersProps> = ({
   customCSP,
 }) => {
   // Generate CSP with custom directives if provided
-  const cspHeader = customCSP ? 
-    Object.entries({ ...SECURITY_HEADERS, ...customCSP })
-      .map(([directive, sources]) => `${directive} ${Array.isArray(sources) ? sources.join(' ') : sources}`)
-      .join('; ') :
-    generateCSPHeader();
+  const cspHeader = generateCSPHeader();
 
   useEffect(() => {
     // Set security headers programmatically for SPA

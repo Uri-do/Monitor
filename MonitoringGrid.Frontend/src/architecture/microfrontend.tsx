@@ -74,7 +74,7 @@ export class MicrofrontendRegistry {
       }
 
       // Dynamic import of the module
-      const loadedModule = await import(/* webpackIgnore: true */ module.entry);
+      const loadedModule = await import(/* @vite-ignore */ module.entry);
       this.loadedModules.set(name, loadedModule);
       
       this.eventBus.dispatchEvent(new CustomEvent('module-loaded', { 

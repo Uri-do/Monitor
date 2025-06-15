@@ -50,18 +50,18 @@ export interface AnalyticsConfig {
 
 // Default enterprise analytics configuration
 export const ENTERPRISE_ANALYTICS_CONFIG: AnalyticsConfig = {
-  enabled: true,
+  enabled: false, // Disabled to prevent API spam
   endpoint: '/api/analytics',
   batchSize: 50,
   flushInterval: 30000, // 30 seconds
   retryAttempts: 3,
-  enableRealtime: true,
-  enableHeatmaps: true,
+  enableRealtime: false,
+  enableHeatmaps: false,
   enableSessionRecording: false, // Privacy consideration
-  enablePerformanceTracking: true,
-  enableErrorTracking: true,
-  enableBusinessMetrics: true,
-  samplingRate: 1.0, // 100% sampling for enterprise
+  enablePerformanceTracking: false,
+  enableErrorTracking: false,
+  enableBusinessMetrics: false,
+  samplingRate: 0.0, // 0% sampling - disabled
 };
 
 // Enterprise monitoring manager

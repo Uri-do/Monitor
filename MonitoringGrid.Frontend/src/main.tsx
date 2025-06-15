@@ -14,7 +14,7 @@ validateEnvironment();
 initializePerformanceMonitoring();
 initializeAdvancedPerformanceMonitoring();
 initializeAdvancedSecurity();
-initializeEnterpriseMonitoring();
+// initializeEnterpriseMonitoring(); // Disabled to prevent analytics spam
 initializeMicrofrontendArchitecture();
 
 // Performance monitoring for initial load

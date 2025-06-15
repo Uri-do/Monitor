@@ -35,7 +35,7 @@ export const CSP_DIRECTIVES = {
     'ws:',
     'http://localhost:*',
     'https://localhost:*',
-    'https://localhost:57652',
+    'http://localhost:57653',
   ],
   'media-src': ["'self'"],
   'object-src': ["'none'"],

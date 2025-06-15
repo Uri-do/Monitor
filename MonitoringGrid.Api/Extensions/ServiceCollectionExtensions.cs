@@ -232,6 +232,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAdvancedSecurityService, AdvancedSecurityService>();
         services.AddScoped<IIntelligentCachingService, IntelligentCachingService>();
 
+        // API Key Service
+        services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
+
         // Performance monitoring (using Core interface and Infrastructure implementation)
         services.AddSingleton<MonitoringGrid.Core.Interfaces.IPerformanceMetricsService, MonitoringGrid.Infrastructure.Services.PerformanceMetricsService>();
 
@@ -282,9 +285,12 @@ public static class ServiceCollectionExtensions
             options.AddPolicy("DevelopmentPolicy", builder =>
             {
                 builder
-                    .AllowAnyOrigin()
+                    .WithOrigins("http://localhost:3000", "https://localhost:3000",
+                               "http://localhost:5173", "https://localhost:5173",
+                               "http://localhost:5174", "https://localhost:5174")
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
             });
         });
 

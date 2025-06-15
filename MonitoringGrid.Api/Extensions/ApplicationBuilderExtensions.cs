@@ -49,8 +49,21 @@ public static class ApplicationBuilderExtensions
     {
         app.UseMiddleware<SecurityHeadersMiddleware>();
         app.UseMiddleware<CorrelationIdMiddleware>();
-        app.UseHttpsRedirection();
-        
+
+        return app;
+    }
+
+    /// <summary>
+    /// Configure HTTPS redirection middleware (separate from security middleware)
+    /// </summary>
+    public static IApplicationBuilder UseHttpsRedirectionMiddleware(this IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        // Only use HTTPS redirection in production
+        if (!env.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+
         return app;
     }
 
@@ -275,8 +288,11 @@ public static class ApplicationBuilderExtensions
         // Routing
         app.UseRoutingConfiguration();
 
-        // CORS
+        // CORS (must be after routing but before authentication)
         app.UseCorsConfiguration(env);
+
+        // HTTPS redirection (after CORS to avoid redirect issues with preflight requests)
+        app.UseHttpsRedirectionMiddleware(env);
 
         // Rate limiting
         app.UseRateLimitingMiddleware();

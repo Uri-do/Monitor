@@ -46,7 +46,7 @@ export const ENTERPRISE_SECURITY_CONFIG: SecurityConfig = {
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com'],
       'img-src': ["'self'", 'data:', 'https:'],
-      'connect-src': ["'self'", 'wss:', 'https:'],
+      'connect-src': ["'self'", 'wss:', 'ws:', 'https:', 'http://localhost:*', 'https://localhost:*'],
       'frame-ancestors': ["'none'"],
       'base-uri': ["'self'"],
       'form-action': ["'self'"],

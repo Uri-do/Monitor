@@ -24,6 +24,11 @@ public static class DependencyInjection
         // Add standardized configuration
         services.AddMonitoringGridConfiguration(configuration);
 
+        // Add security-specific configuration for SecurityService
+        services.Configure<MonitoringGrid.Core.Security.SecurityConfiguration>(configuration.GetSection("MonitoringGrid:Security"));
+        services.Configure<MonitoringGrid.Core.Security.JwtSettings>(configuration.GetSection("MonitoringGrid:Security:Jwt"));
+        services.Configure<MonitoringGrid.Core.Security.EncryptionSettings>(configuration.GetSection("MonitoringGrid:Security:Encryption"));
+
         // Validate configuration on startup
         configuration.ValidateConfiguration();
 
@@ -125,6 +130,16 @@ public static class DependencyInjection
         // Security Services - Fixed lifetimes for database dependencies
         services.AddScoped<ISecurityService, SecurityService>(); // Scoped - depends on MonitoringContext
         services.AddScoped<IRoleManagementService, RoleManagementService>();
+
+        // Security Service Adapters for backward compatibility
+        services.AddScoped<ISecurityAuditService>(provider =>
+            new SecurityAuditServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+        services.AddScoped<IAuthenticationService>(provider =>
+            new AuthenticationServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+
+        services.AddScoped<IThreatDetectionService>(provider =>
+            new ThreatDetectionServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+
 
         return services;
     }

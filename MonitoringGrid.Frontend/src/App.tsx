@@ -87,7 +87,35 @@ function App() {
                   <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                   {/* Public Routes */}
-                  <RouteRenderer routes={publicRoutes} isProtected={false} />
+                  {publicRoutes.map(route => {
+                    const { path, element, requiredPermissions, requiredRoles } = route;
+
+                    // Handle React elements (like Navigate)
+                    if (React.isValidElement(element)) {
+                      return (
+                        <Route
+                          key={path}
+                          path={path}
+                          element={element}
+                        />
+                      );
+                    }
+
+                    // Handle component types
+                    const Component = element as React.ComponentType<any>;
+
+                    return (
+                      <Route
+                        key={path}
+                        path={path}
+                        element={
+                          <React.Suspense fallback={<div>Loading...</div>}>
+                            <Component />
+                          </React.Suspense>
+                        }
+                      />
+                    );
+                  })}
 
                   {/* Authenticated Routes */}
                   <Route
@@ -95,13 +123,12 @@ function App() {
                     element={
                       <RealtimeProvider>
                         <RouteRenderer routes={[...routeConfig, ...legacyRedirects]} />
-                        {/* Catch all route */}
-                        <Routes>
-                          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Routes>
                       </RealtimeProvider>
                     }
                   />
+
+                  {/* Catch all route */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Router>
             </AuthProvider>
