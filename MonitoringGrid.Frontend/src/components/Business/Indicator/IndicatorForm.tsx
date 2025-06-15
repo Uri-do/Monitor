@@ -18,7 +18,7 @@ import * as yup from 'yup';
 
 import { CreateFormDialog, EditFormDialog } from '../../UI/GenericFormDialog';
 import { CollectorSelector } from '../../CollectorSelector';
-import { SchedulerSelector } from './SchedulerSelectorNew';
+import { SchedulerSelector } from './SchedulerSelector';
 import { DomainValidators, BaseValidators } from '../../../utils/validationSchemas';
 import { useContacts } from '../../../hooks/useContacts';
 import { CreateIndicatorRequest, UpdateIndicatorRequest } from '../../../services/indicatorService';

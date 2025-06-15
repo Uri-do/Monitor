@@ -57,7 +57,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     <Card gradient="primary" glowEffect={true} sx={{ mb: 3 }}>
       <Box sx={{ p: 3 }}>
         {/* Breadcrumbs */}
-        {breadcrumbs.length > 0 && (
+        {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 && (
           <Box sx={{ mb: 2 }}>
             <Stack direction="row" spacing={1} alignItems="center">
               {breadcrumbs.map((crumb, index) => (
@@ -187,7 +187,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             )}
 
             {/* Secondary Actions */}
-            {secondaryActions.map((action, index) => (
+            {Array.isArray(secondaryActions) && secondaryActions.map((action, index) => (
               <Button
                 key={index}
                 variant="outlined"
@@ -208,7 +208,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             ))}
 
             {/* Additional Actions */}
-            {actions.map((action, index) => (
+            {Array.isArray(actions) && actions.map((action, index) => (
               <Button
                 key={`action-${index}`}
                 variant={action.variant || 'outlined'}
