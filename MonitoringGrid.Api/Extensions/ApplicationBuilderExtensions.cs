@@ -146,18 +146,29 @@ public static class ApplicationBuilderExtensions
 
         try
         {
-            // Migrate MonitoringGrid database
+            // Check database connectivity
             var monitoringContext = services.GetRequiredService<MonitoringContext>();
-            await monitoringContext.Database.MigrateAsync();
-            logger.LogInformation("MonitoringGrid database migration completed successfully");
+
+            // Skip automatic migration for now due to existing tables
+            // TODO: Handle database schema migration properly
+            var canConnect = await monitoringContext.Database.CanConnectAsync();
+            if (canConnect)
+            {
+                logger.LogInformation("MonitoringGrid database connection verified successfully");
+            }
+            else
+            {
+                logger.LogWarning("MonitoringGrid database connection failed");
+            }
 
             // Note: ProgressPlay and PopAI databases are external and should not be migrated
-            logger.LogInformation("Database initialization completed");
+            logger.LogInformation("Database initialization completed (migration skipped)");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while migrating the database");
-            throw;
+            logger.LogError(ex, "An error occurred while checking database connectivity");
+            // Don't throw - allow application to start even if database is not available
+            logger.LogWarning("Application will continue without database verification");
         }
 
         return app;

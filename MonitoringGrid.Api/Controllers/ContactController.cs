@@ -4,7 +4,7 @@ using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.CQRS.Commands.Contact;
 using MonitoringGrid.Api.CQRS.Queries.Contact;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Api.Models;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 using MediatR;
 
@@ -52,9 +52,9 @@ public class ContactController : BaseApiController
 
         var query = new GetPaginatedContactsQuery(isActive, search, page, pageSize);
         
-        return await ExecuteQueryAsync(query, "get_contacts", result =>
+        return await ExecuteQueryAsync<GetPaginatedContactsQuery, PaginatedContactsDto>(query, "get_contacts", result =>
         {
-            var response = PaginatedResponse<ContactDto>.SuccessResponse(
+            var response = PaginatedApiResponse<ContactDto>.Success(
                 result.Contacts,
                 result.Page,
                 result.PageSize,
@@ -80,9 +80,9 @@ public class ContactController : BaseApiController
 
         var query = new GetContactByIdQuery(id);
         
-        return await ExecuteQueryAsync(query, "get_contact", result =>
+        return await ExecuteQueryAsync<GetContactByIdQuery, ContactDto>(query, "get_contact", result =>
         {
-            var response = ApiResponse<ContactDto>.SuccessResponse(result, "Contact retrieved successfully");
+            var response = ApiResponse<ContactDto>.Success(result, "Contact retrieved successfully");
             return Ok(response);
         });
     }
@@ -107,9 +107,9 @@ public class ContactController : BaseApiController
             request.Phone,
             request.IsActive);
 
-        return await ExecuteCommandAsync(command, "create_contact", result =>
+        return await ExecuteCommandAsync<CreateContactCommand, ContactDto>(command, "create_contact", result =>
         {
-            var response = ApiResponse<ContactDto>.SuccessResponse(result, "Contact created successfully");
+            var response = ApiResponse<ContactDto>.Success(result, "Contact created successfully");
             return CreatedAtAction(nameof(GetContact), new { id = result.ContactID }, response);
         });
     }
@@ -140,9 +140,9 @@ public class ContactController : BaseApiController
             request.Phone,
             request.IsActive);
 
-        return await ExecuteCommandAsync(command, "update_contact", result =>
+        return await ExecuteCommandAsync<UpdateContactCommand, ContactDto>(command, "update_contact", result =>
         {
-            var response = ApiResponse<ContactDto>.SuccessResponse(result, "Contact updated successfully");
+            var response = ApiResponse<ContactDto>.Success(result, "Contact updated successfully");
             return Ok(response);
         });
     }
@@ -183,14 +183,14 @@ public class ContactController : BaseApiController
         // In a real implementation, you'd create a specific query for this
         var query = new GetContactsQuery();
         
-        return await ExecuteQueryAsync(query, "get_contacts_by_indicator", result =>
+        return await ExecuteQueryAsync<GetContactsQuery, IEnumerable<ContactDto>>(query, "get_contacts_by_indicator", result =>
         {
             // Filter contacts that are associated with the indicator
-            var filteredContacts = result.Where(c => 
-                c.IndicatorContacts?.Any(ic => ic.IndicatorID == indicatorId) == true);
+            var filteredContacts = result.Where(c =>
+                c.AssignedIndicators?.Any(ai => ai.IndicatorId == indicatorId) == true);
 
-            var response = ApiResponse<IEnumerable<ContactDto>>.SuccessResponse(
-                filteredContacts, 
+            var response = ApiResponse<IEnumerable<ContactDto>>.Success(
+                filteredContacts,
                 $"Retrieved {filteredContacts.Count()} contacts for indicator {indicatorId}");
             
             return Ok(response);
@@ -250,7 +250,7 @@ public class ContactController : BaseApiController
             }
         }
 
-        var response = ApiResponse<int>.SuccessResponse(updatedCount, 
+        var response = ApiResponse<int>.Success(updatedCount,
             $"Updated {updatedCount} of {request.ContactIds.Count()} contacts");
         
         return Ok(response);

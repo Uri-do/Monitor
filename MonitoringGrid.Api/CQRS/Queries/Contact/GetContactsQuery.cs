@@ -81,7 +81,7 @@ public class GetContactsQueryHandler : IRequestHandler<GetContactsQuery, Result<
         {
             _logger.LogError(ex, "Error retrieving contacts with filters - IsActive: {IsActive}, Search: {Search}", 
                 request.IsActive, request.Search);
-            return Result<IEnumerable<ContactDto>>.Failure("Contact.RetrievalError", "Failed to retrieve contacts");
+            return Result.Failure<IEnumerable<ContactDto>>(Error.Failure("Contact.RetrievalError", "Failed to retrieve contacts"));
         }
     }
 }
@@ -122,7 +122,7 @@ public class GetContactByIdQueryHandler : IRequestHandler<GetContactByIdQuery, R
 
             if (contact == null)
             {
-                return Result<ContactDto>.Failure("Contact.NotFound", $"Contact with ID {request.ContactId} not found");
+                return Result.Failure<ContactDto>(Error.NotFound("Contact", request.ContactId));
             }
 
             var contactDto = _mapper.Map<ContactDto>(contact);
@@ -130,12 +130,12 @@ public class GetContactByIdQueryHandler : IRequestHandler<GetContactByIdQuery, R
             _logger.LogDebug("Retrieved contact {ContactId} with name {ContactName}", 
                 contact.ContactId, contact.Name);
 
-            return Result<ContactDto>.Success(contactDto);
+            return Result.Success(contactDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving contact {ContactId}", request.ContactId);
-            return Result<ContactDto>.Failure("Failed to retrieve contact");
+            return Result.Failure<ContactDto>(Error.Failure("Contact.RetrievalError", "Failed to retrieve contact"));
         }
     }
 }
@@ -234,12 +234,12 @@ public class GetPaginatedContactsQueryHandler : IRequestHandler<GetPaginatedCont
             _logger.LogDebug("Retrieved {Count} of {TotalCount} contacts (page {Page}/{TotalPages})", 
                 contacts.Count, totalCount, request.Page, result.TotalPages);
 
-            return Result<PaginatedContactsDto>.Success(result);
+            return Result.Success(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paginated contacts");
-            return Result<PaginatedContactsDto>.Failure("Contact.RetrievalError", "Failed to retrieve contacts");
+            return Result.Failure<PaginatedContactsDto>(Error.Failure("Contact.RetrievalError", "Failed to retrieve contacts"));
         }
     }
 }

@@ -40,7 +40,7 @@ public class IndicatorControllerSimple : BaseApiController
     public async Task<IActionResult> GetIndicators([FromQuery] IndicatorFilterRequest request)
     {
         var query = _mapper.Map<GetIndicatorsQuery>(request);
-        return await ExecuteQueryAsync(query, "get_all");
+        return await ExecuteQueryAsync<GetIndicatorsQuery, List<IndicatorDto>>(query, "get_all");
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class IndicatorControllerSimple : BaseApiController
     public async Task<IActionResult> GetIndicator(long id)
     {
         var query = new GetIndicatorByIdQuery(id);
-        return await ExecuteQueryAsync(query, "get_by_id");
+        return await ExecuteQueryAsync<GetIndicatorByIdQuery, IndicatorDto>(query, "get_by_id");
     }
 
     /// <summary>

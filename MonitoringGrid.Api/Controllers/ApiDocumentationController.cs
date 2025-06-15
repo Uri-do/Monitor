@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MonitoringGrid.Api.Controllers.Base;
-using MonitoringGrid.Api.Models;
+using MonitoringGrid.Api.Common;
 using MonitoringGrid.Api.Services;
 using MonitoringGrid.Api.Monitoring;
 using MonitoringGrid.Api.Security;
+using MonitoringGrid.Api.Models;
 using MonitoringGrid.Core.Interfaces;
 using MediatR;
 
@@ -48,8 +49,8 @@ public class ApiDocumentationController : BaseApiController
         try
         {
             var documentation = await _documentationService.GenerateDocumentationAsync();
-            var response = ApiResponse<ApiDocumentationInfo>.SuccessResponse(
-                documentation, 
+            var response = ApiResponse<ApiDocumentationInfo>.Success(
+                documentation,
                 "API documentation generated successfully");
             
             return Ok(response);
@@ -74,8 +75,8 @@ public class ApiDocumentationController : BaseApiController
         try
         {
             var health = await _documentationService.GetApiHealthAsync();
-            var response = ApiResponse<ApiHealthInfo>.SuccessResponse(
-                health, 
+            var response = ApiResponse<ApiHealthInfo>.Success(
+                health,
                 $"API health status: {health.Status}");
             
             return Ok(response);
@@ -99,8 +100,8 @@ public class ApiDocumentationController : BaseApiController
         try
         {
             var performance = await _documentationService.GetApiPerformanceAsync();
-            var response = ApiResponse<ApiPerformanceInfo>.SuccessResponse(
-                performance, 
+            var response = ApiResponse<ApiPerformanceInfo>.Success(
+                performance,
                 "API performance metrics retrieved successfully");
             
             return Ok(response);
@@ -124,8 +125,8 @@ public class ApiDocumentationController : BaseApiController
         try
         {
             var snapshot = await _performanceMonitoring.GetPerformanceSnapshotAsync();
-            var response = ApiResponse<PerformanceSnapshot>.SuccessResponse(
-                snapshot, 
+            var response = ApiResponse<PerformanceSnapshot>.Success(
+                snapshot,
                 "Performance snapshot captured successfully");
             
             return Ok(response);
@@ -157,8 +158,8 @@ public class ApiDocumentationController : BaseApiController
         {
             var period = TimeSpan.FromHours(hours);
             var trends = await _performanceMonitoring.GetPerformanceTrendsAsync(period);
-            var response = ApiResponse<PerformanceTrends>.SuccessResponse(
-                trends, 
+            var response = ApiResponse<PerformanceTrends>.Success(
+                trends,
                 $"Performance trends for {hours} hours retrieved successfully");
             
             return Ok(response);
@@ -190,8 +191,8 @@ public class ApiDocumentationController : BaseApiController
         {
             var period = TimeSpan.FromHours(hours);
             var metrics = await _securityService.GetSecurityMetricsAsync(period);
-            var response = ApiResponse<SecurityMetrics>.SuccessResponse(
-                metrics, 
+            var response = ApiResponse<SecurityMetrics>.Success(
+                metrics,
                 $"Security metrics for {hours} hours retrieved successfully");
             
             return Ok(response);
@@ -246,8 +247,8 @@ public class ApiDocumentationController : BaseApiController
                 PopularEndpoints = new List<PopularEndpoint>()
             };
 
-            var response = ApiResponse<ApiUsageStatistics>.SuccessResponse(
-                usage, 
+            var response = ApiResponse<ApiUsageStatistics>.Success(
+                usage,
                 $"API usage statistics for {days} days retrieved successfully");
             
             return Ok(response);
@@ -319,8 +320,8 @@ public class ApiDocumentationController : BaseApiController
                 TopErrors = new List<ErrorSummary>()
             };
 
-            var response = ApiResponse<ApiMetricsSummary>.SuccessResponse(
-                metrics, 
+            var response = ApiResponse<ApiMetricsSummary>.Success(
+                metrics,
                 $"API metrics from {start:yyyy-MM-dd} to {end:yyyy-MM-dd} retrieved successfully");
             
             return Ok(response);

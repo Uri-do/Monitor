@@ -1,19 +1,23 @@
 /**
- * Advanced Testing Framework
- * Enterprise-grade testing utilities and patterns
+ * Advanced Testing Utilities
+ * Enterprise-grade testing utilities for React components and applications
  */
 
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import React from 'react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider, CssBaseline } from '@mui/material';
 import { I18nextProvider } from 'react-i18next';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import i18n from '@/i18n';
-import { theme } from '@/theme';
+import { theme } from '@/hooks/useTheme';
 
-// Advanced test configuration
+// Extend Jest matchers
+expect.extend(toHaveNoViolations);
+
+// Test configuration interface
 export interface TestConfig {
   withRouter?: boolean;
   withQuery?: boolean;
@@ -26,103 +30,109 @@ export interface TestConfig {
 
 // Performance testing utilities
 export class PerformanceTestUtils {
-  private static measurements: Map<string, number[]> = new Map();
+  private static performanceMarks: Map<string, number> = new Map();
 
-  static startMeasurement(name: string): () => number {
-    const startTime = performance.now();
-    
-    return () => {
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-      
-      if (!this.measurements.has(name)) {
-        this.measurements.set(name, []);
-      }
-      this.measurements.get(name)!.push(duration);
-      
-      return duration;
-    };
+  static startMeasurement(name: string): void {
+    this.performanceMarks.set(name, performance.now());
   }
 
-  static getAverageDuration(name: string): number {
-    const measurements = this.measurements.get(name) || [];
-    if (measurements.length === 0) return 0;
+  static endMeasurement(name: string): number {
+    const startTime = this.performanceMarks.get(name);
+    if (!startTime) {
+      throw new Error(`No start measurement found for: ${name}`);
+    }
     
-    return measurements.reduce((sum, duration) => sum + duration, 0) / measurements.length;
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+    this.performanceMarks.delete(name);
+    
+    return duration;
   }
 
   static expectPerformance(name: string, maxDuration: number): void {
-    const avgDuration = this.getAverageDuration(name);
-    if (avgDuration > maxDuration) {
-      throw new Error(
-        `Performance test failed: ${name} took ${avgDuration.toFixed(2)}ms (max: ${maxDuration}ms)`
-      );
-    }
+    const duration = this.endMeasurement(name);
+    expect(duration).toBeLessThan(maxDuration);
   }
 
-  static clearMeasurements(): void {
-    this.measurements.clear();
+  static async measureAsyncOperation<T>(
+    name: string,
+    operation: () => Promise<T>
+  ): Promise<{ result: T; duration: number }> {
+    this.startMeasurement(name);
+    const result = await operation();
+    const duration = this.endMeasurement(name);
+    
+    return { result, duration };
+  }
+
+  static measureRenderTime(component: React.ReactElement): number {
+    const startTime = performance.now();
+    render(component);
+    return performance.now() - startTime;
   }
 }
 
 // Accessibility testing utilities
 export class AccessibilityTestUtils {
   static async expectNoAccessibilityViolations(container: HTMLElement): Promise<void> {
-    // This would integrate with axe-core in a real implementation
-    const violations = await this.runAxeCheck(container);
-    
-    if (violations.length > 0) {
-      const violationMessages = violations.map(v => `${v.id}: ${v.description}`).join('\n');
-      throw new Error(`Accessibility violations found:\n${violationMessages}`);
-    }
-  }
-
-  private static async runAxeCheck(container: HTMLElement): Promise<any[]> {
-    // Mock implementation - in real scenario, use axe-core
-    return [];
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   }
 
   static expectProperHeadingStructure(container: HTMLElement): void {
     const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    let previousLevel = 0;
+    const headingLevels = Array.from(headings).map(h => parseInt(h.tagName.charAt(1)));
     
-    headings.forEach((heading) => {
-      const currentLevel = parseInt(heading.tagName.charAt(1));
-      
-      if (currentLevel > previousLevel + 1) {
-        throw new Error(
-          `Heading structure violation: Found h${currentLevel} after h${previousLevel}`
-        );
-      }
-      
-      previousLevel = currentLevel;
+    // Check that headings start with h1
+    if (headingLevels.length > 0) {
+      expect(headingLevels[0]).toBe(1);
+    }
+    
+    // Check that heading levels don't skip (e.g., h1 -> h3)
+    for (let i = 1; i < headingLevels.length; i++) {
+      const diff = headingLevels[i] - headingLevels[i - 1];
+      expect(diff).toBeLessThanOrEqual(1);
+    }
+  }
+
+  static expectKeyboardNavigation(element: HTMLElement): void {
+    // Check if element is focusable
+    const focusableElements = element.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    expect(focusableElements.length).toBeGreaterThan(0);
+    
+    // Test tab navigation
+    focusableElements.forEach((el, index) => {
+      fireEvent.focus(el);
+      expect(document.activeElement).toBe(el);
     });
   }
 
-  static expectAriaLabels(container: HTMLElement, selectors: string[]): void {
-    selectors.forEach(selector => {
-      const elements = container.querySelectorAll(selector);
-      elements.forEach(element => {
-        const hasAriaLabel = element.hasAttribute('aria-label') || 
-                           element.hasAttribute('aria-labelledby') ||
-                           element.hasAttribute('aria-describedby');
-        
-        if (!hasAriaLabel) {
-          throw new Error(`Element ${selector} missing aria-label or aria-labelledby`);
-        }
-      });
+  static expectAriaLabels(container: HTMLElement): void {
+    const interactiveElements = container.querySelectorAll(
+      'button, input, select, textarea, [role="button"], [role="link"]'
+    );
+    
+    interactiveElements.forEach(element => {
+      const hasAriaLabel = element.hasAttribute('aria-label') || 
+                          element.hasAttribute('aria-labelledby') ||
+                          element.textContent?.trim();
+      
+      expect(hasAriaLabel).toBeTruthy();
     });
   }
 }
 
-// Advanced component testing utilities
+// Component testing utilities
 export class ComponentTestUtils {
-  static createTestWrapper(config: TestConfig = {}): React.ComponentType<{ children: React.ReactNode }> {
+  static createTestWrapper(config: TestConfig = {}) {
     const {
-      withRouter = true,
-      withQuery = true,
-      withTheme = true,
-      withI18n = true,
+      withRouter = false,
+      withQuery = false,
+      withTheme = false,
+      withI18n = false,
       initialRoute = '/',
       queryClient = new QueryClient({
         defaultOptions: {
@@ -279,7 +289,7 @@ export class IntegrationTestUtils {
 
   static async fillForm(formData: Record<string, string>): Promise<void> {
     const user = userEvent.setup();
-    
+
     for (const [fieldName, value] of Object.entries(formData)) {
       const field = screen.getByLabelText(new RegExp(fieldName, 'i'));
       await user.clear(field);

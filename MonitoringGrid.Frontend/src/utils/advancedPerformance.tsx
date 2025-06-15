@@ -321,21 +321,21 @@ export const withPerformanceMonitoring = <P extends object>(
 ) => {
   const WrappedComponent = React.forwardRef<any, P>((props, ref) => {
     const name = componentName || Component.displayName || Component.name || 'Unknown';
-    
+
     React.useEffect(() => {
       const startTime = performance.now();
-      
+
       return () => {
         const endTime = performance.now();
         const renderTime = endTime - startTime;
         advancedPerformanceMonitor?.recordRenderTime(name, renderTime);
       };
     });
-    
+
     return <Component {...props} ref={ref} />;
   });
-  
+
   WrappedComponent.displayName = `withPerformanceMonitoring(${componentName || Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };

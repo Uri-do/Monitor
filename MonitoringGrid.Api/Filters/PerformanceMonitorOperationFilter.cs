@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Any;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MonitoringGrid.Api.Filters;
@@ -66,7 +67,7 @@ public class PerformanceMonitorOperationFilter : IOperationFilter
                 Schema = new OpenApiSchema
                 {
                     Type = "string",
-                    Enum = new List<object> { "HIT", "MISS", "BYPASS" }
+                    Enum = new List<IOpenApiAny> { new OpenApiString("HIT"), new OpenApiString("MISS"), new OpenApiString("BYPASS") }
                 }
             };
 

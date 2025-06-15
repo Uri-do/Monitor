@@ -46,11 +46,31 @@ public static class DependencyInjection
             options.EnableSensitiveDataLogging(false); // Disable in production
         });
 
-        // Database Context Factory for concurrent operations
-        services.AddDbContextFactory<MonitoringContext>(options =>
+        // ProgressPlay Database Context for monitored database
+        services.AddDbContext<ProgressPlayContext>(options =>
+        {
+            var connectionString = configuration.GetConnectionStringOrThrow("ProgressPlayConnection");
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                sqlOptions.CommandTimeout(30);
+            });
+
+            // Performance optimizations
+            options.EnableServiceProviderCaching();
+            options.EnableSensitiveDataLogging(false); // Disable in production
+        });
+
+        // Database Context Factory for concurrent operations - Fix scoping issue
+        services.AddSingleton<IDbContextFactory<MonitoringContext>>(provider =>
         {
             var connectionString = configuration.GetConnectionStringOrThrow("DefaultConnection");
-            options.UseSqlServer(connectionString);
+            var optionsBuilder = new DbContextOptionsBuilder<MonitoringContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+            return new CustomDbContextFactory(optionsBuilder.Options);
         });
 
         // Caching Infrastructure
@@ -87,6 +107,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IPerformanceMetricsService, PerformanceMetricsService>();
+        services.AddScoped<IAlertService, AlertService>();
 
         // Notification Services - Optimized lifetimes
         services.AddSingleton<IEmailService, EmailService>(); // Singleton for better performance

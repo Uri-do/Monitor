@@ -190,6 +190,20 @@ public class ApiResponse : ApiResponse<object>
             Metadata = metadata
         };
     }
+
+    /// <summary>
+    /// Creates an error response
+    /// </summary>
+    public static ApiResponse ErrorResponse(string error, Dictionary<string, object>? metadata = null)
+    {
+        return new ApiResponse
+        {
+            IsSuccess = false,
+            Errors = new List<string> { error },
+            Message = "Operation failed",
+            Metadata = metadata
+        };
+    }
 }
 
 /// <summary>
@@ -249,5 +263,63 @@ public class PaginatedApiResponse<T> : ApiResponse<IEnumerable<T>>
             Message = message ?? "Data retrieved successfully",
             Metadata = metadata
         };
+    }
+}
+
+/// <summary>
+/// Validation error response
+/// </summary>
+public class ValidationErrorResponse : ApiResponse
+{
+    /// <summary>
+    /// Field-specific validation errors
+    /// </summary>
+    public Dictionary<string, string[]> ValidationErrors { get; set; } = new();
+
+    /// <summary>
+    /// Creates a validation error response
+    /// </summary>
+    public static ValidationErrorResponse Create(Dictionary<string, string[]> validationErrors)
+    {
+        return new ValidationErrorResponse
+        {
+            IsSuccess = false,
+            Message = "Validation failed",
+            ValidationErrors = validationErrors,
+            Metadata = new Dictionary<string, object>
+            {
+                ["timestamp"] = DateTime.UtcNow,
+                ["correlationId"] = Guid.NewGuid().ToString()
+            }
+        };
+    }
+}
+
+/// <summary>
+/// Type alias for backward compatibility
+/// </summary>
+public class PaginatedResponse<T> : PaginatedApiResponse<T>
+{
+    /// <summary>
+    /// Creates a successful paginated response
+    /// </summary>
+    public static PaginatedResponse<T> SuccessResponse(
+        IEnumerable<T> data,
+        int page,
+        int pageSize,
+        int totalCount,
+        string? message = null)
+    {
+        var response = new PaginatedResponse<T>
+        {
+            IsSuccess = true,
+            Data = data,
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            Message = message ?? "Data retrieved successfully"
+        };
+
+        return response;
     }
 }

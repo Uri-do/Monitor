@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using MonitoringGrid.Api.Models;
+using MonitoringGrid.Api.Common;
 
 namespace MonitoringGrid.Api.Attributes;
 

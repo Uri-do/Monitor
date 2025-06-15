@@ -309,7 +309,7 @@ public class ApiDocumentationService : IApiDocumentationService
         try
         {
             using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetService<MonitoringGridContext>();
+            var context = scope.ServiceProvider.GetService<MonitoringContext>();
             if (context != null)
             {
                 await context.Database.CanConnectAsync();

@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MonitoringGrid.Api.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using MonitoringGrid.Api.Models;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.DataProtection;
 using System.Collections.Concurrent;
+using MonitoringGrid.Api.Models;
 
 namespace MonitoringGrid.Api.Security;
 
@@ -59,7 +56,7 @@ public interface IAdvancedSecurityService
     /// <summary>
     /// Records security event
     /// </summary>
-    Task RecordSecurityEventAsync(SecurityEvent securityEvent);
+    Task RecordSecurityEventAsync(MonitoringGrid.Api.Models.SecurityEvent securityEvent);
 
     /// <summary>
     /// Gets security metrics
@@ -76,7 +73,7 @@ public class AdvancedSecurityService : IAdvancedSecurityService
     private readonly ILogger<AdvancedSecurityService> _logger;
     private readonly IConfiguration _configuration;
     private readonly ConcurrentDictionary<string, ApiKeyInfo> _apiKeys = new();
-    private readonly ConcurrentDictionary<string, SecurityEvent> _securityEvents = new();
+    private readonly ConcurrentDictionary<string, MonitoringGrid.Api.Models.SecurityEvent> _securityEvents = new();
     private readonly ConcurrentDictionary<string, TrustedSource> _trustedSources = new();
 
     public AdvancedSecurityService(
@@ -105,9 +102,9 @@ public class AdvancedSecurityService : IAdvancedSecurityService
             
             if (!_apiKeys.TryGetValue(hashedKey, out var keyInfo))
             {
-                await RecordSecurityEventAsync(new SecurityEvent
+                await RecordSecurityEventAsync(new MonitoringGrid.Api.Models.SecurityEvent
                 {
-                    Type = SecurityEventType.InvalidApiKey,
+                    Type = MonitoringGrid.Api.Models.SecurityEventType.InvalidApiKey,
                     Description = "Invalid API key used",
                     IpAddress = GetCurrentIpAddress(),
                     Timestamp = DateTime.UtcNow
@@ -119,9 +116,9 @@ public class AdvancedSecurityService : IAdvancedSecurityService
             // Check if key is expired
             if (keyInfo.ExpiresAt.HasValue && keyInfo.ExpiresAt.Value < DateTime.UtcNow)
             {
-                await RecordSecurityEventAsync(new SecurityEvent
+                await RecordSecurityEventAsync(new MonitoringGrid.Api.Models.SecurityEvent
                 {
-                    Type = SecurityEventType.ExpiredApiKey,
+                    Type = MonitoringGrid.Api.Models.SecurityEventType.ExpiredApiKey,
                     Description = "Expired API key used",
                     UserId = keyInfo.UserId,
                     IpAddress = GetCurrentIpAddress(),
@@ -134,9 +131,9 @@ public class AdvancedSecurityService : IAdvancedSecurityService
             // Check if key is revoked
             if (keyInfo.IsRevoked)
             {
-                await RecordSecurityEventAsync(new SecurityEvent
+                await RecordSecurityEventAsync(new MonitoringGrid.Api.Models.SecurityEvent
                 {
-                    Type = SecurityEventType.RevokedApiKey,
+                    Type = MonitoringGrid.Api.Models.SecurityEventType.RevokedApiKey,
                     Description = "Revoked API key used",
                     UserId = keyInfo.UserId,
                     IpAddress = GetCurrentIpAddress(),
@@ -176,14 +173,15 @@ public class AdvancedSecurityService : IAdvancedSecurityService
                 CreatedAt = DateTime.UtcNow,
                 ExpiresAt = expiration.HasValue ? DateTime.UtcNow.Add(expiration.Value) : null,
                 IsRevoked = false,
-                UsageCount = 0
+                UsageCount = 0,
+                Scope = "api:read"
             };
 
             _apiKeys[hashedKey] = keyInfo;
 
-            await RecordSecurityEventAsync(new SecurityEvent
+            await RecordSecurityEventAsync(new MonitoringGrid.Api.Models.SecurityEvent
             {
-                Type = SecurityEventType.ApiKeyGenerated,
+                Type = MonitoringGrid.Api.Models.SecurityEventType.ApiKeyGenerated,
                 Description = $"API key generated: {description}",
                 UserId = userId,
                 Timestamp = DateTime.UtcNow
@@ -211,9 +209,9 @@ public class AdvancedSecurityService : IAdvancedSecurityService
                 keyInfo.IsRevoked = true;
                 keyInfo.RevokedAt = DateTime.UtcNow;
 
-                await RecordSecurityEventAsync(new SecurityEvent
+                await RecordSecurityEventAsync(new MonitoringGrid.Api.Models.SecurityEvent
                 {
-                    Type = SecurityEventType.ApiKeyRevoked,
+                    Type = MonitoringGrid.Api.Models.SecurityEventType.ApiKeyRevoked,
                     Description = $"API key revoked: {keyInfo.Description}",
                     UserId = keyInfo.UserId,
                     Timestamp = DateTime.UtcNow
@@ -324,7 +322,7 @@ public class AdvancedSecurityService : IAdvancedSecurityService
         }
     }
 
-    public async Task RecordSecurityEventAsync(SecurityEvent securityEvent)
+    public async Task RecordSecurityEventAsync(MonitoringGrid.Api.Models.SecurityEvent securityEvent)
     {
         try
         {
@@ -406,12 +404,12 @@ public class AdvancedSecurityService : IAdvancedSecurityService
         }
     }
 
-    private List<ThreatInfo> GetTopThreats(List<SecurityEvent> events)
+    private List<ThreatInfo> GetTopThreats(List<MonitoringGrid.Api.Models.SecurityEvent> events)
     {
         return events
-            .Where(e => e.Type == SecurityEventType.InvalidApiKey || 
-                       e.Type == SecurityEventType.SuspiciousActivity ||
-                       e.Type == SecurityEventType.BruteForceAttempt)
+            .Where(e => e.Type == MonitoringGrid.Api.Models.SecurityEventType.InvalidApiKey ||
+                       e.Type == MonitoringGrid.Api.Models.SecurityEventType.SuspiciousActivity ||
+                       e.Type == MonitoringGrid.Api.Models.SecurityEventType.BruteForceAttempt)
             .GroupBy(e => e.IpAddress)
             .OrderByDescending(g => g.Count())
             .Take(10)
@@ -425,7 +423,7 @@ public class AdvancedSecurityService : IAdvancedSecurityService
             .ToList();
     }
 
-    private double CalculateSecurityScore(List<SecurityEvent> events)
+    private double CalculateSecurityScore(List<MonitoringGrid.Api.Models.SecurityEvent> events)
     {
         if (!events.Any()) return 100.0;
 

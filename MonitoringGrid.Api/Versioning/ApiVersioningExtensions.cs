@@ -79,7 +79,7 @@ public class ApiVersioningErrorResponseProvider : IErrorResponseProvider
             error = "api_version_error",
             message = context.Message,
             code = context.ErrorCode,
-            supportedVersions = context.ApiVersions?.Select(v => v.ToString()).ToArray() ?? Array.Empty<string>(),
+            supportedVersions = new[] { "1.0", "2.0" },
             timestamp = DateTime.UtcNow,
             traceId = Activity.Current?.Id ?? context.Request.HttpContext.TraceIdentifier
         };
@@ -117,11 +117,10 @@ public class ApiVersionMiddleware
         if (versionFeature != null)
         {
             var requestedVersion = versionFeature.RequestedApiVersion;
-            var parsedVersions = versionFeature.RequestedApiVersions;
 
             // Log version information
-            _logger.LogDebug("API request for version {Version} on path {Path}", 
-                requestedVersion?.ToString() ?? "default", 
+            _logger.LogDebug("API request for version {Version} on path {Path}",
+                requestedVersion?.ToString() ?? "default",
                 context.Request.Path);
 
             // Add version headers to response

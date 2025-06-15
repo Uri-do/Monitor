@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Common;
-using MonitoringGrid.Api.Models;
+using MonitoringGrid.Api.Common;
 using System.Diagnostics;
 
 namespace MonitoringGrid.Api.Controllers.Base;
@@ -105,7 +105,7 @@ public abstract class BaseApiController : ControllerBase
         {
             stopwatch.Stop();
             PerformanceMetrics?.IncrementCounter($"{metricPrefix}.error");
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.ElapsedMilliseconds);
+            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.Elapsed);
             
             Logger.LogError(ex, "Error executing {OperationName} with query {QueryType}", operationName, typeof(TQuery).Name);
             return StatusCode(500, CreateErrorResponse("Internal server error"));
@@ -130,7 +130,7 @@ public abstract class BaseApiController : ControllerBase
             var result = await Mediator.Send(command);
 
             stopwatch.Stop();
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.duration", stopwatch.ElapsedMilliseconds);
+            PerformanceMetrics?.RecordDuration($"{metricPrefix}.duration", stopwatch.Elapsed);
 
             if (result.IsSuccess)
             {
@@ -146,7 +146,7 @@ public abstract class BaseApiController : ControllerBase
         {
             stopwatch.Stop();
             PerformanceMetrics?.IncrementCounter($"{metricPrefix}.error");
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.ElapsedMilliseconds);
+            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.Elapsed);
             
             Logger.LogError(ex, "Error executing {OperationName} with command {CommandType}", operationName, typeof(TCommand).Name);
             return StatusCode(500, CreateErrorResponse("Internal server error"));
@@ -160,6 +160,21 @@ public abstract class BaseApiController : ControllerBase
     {
         return ApiResponse.ErrorResponse(error, new Dictionary<string, object>
         {
+            ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            ["path"] = HttpContext.Request.Path.Value ?? "",
+            ["method"] = HttpContext.Request.Method
+        });
+    }
+
+    /// <summary>
+    /// Creates a standardized error response from Error object
+    /// </summary>
+    protected virtual object CreateErrorResponse(Error error)
+    {
+        return ApiResponse.ErrorResponse(error.Message, new Dictionary<string, object>
+        {
+            ["code"] = error.Code,
+            ["type"] = error.Type.ToString(),
             ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
             ["path"] = HttpContext.Request.Path.Value ?? "",
             ["method"] = HttpContext.Request.Method

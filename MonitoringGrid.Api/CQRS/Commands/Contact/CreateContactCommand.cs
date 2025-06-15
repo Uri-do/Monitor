@@ -42,7 +42,7 @@ public class CreateContactCommandHandler : IRequestHandler<CreateContactCommand,
             // Validate that at least one contact method is provided
             if (string.IsNullOrWhiteSpace(request.Email) && string.IsNullOrWhiteSpace(request.Phone))
             {
-                return Result<ContactDto>.Failure("Contact.ValidationError", "At least one contact method (email or phone) is required");
+                return Result.Failure<ContactDto>(Error.Validation("Contact.ValidationError", "At least one contact method (email or phone) is required"));
             }
 
             // Check for duplicate email if provided
@@ -52,7 +52,7 @@ public class CreateContactCommandHandler : IRequestHandler<CreateContactCommand,
                 var existingContact = await contactRepository.GetAsync(c => c.Email == request.Email);
                 if (existingContact.Any())
                 {
-                    return Result<ContactDto>.Failure($"A contact with email '{request.Email}' already exists");
+                    return Result.Failure<ContactDto>(Error.Conflict($"A contact with email '{request.Email}' already exists"));
                 }
             }
 
@@ -75,12 +75,12 @@ public class CreateContactCommandHandler : IRequestHandler<CreateContactCommand,
             _logger.LogInformation("Created contact {ContactId} with name {ContactName}", 
                 contact.ContactId, contact.Name);
 
-            return Result<ContactDto>.Success(contactDto);
+            return Result.Success(contactDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating contact with name {ContactName}", request.Name);
-            return Result<ContactDto>.Failure("Failed to create contact");
+            return Result.Failure<ContactDto>(Error.Failure("Contact.CreateError", "Failed to create contact"));
         }
     }
 }
@@ -122,7 +122,7 @@ public class UpdateContactCommandHandler : IRequestHandler<UpdateContactCommand,
             // Validate that at least one contact method is provided
             if (string.IsNullOrWhiteSpace(request.Email) && string.IsNullOrWhiteSpace(request.Phone))
             {
-                return Result<ContactDto>.Failure("At least one contact method (email or phone) is required");
+                return Result.Failure<ContactDto>(Error.Validation("Contact.ValidationError", "At least one contact method (email or phone) is required"));
             }
 
             var repository = _unitOfWork.Repository<Core.Entities.Contact>();
@@ -130,7 +130,7 @@ public class UpdateContactCommandHandler : IRequestHandler<UpdateContactCommand,
 
             if (contact == null)
             {
-                return Result<ContactDto>.Failure($"Contact with ID {request.ContactId} not found");
+                return Result.Failure<ContactDto>(Error.NotFound("Contact", request.ContactId));
             }
 
             // Check for duplicate email if email is being changed
@@ -140,7 +140,7 @@ public class UpdateContactCommandHandler : IRequestHandler<UpdateContactCommand,
                 var existingContact = await repository.GetAsync(c => c.Email == request.Email && c.ContactId != request.ContactId);
                 if (existingContact.Any())
                 {
-                    return Result<ContactDto>.Failure($"A contact with email '{request.Email}' already exists");
+                    return Result.Failure<ContactDto>(Error.Conflict($"A contact with email '{request.Email}' already exists"));
                 }
             }
 
@@ -159,12 +159,12 @@ public class UpdateContactCommandHandler : IRequestHandler<UpdateContactCommand,
             _logger.LogInformation("Updated contact {ContactId} with name {ContactName}", 
                 contact.ContactId, contact.Name);
 
-            return Result<ContactDto>.Success(contactDto);
+            return Result.Success(contactDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating contact {ContactId}", request.ContactId);
-            return Result<ContactDto>.Failure("Failed to update contact");
+            return Result.Failure<ContactDto>(Error.Failure("Contact.UpdateError", "Failed to update contact"));
         }
     }
 }
@@ -199,7 +199,7 @@ public class DeleteContactCommandHandler : IRequestHandler<DeleteContactCommand,
 
             if (contact == null)
             {
-                return Result.Failure($"Contact with ID {request.ContactId} not found");
+                return Result.Failure(Error.NotFound("Contact", request.ContactId));
             }
 
             // Check if contact is associated with any indicators
@@ -208,7 +208,7 @@ public class DeleteContactCommandHandler : IRequestHandler<DeleteContactCommand,
 
             if (indicatorContacts.Any())
             {
-                return Result.Failure("Cannot delete contact that is associated with indicators. Remove indicator associations first.");
+                return Result.Failure(Error.BusinessRule("Contact.HasIndicators", "Cannot delete contact that is associated with indicators. Remove indicator associations first."));
             }
 
             await repository.DeleteAsync(contact);
@@ -222,7 +222,7 @@ public class DeleteContactCommandHandler : IRequestHandler<DeleteContactCommand,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting contact {ContactId}", request.ContactId);
-            return Result.Failure("Failed to delete contact");
+            return Result.Failure(Error.Failure("Contact.DeleteError", "Failed to delete contact"));
         }
     }
 }

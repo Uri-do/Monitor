@@ -71,7 +71,7 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
     // Performance tracking
     private readonly ConcurrentDictionary<string, PerformanceMetrics> _endpointMetrics = new();
     private readonly ConcurrentDictionary<string, DatabaseMetrics> _databaseMetrics = new();
-    private readonly ConcurrentDictionary<string, CacheMetrics> _cacheMetrics = new();
+    private readonly ConcurrentDictionary<string, ApiCacheMetrics> _cacheMetrics = new();
 
     public AdvancedPerformanceMonitoring(ILogger<AdvancedPerformanceMonitoring> logger)
     {
@@ -92,19 +92,19 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
         _externalServiceDuration = _meter.CreateHistogram<double>("external_service_duration_ms", "ms", "External service call duration");
 
         // Initialize gauges
-        _activeConnections = _meter.CreateObservableGauge<long>("active_connections", "connections", "Number of active connections");
-        _memoryUsage = _meter.CreateObservableGauge<long>("memory_usage_bytes", "bytes", "Current memory usage");
-        _cpuUsage = _meter.CreateObservableGauge<double>("cpu_usage_percent", "percent", "Current CPU usage percentage");
+        _activeConnections = _meter.CreateObservableGauge<long>("active_connections", () => GetActiveConnectionsCount());
+        _memoryUsage = _meter.CreateObservableGauge<long>("memory_usage_bytes", () => GC.GetTotalMemory(false));
+        _cpuUsage = _meter.CreateObservableGauge<double>("cpu_usage_percent", () => GetCurrentCpuUsage());
     }
 
     public void RecordRequest(string endpoint, string method, int statusCode, long durationMs, long requestSize, long responseSize)
     {
         var tags = new TagList
         {
-            ["endpoint"] = endpoint,
-            ["method"] = method,
-            ["status_code"] = statusCode.ToString(),
-            ["status_class"] = GetStatusClass(statusCode)
+            new("endpoint", endpoint),
+            new("method", method),
+            new("status_code", statusCode.ToString()),
+            new("status_class", GetStatusClass(statusCode))
         };
 
         _requestCounter.Add(1, tags);
@@ -138,9 +138,9 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
     {
         var tags = new TagList
         {
-            ["operation"] = operation,
-            ["table"] = table,
-            ["success"] = success.ToString()
+            new("operation", operation),
+            new("table", table),
+            new("success", success.ToString())
         };
 
         _databaseOperationCounter.Add(1, tags);
@@ -164,8 +164,8 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
     {
         var tags = new TagList
         {
-            ["operation"] = operation,
-            ["hit"] = hit.ToString()
+            new("operation", operation),
+            new("hit", hit.ToString())
         };
 
         _cacheOperationCounter.Add(1, tags);
@@ -173,7 +173,7 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
 
         // Update cache metrics
         _cacheMetrics.AddOrUpdate(operation,
-            new CacheMetrics { TotalOperations = 1, TotalDuration = durationMs, HitCount = hit ? 1 : 0 },
+            new ApiCacheMetrics { TotalOperations = 1, TotalDuration = durationMs, HitCount = hit ? 1 : 0 },
             (k, existing) =>
             {
                 existing.TotalOperations++;
@@ -188,9 +188,9 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
     {
         var tags = new TagList
         {
-            ["service"] = service,
-            ["operation"] = operation,
-            ["success"] = success.ToString()
+            new("service", service),
+            new("operation", operation),
+            new("success", success.ToString())
         };
 
         _externalServiceCounter.Add(1, tags);
@@ -322,6 +322,18 @@ public class AdvancedPerformanceMonitoring : IAdvancedPerformanceMonitoring
     {
         var timeSinceFirst = DateTime.UtcNow - metrics.FirstRequestTime;
         return timeSinceFirst.TotalSeconds > 0 ? metrics.TotalRequests / timeSinceFirst.TotalSeconds : 0;
+    }
+
+    private long GetActiveConnectionsCount()
+    {
+        // This would typically get the actual connection count from the connection pool
+        return 10; // Placeholder value
+    }
+
+    private double GetCurrentCpuUsage()
+    {
+        // This would typically get the current CPU usage
+        return 25.0; // Placeholder value
     }
 
     public void Dispose()

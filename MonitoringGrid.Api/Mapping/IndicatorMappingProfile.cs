@@ -101,7 +101,7 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.Priority, opt => opt.Ignore());
 
         // Collector mappings
-        CreateMap<Collector, CollectorDto>()
+        CreateMap<Collector, MonitoringGrid.Core.Entities.CollectorDto>()
             .ForMember(dest => dest.AvailableItems, opt => opt.MapFrom(src => src.Statistics.Select(s => s.ItemName).Distinct()));
 
         CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();

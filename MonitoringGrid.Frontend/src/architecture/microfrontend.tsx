@@ -3,6 +3,8 @@
  * Enterprise-grade micro-frontend support and module federation
  */
 
+import React from 'react';
+
 // Micro-frontend module interface
 export interface MicrofrontendModule {
   name: string;
