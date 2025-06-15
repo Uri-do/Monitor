@@ -27,7 +27,7 @@ import {
   useActiveCollectors,
   useCollectorItemNames,
   MonitorStatisticsCollector,
-} from '../hooks/useMonitorStatistics';
+} from '@/hooks/useMonitorStatistics';
 import CollectorStatisticsViewer from './CollectorStatisticsViewer';
 
 interface StatsExplorerProps {

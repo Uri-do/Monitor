@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { AuthState, LoginRequest, RegisterRequest } from '../types/auth';
-import { authService } from '../services/authService';
-import { signalRService } from '../services/signalRService';
+import { AuthState, LoginRequest, RegisterRequest } from '@/types/auth';
+import { authService } from '@/services/authService';
+import { signalRService } from '@/services/signalRService';
 
 interface AuthContextType extends AuthState {
   login: (request: LoginRequest) => Promise<void>;

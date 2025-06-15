@@ -23,12 +23,12 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { IndicatorDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto } from '@/types/api';
 import {
   formatCountdownWithContext,
   getCountdownSeverity,
   shouldCountdownPulse,
-} from '../../../utils/countdown';
+} from '@/utils/countdown';
 import { Card } from '@/components';
 
 interface NextIndicatorExecutionCardProps {

@@ -15,6 +15,7 @@ public class CacheService : ICacheService
     private readonly IDistributedCache? _distributedCache;
     private readonly ILogger<CacheService> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly HashSet<string> _trackedKeys = new(); // For testing purposes
 
     public CacheService(
         IMemoryCache memoryCache,
@@ -99,6 +100,9 @@ public class CacheService : ICacheService
                 await _distributedCache.SetStringAsync(key, serializedValue, distributedOptions, cancellationToken);
             }
 
+            // Track the key for testing purposes
+            _trackedKeys.Add(key);
+
             _logger.LogDebug("Cache SET for key: {Key}, expiration: {Expiration}", key, cacheExpiration);
         }
         catch (Exception ex)
@@ -120,6 +124,9 @@ public class CacheService : ICacheService
             {
                 await _distributedCache.RemoveAsync(key, cancellationToken);
             }
+
+            // Remove from tracked keys
+            _trackedKeys.Remove(key);
 
             _logger.LogDebug("Cache REMOVE for key: {Key}", key);
         }
@@ -146,7 +153,7 @@ public class CacheService : ICacheService
             await SetAsync(key, value, expiration, cancellationToken);
         }
 
-        return value;
+        return value!;
     }
 
     /// <summary>
@@ -156,16 +163,24 @@ public class CacheService : ICacheService
     {
         try
         {
-            // For memory cache, we need to track keys (limitation of IMemoryCache)
-            // This is a simplified implementation - in production, consider using a more sophisticated approach
-            _logger.LogWarning("RemoveByPrefix is not fully supported with IMemoryCache. Consider using a cache implementation that supports pattern-based removal.");
+            _logger.LogDebug("Removing cache entries with prefix: {Prefix}", prefix);
 
-            // For distributed cache, this would depend on the implementation (Redis supports pattern-based deletion)
-            if (_distributedCache != null)
+            // Find keys that match the prefix
+            var keysToRemove = _trackedKeys.Where(key => key.StartsWith(prefix)).ToList();
+
+            foreach (var key in keysToRemove)
             {
-                _logger.LogDebug("Attempting to remove cache entries with prefix: {Prefix}", prefix);
-                // Implementation would depend on the distributed cache provider
+                _memoryCache.Remove(key);
+
+                if (_distributedCache != null)
+                {
+                    await _distributedCache.RemoveAsync(key, cancellationToken);
+                }
+
+                _trackedKeys.Remove(key);
             }
+
+            _logger.LogDebug("Removed {Count} cache entries with prefix: {Prefix}", keysToRemove.Count, prefix);
         }
         catch (Exception ex)
         {
@@ -180,13 +195,23 @@ public class CacheService : ICacheService
     {
         try
         {
-            // Memory cache doesn't have a clear method, so we'd need to track keys
-            _logger.LogWarning("Clear operation is not fully supported with IMemoryCache");
+            _logger.LogDebug("Clearing all cache entries");
 
-            if (_distributedCache != null)
+            // For testing purposes, we'll track keys and remove them
+            // In production, this would depend on the cache implementation
+            if (_trackedKeys.Any())
             {
-                _logger.LogDebug("Attempting to clear distributed cache");
-                // Implementation would depend on the distributed cache provider
+                var keysToRemove = _trackedKeys.ToList();
+                foreach (var key in keysToRemove)
+                {
+                    _memoryCache?.Remove(key);
+                    if (_distributedCache != null)
+                    {
+                        await _distributedCache.RemoveAsync(key, cancellationToken);
+                    }
+                }
+                _trackedKeys.Clear();
+                _logger.LogDebug("Cleared {Count} cache entries", keysToRemove.Count);
             }
         }
         catch (Exception ex)

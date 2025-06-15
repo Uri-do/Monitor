@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
-import { initializePerformanceMonitoring } from './utils/performance';
-import { validateEnvironment } from './utils/security';
-import { initializeAdvancedPerformanceMonitoring } from './utils/advancedPerformance';
-import { initializeAdvancedSecurity } from './security/advancedSecurity';
-import { initializeEnterpriseMonitoring } from './monitoring/enterpriseMonitoring';
-import { initializeMicrofrontendArchitecture } from './architecture/microfrontend';
+import { initializePerformanceMonitoring } from '@/utils/performance';
+import { validateEnvironment } from '@/utils/security';
+import { initializeAdvancedPerformanceMonitoring } from '@/utils/advancedPerformance';
+import { initializeAdvancedSecurity } from '@/security/advancedSecurity';
+import { initializeEnterpriseMonitoring } from '@/monitoring/enterpriseMonitoring';
+import { initializeMicrofrontendArchitecture } from '@/architecture/microfrontend';
 
 // Initialize enterprise-grade systems
 validateEnvironment();

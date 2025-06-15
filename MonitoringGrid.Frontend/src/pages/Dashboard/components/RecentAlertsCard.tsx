@@ -15,7 +15,7 @@ import {
 import { History, PlayArrow, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { AlertDashboardDto } from '../../../types/api';
+import { AlertDashboardDto } from '@/types/api';
 import { Card } from '@/components';
 
 interface RecentAlertsCardProps {

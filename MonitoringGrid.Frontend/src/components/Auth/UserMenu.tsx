@@ -22,8 +22,8 @@ import {
   DarkMode,
   LightMode,
 } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
-import { useTheme } from '../../hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { useNavigate } from 'react-router-dom';
 
 const UserMenu: React.FC = () => {

@@ -59,18 +59,18 @@ namespace MonitoringGrid.Infrastructure.Data.Configurations
                 .HasMaxLength(100)
                 .HasDefaultValue("system");
 
-            // Constraints
-            builder.HasCheckConstraint("CK_Schedulers_IntervalMinutes",
-                "(ScheduleType = 'interval' AND IntervalMinutes IS NOT NULL AND IntervalMinutes > 0) OR (ScheduleType != 'interval')");
-
-            builder.HasCheckConstraint("CK_Schedulers_CronExpression",
-                "(ScheduleType = 'cron' AND CronExpression IS NOT NULL) OR (ScheduleType != 'cron')");
-
-            builder.HasCheckConstraint("CK_Schedulers_ExecutionDateTime",
-                "(ScheduleType = 'onetime' AND ExecutionDateTime IS NOT NULL) OR (ScheduleType != 'onetime')");
-
-            builder.HasCheckConstraint("CK_Schedulers_ScheduleType",
-                "ScheduleType IN ('interval', 'cron', 'onetime')");
+            // Constraints using modern ToTable syntax
+            builder.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Schedulers_IntervalMinutes",
+                    "(ScheduleType = 'interval' AND IntervalMinutes IS NOT NULL AND IntervalMinutes > 0) OR (ScheduleType != 'interval')");
+                t.HasCheckConstraint("CK_Schedulers_CronExpression",
+                    "(ScheduleType = 'cron' AND CronExpression IS NOT NULL) OR (ScheduleType != 'cron')");
+                t.HasCheckConstraint("CK_Schedulers_ExecutionDateTime",
+                    "(ScheduleType = 'onetime' AND ExecutionDateTime IS NOT NULL) OR (ScheduleType != 'onetime')");
+                t.HasCheckConstraint("CK_Schedulers_ScheduleType",
+                    "ScheduleType IN ('interval', 'cron', 'onetime')");
+            });
 
             // Indexes
             builder.HasIndex(s => new { s.ScheduleType, s.IsEnabled })

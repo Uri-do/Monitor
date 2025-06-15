@@ -144,8 +144,8 @@ export function GenericSelector<T extends GenericSelectorOption>({
             <Typography variant="body2" fontWeight="medium">
               {getOptionLabel(item)}
             </Typography>
-            {item.metadata?.type && (
-              <Chip label={item.metadata.type} size="small" variant="outlined" color="primary" />
+            {item.metadata?.['type'] && (
+              <Chip label={item.metadata['type']} size="small" variant="outlined" color="primary" />
             )}
             {item.isEnabled === false && (
               <Chip label="Disabled" size="small" color="error" variant="outlined" />
@@ -170,8 +170,8 @@ export function GenericSelector<T extends GenericSelectorOption>({
             <Typography variant="body2" fontWeight="medium">
               {getOptionLabel(item)}
             </Typography>
-            {item.metadata?.type && (
-              <Chip label={item.metadata.type} size="small" variant="outlined" color="primary" />
+            {item.metadata?.['type'] && (
+              <Chip label={item.metadata['type']} size="small" variant="outlined" color="primary" />
             )}
           </Box>
           {getOptionDescription(item) && (

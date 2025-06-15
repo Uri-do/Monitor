@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSignalR } from '../services/signalRService';
+import { useSignalR } from '@/services/signalRService';
 import {
   WorkerStatusUpdate,
   IndicatorExecutionStarted,
@@ -9,10 +9,10 @@ import {
   CountdownUpdate,
   NextIndicatorScheduleUpdate,
   RunningIndicatorsUpdate,
-} from '../services/signalRService';
-import { IndicatorDashboardDto } from '../types/api';
-import { useRealtime } from '../contexts/RealtimeContext';
-import { queryKeys } from '../utils/queryKeys';
+} from '@/services/signalRService';
+import { IndicatorDashboardDto } from '@/types/api';
+import { useRealtime } from '@/contexts/RealtimeContext';
+import { queryKeys } from '@/utils/queryKeys';
 
 export interface RealtimeDashboardState {
   // Worker status

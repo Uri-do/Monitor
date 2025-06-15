@@ -1,16 +1,15 @@
-using AutoMapper;
+﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.CQRS.Queries.Collector;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
-using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Api.Filters;
 using MonitoringGrid.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+using CreateContactRequest = MonitoringGrid.Api.DTOs.CreateContactRequest;
 
 namespace MonitoringGrid.Api.Controllers;
 
@@ -20,25 +19,19 @@ namespace MonitoringGrid.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/indicator")]
-[Produces("application/json")]
 [PerformanceMonitor(slowThresholdMs: 2000)]
-public class IndicatorController : ControllerBase
+public class IndicatorController : BaseApiController
 {
-    private readonly IMediator _mediator;
     private readonly IMapper _mapper;
-    private readonly ILogger<IndicatorController> _logger;
-    private readonly IPerformanceMetricsService? _performanceMetrics;
 
     public IndicatorController(
         IMediator mediator,
         IMapper mapper,
         ILogger<IndicatorController> logger,
-        IPerformanceMetricsService? performanceMetrics = null)
+        MonitoringGrid.Core.Interfaces.IPerformanceMetricsService? performanceMetrics = null)
+        : base(mediator, logger, performanceMetrics)
     {
-        _mediator = mediator;
-        _mapper = mapper;
-        _logger = logger;
-        _performanceMetrics = performanceMetrics;
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     /// <summary>
@@ -51,29 +44,8 @@ public class IndicatorController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetIndicators([FromQuery] IndicatorFilterRequest request)
     {
-        try
-        {
-            _logger.LogDebug("Getting indicators with filters");
-            _performanceMetrics?.IncrementCounter("indicator.get_all.requests");
-
-            var query = _mapper.Map<GetIndicatorsQuery>(request);
-            var result = await _mediator.Send(query);
-
-            if (result.IsSuccess)
-            {
-                _performanceMetrics?.IncrementCounter("indicator.get_all.success");
-                return Ok(result.Value);
-            }
-
-            _performanceMetrics?.IncrementCounter("indicator.get_all.failure");
-            return BadRequest(result.Error);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting indicators");
-            _performanceMetrics?.IncrementCounter("indicator.get_all.error");
-            return StatusCode(500, "Internal server error");
-        }
+        var query = _mapper.Map<GetIndicatorsQuery>(request);
+        return await ExecuteQueryAsync(query, "get_all");
     }
 
     /// <summary>
@@ -85,29 +57,8 @@ public class IndicatorController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetIndicator(long id)
     {
-        try
-        {
-            _logger.LogDebug("Getting indicator {IndicatorId}", id);
-            _performanceMetrics?.IncrementCounter("indicator.get_by_id.requests");
-
-            var query = new GetIndicatorByIdQuery(id);
-            var result = await _mediator.Send(query);
-
-            if (result.IsSuccess)
-            {
-                _performanceMetrics?.IncrementCounter("indicator.get_by_id.success");
-                return Ok(result.Value);
-            }
-
-            _performanceMetrics?.IncrementCounter("indicator.get_by_id.failure");
-            return NotFound(result.Error);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting indicator {IndicatorId}", id);
-            _performanceMetrics?.IncrementCounter("indicator.get_by_id.error");
-            return StatusCode(500, "Internal server error");
-        }
+        var query = new GetIndicatorByIdQuery(id);
+        return await ExecuteQueryAsync(query, "get_by_id");
     }
 
     /// <summary>
@@ -147,12 +98,12 @@ public class IndicatorController : ControllerBase
     /// <summary>
     /// Update an existing indicator
     /// </summary>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(IndicatorDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> UpdateIndicator(int id, [FromBody] UpdateIndicatorRequest request)
+    public async Task<IActionResult> UpdateIndicator(long id, [FromBody] UpdateIndicatorRequest request)
     {
         try
         {
@@ -396,73 +347,10 @@ public class IndicatorController : ControllerBase
         }
     }
 
-    #region Contact Management Endpoints
-
     /// <summary>
-    /// Get all contacts with optional filtering
+    /// Get contact by ID - TEMPORARILY DISABLED
     /// </summary>
-    [HttpGet("contacts")]
-    [ProducesResponseType(typeof(List<ContactDto>), 200)]
-    [ProducesResponseType(500)]
-    public async Task<IActionResult> GetContacts([FromQuery] bool? isActive = null, [FromQuery] string? search = null)
-    {
-        try
-        {
-            _logger.LogDebug("Getting contacts with filters - IsActive: {IsActive}, Search: {Search}", isActive, search);
-            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.requests");
-
-            // For now, we'll use direct database access until we implement CQRS for contacts
-            var unitOfWork = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
-            var contactRepository = unitOfWork.Repository<Contact>();
-
-            // Build predicate for filtering
-            Expression<Func<Contact, bool>>? predicate = null;
-
-            if (isActive.HasValue && !string.IsNullOrWhiteSpace(search))
-            {
-                predicate = c => c.IsActive == isActive.Value &&
-                               (c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search)));
-            }
-            else if (isActive.HasValue)
-            {
-                predicate = c => c.IsActive == isActive.Value;
-            }
-            else if (!string.IsNullOrWhiteSpace(search))
-            {
-                predicate = c => c.Name.Contains(search) || (c.Email != null && c.Email.Contains(search));
-            }
-
-            var contacts = predicate != null
-                ? await contactRepository.GetAsync(predicate)
-                : await contactRepository.GetAllAsync();
-
-            // Load indicator contacts separately for each contact
-            var indicatorContactRepository = unitOfWork.Repository<IndicatorContact>();
-            foreach (var contact in contacts)
-            {
-                var indicatorContacts = await indicatorContactRepository.GetWithIncludesAsync(
-                    ic => ic.ContactId == contact.ContactId,
-                    ic => ic.Indicator);
-
-                contact.IndicatorContacts = indicatorContacts.ToList();
-            }
-
-            var contactDtos = _mapper.Map<List<ContactDto>>(contacts);
-
-            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.success");
-            return Ok(contactDtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting contacts");
-            _performanceMetrics?.IncrementCounter("indicator.contacts.get_all.error");
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Get contact by ID
-    /// </summary>
+    /*
     [HttpGet("contacts/{id:int}")]
     [ProducesResponseType(typeof(ContactDto), 200)]
     [ProducesResponseType(404)]
@@ -560,7 +448,7 @@ public class IndicatorController : ControllerBase
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> UpdateContact(int id, [FromBody] UpdateContactRequest request)
+    public async Task<IActionResult> UpdateContact(int id, [FromBody] MonitoringGrid.Api.DTOs.UpdateContactRequest request)
     {
         try
         {
@@ -643,5 +531,6 @@ public class IndicatorController : ControllerBase
         }
     }
 
-    #endregion
+
+
 }

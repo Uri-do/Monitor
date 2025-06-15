@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
+using IDomainEventPublisher = MonitoringGrid.Core.Interfaces.IDomainEventPublisher;
 
 namespace MonitoringGrid.Core.EventSourcing;
 
@@ -67,7 +68,10 @@ public class EventSourcingService : IEventSourcingService
             }
 
             // Publish events for immediate processing
-            await _eventPublisher.PublishAsync(eventList, cancellationToken);
+            foreach (var domainEvent in eventList)
+            {
+                await _eventPublisher.PublishAsync(domainEvent, cancellationToken);
+            }
 
             _logger.LogInformation("Published and stored {EventCount} domain events across {StreamCount} streams",
                 eventList.Count, eventGroups.Count());

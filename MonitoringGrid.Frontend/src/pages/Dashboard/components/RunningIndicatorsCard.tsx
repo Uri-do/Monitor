@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IndicatorDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto } from '@/types/api';
 import { RunningIndicatorsDisplay, RunningIndicator } from '@/components/Business';
 
 interface RealtimeRunningIndicator {

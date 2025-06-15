@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
 using BulkOperationResult = MonitoringGrid.Core.Models.BulkOperationResult;
+using CreateContactRequest = MonitoringGrid.Core.Interfaces.CreateContactRequest;
+using UpdateContactRequest = MonitoringGrid.Core.Interfaces.UpdateContactRequest;
 
 namespace MonitoringGrid.Api.Services;
 

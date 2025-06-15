@@ -166,6 +166,11 @@ public interface IRepository<T> where T : class
     Task<IEnumerable<T>> GetAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets queryable for advanced scenarios
+    /// </summary>
+    IQueryable<T> GetQueryable();
+
+    /// <summary>
     /// Gets entities using a specification with pagination
     /// </summary>
     Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);

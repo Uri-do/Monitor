@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CssBaseline } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { I18nextProvider } from 'react-i18next';
+import { Toaster } from 'react-hot-toast';
 import i18n from '@/i18n';
 
 // Route configuration

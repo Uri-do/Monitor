@@ -225,7 +225,7 @@ public class AlertController : ControllerBase
     [SwaggerResponse(500, "Internal server error", typeof(object))]
     public async Task<ActionResult> ResolveAlert(
         int id,
-        [FromBody] ResolveAlertRequest request,
+        [FromBody] MonitoringGrid.Api.DTOs.ResolveAlertRequest request,
         CancellationToken cancellationToken = default)
     {
         try
@@ -275,7 +275,7 @@ public class AlertController : ControllerBase
     [SwaggerResponse(400, "Invalid request", typeof(object))]
     [SwaggerResponse(500, "Internal server error", typeof(object))]
     public async Task<ActionResult> BulkResolveAlerts(
-        [FromBody] BulkResolveAlertsRequest request,
+        [FromBody] MonitoringGrid.Api.DTOs.BulkResolveAlertsRequest request,
         CancellationToken cancellationToken = default)
     {
         try

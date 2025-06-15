@@ -12,8 +12,8 @@ import {
   Indicator,
   CreateIndicatorRequest,
   UpdateIndicatorRequest,
-} from '../services/indicatorService';
-import { ErrorHandlers } from '../utils/errorHandling';
+} from '@/services/indicatorService';
+import { ErrorHandlers } from '@/utils/errorHandling';
 
 // Query keys for indicators
 export const indicatorQueryKeys = {

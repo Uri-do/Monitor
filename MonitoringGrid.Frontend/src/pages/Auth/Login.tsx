@@ -12,12 +12,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import mgLogo from '../../assets/images/mglogo.png';
+import mgLogo from '@/assets/images/mglogo.png';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, InputField, Button } from '@/components';
 
 const loginSchema = yup.object({

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grid, Typography, Box, Chip, Skeleton } from '@mui/material';
 import { TrendingUp, TrendingDown, Warning, CheckCircle, PlayCircle } from '@mui/icons-material';
-import { IndicatorDashboardDto, AlertDashboardDto } from '../../../types/api';
+import { IndicatorDashboardDto, AlertDashboardDto } from '@/types/api';
 import { MetricCard } from '@/components';
 
 interface IndicatorOverviewCardsProps {

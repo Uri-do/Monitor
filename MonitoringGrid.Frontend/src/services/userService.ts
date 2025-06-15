@@ -1,4 +1,4 @@
-import { User, Role, Permission } from '../types/auth';
+import { User, Role, Permission } from '@/types/auth';
 import { authService } from './authService';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:5000';

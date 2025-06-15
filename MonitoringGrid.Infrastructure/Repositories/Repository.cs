@@ -452,6 +452,11 @@ public class Repository<T> : IRepository<T> where T : class
         return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
 
+    public virtual IQueryable<T> GetQueryable()
+    {
+        return _dbSet.AsQueryable();
+    }
+
     public virtual async Task<int> CountAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
         return await ApplySpecification(specification).CountAsync(cancellationToken);

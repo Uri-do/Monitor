@@ -3,6 +3,8 @@
  * Enterprise-grade performance monitoring and optimization utilities
  */
 
+import React from 'react';
+
 // Advanced performance metrics interface
 export interface AdvancedPerformanceMetrics {
   // Core Web Vitals

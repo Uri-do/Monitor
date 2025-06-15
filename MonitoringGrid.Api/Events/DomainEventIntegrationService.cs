@@ -13,7 +13,7 @@ public class DomainEventIntegrationService
 {
     private readonly IMediator _mediator;
     private readonly ILogger<DomainEventIntegrationService> _logger;
-    private readonly IDomainEventPublisher _domainEventPublisher;
+    private readonly MonitoringGrid.Core.Events.IDomainEventPublisher _domainEventPublisher;
 
     // Event statistics
     private static readonly Dictionary<string, int> EventCounts = new();
@@ -22,7 +22,7 @@ public class DomainEventIntegrationService
     public DomainEventIntegrationService(
         IMediator mediator,
         ILogger<DomainEventIntegrationService> logger,
-        IDomainEventPublisher domainEventPublisher)
+        MonitoringGrid.Core.Events.IDomainEventPublisher domainEventPublisher)
     {
         _mediator = mediator;
         _logger = logger;

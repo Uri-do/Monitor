@@ -52,7 +52,7 @@ import {
   TrendingDown,
   Analytics,
 } from '@mui/icons-material';
-import { useCollectorStatistics, MonitorStatistics } from '../hooks/useMonitorStatistics';
+import { useCollectorStatistics, MonitorStatistics } from '@/hooks/useMonitorStatistics';
 import { MetricCard } from './UI';
 
 interface CollectorStatisticsViewerProps {

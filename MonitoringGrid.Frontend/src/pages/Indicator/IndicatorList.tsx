@@ -45,6 +45,11 @@ const IndicatorList: React.FC = () => {
   const deleteIndicatorMutation = useDeleteIndicator();
   const executeIndicatorMutation = useExecuteIndicator();
 
+  // Handle filter changes
+  const handleFilterChange = (newFilters: Record<string, any>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
   // Filter indicators based on search
   const filteredIndicators = useMemo(() => {
     // Ensure indicators is an array before filtering
@@ -126,7 +131,7 @@ const IndicatorList: React.FC = () => {
       label: 'Status',
       sortable: true,
       width: 100,
-      render: (value, row) => <StatusChip status={getIndicatorStatus(row)} />,
+      render: (_value, row) => <StatusChip status={getIndicatorStatus(row)} />,
     },
     {
       id: 'lastMinutes',
@@ -147,14 +152,14 @@ const IndicatorList: React.FC = () => {
       label: 'Owner',
       sortable: true,
       width: 120,
-      render: (value, row) => row.ownerContact?.name || 'Unknown',
+      render: (_value, row) => row.ownerContact?.name || 'Unknown',
     },
   ];
 
-  // Filter options
-  const filterOptions = [
+  // Filter fields for FilterPanel
+  const filterFields = [
     {
-      key: 'isActive',
+      name: 'isActive',
       label: 'Status',
       type: 'select' as const,
       options: [
@@ -162,12 +167,6 @@ const IndicatorList: React.FC = () => {
         { value: 'true', label: 'Active' },
         { value: 'false', label: 'Inactive' },
       ],
-    },
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'text' as const,
-      placeholder: 'Search indicators...',
     },
   ];
 
@@ -194,12 +193,13 @@ const IndicatorList: React.FC = () => {
         ]}
       />
 
-      {/* TODO: Fix FilterPanel props */}
-      {/* <FilterPanel
-        filters={filters}
-        onFiltersChange={setFilters}
-        options={filterOptions}
-      /> */}
+      <FilterPanel
+        fields={filterFields}
+        onFilterChange={handleFilterChange}
+        onClear={() => setFilters({ isActive: '', search: '' })}
+        onSearch={(searchTerm) => setFilters(prev => ({ ...prev, search: searchTerm }))}
+        searchPlaceholder="Search indicators..."
+      />
 
       <DataTable
         columns={columns}

@@ -1,5 +1,5 @@
 import { BaseApiService } from './BaseApiService';
-import { ErrorHandlers } from '../utils/errorHandling';
+import { ErrorHandlers } from '@/utils/errorHandling';
 
 // Indicator types
 export interface Indicator {

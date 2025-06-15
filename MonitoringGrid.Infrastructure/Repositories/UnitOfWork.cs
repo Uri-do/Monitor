@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Infrastructure.Data;
+using IDomainEventPublisher = MonitoringGrid.Core.Interfaces.IDomainEventPublisher;
 using System.Collections.Concurrent;
 
 namespace MonitoringGrid.Infrastructure.Repositories;
@@ -117,7 +118,10 @@ public class UnitOfWork : IUnitOfWork
         try
         {
             // Publish all domain events through the domain event publisher
-            await _domainEventPublisher.PublishAsync(_domainEvents, cancellationToken);
+            foreach (var domainEvent in _domainEvents)
+            {
+                await _domainEventPublisher.PublishAsync(domainEvent, cancellationToken);
+            }
         }
         finally
         {

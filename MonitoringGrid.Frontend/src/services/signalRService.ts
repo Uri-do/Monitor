@@ -1,7 +1,7 @@
 import React from 'react';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { AlertNotification, IndicatorExecutionResult, SystemStatus } from '../types/monitoring';
-import { RealtimeStatusDto, LiveDashboardDto } from '../types/api';
+import { AlertNotification, IndicatorExecutionResult, SystemStatus } from '@/types/monitoring';
+import { RealtimeStatusDto, LiveDashboardDto } from '@/types/api';
 
 // Real-time event interfaces
 export interface WorkerStatusUpdate {

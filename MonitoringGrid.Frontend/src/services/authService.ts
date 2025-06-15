@@ -5,7 +5,7 @@ import {
   RegisterResponse,
   User,
   JwtToken,
-} from '../types/auth';
+} from '@/types/auth';
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 

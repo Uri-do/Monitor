@@ -6,7 +6,7 @@ import {
   formatCountdownWithContext,
   getCountdownSeverity,
   shouldCountdownPulse,
-} from '../../../utils/countdown';
+} from '@/utils/countdown';
 import { Card } from '@/components';
 
 interface DashboardHeaderProps {

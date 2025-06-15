@@ -13,7 +13,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { Clock, Activity } from 'lucide-react';
-import { useActiveCollectors, useCollectorItemNames } from '../hooks/useMonitorStatistics';
+import { useActiveCollectors, useCollectorItemNames } from '@/hooks/useMonitorStatistics';
 import StatisticsBrowserButton from './StatisticsBrowserButton';
 import { GenericSelector, GenericSelectorOption } from './UI/GenericSelector';
 
@@ -21,10 +21,10 @@ import { GenericSelector, GenericSelectorOption } from './UI/GenericSelector';
 interface CollectorOption extends GenericSelectorOption {
   collectorID: number;
   collectorName: string;
-  collectorDescription?: string;
+  collectorDescription: string | undefined;
   isActive: boolean;
-  lastRunTime?: string;
-  status?: string;
+  lastRunTime: string | undefined;
+  status: string | undefined;
 }
 
 interface CollectorSelectorProps {
@@ -147,14 +147,14 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
       )}
       <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
         <Typography variant="caption" color="text.secondary">
-          <strong>Status:</strong> {collector.metadata?.status}
+          <strong>Status:</strong> {collector.metadata?.['status']}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          <strong>Frequency:</strong> {collector.metadata?.frequency}
+          <strong>Frequency:</strong> {collector.metadata?.['frequency']}
         </Typography>
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-        <strong>Last Run:</strong> {collector.metadata?.lastRunTime}
+        <strong>Last Run:</strong> {collector.metadata?.['lastRunTime']}
       </Typography>
     </Box>
   );
@@ -193,7 +193,7 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
             data={collectorOptions}
             loading={collectorsLoading}
             error={collectorsError}
-            selectedId={internalCollectorId}
+            selectedId={internalCollectorId ?? ''}
             onSelectionChange={handleCollectorChange}
             label="Data Collector"
             required={required}

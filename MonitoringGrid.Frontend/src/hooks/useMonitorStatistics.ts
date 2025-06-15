@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { monitorStatisticsApi } from '../services/api';
+import { monitorStatisticsApi } from '@/services/api';
 
 // Types for Monitor Statistics
 export interface MonitorStatisticsCollector {

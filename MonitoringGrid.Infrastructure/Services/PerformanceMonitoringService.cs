@@ -139,10 +139,14 @@ public class PerformanceMonitoringService : IPerformanceMonitoringService
             }
 
             // Cache the metrics for quick retrieval
-            await _cacheService.SetAsync(
-                $"performance:metric:{metricName}",
-                GetMetric(metricName),
-                CacheExpirations.Short);
+            var metric = GetMetric(metricName);
+            if (metric != null)
+            {
+                await _cacheService.SetAsync(
+                    $"performance:metric:{metricName}",
+                    metric,
+                    CacheExpirations.Short);
+            }
         }
         catch (Exception ex)
         {

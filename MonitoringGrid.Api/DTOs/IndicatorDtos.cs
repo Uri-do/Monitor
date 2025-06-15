@@ -257,3 +257,22 @@ public class IndicatorValueTrendDto
     public bool AlertTriggered { get; set; }
     public string? Note { get; set; }
 }
+
+/// <summary>
+/// Collector data transfer object
+/// </summary>
+public class CollectorDto
+{
+    public int CollectorId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public string? ConnectionString { get; set; }
+    public string? DatabaseName { get; set; }
+    public List<string> AvailableItems { get; set; } = new();
+    public int TotalItems { get; set; }
+    public DateTime? LastExecuted { get; set; }
+    public string? LastExecutionStatus { get; set; }
+}

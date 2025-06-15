@@ -55,7 +55,7 @@ public class ConfigurationValidator
     /// <summary>
     /// Validates a configuration instance
     /// </summary>
-    public async Task<ValidationResult> ValidateConfigurationAsync(IConfiguration configuration, string source = "Configuration")
+    public Task<ValidationResult> ValidateConfigurationAsync(IConfiguration configuration, string source = "Configuration")
     {
         var result = new ValidationResult { Source = source };
 
@@ -82,7 +82,7 @@ public class ConfigurationValidator
             _logger.LogError(ex, "Error validating configuration for {Source}", source);
         }
 
-        return result;
+        return Task.FromResult(result);
     }
 
     /// <summary>
