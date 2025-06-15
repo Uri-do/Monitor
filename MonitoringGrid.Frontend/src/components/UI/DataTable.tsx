@@ -1,42 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import {
   Box,
   Table,
-  TableBody,
-  TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
   TablePagination,
-  TableSortLabel,
-  TextField,
-  IconButton,
-  Checkbox,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Typography,
   Paper,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  Stack,
   Divider,
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  GetApp as ExportIcon,
-  Refresh as RefreshIcon,
-  MoreVert as MoreIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Visibility as ViewIcon,
-  FileDownload as DownloadIcon,
-  Print as PrintIcon,
-} from '@mui/icons-material';
-import { CustomButton } from './Button';
 import { CustomCard } from './Card';
+import { DataTableHeader } from './DataTable/DataTableHeader';
+import { DataTableFilters } from './DataTable/DataTableFilters';
+import { DataTableHead } from './DataTable/DataTableHead';
+import { DataTableBody } from './DataTable/DataTableBody';
+import { useDataTable } from '@/hooks/useDataTable';
 
 export interface DataTableColumn<T = any> {
   id: string;
@@ -131,278 +107,77 @@ export const DataTable: React.FC<DataTableProps> = ({
   emptyMessage,
   rowKey,
 }) => {
-  // State management
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
-  const [orderBy, setOrderBy] = useState<string>('');
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [selected, setSelected] = useState<any[]>([]);
-  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
-  const [bulkMenuAnchor, setBulkMenuAnchor] = useState<null | HTMLElement>(null);
+  const {
+    page,
+    rowsPerPage,
+    orderBy,
+    order,
+    searchTerm,
+    filters,
+    selected,
+    exportMenuAnchor,
+    bulkMenuAnchor,
+    paginatedData,
+    sortedData,
+    handleSort,
+    handleSelectAll,
+    handleSelectRow,
+    handleExport,
+    handleBulkAction,
+    handlePageChange,
+    handleRowsPerPageChange,
+    handleSearchChange,
+    handleFilterChange,
+    isSelected,
+    setExportMenuAnchor,
+    setBulkMenuAnchor,
+  } = useDataTable({
+    data,
+    columns,
+    defaultRowsPerPage,
+    rowKey,
+  });
 
-  // Filtering and sorting logic
-  const filteredData = useMemo(() => {
-    let filtered = data;
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(row =>
-        columns.some(column =>
-          String(row[column.id] || '')
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-
-    // Apply column filters
-    Object.entries(filters).forEach(([columnId, filterValue]) => {
-      if (filterValue !== '' && filterValue != null) {
-        filtered = filtered.filter(row => {
-          const cellValue = row[columnId];
-          if (typeof filterValue === 'string') {
-            return String(cellValue || '')
-              .toLowerCase()
-              .includes(filterValue.toLowerCase());
-          }
-          return cellValue === filterValue;
-        });
-      }
-    });
-
-    return filtered;
-  }, [data, searchTerm, filters, columns]);
-
-  const sortedData = useMemo(() => {
-    if (!orderBy) return filteredData;
-
-    return [...filteredData].sort((a, b) => {
-      const aValue = a[orderBy];
-      const bValue = b[orderBy];
-
-      if (aValue < bValue) {
-        return order === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return order === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [filteredData, orderBy, order]);
-
-  const paginatedData = useMemo(() => {
-    if (!pagination) return sortedData;
-    const startIndex = page * rowsPerPage;
-    return sortedData.slice(startIndex, startIndex + rowsPerPage);
-  }, [sortedData, page, rowsPerPage, pagination]);
-
-  // Event handlers
-  const handleSort = (columnId: string) => {
-    const isAsc = orderBy === columnId && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(columnId);
-  };
-
-  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelected(paginatedData);
-    } else {
-      setSelected([]);
-    }
-  };
-
-  const handleSelectRow = (row: any) => {
-    const rowId = rowKey ? row[rowKey] : row.id;
-    const selectedIndex = selected.findIndex(item => {
-      const itemId = rowKey ? item[rowKey] : item.id;
-      return itemId === rowId;
-    });
-    let newSelected: any[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = [...selected, row];
-    } else {
-      newSelected = selected.filter(item => {
-        const itemId = rowKey ? item[rowKey] : item.id;
-        return itemId !== rowId;
-      });
-    }
-
-    setSelected(newSelected);
+  // Sync external selection state
+  React.useEffect(() => {
     if (onSelectionChange) {
-      onSelectionChange(newSelected);
+      onSelectionChange(selected);
     }
-  };
-
-  const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
-    if (onExport) {
-      onExport(selected.length > 0 ? selected : sortedData, format);
-    }
-    setExportMenuAnchor(null);
-  };
-
-  const handleBulkAction = (action: string) => {
-    if (onBulkAction && selected.length > 0) {
-      onBulkAction(selected, action);
-    }
-    setBulkMenuAnchor(null);
-    setSelected([]);
-  };
-
-  const isSelected = (row: any) => {
-    const rowId = rowKey ? row[rowKey] : row.id;
-    return (
-      selected.findIndex(item => {
-        const itemId = rowKey ? item[rowKey] : item.id;
-        return itemId === rowId;
-      }) !== -1
-    );
-  };
+  }, [selected, onSelectionChange]);
 
   return (
     <CustomCard gradient={gradient} sx={{ height: height || 'auto' }}>
       <Box sx={{ p: 3 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box>
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              {title}
-            </Typography>
-            {subtitle && (
-              <Typography variant="body2" color="text.secondary">
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Action Buttons */}
-          <Stack direction="row" spacing={1}>
-            {refreshable && (
-              <CustomButton
-                variant="outlined"
-                gradient={gradient}
-                icon={<RefreshIcon />}
-                onClick={onRefresh}
-                disabled={loading}
-              >
-                Refresh
-              </CustomButton>
-            )}
-
-            {exportable && (
-              <>
-                <CustomButton
-                  variant="outlined"
-                  gradient="success"
-                  icon={<ExportIcon />}
-                  onClick={e => setExportMenuAnchor(e.currentTarget)}
-                >
-                  Export
-                </CustomButton>
-                <Menu
-                  anchorEl={exportMenuAnchor}
-                  open={Boolean(exportMenuAnchor)}
-                  onClose={() => setExportMenuAnchor(null)}
-                >
-                  <MenuItem onClick={() => handleExport('csv')}>
-                    <DownloadIcon sx={{ mr: 1 }} /> Export CSV
-                  </MenuItem>
-                  <MenuItem onClick={() => handleExport('excel')}>
-                    <DownloadIcon sx={{ mr: 1 }} /> Export Excel
-                  </MenuItem>
-                  <MenuItem onClick={() => handleExport('pdf')}>
-                    <PrintIcon sx={{ mr: 1 }} /> Export PDF
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
-
-            {selected.length > 0 && (
-              <>
-                <CustomButton
-                  variant="outlined"
-                  gradient="warning"
-                  icon={<MoreIcon />}
-                  onClick={e => setBulkMenuAnchor(e.currentTarget)}
-                >
-                  Bulk Actions ({selected.length})
-                </CustomButton>
-                <Menu
-                  anchorEl={bulkMenuAnchor}
-                  open={Boolean(bulkMenuAnchor)}
-                  onClose={() => setBulkMenuAnchor(null)}
-                >
-                  <MenuItem onClick={() => handleBulkAction('delete')}>
-                    <DeleteIcon sx={{ mr: 1 }} /> Delete Selected
-                  </MenuItem>
-                  <MenuItem onClick={() => handleBulkAction('export')}>
-                    <ExportIcon sx={{ mr: 1 }} /> Export Selected
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
-          </Stack>
-        </Box>
+        <DataTableHeader
+          title={title}
+          subtitle={subtitle}
+          gradient={gradient}
+          loading={loading}
+          refreshable={refreshable}
+          exportable={exportable}
+          selected={selected}
+          exportMenuAnchor={exportMenuAnchor}
+          bulkMenuAnchor={bulkMenuAnchor}
+          onRefresh={onRefresh}
+          onExportMenuOpen={(e) => setExportMenuAnchor(e.currentTarget)}
+          onExportMenuClose={() => setExportMenuAnchor(null)}
+          onBulkMenuOpen={(e) => setBulkMenuAnchor(e.currentTarget)}
+          onBulkMenuClose={() => setBulkMenuAnchor(null)}
+          onExport={(format) => handleExport(format, onExport)}
+          onBulkAction={(action) => handleBulkAction(action, onBulkAction)}
+        />
 
         {/* Search and Filters */}
-        <Box sx={{ mb: 3 }}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-            {searchable && (
-              <TextField
-                placeholder="Search across all columns..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ minWidth: 300 }}
-              />
-            )}
-
-            {filterable && (
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {columns
-                  .filter(col => col.filterable)
-                  .map(column => (
-                    <FormControl key={column.id} size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>{column.label}</InputLabel>
-                      {column.filterType === 'select' ? (
-                        <Select
-                          value={filters[column.id] || ''}
-                          onChange={e =>
-                            setFilters(prev => ({ ...prev, [column.id]: e.target.value }))
-                          }
-                          label={column.label}
-                        >
-                          <MenuItem value="">All</MenuItem>
-                          {column.filterOptions?.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      ) : (
-                        <TextField
-                          size="small"
-                          value={filters[column.id] || ''}
-                          onChange={e =>
-                            setFilters(prev => ({ ...prev, [column.id]: e.target.value }))
-                          }
-                          label={column.label}
-                        />
-                      )}
-                    </FormControl>
-                  ))}
-              </Box>
-            )}
-          </Stack>
-        </Box>
+        <DataTableFilters
+          searchable={searchable}
+          filterable={filterable}
+          searchTerm={searchTerm}
+          filters={filters}
+          columns={columns}
+          onSearchChange={handleSearchChange}
+          onFilterChange={handleFilterChange}
+        />
 
         <Divider sx={{ mb: 2 }} />
 
@@ -412,7 +187,6 @@ export const DataTable: React.FC<DataTableProps> = ({
           sx={{
             maxHeight,
             borderRadius: 2,
-            // Dark mode scrollbar styling
             '&::-webkit-scrollbar': {
               width: '8px',
               height: '8px',
@@ -434,333 +208,62 @@ export const DataTable: React.FC<DataTableProps> = ({
           }}
         >
           <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                {selectable && (
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      indeterminate={selected.length > 0 && selected.length < paginatedData.length}
-                      checked={paginatedData.length > 0 && selected.length === paginatedData.length}
-                      onChange={handleSelectAll}
-                      sx={{
-                        color:
-                          gradient === 'primary'
-                            ? '#667eea'
-                            : gradient === 'secondary'
-                              ? '#f093fb'
-                              : gradient === 'success'
-                                ? '#43e97b'
-                                : gradient === 'warning'
-                                  ? '#fa709a'
-                                  : gradient === 'error'
-                                    ? '#ff6b6b'
-                                    : '#4facfe',
-                      }}
-                    />
-                  </TableCell>
-                )}
+            <DataTableHead
+              columns={columns}
+              selectable={selectable}
+              selected={selected}
+              data={paginatedData}
+              gradient={gradient}
+              orderBy={orderBy}
+              order={order}
+              actions={actions}
+              defaultActions={defaultActions}
+              onRowEdit={onRowEdit}
+              onRowDelete={onRowDelete}
+              onRowView={onRowView}
+              onSelectAll={handleSelectAll}
+              onSort={handleSort}
+            />
 
-                {columns.map(column => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align || 'left'}
-                    style={{ width: column.width }}
-                    sx={{
-                      fontWeight: 'bold',
-                      backgroundColor: theme =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(255, 255, 255, 0.05)'
-                          : 'rgba(102, 126, 234, 0.05)',
-                      borderBottom: theme =>
-                        theme.palette.mode === 'dark'
-                          ? '2px solid rgba(255, 255, 255, 0.1)'
-                          : '2px solid rgba(102, 126, 234, 0.2)',
-                    }}
-                  >
-                    {column.sortable ? (
-                      <TableSortLabel
-                        active={orderBy === column.id}
-                        direction={orderBy === column.id ? order : 'asc'}
-                        onClick={() => handleSort(column.id)}
-                        sx={{
-                          '&.Mui-active': {
-                            color: '#667eea',
-                          },
-                          '&:hover': {
-                            color: '#667eea',
-                          },
-                        }}
-                      >
-                        {column.label}
-                      </TableSortLabel>
-                    ) : (
-                      column.label
-                    )}
-                  </TableCell>
-                ))}
-
-                {/* Actions Column */}
-                {(onRowEdit ||
-                  onRowDelete ||
-                  onRowView ||
-                  defaultActions?.edit ||
-                  defaultActions?.delete ||
-                  defaultActions?.view ||
-                  actions?.length) && (
-                  <TableCell
-                    align="center"
-                    sx={{
-                      fontWeight: 'bold',
-                      width: '120px',
-                      minWidth: '120px',
-                      maxWidth: '120px',
-                      backgroundColor: theme =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(255, 255, 255, 0.05)'
-                          : 'rgba(102, 126, 234, 0.05)',
-                      borderBottom: theme =>
-                        theme.palette.mode === 'dark'
-                          ? '2px solid rgba(255, 255, 255, 0.1)'
-                          : '2px solid rgba(102, 126, 234, 0.2)',
-                    }}
-                  >
-                    Actions
-                  </TableCell>
-                )}
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={
-                      columns.length +
-                      (selectable ? 1 : 0) +
-                      (onRowEdit ||
-                      onRowDelete ||
-                      onRowView ||
-                      defaultActions?.edit ||
-                      defaultActions?.delete ||
-                      defaultActions?.view ||
-                      actions?.length
-                        ? 1
-                        : 0)
-                    }
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <Typography>Loading...</Typography>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ) : paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={
-                      columns.length +
-                      (selectable ? 1 : 0) +
-                      (onRowEdit ||
-                      onRowDelete ||
-                      onRowView ||
-                      defaultActions?.edit ||
-                      defaultActions?.delete ||
-                      defaultActions?.view ||
-                      actions?.length
-                        ? 1
-                        : 0)
-                    }
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <Typography color="text.secondary">
-                        {emptyMessage || 'No data available'}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((row, index) => {
-                  const isItemSelected = isSelected(row);
-                  return (
-                    <TableRow
-                      key={rowKey ? row[rowKey] : row.id || index}
-                      hover
-                      selected={isItemSelected}
-                      onClick={() => onRowClick?.(row)}
-                      sx={{
-                        cursor: onRowClick ? 'pointer' : 'default',
-                        '&:hover': {
-                          backgroundColor: theme =>
-                            theme.palette.mode === 'dark'
-                              ? 'rgba(255, 255, 255, 0.05)'
-                              : 'rgba(102, 126, 234, 0.05)',
-                        },
-                        '&.Mui-selected': {
-                          backgroundColor: theme =>
-                            theme.palette.mode === 'dark'
-                              ? 'rgba(255, 255, 255, 0.1)'
-                              : 'rgba(102, 126, 234, 0.1)',
-                        },
-                      }}
-                    >
-                      {selectable && (
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={isItemSelected}
-                            onChange={() => handleSelectRow(row)}
-                            onClick={e => e.stopPropagation()}
-                            sx={{
-                              color:
-                                gradient === 'primary'
-                                  ? '#667eea'
-                                  : gradient === 'secondary'
-                                    ? '#f093fb'
-                                    : gradient === 'success'
-                                      ? '#43e97b'
-                                      : gradient === 'warning'
-                                        ? '#fa709a'
-                                        : gradient === 'error'
-                                          ? '#ff6b6b'
-                                          : '#4facfe',
-                            }}
-                          />
-                        </TableCell>
-                      )}
-
-                      {columns.map(column => (
-                        <TableCell key={column.id} align={column.align || 'left'}>
-                          {column.render
-                            ? column.render(row[column.id], row)
-                            : column.format
-                              ? column.format(row[column.id], row)
-                              : row[column.id]}
-                        </TableCell>
-                      ))}
-
-                      {/* Action Buttons */}
-                      {(onRowEdit ||
-                        onRowDelete ||
-                        onRowView ||
-                        defaultActions?.edit ||
-                        defaultActions?.delete ||
-                        defaultActions?.view ||
-                        actions?.length) && (
-                        <TableCell
-                          align="center"
-                          sx={{
-                            width: '120px',
-                            minWidth: '120px',
-                            maxWidth: '120px',
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                            {/* Default Actions */}
-                            {(onRowView || defaultActions?.view) && (
-                              <Tooltip title="View">
-                                <IconButton
-                                  size="small"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    if (onRowView) onRowView(row);
-                                    else if (defaultActions?.view) defaultActions.view(row);
-                                  }}
-                                  sx={{ color: '#4facfe' }}
-                                >
-                                  <ViewIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            {(onRowEdit || defaultActions?.edit) && (
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    if (onRowEdit) onRowEdit(row);
-                                    else if (defaultActions?.edit) defaultActions.edit(row);
-                                  }}
-                                  sx={{ color: '#43e97b' }}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            {(onRowDelete || defaultActions?.delete) && (
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    if (onRowDelete) onRowDelete(row);
-                                    else if (defaultActions?.delete) defaultActions.delete(row);
-                                  }}
-                                  sx={{ color: '#ff6b6b' }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            {/* Custom Actions */}
-                            {actions?.map((action, index) => (
-                              <Tooltip key={index} title={action.label}>
-                                <IconButton
-                                  size="small"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    action.onClick(row);
-                                  }}
-                                  disabled={action.disabled ? action.disabled(row) : false}
-                                  sx={{ color: '#667eea' }}
-                                >
-                                  {action.icon}
-                                </IconButton>
-                              </Tooltip>
-                            ))}
-                          </Box>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
+            <DataTableBody
+              loading={loading}
+              data={paginatedData}
+              columns={columns}
+              selectable={selectable}
+              selected={selected}
+              gradient={gradient}
+              rowKey={rowKey}
+              emptyMessage={emptyMessage}
+              actions={actions}
+              defaultActions={defaultActions}
+              onRowClick={onRowClick}
+              onRowEdit={onRowEdit}
+              onRowDelete={onRowDelete}
+              onRowView={onRowView}
+              onSelectRow={handleSelectRow}
+              isSelected={isSelected}
+            />
           </Table>
         </TableContainer>
 
         {/* Pagination */}
         {pagination && (
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              Showing {page * rowsPerPage + 1} to{' '}
-              {Math.min((page + 1) * rowsPerPage, sortedData.length)} of {sortedData.length} entries
-              {searchTerm && ` (filtered from ${data.length} total entries)`}
-            </Typography>
-
-            <TablePagination
-              component="div"
-              count={sortedData.length}
-              page={page}
-              onPageChange={(_, newPage) => setPage(newPage)}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={e => {
-                setRowsPerPage(parseInt(e.target.value, 10));
-                setPage(0);
-              }}
-              rowsPerPageOptions={rowsPerPageOptions}
-              sx={{
-                '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                  color: 'text.secondary',
-                },
-                '& .MuiTablePagination-select': {
-                  color: '#667eea',
-                },
-                '& .MuiIconButton-root': {
-                  color: '#667eea',
-                },
-              }}
-            />
-          </Box>
+          <TablePagination
+            rowsPerPageOptions={rowsPerPageOptions}
+            component="div"
+            count={sortedData.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(_, newPage) => handlePageChange(newPage)}
+            onRowsPerPageChange={(e) => handleRowsPerPageChange(parseInt(e.target.value, 10))}
+            sx={{
+              borderTop: theme =>
+                theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(102, 126, 234, 0.2)',
+              mt: 2,
+            }}
+          />
         )}
       </Box>
     </CustomCard>

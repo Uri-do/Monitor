@@ -10,8 +10,14 @@ export { CustomSelect as Select } from './Select';
 
 // Data Display Components
 export { default as DataTable } from './DataTable';
+export { DataTableHeader } from './DataTable/DataTableHeader';
+export { DataTableFilters } from './DataTable/DataTableFilters';
+export { DataTableHead } from './DataTable/DataTableHead';
+export { DataTableBody } from './DataTable/DataTableBody';
 export { default as MetricCard } from './MetricCard';
 export { default as StatusChip } from './StatusChip';
+export { default as InfoItem } from './InfoItem';
+export { default as ConfirmationDialog } from './ConfirmationDialog';
 
 // Layout Components
 export { default as PageHeader } from './PageHeader';

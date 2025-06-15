@@ -69,7 +69,7 @@ Make sure the Monitoring Grid API is running at: https://localhost:7000
 src/
 ├── components/          # Reusable UI components
 │   ├── Auth/           # Authentication components
-│   ├── Business/       # Business logic components (KPI, Contact, Worker)
+│   ├── Business/       # Business logic components (Indicator, Contact, Worker)
 │   ├── Charts/         # Chart components
 │   ├── Common/         # Common reusable components
 │   ├── Layout/         # Layout components

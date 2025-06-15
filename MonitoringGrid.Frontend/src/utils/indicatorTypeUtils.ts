@@ -334,12 +334,4 @@ export const getOperatorDescription = (operator: string): string => {
   return op?.description || 'Unknown operator';
 };
 
-// Legacy exports for backward compatibility (will be removed in future versions)
-export const KPI_TYPE_DEFINITIONS = INDICATOR_TYPE_DEFINITIONS;
-export const getKpiTypeDefinition = getIndicatorTypeDefinition;
-export const getKpiTypeName = getIndicatorTypeName;
-export const getKpiTypeDescription = getIndicatorTypeDescription;
-export const validateKpiConfiguration = validateIndicatorConfiguration;
-export const getKpiTypeExamples = getIndicatorTypeExamples;
-export const getKpiTypeIcon = getIndicatorTypeIcon;
-export const getKpiTypeColor = getIndicatorTypeColor;
+// Legacy exports removed - use Indicator terminology instead

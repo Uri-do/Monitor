@@ -33,7 +33,6 @@ public class MonitorStatisticsController : ControllerBase
     /// Get all active statistics collectors
     /// </summary>
     [HttpGet("collectors")]
-    [AllowAnonymous]
     public async Task<ActionResult<Result<List<MonitorStatisticsCollectorDto>>>> GetActiveCollectors(
         [FromQuery] bool activeOnly = true,
         CancellationToken cancellationToken = default)

@@ -6,7 +6,7 @@ import {
   Delete as DeleteIcon,
   PlayArrow as ExecuteIcon,
   Visibility as ViewIcon,
-  Assessment as KpiIcon,
+  Assessment as IndicatorIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { IndicatorDto, TestIndicatorRequest } from '@/types/api';

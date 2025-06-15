@@ -33,7 +33,6 @@ public class IndicatorControllerSimple : BaseApiController
     /// Get all indicators with optional filtering and pagination
     /// </summary>
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(List<IndicatorDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -208,7 +207,6 @@ public class IndicatorControllerSimple : BaseApiController
     /// Get indicator dashboard data
     /// </summary>
     [HttpGet("dashboard")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(IndicatorDashboardDto), 200)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetDashboard()

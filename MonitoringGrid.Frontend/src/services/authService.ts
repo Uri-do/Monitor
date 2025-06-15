@@ -173,24 +173,24 @@ class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return sessionStorage.getItem('auth_token');
   }
 
   setToken(token: string): void {
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    return sessionStorage.getItem('refresh_token');
   }
 
   setRefreshToken(token: string): void {
-    localStorage.setItem('refresh_token', token);
+    sessionStorage.setItem('refresh_token', token);
   }
 
   clearToken(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('refresh_token');
   }
 
   isAuthenticated(): boolean {

@@ -7,7 +7,7 @@ namespace MonitoringGrid.Api.Hubs;
 /// <summary>
 /// SignalR Hub for real-time monitoring notifications
 /// </summary>
-[AllowAnonymous] // Temporary: Allow anonymous access for testing real-time features
+[Authorize] // Require authentication for real-time features
 public class MonitoringHub : Hub
 {
     private readonly ILogger<MonitoringHub> _logger;
