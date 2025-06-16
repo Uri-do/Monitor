@@ -6,11 +6,34 @@ import { RealtimeStatusDto, LiveDashboardDto } from '@/types/api';
 // Real-time event interfaces
 export interface WorkerStatusUpdate {
   isRunning: boolean;
-  mode: string;
+  mode: string; // "Manual", "Integrated", or "External"
   processId?: number;
-  services: Array<{ name: string; status: string }>;
-  lastHeartbeat: string;
-  uptime: string;
+  startTime?: string;
+  uptime?: string;
+  uptimeFormatted?: string; // Human-readable uptime (e.g., "01.02:30:45")
+  uptimeSeconds?: number; // Total uptime in seconds
+  lastHeartbeat?: string;
+  currentActivity?: string;
+  lastActivityTime?: string;
+
+  // Performance metrics
+  totalIndicatorsProcessed?: number;
+  successfulExecutions?: number;
+  failedExecutions?: number;
+  successRate?: number; // Percentage (0-100)
+
+  services: Array<{
+    name: string;
+    status: string;
+    lastActivity?: string;
+    currentActivity?: string;
+    errorMessage?: string;
+    description?: string;
+    processedCount?: number;
+    successCount?: number;
+    failureCount?: number;
+  }>;
+  timestamp?: string;
 }
 
 export interface IndicatorExecutionStarted {

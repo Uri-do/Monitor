@@ -129,13 +129,113 @@ public class MonitoringHub : Hub
     public async Task SubscribeToDashboard()
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, "Dashboard");
-        
+
         _logger.LogDebug("Client {ConnectionId} subscribed to dashboard updates", Context.ConnectionId);
-        
+
         await Clients.Caller.SendAsync("SubscribedToDashboard", new
         {
             Message = "Subscribed to dashboard updates"
         });
+    }
+
+    /// <summary>
+    /// Client-callable method for worker to broadcast indicator execution started
+    /// </summary>
+    public async Task SendIndicatorExecutionStartedAsync(object indicatorExecution)
+    {
+        try
+        {
+            _logger.LogDebug("Worker broadcasting indicator execution started: {Data}", indicatorExecution);
+
+            // Broadcast to dashboard subscribers
+            await Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionStarted", indicatorExecution);
+
+            // Broadcast to specific indicator group if available
+            if (indicatorExecution is IDictionary<string, object> dict && dict.ContainsKey("IndicatorID"))
+            {
+                var indicatorId = dict["IndicatorID"];
+                await Clients.Group($"Indicator_{indicatorId}")
+                    .SendAsync("IndicatorExecutionStarted", indicatorExecution);
+            }
+
+            _logger.LogDebug("Worker indicator execution started broadcast completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast worker indicator execution started");
+        }
+    }
+
+    /// <summary>
+    /// Client-callable method for worker to broadcast indicator execution completed
+    /// </summary>
+    public async Task SendIndicatorExecutionCompletedAsync(object indicatorCompletion)
+    {
+        try
+        {
+            _logger.LogDebug("Worker broadcasting indicator execution completed: {Data}", indicatorCompletion);
+
+            // Broadcast to dashboard subscribers
+            await Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionCompleted", indicatorCompletion);
+
+            // Broadcast to specific indicator group if available
+            if (indicatorCompletion is IDictionary<string, object> dict && dict.ContainsKey("IndicatorId"))
+            {
+                var indicatorId = dict["IndicatorId"];
+                await Clients.Group($"Indicator_{indicatorId}")
+                    .SendAsync("IndicatorExecutionCompleted", indicatorCompletion);
+            }
+
+            _logger.LogDebug("Worker indicator execution completed broadcast completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast worker indicator execution completed");
+        }
+    }
+
+    /// <summary>
+    /// Client-callable method for worker to broadcast countdown updates
+    /// </summary>
+    public async Task SendIndicatorCountdownUpdateAsync(object countdownUpdate)
+    {
+        try
+        {
+            _logger.LogTrace("Worker broadcasting countdown update: {Data}", countdownUpdate);
+
+            // Broadcast to dashboard subscribers
+            await Clients.Group("Dashboard")
+                .SendAsync("IndicatorCountdownUpdate", countdownUpdate);
+
+            _logger.LogTrace("Worker countdown update broadcast completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTrace(ex, "Failed to broadcast worker countdown update");
+        }
+    }
+
+    /// <summary>
+    /// Client-callable method for worker to broadcast worker status updates
+    /// </summary>
+    public async Task SendWorkerStatusUpdateAsync(object workerStatus)
+    {
+        try
+        {
+            _logger.LogTrace("Worker broadcasting status update: {Data}", workerStatus);
+
+            // Broadcast to dashboard subscribers
+            await Clients.Group("Dashboard")
+                .SendAsync("WorkerStatusUpdate", workerStatus);
+
+            _logger.LogTrace("Worker status update broadcast completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTrace(ex, "Failed to broadcast worker status update");
+        }
     }
 
     /// <summary>

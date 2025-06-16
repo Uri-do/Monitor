@@ -340,6 +340,92 @@ const WorkerManagement: React.FC = () => {
           </Card>
         </Grid>
 
+        {/* Performance Metrics - Only show when worker is running and real-time is connected */}
+        {status.isRunning && realtimeWorkerStatus && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                  <Build />
+                  Performance Metrics
+                  <Chip
+                    label="LIVE"
+                    size="small"
+                    color="success"
+                    sx={{ fontSize: '0.7rem', height: 18 }}
+                  />
+                </Typography>
+
+                <Grid container spacing={3} sx={{ mt: 1 }}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                        {realtimeWorkerStatus.totalIndicatorsProcessed || 0}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Processed
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                        {realtimeWorkerStatus.successfulExecutions || 0}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Successful
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.50' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                        {realtimeWorkerStatus.failedExecutions || 0}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Failed
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'info.main' }}>
+                        {realtimeWorkerStatus.successRate?.toFixed(1) || 0}%
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Success Rate
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                {realtimeWorkerStatus.currentActivity && (
+                  <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Current Activity
+                    </Typography>
+                    <Typography variant="body2">
+                      {realtimeWorkerStatus.currentActivity}
+                    </Typography>
+                    {realtimeWorkerStatus.lastActivityTime && (
+                      <Typography variant="caption" color="text.secondary">
+                        Last activity: {new Date(realtimeWorkerStatus.lastActivityTime).toLocaleString()}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* Running Indicators */}
         {runningIndicators && runningIndicators.length > 0 && (
           <Grid item xs={12}>
@@ -458,6 +544,51 @@ const WorkerManagement: React.FC = () => {
                           Current: {service.currentActivity}
                         </Typography>
                       )}
+
+                      {/* Service Performance Metrics */}
+                      {(service.processedCount !== undefined || service.successCount !== undefined || service.failureCount !== undefined) && (
+                        <Box sx={{ mt: 2, mb: 1 }}>
+                          <Grid container spacing={2}>
+                            {service.processedCount !== undefined && (
+                              <Grid item xs={4}>
+                                <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'primary.50', borderRadius: 1 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                    {service.processedCount}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Processed
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            )}
+                            {service.successCount !== undefined && (
+                              <Grid item xs={4}>
+                                <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'success.50', borderRadius: 1 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                                    {service.successCount}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Success
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            )}
+                            {service.failureCount !== undefined && (
+                              <Grid item xs={4}>
+                                <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'error.50', borderRadius: 1 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                                    {service.failureCount}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Failed
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            )}
+                          </Grid>
+                        </Box>
+                      )}
+
                       {service.lastActivity && (
                         <Typography variant="caption" color="text.secondary">
                           Last activity: {service.lastActivity}

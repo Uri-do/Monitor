@@ -23,6 +23,13 @@ public class IndicatorMonitoringWorker : BackgroundService
     private readonly Histogram<double> _indicatorExecutionDuration;
     private HubConnection? _hubConnection;
     private Timer? _countdownTimer;
+    private Timer? _statusTimer;
+    private DateTime _startTime;
+    private int _totalIndicatorsProcessed;
+    private int _successfulExecutions;
+    private int _failedExecutions;
+    private DateTime? _lastActivityTime;
+    private string? _currentActivity;
 
     public IndicatorMonitoringWorker(
         ILogger<IndicatorMonitoringWorker> logger,
@@ -37,6 +44,13 @@ public class IndicatorMonitoringWorker : BackgroundService
         _indicatorsProcessedCounter = _meter.CreateCounter<int>("indicators_processed_total", "count", "Total number of Indicators processed");
         _indicatorsFailedCounter = _meter.CreateCounter<int>("indicators_failed_total", "count", "Total number of Indicators that failed");
         _indicatorExecutionDuration = _meter.CreateHistogram<double>("indicator_execution_duration_seconds", "seconds", "Duration of Indicator execution");
+
+        // Initialize tracking fields
+        _startTime = DateTime.UtcNow;
+        _totalIndicatorsProcessed = 0;
+        _successfulExecutions = 0;
+        _failedExecutions = 0;
+        _currentActivity = "Initializing";
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,28 +70,36 @@ public class IndicatorMonitoringWorker : BackgroundService
             throw;
         }
 
-        // Initialize SignalR connection (temporarily disabled for debugging)
-        // await InitializeSignalRConnectionAsync();
+        // Initialize SignalR connection for real-time updates
+        await InitializeSignalRConnectionAsync();
 
-        // Start countdown timer for real-time updates (temporarily disabled for debugging)
-        // StartCountdownTimer();
+        // Start countdown timer for real-time updates
+        StartCountdownTimer();
+
+        // Start worker status broadcasting timer
+        StartWorkerStatusTimer();
 
         try
         {
             _logger.LogInformation("🔄 Starting main execution loop...");
+            _currentActivity = "Running";
             var cycleCount = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 cycleCount++;
                 try
                 {
+                    _currentActivity = $"Processing cycle #{cycleCount}";
+                    _lastActivityTime = DateTime.UtcNow;
                     _logger.LogInformation("=== Starting Indicator monitoring cycle #{CycleCount} at {Time} ===", cycleCount, DateTime.Now);
                     await ProcessIndicatorsAsync(stoppingToken);
                     _logger.LogInformation("=== Completed Indicator monitoring cycle #{CycleCount}, waiting {IntervalSeconds} seconds ===", cycleCount, _configuration.IndicatorMonitoring.IntervalSeconds);
+                    _currentActivity = $"Waiting (next cycle #{cycleCount + 1} in {_configuration.IndicatorMonitoring.IntervalSeconds}s)";
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error occurred during Indicator monitoring cycle #{CycleCount}", cycleCount);
+                    _currentActivity = $"Error in cycle #{cycleCount}";
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.IntervalSeconds), stoppingToken);
@@ -90,7 +112,9 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
 
         // Cleanup
+        _currentActivity = "Stopping";
         _countdownTimer?.Dispose();
+        _statusTimer?.Dispose();
         if (_hubConnection != null)
         {
             await _hubConnection.DisposeAsync();
@@ -207,8 +231,8 @@ public class IndicatorMonitoringWorker : BackgroundService
                 indicator.IndicatorID, indicator.IndicatorName, indicator.CollectorID,
                 indicator.CollectorItemName, indicator.LastMinutes);
 
-            // Broadcast Indicator execution started (temporarily disabled for debugging)
-            // await BroadcastIndicatorExecutionStartedAsync(indicator);
+            // Broadcast Indicator execution started
+            await BroadcastIndicatorExecutionStartedAsync(indicator);
 
             // Create a new scope for this specific indicator execution to avoid DbContext concurrency issues
             using var scope = _serviceProvider.CreateScope();
@@ -229,8 +253,13 @@ public class IndicatorMonitoringWorker : BackgroundService
                     indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue);
                 _indicatorsProcessedCounter.Add(1, new KeyValuePair<string, object?>("status", "success"));
 
-                // Broadcast successful completion (temporarily disabled for debugging)
-                // await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.CurrentValue, stopwatch.Elapsed);
+                // Update tracking
+                Interlocked.Increment(ref _totalIndicatorsProcessed);
+                Interlocked.Increment(ref _successfulExecutions);
+                _lastActivityTime = DateTime.UtcNow;
+
+                // Broadcast successful completion
+                await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.CurrentValue, stopwatch.Elapsed);
             }
             else
             {
@@ -240,8 +269,13 @@ public class IndicatorMonitoringWorker : BackgroundService
                     result.ExecutionDuration.TotalMilliseconds, result.ExecutionContext);
                 _indicatorsFailedCounter.Add(1, new KeyValuePair<string, object?>("status", "failed"));
 
-                // Broadcast failed completion with detailed error (temporarily disabled for debugging)
-                // await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, result.ErrorMessage);
+                // Update tracking
+                Interlocked.Increment(ref _totalIndicatorsProcessed);
+                Interlocked.Increment(ref _failedExecutions);
+                _lastActivityTime = DateTime.UtcNow;
+
+                // Broadcast failed completion with detailed error
+                await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, result.ErrorMessage);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -279,23 +313,22 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             var executionStarted = new
             {
-                IndicatorId = indicator.IndicatorID,
+                IndicatorID = indicator.IndicatorID,
                 IndicatorName = indicator.IndicatorName,
                 Owner = indicator.OwnerContact?.Name ?? "Unknown",
                 StartTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 EstimatedDuration = (int?)null, // Could be calculated based on historical data
-                CollectorID = indicator.CollectorID,
-                CollectorItemName = indicator.CollectorItemName,
-                LastMinutes = indicator.LastMinutes,
                 ExecutionContext = "Scheduled"
             };
 
             // Send to the hub's method that will broadcast to all clients
             await _hubConnection.InvokeAsync("SendIndicatorExecutionStartedAsync", executionStarted);
+            _logger.LogDebug("Broadcasted Indicator execution started for {IndicatorId}: {IndicatorName}",
+                indicator.IndicatorID, indicator.IndicatorName);
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error broadcasting Indicator execution started for {IndicatorId}", indicator.IndicatorID);
+            _logger.LogWarning(ex, "Error broadcasting Indicator execution started for {IndicatorId}", indicator.IndicatorID);
         }
     }
 
@@ -308,27 +341,25 @@ public class IndicatorMonitoringWorker : BackgroundService
         {
             var executionCompleted = new
             {
-                IndicatorID = indicator.IndicatorID,
+                IndicatorId = indicator.IndicatorID, // Note: DTO uses IndicatorId (lowercase 'd')
                 IndicatorName = indicator.IndicatorName,
-                Owner = indicator.OwnerContact?.Name ?? "Unknown",
                 Success = success,
                 Value = value,
-                Duration = (int)duration.TotalMilliseconds, // Use milliseconds for better precision
+                Duration = (int)duration.TotalSeconds, // Duration in seconds as expected by DTO
                 CompletedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 ErrorMessage = errorMessage,
-                CollectorID = indicator.CollectorID,
-                CollectorItemName = indicator.CollectorItemName,
-                LastMinutes = indicator.LastMinutes,
-                ExecutionContext = "Scheduled",
-                AlertsGenerated = 0 // TODO: Get actual alert count from execution result
+                ThresholdBreached = false, // Will be determined by the execution service
+                ExecutionContext = "Scheduled"
             };
 
             // Send to the hub's method that will broadcast to all clients
             await _hubConnection.InvokeAsync("SendIndicatorExecutionCompletedAsync", executionCompleted);
+            _logger.LogDebug("Broadcasted Indicator execution completed for {IndicatorId}: {IndicatorName}, Success: {Success}",
+                indicator.IndicatorID, indicator.IndicatorName, success);
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error broadcasting Indicator execution completed for {IndicatorId}", indicator.IndicatorID);
+            _logger.LogWarning(ex, "Error broadcasting Indicator execution completed for {IndicatorId}", indicator.IndicatorID);
         }
     }
 
@@ -337,25 +368,54 @@ public class IndicatorMonitoringWorker : BackgroundService
         try
         {
             // Get API base URL from configuration or use default
-            var apiBaseUrl = _configuration.ApiBaseUrl ?? "https://localhost:7001";
+            var apiBaseUrl = _configuration.ApiBaseUrl ?? "https://localhost:57652";
+            var hubUrl = $"{apiBaseUrl}/monitoring-hub";
+
+            _logger.LogInformation("Initializing SignalR connection to {HubUrl}", hubUrl);
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl($"{apiBaseUrl}/monitoring-hub")
-                .WithAutomaticReconnect()
+                .WithUrl(hubUrl)
+                .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })
                 .Build();
 
+            // Add connection event handlers
+            _hubConnection.Closed += async (error) =>
+            {
+                _logger.LogWarning("SignalR connection closed. Error: {Error}", error?.Message ?? "None");
+            };
+
+            _hubConnection.Reconnecting += (error) =>
+            {
+                _logger.LogInformation("SignalR connection reconnecting. Error: {Error}", error?.Message ?? "None");
+                return Task.CompletedTask;
+            };
+
+            _hubConnection.Reconnected += (connectionId) =>
+            {
+                _logger.LogInformation("SignalR connection reconnected. Connection ID: {ConnectionId}", connectionId ?? "Unknown");
+                return Task.CompletedTask;
+            };
+
             await _hubConnection.StartAsync();
-            _logger.LogInformation("SignalR connection established for real-time updates");
+            _logger.LogInformation("SignalR connection established successfully. Connection ID: {ConnectionId}, State: {State}",
+                _hubConnection.ConnectionId, _hubConnection.State);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to establish SignalR connection. Real-time updates will be disabled.");
+            _logger.LogError(ex, "Failed to establish SignalR connection to {ApiBaseUrl}. Real-time updates will be disabled.",
+                _configuration.ApiBaseUrl ?? "https://localhost:57652");
         }
     }
 
     private void StartCountdownTimer()
     {
         _countdownTimer = new Timer(async _ => await SendCountdownUpdateAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private void StartWorkerStatusTimer()
+    {
+        // Send worker status updates every 5 seconds
+        _statusTimer = new Timer(async _ => await SendWorkerStatusUpdateAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     private async Task SendCountdownUpdateAsync()
@@ -371,21 +431,37 @@ public class IndicatorMonitoringWorker : BackgroundService
             var now = DateTime.UtcNow;
             var allIndicators = await indicatorService.GetAllIndicatorsAsync(CancellationToken.None);
 
-            var nextIndicator = allIndicators
+            _logger.LogDebug("Countdown: Found {Count} total indicators", allIndicators.Count);
+
+            var activeIndicators = allIndicators
                 .Where(indicator => indicator.IsActive && !indicator.IsCurrentlyRunning)
+                .ToList();
+
+            _logger.LogDebug("Countdown: Found {Count} active, non-running indicators", activeIndicators.Count);
+
+            var indicatorsWithSchedule = activeIndicators
                 .Select(indicator => new
                 {
                     Indicator = indicator,
-                    NextDue = indicator.GetNextRunTime() ?? now.AddMinutes(1),
+                    NextDue = indicator.GetNextRunTime(),
                     IsDue = indicator.IsDue()
                 })
-                .Where(x => !x.IsDue)
+                .ToList();
+
+            foreach (var item in indicatorsWithSchedule)
+            {
+                _logger.LogDebug("Countdown: Indicator {Id} ({Name}) - NextDue: {NextDue}, IsDue: {IsDue}",
+                    item.Indicator.IndicatorID, item.Indicator.IndicatorName, item.NextDue, item.IsDue);
+            }
+
+            var nextIndicator = indicatorsWithSchedule
+                .Where(x => x.NextDue.HasValue && !x.IsDue)
                 .OrderBy(x => x.NextDue)
                 .FirstOrDefault();
 
             if (nextIndicator != null)
             {
-                var secondsUntilDue = Math.Max(0, (int)(nextIndicator.NextDue - now).TotalSeconds);
+                var secondsUntilDue = Math.Max(0, (int)(nextIndicator.NextDue!.Value - now).TotalSeconds);
 
                 var countdownUpdate = new
                 {
@@ -393,10 +469,16 @@ public class IndicatorMonitoringWorker : BackgroundService
                     IndicatorName = nextIndicator.Indicator.IndicatorName,
                     Owner = nextIndicator.Indicator.OwnerContact?.Name ?? "Unknown",
                     SecondsUntilDue = secondsUntilDue,
-                    ScheduledTime = nextIndicator.NextDue.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                    ScheduledTime = nextIndicator.NextDue.Value.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
 
                 await _hubConnection.InvokeAsync("SendIndicatorCountdownUpdateAsync", countdownUpdate);
+                _logger.LogDebug("Sent countdown update for Indicator {IndicatorId}: {SecondsUntilDue} seconds",
+                    nextIndicator.Indicator.IndicatorID, secondsUntilDue);
+            }
+            else
+            {
+                _logger.LogDebug("Countdown: No indicators found with future next run time");
             }
         }
         catch (Exception ex)
@@ -405,9 +487,61 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
     }
 
+    private async Task SendWorkerStatusUpdateAsync()
+    {
+        if (_hubConnection?.State != HubConnectionState.Connected)
+            return;
+
+        try
+        {
+            var now = DateTime.UtcNow;
+            var uptime = now - _startTime;
+
+            var workerStatus = new
+            {
+                IsRunning = true,
+                Mode = "Manual",
+                ProcessId = Environment.ProcessId,
+                StartTime = _startTime.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Uptime = uptime.ToString(@"dd\.hh\:mm\:ss"),
+                UptimeSeconds = (int)uptime.TotalSeconds,
+                LastHeartbeat = now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                CurrentActivity = _currentActivity ?? "Running",
+                LastActivityTime = _lastActivityTime?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                TotalIndicatorsProcessed = _totalIndicatorsProcessed,
+                SuccessfulExecutions = _successfulExecutions,
+                FailedExecutions = _failedExecutions,
+                SuccessRate = _totalIndicatorsProcessed > 0 ? (double)_successfulExecutions / _totalIndicatorsProcessed * 100 : 0,
+                Services = new[]
+                {
+                    new
+                    {
+                        Name = "IndicatorMonitoringWorker",
+                        Status = "Running",
+                        LastActivity = _lastActivityTime?.ToString("yyyy-MM-ddTHH:mm:ssZ") ?? now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                        CurrentActivity = _currentActivity ?? "Running",
+                        ProcessedCount = _totalIndicatorsProcessed,
+                        SuccessCount = _successfulExecutions,
+                        FailureCount = _failedExecutions,
+                        Description = "Monitors and executes scheduled indicators"
+                    }
+                }
+            };
+
+            await _hubConnection.InvokeAsync("SendWorkerStatusUpdateAsync", workerStatus);
+            _logger.LogTrace("Sent worker status update - Uptime: {Uptime}, Processed: {Processed}, Success Rate: {SuccessRate:F1}%",
+                uptime.ToString(@"dd\.hh\:mm\:ss"), _totalIndicatorsProcessed, workerStatus.SuccessRate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTrace(ex, "Error sending worker status update");
+        }
+    }
+
     public override void Dispose()
     {
         _countdownTimer?.Dispose();
+        _statusTimer?.Dispose();
         _hubConnection?.DisposeAsync();
         _meter?.Dispose();
         base.Dispose();

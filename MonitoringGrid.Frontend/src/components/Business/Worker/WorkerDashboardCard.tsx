@@ -364,11 +364,19 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                       >
                         <Schedule fontSize="small" />
                         <Typography variant="body2">
-                          {formatUptime(currentStatus.startTime)}
+                          {realtimeWorkerStatus?.uptimeFormatted || formatUptime(currentStatus.startTime)}
                         </Typography>
                       </Box>
                       <Typography variant="caption" color="text.secondary">
                         Uptime
+                        {realtimeWorkerStatus && (
+                          <Chip
+                            label="LIVE"
+                            size="small"
+                            color="success"
+                            sx={{ ml: 0.5, fontSize: '0.5rem', height: 12 }}
+                          />
+                        )}
                       </Typography>
                     </Box>
                   </Grid>
@@ -470,6 +478,78 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                 </Alert>
               )}
 
+              {/* Performance Metrics */}
+              {currentStatus.isRunning && realtimeWorkerStatus && (
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Build fontSize="small" />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Performance Metrics
+                    </Typography>
+                    <Chip
+                      label="LIVE"
+                      size="small"
+                      color="info"
+                      sx={{ fontSize: '0.6rem', height: 16 }}
+                    />
+                  </Box>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'success.50', borderRadius: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                          {realtimeWorkerStatus.totalIndicatorsProcessed || 0}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Total Processed
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'info.50', borderRadius: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'info.main' }}>
+                          {realtimeWorkerStatus.successRate?.toFixed(1) || 0}%
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Success Rate
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'success.50', borderRadius: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                          {realtimeWorkerStatus.successfulExecutions || 0}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Successful
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1, bgcolor: 'error.50', borderRadius: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                          {realtimeWorkerStatus.failedExecutions || 0}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Failed
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  {realtimeWorkerStatus.currentActivity && (
+                    <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Current Activity:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {realtimeWorkerStatus.currentActivity}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
+
               {/* Services Summary */}
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -482,7 +562,10 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                 {currentStatus.services.length > 0 ? (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {currentStatus.services.slice(0, 4).map((service, index) => (
-                      <Tooltip key={index} title={service.name}>
+                      <Tooltip
+                        key={index}
+                        title={`${service.name}${service.description ? ` - ${service.description}` : ''}${service.processedCount ? ` (Processed: ${service.processedCount})` : ''}`}
+                      >
                         <Chip
                           label={service.name.replace('MonitoringWorker', '').replace('Worker', '')}
                           color={service.status === 'Running' ? 'success' : 'error'}
