@@ -9,11 +9,11 @@ public class Config
 {
     [Key]
     [MaxLength(50)]
-    public string Key { get; set; } = string.Empty;
+    public string ConfigKey { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(255)]
-    public string Value { get; set; } = string.Empty;
+    public string ConfigValue { get; set; } = string.Empty;
 
     [MaxLength(500)]
     public string? Description { get; set; }
@@ -35,12 +35,12 @@ public class Config
         try
         {
             if (typeof(T) == typeof(string))
-                return (T)(object)Value;
+                return (T)(object)ConfigValue;
 
             if (typeof(T).IsEnum)
-                return (T)Enum.Parse(typeof(T), Value, true);
+                return (T)Enum.Parse(typeof(T), ConfigValue, true);
 
-            return (T)Convert.ChangeType(Value, typeof(T));
+            return (T)Convert.ChangeType(ConfigValue, typeof(T));
         }
         catch
         {
@@ -50,30 +50,30 @@ public class Config
 
     public bool GetBoolValue()
     {
-        return bool.TryParse(Value, out var result) && result;
+        return bool.TryParse(ConfigValue, out var result) && result;
     }
 
     public int GetIntValue()
     {
-        return int.TryParse(Value, out var result) ? result : 0;
+        return int.TryParse(ConfigValue, out var result) ? result : 0;
     }
 
     public decimal GetDecimalValue()
     {
-        return decimal.TryParse(Value, out var result) ? result : 0;
+        return decimal.TryParse(ConfigValue, out var result) ? result : 0;
     }
 
     public DateTime? GetDateTimeValue()
     {
-        return DateTime.TryParse(Value, out var result) ? result : null;
+        return DateTime.TryParse(ConfigValue, out var result) ? result : null;
     }
 
     public void SetValue<T>(T value)
     {
         if (IsReadOnly)
-            throw new InvalidOperationException($"Configuration key '{Key}' is read-only");
+            throw new InvalidOperationException($"Configuration key '{ConfigKey}' is read-only");
 
-        Value = value?.ToString() ?? string.Empty;
+        ConfigValue = value?.ToString() ?? string.Empty;
         ModifiedDate = DateTime.UtcNow;
     }
 

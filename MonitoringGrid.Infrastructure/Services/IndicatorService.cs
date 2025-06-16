@@ -126,14 +126,74 @@ public class IndicatorService : IIndicatorService
 
     public async Task<List<Indicator>> GetDueIndicatorsAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Retrieving indicators due for execution");
+        _logger.LogInformation("GetDueIndicatorsAsync - Starting to retrieve indicators due for execution");
 
         return await _cacheService.GetOrSetAsync(
             CacheKeys.DueIndicators,
             async () =>
             {
+                _logger.LogInformation("GetDueIndicatorsAsync - Cache miss, fetching active indicators");
                 var indicators = await GetActiveIndicatorsAsync(cancellationToken);
-                return indicators.Where(i => i.IsDue()).ToList();
+                _logger.LogInformation("GetDueIndicatorsAsync - Retrieved {Count} active indicators", indicators?.Count ?? 0);
+
+                if (indicators == null || !indicators.Any())
+                {
+                    _logger.LogInformation("GetDueIndicatorsAsync - No active indicators found");
+                    return new List<Indicator>();
+                }
+
+                _logger.LogInformation("GetDueIndicatorsAsync - Active indicators: {IndicatorDetails}",
+                    string.Join(", ", indicators.Select(i => $"{i.IndicatorName} (ID: {i.IndicatorID}, LastRun: {i.LastRun}, LastMinutes: {i.LastMinutes})")));
+
+                var dueIndicators = new List<Indicator>();
+                foreach (var indicator in indicators)
+                {
+                    // Detailed logging for IsDue() logic
+                    _logger.LogInformation("GetDueIndicatorsAsync - Checking indicator {IndicatorName} (ID: {IndicatorID})",
+                        indicator.IndicatorName, indicator.IndicatorID);
+
+                    _logger.LogInformation("GetDueIndicatorsAsync - Indicator details: IsActive={IsActive}, Scheduler={HasScheduler}, LastRun={LastRun}",
+                        indicator.IsActive, indicator.Scheduler != null, indicator.LastRun);
+
+                    if (indicator.Scheduler != null)
+                    {
+                        _logger.LogInformation("GetDueIndicatorsAsync - Scheduler details: IsEnabled={IsEnabled}, ScheduleType={ScheduleType}, IntervalMinutes={IntervalMinutes}, CronExpression={CronExpression}",
+                            indicator.Scheduler.IsEnabled, indicator.Scheduler.ScheduleType, indicator.Scheduler.IntervalMinutes, indicator.Scheduler.CronExpression);
+
+                        var isCurrentlyActive = indicator.Scheduler.IsCurrentlyActive();
+                        _logger.LogInformation("GetDueIndicatorsAsync - Scheduler IsCurrentlyActive: {IsCurrentlyActive}", isCurrentlyActive);
+
+                        if (indicator.LastRun.HasValue)
+                        {
+                            var nextExecution = indicator.Scheduler.GetNextExecutionTime(indicator.LastRun);
+                            _logger.LogInformation("GetDueIndicatorsAsync - NextExecutionTime: {NextExecution}, CurrentTime: {CurrentTime}",
+                                nextExecution, DateTime.UtcNow);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("GetDueIndicatorsAsync - No LastRun, should be due immediately");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("GetDueIndicatorsAsync - No scheduler attached to indicator");
+                    }
+
+                    var isDue = indicator.IsDue();
+                    _logger.LogInformation("GetDueIndicatorsAsync - Final IsDue result: {IsDue} for {IndicatorName} (ID: {IndicatorID})",
+                        isDue, indicator.IndicatorName, indicator.IndicatorID);
+
+                    if (isDue)
+                    {
+                        dueIndicators.Add(indicator);
+                    }
+                }
+
+                _logger.LogInformation("GetDueIndicatorsAsync - Found {Count} due indicators: {DueIndicatorNames}",
+                    dueIndicators.Count,
+                    string.Join(", ", dueIndicators.Select(i => $"{i.IndicatorName} (ID: {i.IndicatorID})")));
+
+                return dueIndicators;
             },
             CacheExpirations.Short, // Short cache for due indicators as they change frequently
             cancellationToken);

@@ -90,16 +90,32 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 }
 
                 // Execute the collector stored procedure to get current data
+                _logger.LogDebug("Executing collector {CollectorId} stored procedure for indicator {IndicatorId}",
+                    indicator.CollectorID, indicator.IndicatorID);
+
                 var rawData = await _progressPlayDbService.ExecuteCollectorStoredProcedureAsync(
                     indicator.CollectorID,
                     indicator.LastMinutes,
                     cancellationToken);
 
+                _logger.LogDebug("Collector {CollectorId} returned {Count} items: {Items}",
+                    indicator.CollectorID, rawData.Count,
+                    string.Join(", ", rawData.Select(d => $"'{d.ItemName}'")));
+
+                _logger.LogDebug("Looking for CollectorItemName: '{CollectorItemName}' in indicator {IndicatorId}",
+                    indicator.CollectorItemName, indicator.IndicatorID);
+
                 // Find the specific item we're monitoring
                 var itemData = rawData.FirstOrDefault(d => d.ItemName == indicator.CollectorItemName);
                 if (itemData == null)
                 {
-                    return CreateFailureResult(indicator, "Item not found in collector results", 
+                    var availableItems = string.Join(", ", rawData.Select(d => $"'{d.ItemName}'"));
+                    var errorMessage = $"Item '{indicator.CollectorItemName}' not found in collector results. Available items: [{availableItems}]";
+
+                    _logger.LogWarning("Indicator {IndicatorId} execution failed: {ErrorMessage}",
+                        indicator.IndicatorID, errorMessage);
+
+                    return CreateFailureResult(indicator, errorMessage,
                         stopwatch.Elapsed, executionTime, executionContext);
                 }
 

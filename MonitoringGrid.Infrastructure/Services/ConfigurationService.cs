@@ -30,7 +30,7 @@ public class ConfigurationService : IConfigurationService
         _logger.LogDebug("Getting configuration value for key: {Key}", key);
 
         var config = await _context.Config
-            .FirstOrDefaultAsync(c => c.Key == key, cancellationToken);
+            .FirstOrDefaultAsync(c => c.ConfigKey == key, cancellationToken);
 
         if (config == null)
         {
@@ -39,11 +39,11 @@ public class ConfigurationService : IConfigurationService
         }
 
         // Decrypt if marked as encrypted
-        if (config.IsEncrypted && !string.IsNullOrEmpty(config.Value))
+        if (config.IsEncrypted && !string.IsNullOrEmpty(config.ConfigValue))
         {
             try
             {
-                return _securityService.Decrypt(config.Value);
+                return _securityService.Decrypt(config.ConfigValue);
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ public class ConfigurationService : IConfigurationService
             }
         }
 
-        return config.Value;
+        return config.ConfigValue;
     }
 
     public async Task<T?> GetConfigValueAsync<T>(string key, CancellationToken cancellationToken = default)
@@ -86,7 +86,7 @@ public class ConfigurationService : IConfigurationService
         try
         {
             var config = await _context.Config
-                .FirstOrDefaultAsync(c => c.Key == key, cancellationToken);
+                .FirstOrDefaultAsync(c => c.ConfigKey == key, cancellationToken);
 
             var valueToStore = value;
             if (isEncrypted && !string.IsNullOrEmpty(value))
@@ -99,8 +99,8 @@ public class ConfigurationService : IConfigurationService
                 // Create new configuration
                 config = new Config
                 {
-                    Key = key,
-                    Value = valueToStore,
+                    ConfigKey = key,
+                    ConfigValue = valueToStore,
                     Description = description,
                     IsEncrypted = isEncrypted,
                     CreatedDate = DateTime.UtcNow,
@@ -117,7 +117,7 @@ public class ConfigurationService : IConfigurationService
                     return false;
                 }
 
-                config.Value = valueToStore;
+                config.ConfigValue = valueToStore;
                 config.Description = description ?? config.Description;
                 config.IsEncrypted = isEncrypted;
                 config.ModifiedDate = DateTime.UtcNow;
@@ -140,7 +140,7 @@ public class ConfigurationService : IConfigurationService
 
         return await _context.Config
             .OrderBy(c => c.Category)
-            .ThenBy(c => c.Key)
+            .ThenBy(c => c.ConfigKey)
             .ToListAsync(cancellationToken);
     }
 
@@ -150,7 +150,7 @@ public class ConfigurationService : IConfigurationService
 
         return await _context.Config
             .Where(c => c.Category == category)
-            .OrderBy(c => c.Key)
+            .OrderBy(c => c.ConfigKey)
             .ToListAsync(cancellationToken);
     }
 
@@ -161,7 +161,7 @@ public class ConfigurationService : IConfigurationService
         try
         {
             var config = await _context.Config
-                .FirstOrDefaultAsync(c => c.Key == key, cancellationToken);
+                .FirstOrDefaultAsync(c => c.ConfigKey == key, cancellationToken);
 
             if (config == null)
             {
@@ -191,7 +191,7 @@ public class ConfigurationService : IConfigurationService
     public async Task<bool> ConfigExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         return await _context.Config
-            .AnyAsync(c => c.Key == key, cancellationToken);
+            .AnyAsync(c => c.ConfigKey == key, cancellationToken);
     }
 
     public async Task<bool> SetEncryptedConfigValueAsync(string key, string value, string? description = null, 

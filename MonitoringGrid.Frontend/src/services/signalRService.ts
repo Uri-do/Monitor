@@ -19,6 +19,10 @@ export interface IndicatorExecutionStarted {
   owner: string;
   startTime: string;
   estimatedDuration?: number;
+  collectorID?: number;
+  collectorItemName?: string;
+  lastMinutes?: number;
+  executionContext?: string;
 }
 
 export interface IndicatorExecutionProgress {
@@ -33,12 +37,17 @@ export interface IndicatorExecutionProgress {
 export interface IndicatorExecutionCompleted {
   indicatorID: number;
   indicator: string;
+  owner?: string;
   success: boolean;
   value?: number;
   duration: number;
   completedAt: string;
   errorMessage?: string;
   alertsGenerated?: number;
+  collectorID?: number;
+  collectorItemName?: string;
+  lastMinutes?: number;
+  executionContext?: string;
 }
 
 export interface CountdownUpdate {

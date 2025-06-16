@@ -14,6 +14,8 @@ import RunningIndicatorsCard from './components/RunningIndicatorsCard';
 import NextIndicatorExecutionCard from './components/NextIndicatorExecutionCard';
 import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingIndicatorsCard from './components/TopAlertingKpisCard';
+import ExecutionErrorsCard from './components/ExecutionErrorsCard';
+import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
 
 const Dashboard: React.FC = () => {
   const { isEnabled: realtimeEnabled, enableRealtime } = useRealtime();
@@ -121,11 +123,19 @@ const Dashboard: React.FC = () => {
           isConnected={dashboardState.isConnected}
         />
 
+        {/* Execution Errors - Real-time error monitoring */}
+        <ExecutionErrorsCard />
+
         {/* Recent Alerts */}
         <RecentAlertsCard alertDashboard={alertDashboard} />
 
         {/* Top Alerting Indicators */}
         <TopAlertingIndicatorsCard alertDashboard={alertDashboard} />
+
+        {/* Live Execution Log - Full width */}
+        <Grid item xs={12}>
+          <LiveExecutionLog maxEntries={20} />
+        </Grid>
       </Grid>
     </Box>
   );

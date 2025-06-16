@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Core.Interfaces;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MonitoringGrid.Infrastructure.Services;
 
@@ -28,7 +29,9 @@ public class CacheService : ICacheService
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
+            WriteIndented = false,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
     }
 

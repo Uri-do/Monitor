@@ -4,6 +4,8 @@
 // Indicator Management Components
 export { default as IndicatorFormDialog } from './Indicator/IndicatorFormDialog';
 export { default as ExecutionProgressDialog } from './Indicator/ExecutionProgressDialog';
+export { default as ExecutionErrorDialog } from './Indicator/ExecutionErrorDialog';
+export { default as LiveExecutionLog } from './Indicator/LiveExecutionLog';
 export { default as IndicatorTypeSelector } from './Indicator/IndicatorTypeSelector';
 export { default as RunningIndicatorsDisplay } from './Indicator/RunningIndicatorsDisplay';
 export { default as CollectorItemsExpander } from './Indicator/CollectorItemsExpander';

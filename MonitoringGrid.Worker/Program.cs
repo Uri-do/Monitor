@@ -25,7 +25,8 @@ builder.Configuration
 // Logging Configuration
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Logging.AddEventLog();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 // Database Configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -108,11 +109,30 @@ builder.Services.AddWindowsService(options =>
 
 var host = builder.Build();
 
-// Ensure database is created
-using (var scope = host.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
-    await context.Database.EnsureCreatedAsync();
-}
+// Get logger for startup
+var logger = host.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("MonitoringGrid Worker starting up...");
 
-await host.RunAsync();
+try
+{
+    // Ensure database is created
+    logger.LogInformation("Checking database connection...");
+    using (var scope = host.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
+        await context.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database connection verified successfully");
+
+        // Test query to verify schema access
+        var indicatorCount = await context.Indicators.CountAsync();
+        logger.LogInformation("Found {IndicatorCount} indicators in database", indicatorCount);
+    }
+
+    logger.LogInformation("Starting MonitoringGrid Worker host...");
+    await host.RunAsync();
+}
+catch (Exception ex)
+{
+    logger.LogCritical(ex, "Fatal error during worker startup");
+    throw;
+}
