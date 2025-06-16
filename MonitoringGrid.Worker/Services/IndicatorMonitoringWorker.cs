@@ -41,34 +41,52 @@ public class IndicatorMonitoringWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Indicator Monitoring Worker started - Beginning execution loop");
-        _logger.LogInformation("Worker Configuration: IntervalSeconds={IntervalSeconds}, MaxParallelIndicators={MaxParallelIndicators}, ProcessOnlyActiveIndicators={ProcessOnlyActiveIndicators}",
-            _configuration.IndicatorMonitoring.IntervalSeconds,
-            _configuration.IndicatorMonitoring.MaxParallelIndicators,
-            _configuration.IndicatorMonitoring.ProcessOnlyActiveIndicators);
-
-        // Initialize SignalR connection
-        await InitializeSignalRConnectionAsync();
-
-        // Start countdown timer for real-time updates
-        StartCountdownTimer();
-
-        var cycleCount = 0;
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            cycleCount++;
-            try
-            {
-                _logger.LogInformation("=== Starting Indicator monitoring cycle #{CycleCount} at {Time} ===", cycleCount, DateTime.Now);
-                await ProcessIndicatorsAsync(stoppingToken);
-                _logger.LogInformation("=== Completed Indicator monitoring cycle #{CycleCount}, waiting {IntervalSeconds} seconds ===", cycleCount, _configuration.IndicatorMonitoring.IntervalSeconds);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred during Indicator monitoring cycle #{CycleCount}", cycleCount);
-            }
+            _logger.LogInformation("🚀 IndicatorMonitoringWorker.ExecuteAsync() called - Starting up...");
+            _logger.LogInformation("Indicator Monitoring Worker started - Beginning execution loop");
+            _logger.LogInformation("Worker Configuration: IntervalSeconds={IntervalSeconds}, MaxParallelIndicators={MaxParallelIndicators}, ProcessOnlyActiveIndicators={ProcessOnlyActiveIndicators}",
+                _configuration.IndicatorMonitoring.IntervalSeconds,
+                _configuration.IndicatorMonitoring.MaxParallelIndicators,
+                _configuration.IndicatorMonitoring.ProcessOnlyActiveIndicators);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error during IndicatorMonitoringWorker initial setup");
+            throw;
+        }
 
-            await Task.Delay(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.IntervalSeconds), stoppingToken);
+        // Initialize SignalR connection (temporarily disabled for debugging)
+        // await InitializeSignalRConnectionAsync();
+
+        // Start countdown timer for real-time updates (temporarily disabled for debugging)
+        // StartCountdownTimer();
+
+        try
+        {
+            _logger.LogInformation("🔄 Starting main execution loop...");
+            var cycleCount = 0;
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                cycleCount++;
+                try
+                {
+                    _logger.LogInformation("=== Starting Indicator monitoring cycle #{CycleCount} at {Time} ===", cycleCount, DateTime.Now);
+                    await ProcessIndicatorsAsync(stoppingToken);
+                    _logger.LogInformation("=== Completed Indicator monitoring cycle #{CycleCount}, waiting {IntervalSeconds} seconds ===", cycleCount, _configuration.IndicatorMonitoring.IntervalSeconds);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred during Indicator monitoring cycle #{CycleCount}", cycleCount);
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.IntervalSeconds), stoppingToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "❌ FATAL ERROR in IndicatorMonitoringWorker main loop");
+            throw;
         }
 
         // Cleanup
@@ -189,8 +207,8 @@ public class IndicatorMonitoringWorker : BackgroundService
                 indicator.IndicatorID, indicator.IndicatorName, indicator.CollectorID,
                 indicator.CollectorItemName, indicator.LastMinutes);
 
-            // Broadcast Indicator execution started
-            await BroadcastIndicatorExecutionStartedAsync(indicator);
+            // Broadcast Indicator execution started (temporarily disabled for debugging)
+            // await BroadcastIndicatorExecutionStartedAsync(indicator);
 
             // Create a new scope for this specific indicator execution to avoid DbContext concurrency issues
             using var scope = _serviceProvider.CreateScope();
@@ -211,8 +229,8 @@ public class IndicatorMonitoringWorker : BackgroundService
                     indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue);
                 _indicatorsProcessedCounter.Add(1, new KeyValuePair<string, object?>("status", "success"));
 
-                // Broadcast successful completion
-                await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.CurrentValue, stopwatch.Elapsed);
+                // Broadcast successful completion (temporarily disabled for debugging)
+                // await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.CurrentValue, stopwatch.Elapsed);
             }
             else
             {
@@ -222,8 +240,8 @@ public class IndicatorMonitoringWorker : BackgroundService
                     result.ExecutionDuration.TotalMilliseconds, result.ExecutionContext);
                 _indicatorsFailedCounter.Add(1, new KeyValuePair<string, object?>("status", "failed"));
 
-                // Broadcast failed completion with detailed error
-                await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, result.ErrorMessage);
+                // Broadcast failed completion with detailed error (temporarily disabled for debugging)
+                // await BroadcastIndicatorExecutionCompletedAsync(indicator, false, null, stopwatch.Elapsed, result.ErrorMessage);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

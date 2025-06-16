@@ -41,6 +41,9 @@ builder.Services.AddDataProtection();
 // Add Infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Add Simple Indicator Processor (bypass worker process issues)
+builder.Services.AddHostedService<MonitoringGrid.Api.Services.SimpleIndicatorProcessor>();
+
 // Build the application
 var app = builder.Build();
 

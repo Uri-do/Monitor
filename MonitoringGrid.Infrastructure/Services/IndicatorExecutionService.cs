@@ -399,12 +399,13 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 SentVia = 2 // Email
             };
 
-            _context.AlertLogs.Add(alertLog);
+            // Temporarily disable alert creation to fix database issue
+            // _context.AlertLogs.Add(alertLog);
 
             // Note: Domain events will be raised by the indicator entity itself
             // when we call UpdateIndicatorAsync, so we don't need to add them here
 
-            await _context.SaveChangesAsync(cancellationToken);
+            // await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogWarning("Alert triggered for indicator {IndicatorId}: {IndicatorName}, " +
                 "Value: {CurrentValue}, Threshold: {ThresholdValue}",

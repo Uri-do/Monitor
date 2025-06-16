@@ -69,9 +69,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpClient();
 
 // Worker Services
+Console.WriteLine("🔧 Registering hosted services...");
 builder.Services.AddHostedService<IndicatorMonitoringWorker>();
+Console.WriteLine("✅ IndicatorMonitoringWorker registered");
 builder.Services.AddHostedService<ScheduledTaskWorker>();
+Console.WriteLine("✅ ScheduledTaskWorker registered");
 builder.Services.AddHostedService<HealthCheckWorker>();
+Console.WriteLine("✅ HealthCheckWorker registered");
 
 // Quartz Scheduling
 builder.Services.AddQuartz(q =>

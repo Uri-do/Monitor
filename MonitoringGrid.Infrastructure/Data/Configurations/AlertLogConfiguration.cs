@@ -16,6 +16,7 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.HasKey(a => a.AlertId);
 
         builder.Property(a => a.IndicatorId)
+            .HasColumnName("IndicatorId")
             .IsRequired();
 
         builder.Property(a => a.TriggerTime)
@@ -84,10 +85,11 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         // Check constraint for SentVia
         builder.ToTable(t => t.HasCheckConstraint("CK_AlertLogs_SentVia", "SentVia IN (1, 2, 3)"));
 
-        // Relationship with Indicator
+        // Relationship with Indicator - explicitly specify the foreign key property
         builder.HasOne(a => a.Indicator)
             .WithMany()
             .HasForeignKey(a => a.IndicatorId)
+            .HasPrincipalKey(i => i.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

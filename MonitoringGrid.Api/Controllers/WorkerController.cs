@@ -867,6 +867,75 @@ public class WorkerController : ControllerBase
     }
 
     /// <summary>
+    /// Test worker logic directly (bypass hosted service)
+    /// </summary>
+    [HttpPost("test-worker-logic")]
+    public async Task<IActionResult> TestWorkerLogic()
+    {
+        try
+        {
+            _logger.LogInformation("🧪 Testing worker logic directly...");
+
+            using var scope = _serviceProvider.CreateScope();
+            var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
+            var indicatorExecutionService = scope.ServiceProvider.GetRequiredService<IIndicatorExecutionService>();
+
+            _logger.LogInformation("✅ Services resolved successfully");
+
+            // Get due indicators
+            _logger.LogInformation("🔍 Getting due indicators...");
+            var dueIndicators = await indicatorService.GetDueIndicatorsAsync(CancellationToken.None);
+            _logger.LogInformation("📊 Found {Count} due indicators", dueIndicators.Count());
+
+            var results = new List<object>();
+
+            foreach (var indicator in dueIndicators)
+            {
+                _logger.LogInformation("🚀 Executing indicator {IndicatorId}: {IndicatorName}",
+                    indicator.IndicatorID, indicator.IndicatorName);
+
+                var result = await indicatorExecutionService.ExecuteIndicatorAsync(
+                    indicator.IndicatorID,
+                    "DirectTest",
+                    saveResults: true,
+                    CancellationToken.None);
+
+                results.Add(new
+                {
+                    indicatorId = indicator.IndicatorID,
+                    indicatorName = indicator.IndicatorName,
+                    success = result.WasSuccessful,
+                    executionDuration = result.ExecutionDuration.TotalMilliseconds,
+                    currentValue = result.CurrentValue,
+                    errorMessage = result.ErrorMessage
+                });
+
+                _logger.LogInformation("✅ Completed indicator {IndicatorId}: Success={Success}, Duration={Duration}ms",
+                    indicator.IndicatorID, result.WasSuccessful, result.ExecutionDuration.TotalMilliseconds);
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Successfully tested worker logic with {dueIndicators.Count()} indicators",
+                indicatorsProcessed = dueIndicators.Count(),
+                results = results,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error testing worker logic");
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"Error testing worker logic: {ex.Message}",
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
     /// Manually trigger worker cleanup (for testing)
     /// </summary>
     [HttpPost("cleanup-workers")]
