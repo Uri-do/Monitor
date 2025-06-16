@@ -32,6 +32,12 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { useRealtime } from '@/contexts/RealtimeContext';
+import {
+  useSignalR,
+  IndicatorExecutionStarted,
+  IndicatorExecutionCompleted
+} from '@/services/signalRService';
 
 export interface ExecutionLogEntry {
   id: string;
@@ -49,6 +55,8 @@ export interface ExecutionLogEntry {
     lastMinutes?: number;
     availableItems?: string[];
     value?: number;
+    executionContext?: string;
+    alertsGenerated?: number;
   };
 }
 
@@ -68,8 +76,10 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [filterErrors, setFilterErrors] = useState(showOnlyErrors);
   const logContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const dashboardState = useRealtimeDashboard();
+  const realtimeContext = useRealtime();
+  const signalR = useSignalR();
 
   // Add new log entries from real-time events
   useEffect(() => {
@@ -80,7 +90,7 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
       const existingEntry = logEntries.find(
         entry => entry.indicatorID === indicator.indicatorID && entry.type === 'started'
       );
-      
+
       if (!existingEntry) {
         const newEntry: ExecutionLogEntry = {
           id: `${indicator.indicatorID}-started-${Date.now()}`,
@@ -93,7 +103,7 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
             collectorID: undefined, // Will be populated from SignalR events
           }
         };
-        
+
         setLogEntries(prev => [newEntry, ...prev].slice(0, maxEntries));
       }
     });
@@ -106,37 +116,69 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
     }
   }, [logEntries, autoScroll]);
 
-  // Mock function to simulate real-time log entries (replace with actual SignalR integration)
+  // Listen for SignalR execution events
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (isPaused) return;
+    if (!realtimeContext.isConnected || isPaused) return;
 
-      // This would be replaced with actual SignalR event handlers
-      const mockEntry: ExecutionLogEntry = {
-        id: `mock-${Date.now()}`,
-        timestamp: new Date(),
-        indicatorID: Math.floor(Math.random() * 3) + 1,
-        indicator: `Test Indicator ${Math.floor(Math.random() * 3) + 1}`,
-        type: Math.random() > 0.7 ? 'error' : 'completed',
-        message: Math.random() > 0.7 
-          ? `Item 'TestItem' not found in collector results. Available items: ['item1', 'item2']`
-          : `Execution completed successfully`,
-        duration: Math.floor(Math.random() * 5000) + 500,
-        success: Math.random() > 0.3,
+    // Handle IndicatorExecutionStarted events
+    const handleExecutionStarted = (data: IndicatorExecutionStarted) => {
+      console.log('📊 Execution started event received:', data);
+
+      const newEntry: ExecutionLogEntry = {
+        id: `${data.indicatorID}-started-${Date.now()}`,
+        timestamp: new Date(data.startTime),
+        indicatorID: data.indicatorID,
+        indicator: data.indicator,
+        type: 'started',
+        message: `Started execution`,
         details: {
-          collectorID: Math.floor(Math.random() * 3) + 1,
-          collectorItemName: 'TestItem',
-          lastMinutes: 10,
-          availableItems: ['item1', 'item2', 'item3'],
-          value: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : undefined,
+          collectorID: data.collectorID,
+          collectorItemName: data.collectorItemName,
+          lastMinutes: data.lastMinutes,
+          executionContext: data.executionContext,
         }
       };
 
-      setLogEntries(prev => [mockEntry, ...prev].slice(0, maxEntries));
-    }, 3000);
+      setLogEntries(prev => [newEntry, ...prev].slice(0, maxEntries));
+    };
 
-    return () => clearInterval(interval);
-  }, [isPaused, maxEntries]);
+    // Handle IndicatorExecutionCompleted events
+    const handleExecutionCompleted = (data: IndicatorExecutionCompleted) => {
+      console.log('✅ Execution completed event received:', data);
+
+      const newEntry: ExecutionLogEntry = {
+        id: `${data.indicatorID}-completed-${Date.now()}`,
+        timestamp: new Date(data.completedAt),
+        indicatorID: data.indicatorID,
+        indicator: data.indicator,
+        type: data.success ? 'completed' : 'error',
+        message: data.success ? 'Execution completed successfully' : (data.errorMessage || 'Execution failed'),
+        duration: data.duration,
+        success: data.success,
+        errorMessage: data.errorMessage,
+        details: {
+          collectorID: data.collectorID,
+          collectorItemName: data.collectorItemName,
+          lastMinutes: data.lastMinutes,
+          value: data.value,
+          executionContext: data.executionContext,
+          alertsGenerated: data.alertsGenerated,
+        }
+      };
+
+      setLogEntries(prev => [newEntry, ...prev].slice(0, maxEntries));
+    };
+
+    // Register event handlers
+    signalR.on('onIndicatorExecutionStarted', handleExecutionStarted);
+    signalR.on('onIndicatorExecutionCompleted', handleExecutionCompleted);
+
+    // Cleanup function
+    return () => {
+      signalR.off('onIndicatorExecutionStarted', handleExecutionStarted);
+      signalR.off('onIndicatorExecutionCompleted', handleExecutionCompleted);
+    };
+  }, [realtimeContext.isConnected, isPaused, maxEntries, signalR]);
 
   const getLogIcon = (type: ExecutionLogEntry['type']) => {
     switch (type) {
@@ -291,10 +333,34 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
                                   />
                                 )}
                                 {entry.details.lastMinutes && (
-                                  <Chip 
-                                    label={`${entry.details.lastMinutes}min`} 
-                                    size="small" 
+                                  <Chip
+                                    label={`${entry.details.lastMinutes}min`}
+                                    size="small"
                                     variant="outlined"
+                                  />
+                                )}
+                                {entry.details.executionContext && (
+                                  <Chip
+                                    label={entry.details.executionContext}
+                                    size="small"
+                                    variant="outlined"
+                                    color="info"
+                                  />
+                                )}
+                                {entry.details.alertsGenerated !== undefined && entry.details.alertsGenerated > 0 && (
+                                  <Chip
+                                    label={`${entry.details.alertsGenerated} alerts`}
+                                    size="small"
+                                    variant="outlined"
+                                    color="warning"
+                                  />
+                                )}
+                                {entry.details.value !== undefined && (
+                                  <Chip
+                                    label={`Value: ${entry.details.value}`}
+                                    size="small"
+                                    variant="outlined"
+                                    color="success"
                                   />
                                 )}
                               </Box>

@@ -40,6 +40,7 @@ import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import RunningIndicatorsDisplay, {
   RunningIndicator,
 } from '@/components/Business/Indicator/RunningIndicatorsDisplay';
+import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
 import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
 
@@ -370,6 +371,17 @@ const WorkerManagement: React.FC = () => {
                 Owner: {nextIndicatorDue.owner} • Due in: {nextIndicatorDue.minutesUntilDue} min
               </Typography>
             </Paper>
+          </Grid>
+        )}
+
+        {/* Live Execution Log - Only show when worker is running */}
+        {status.isRunning && (
+          <Grid item xs={12}>
+            <LiveExecutionLog
+              maxEntries={30}
+              autoScroll={true}
+              showOnlyErrors={false}
+            />
           </Grid>
         )}
 
