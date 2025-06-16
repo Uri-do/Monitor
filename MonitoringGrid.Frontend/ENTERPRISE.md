@@ -184,7 +184,7 @@ src/
 - Conversion funnel analysis
 
 ### Business Metrics
-- Custom KPI tracking
+- Custom Indicator tracking
 - Real-time dashboards
 - Automated reporting
 - Data visualization

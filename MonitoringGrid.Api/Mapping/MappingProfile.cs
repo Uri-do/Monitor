@@ -1,6 +1,7 @@
 using AutoMapper;
 
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
 using System.Text.Json;

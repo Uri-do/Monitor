@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MonitoringGrid.Core.Interfaces;
-using MonitoringGrid.Core.Models;
+using MonitoringGrid.Infrastructure.Configuration;
 
 namespace MonitoringGrid.Infrastructure.Services;
 
@@ -11,12 +11,12 @@ namespace MonitoringGrid.Infrastructure.Services;
 public class SmsService : ISmsService
 {
     private readonly IEmailService _emailService;
-    private readonly MonitoringConfiguration _config;
+    private readonly MonitoringOptions _config;
     private readonly ILogger<SmsService> _logger;
 
     public SmsService(
         IEmailService emailService,
-        IOptions<MonitoringConfiguration> config,
+        IOptions<MonitoringOptions> config,
         ILogger<SmsService> logger)
     {
         _emailService = emailService;

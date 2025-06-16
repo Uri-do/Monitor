@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MonitoringGrid.Core.Interfaces;
-using MonitoringGrid.Core.Models;
+using MonitoringGrid.Infrastructure.Configuration;
 using System.Net;
 using System.Net.Mail;
 
@@ -12,10 +12,10 @@ namespace MonitoringGrid.Infrastructure.Services;
 /// </summary>
 public class EmailService : IEmailService
 {
-    private readonly EmailConfiguration _config;
+    private readonly EmailOptions _config;
     private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IOptions<EmailConfiguration> config, ILogger<EmailService> logger)
+    public EmailService(IOptions<EmailOptions> config, ILogger<EmailService> logger)
     {
         _config = config.Value;
         _logger = logger;
@@ -51,9 +51,11 @@ public class EmailService : IEmailService
     {
         try
         {
-            if (!_config.IsValid(out var errors))
+            // Basic validation - check required fields
+            if (string.IsNullOrWhiteSpace(_config.SmtpServer) ||
+                string.IsNullOrWhiteSpace(_config.FromAddress))
             {
-                _logger.LogError("Email configuration is invalid: {Errors}", string.Join(", ", errors));
+                _logger.LogError("Email configuration is invalid: SMTP server and from address are required");
                 return false;
             }
 
@@ -104,7 +106,7 @@ public class EmailService : IEmailService
         var client = new SmtpClient(_config.SmtpServer, _config.SmtpPort)
         {
             EnableSsl = _config.EnableSsl,
-            Timeout = _config.TimeoutMs,
+            Timeout = _config.TimeoutSeconds * 1000, // Convert seconds to milliseconds
             DeliveryMethod = SmtpDeliveryMethod.Network,
             UseDefaultCredentials = false,
             Credentials = new NetworkCredential(_config.Username, _config.Password)

@@ -17,7 +17,7 @@ using MonitoringGrid.Infrastructure.Services;
 using MonitoringGrid.Api.CQRS.Behaviors;
 using MonitoringGrid.Api.Filters;
 using MonitoringGrid.Api.Configuration;
-using MonitoringGrid.Api.Versioning;
+
 using MonitoringGrid.Api.Monitoring;
 using MonitoringGrid.Api.Security;
 using MonitoringGrid.Api.Caching;
@@ -224,7 +224,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<DatabaseOptimizationService>();
         services.AddScoped<ResponseOptimizationService>();
         services.AddScoped<SecurityEventService>();
-        services.AddScoped<IDataManagementService, SimpleDataManagementService>();
+        // Data management service removed - using direct repository access
         services.AddScoped<ILifecycleManagementService, LifecycleManagementService>();
         services.AddScoped<IApiDocumentationService, ApiDocumentationService>();
 
@@ -326,13 +326,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Adds enterprise-grade API versioning
-    /// </summary>
-    public static IServiceCollection AddEnterpriseApiVersioning(this IServiceCollection services)
-    {
-        return services.AddAdvancedApiVersioning();
-    }
+
 
     /// <summary>
     /// Add Worker services for integrated mode

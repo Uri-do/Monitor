@@ -773,8 +773,8 @@ export const systemApi = {
   getDashboardOverview: async (): Promise<any> => {
     // Return mock data until implemented
     return {
-      totalKpis: 0,
-      activeKpis: 0,
+      totalIndicators: 0,
+      activeIndicators: 0,
       totalAlerts: 0,
       systemHealth: 'healthy',
     };
@@ -854,8 +854,8 @@ export const executionHistoryApi = {
 export const analyticsApi = {
   // Get system-wide analytics
   getSystemAnalytics: async (days: number = 30): Promise<SystemAnalyticsDto> => {
-    // Updated to use KPI controller's analytics endpoints
-    const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/kpi/analytics/system', {
+    // Updated to use Indicator controller's analytics endpoints
+    const response: AxiosResponse<SystemAnalyticsDto> = await api.get('/indicator/analytics/system', {
       params: { days },
     });
     return response.data;

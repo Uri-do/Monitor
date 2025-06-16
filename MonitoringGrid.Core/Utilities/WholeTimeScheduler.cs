@@ -4,7 +4,7 @@ namespace MonitoringGrid.Core.Utilities
 {
     /// <summary>
     /// Utility class for calculating "whole time" scheduling intervals.
-    /// Ensures KPIs run at clean time intervals (e.g., xx:00 for hourly, xx:05,10,15 for 5-minute intervals)
+    /// Ensures Indicators run at clean time intervals (e.g., xx:00 for hourly, xx:05,10,15 for 5-minute intervals)
     /// </summary>
     public static class WholeTimeScheduler
     {

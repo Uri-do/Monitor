@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using MonitoringGrid.Core.Enums;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
+using MonitoringGrid.Infrastructure.Configuration;
 
 namespace MonitoringGrid.Infrastructure.Services;
 
@@ -17,7 +18,7 @@ public class NotificationService : INotificationService
     private readonly ISlackService _slackService;
     private readonly ITeamsService _teamsService;
     private readonly IWebhookService _webhookService;
-    private readonly MonitoringConfiguration _config;
+    private readonly MonitoringOptions _config;
     private readonly ILogger<NotificationService> _logger;
 
     public NotificationService(
@@ -26,7 +27,7 @@ public class NotificationService : INotificationService
         ISlackService slackService,
         ITeamsService teamsService,
         IWebhookService webhookService,
-        IOptions<MonitoringConfiguration> config,
+        IOptions<MonitoringOptions> config,
         ILogger<NotificationService> logger)
     {
         _emailService = emailService;

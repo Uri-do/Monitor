@@ -1,21 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Core.DTOs;
 
 namespace MonitoringGrid.Api.DTOs;
 
-/// <summary>
-/// Contact data transfer object for API responses
-/// </summary>
-public class ContactDto
-{
-    public int ContactID { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
-    public bool IsActive { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public DateTime ModifiedDate { get; set; }
-    public List<IndicatorSummaryDto> AssignedIndicators { get; set; } = new();
-}
+// Note: ContactDto and IndicatorSummaryDto are now imported from MonitoringGrid.Core.DTOs
 
 /// <summary>
 /// Contact creation/update request
@@ -45,17 +33,7 @@ public class UpdateContactRequest : CreateContactRequest
     public int ContactID { get; set; }
 }
 
-/// <summary>
-/// Indicator summary for contact assignments
-/// </summary>
-public class IndicatorSummaryDto
-{
-    public long IndicatorId { get; set; }
-    public string IndicatorName { get; set; } = string.Empty;
-    public string Owner { get; set; } = string.Empty;
-    public string Priority { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-}
+// Removed duplicate IndicatorSummaryDto - using Core.DTOs version instead
 
 /// <summary>
 /// Contact assignment request

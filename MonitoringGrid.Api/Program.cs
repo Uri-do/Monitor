@@ -35,7 +35,6 @@ builder.Services.AddHealthCheckServices(builder.Configuration);
 builder.Services.AddRateLimitingServices(builder.Configuration);
 
 // Add Round 3 Enterprise Features
-builder.Services.AddEnterpriseApiVersioning();
 builder.Services.AddDataProtection();
 
 // Add Infrastructure services

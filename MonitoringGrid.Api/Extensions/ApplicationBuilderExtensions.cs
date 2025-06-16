@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Api.Middleware;
-using MonitoringGrid.Api.Versioning;
+
 using System.Diagnostics;
 
 namespace MonitoringGrid.Api.Extensions;
@@ -276,8 +276,7 @@ public static class ApplicationBuilderExtensions
         // Security middleware
         app.UseSecurityMiddleware();
 
-        // API versioning middleware
-        app.UseAdvancedApiVersioning();
+        // API versioning removed - using root-level endpoints
 
         // Performance middleware
         app.UsePerformanceMiddleware();

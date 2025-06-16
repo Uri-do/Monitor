@@ -4,6 +4,7 @@ using MonitoringGrid.Worker.Configuration;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Services;
 using MonitoringGrid.Infrastructure;
+using MonitoringGrid.Infrastructure.Configuration;
 using Microsoft.Extensions.Http;
 using MonitoringGrid.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -42,11 +43,9 @@ builder.Services.AddDbContext<MonitoringContext>(options =>
         sqlOptions.CommandTimeout(120);
     }));
 
-// Configuration sections
-builder.Services.Configure<MonitoringGrid.Core.Models.EmailConfiguration>(
-    builder.Configuration.GetSection("Email"));
-builder.Services.Configure<MonitoringGrid.Core.Models.MonitoringConfiguration>(
-    builder.Configuration.GetSection("Monitoring"));
+// Configuration sections - using Infrastructure configuration system
+builder.Services.Configure<MonitoringGridOptions>(
+    builder.Configuration.GetSection(MonitoringGridOptions.SectionName));
 
 // Worker Configuration - bind from MonitoringGrid section and Worker section
 builder.Services.Configure<WorkerConfiguration>(config =>

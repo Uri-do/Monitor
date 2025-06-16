@@ -123,73 +123,7 @@ public static class ValidationMiddlewareExtensions
     }
 }
 
-/// <summary>
-/// Validates that a string is a valid SQL query (basic validation)
-/// </summary>
-public class ValidSqlQueryAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute
-    {
-        private static readonly string[] DangerousKeywords = 
-        {
-            "DROP", "DELETE", "TRUNCATE", "ALTER", "CREATE", "INSERT", "UPDATE",
-            "EXEC", "EXECUTE", "SP_", "XP_", "OPENROWSET", "OPENDATASOURCE"
-        };
-
-        public override bool IsValid(object? value)
-        {
-            if (value is not string sqlQuery || string.IsNullOrWhiteSpace(sqlQuery))
-                return false;
-
-            // Basic validation - check for dangerous keywords
-            var upperQuery = sqlQuery.ToUpperInvariant();
-            
-            foreach (var keyword in DangerousKeywords)
-            {
-                if (upperQuery.Contains(keyword))
-                {
-                    ErrorMessage = $"SQL query contains dangerous keyword: {keyword}";
-                    return false;
-                }
-            }
-
-            // Must start with SELECT
-            if (!upperQuery.TrimStart().StartsWith("SELECT"))
-            {
-                ErrorMessage = "SQL query must start with SELECT";
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-/// <summary>
-/// Validates that a frequency value is within acceptable range
-/// </summary>
-public class ValidFrequencyAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute
-    {
-        private readonly int _minMinutes;
-        private readonly int _maxMinutes;
-
-        public ValidFrequencyAttribute(int minMinutes = 1, int maxMinutes = 1440)
-        {
-            _minMinutes = minMinutes;
-            _maxMinutes = maxMinutes;
-        }
-
-        public override bool IsValid(object? value)
-        {
-            if (value is not int frequency)
-                return false;
-
-            if (frequency < _minMinutes || frequency > _maxMinutes)
-            {
-                ErrorMessage = $"Frequency must be between {_minMinutes} and {_maxMinutes} minutes";
-                return false;
-            }
-
-            return true;
-        }
-    }
+// Validation attributes moved to MonitoringGrid.Api.Attributes.ValidateModelAttribute for consolidation
 
 /// <summary>
 /// Validates that an email address is properly formatted and from allowed domains
@@ -230,25 +164,7 @@ public class ValidEmailDomainAttribute : System.ComponentModel.DataAnnotations.V
         }
     }
 
-/// <summary>
-/// Validates that a priority value is within the valid range
-/// </summary>
-public class ValidPriorityAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute
-    {
-        public override bool IsValid(object? value)
-        {
-            if (value is not byte priority)
-                return false;
-
-            if (priority < 1 || priority > 2)
-            {
-                ErrorMessage = "Priority must be 1 (SMS+Email) or 2 (Email only)";
-                return false;
-            }
-
-            return true;
-        }
-    }
+// ValidPriorityAttribute moved to MonitoringGrid.Api.Attributes.ValidateModelAttribute for consolidation
 
 /// <summary>
 /// Input sanitization service for preventing XSS and injection attacks

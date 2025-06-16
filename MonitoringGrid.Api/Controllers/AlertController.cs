@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Core.DTOs;
 using Swashbuckle.AspNetCore.Annotations;
 using AutoMapper;
 

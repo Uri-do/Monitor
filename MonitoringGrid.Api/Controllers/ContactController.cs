@@ -4,6 +4,7 @@ using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.CQRS.Commands.Contact;
 using MonitoringGrid.Api.CQRS.Queries.Contact;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Api.Common;
 using MonitoringGrid.Core.Interfaces;
 using MediatR;

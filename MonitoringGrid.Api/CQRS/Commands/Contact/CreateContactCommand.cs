@@ -1,6 +1,7 @@
 using MediatR;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Interfaces;
 using AutoMapper;
 
