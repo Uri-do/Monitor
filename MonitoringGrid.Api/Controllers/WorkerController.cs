@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Core.Interfaces;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -647,6 +648,251 @@ public class WorkerController : ControllerBase
                 Success = false,
                 Message = $"Error during force stop: {ex.Message}",
                 Timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
+    /// Debug indicator status for worker troubleshooting
+    /// </summary>
+    [HttpGet("debug-indicators")]
+    public async Task<IActionResult> DebugIndicators()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+            var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
+
+            // Get all indicators with their details
+            var allIndicators = await context.Indicators
+                .Include(i => i.Scheduler)
+                .Include(i => i.OwnerContact)
+                .ToListAsync();
+
+            // Get due indicators using the service
+            var dueIndicators = await indicatorService.GetDueIndicatorsAsync();
+
+            var debugInfo = new
+            {
+                TotalIndicators = allIndicators.Count,
+                ActiveIndicators = allIndicators.Count(i => i.IsActive),
+                InactiveIndicators = allIndicators.Count(i => !i.IsActive),
+                IndicatorsWithSchedulers = allIndicators.Count(i => i.Scheduler != null),
+                IndicatorsWithoutSchedulers = allIndicators.Count(i => i.Scheduler == null),
+                CurrentlyRunningIndicators = allIndicators.Count(i => i.IsCurrentlyRunning),
+                DueIndicators = dueIndicators.Count,
+                IndicatorDetails = allIndicators.Select(i => new
+                {
+                    ID = i.IndicatorID,
+                    Name = i.IndicatorName,
+                    IsActive = i.IsActive,
+                    IsCurrentlyRunning = i.IsCurrentlyRunning,
+                    LastRun = i.LastRun,
+                    LastMinutes = i.LastMinutes,
+                    HasScheduler = i.Scheduler != null,
+                    SchedulerEnabled = i.Scheduler?.IsEnabled,
+                    Owner = i.OwnerContact?.Name,
+                    IsDue = i.IsDue(),
+                    NextRunTime = i.GetNextRunTime()
+                }).ToList(),
+                DueIndicatorNames = dueIndicators.Select(i => i.IndicatorName).ToList(),
+                Timestamp = DateTime.UtcNow
+            };
+
+            return Ok(debugInfo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error debugging indicators");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Assign default schedulers to indicators that don't have them
+    /// </summary>
+    [HttpPost("assign-default-schedulers")]
+    public async Task<IActionResult> AssignDefaultSchedulers()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+            // Get indicators without schedulers
+            var indicatorsWithoutSchedulers = await context.Indicators
+                .Where(i => i.SchedulerID == null)
+                .ToListAsync();
+
+            if (!indicatorsWithoutSchedulers.Any())
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "All indicators already have schedulers assigned",
+                    indicatorsUpdated = 0,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+
+            // Create or get a default scheduler
+            var defaultScheduler = await context.Schedulers
+                .FirstOrDefaultAsync(s => s.SchedulerName == "Default Interval Scheduler");
+
+            if (defaultScheduler == null)
+            {
+                // Create default scheduler
+                defaultScheduler = new MonitoringGrid.Core.Entities.Scheduler
+                {
+                    SchedulerName = "Default Interval Scheduler",
+                    SchedulerDescription = "Default scheduler for indicators - runs every 5 minutes",
+                    ScheduleType = "interval",
+                    IntervalMinutes = 5,
+                    IsEnabled = true,
+                    Timezone = "UTC",
+                    CreatedBy = "system",
+                    ModifiedBy = "system"
+                };
+
+                context.Schedulers.Add(defaultScheduler);
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Created default scheduler with ID: {SchedulerID}", defaultScheduler.SchedulerID);
+            }
+
+            // Assign the default scheduler to indicators without schedulers
+            foreach (var indicator in indicatorsWithoutSchedulers)
+            {
+                indicator.SchedulerID = defaultScheduler.SchedulerID;
+                _logger.LogInformation("Assigned default scheduler to indicator: {IndicatorName} (ID: {IndicatorID})",
+                    indicator.IndicatorName, indicator.IndicatorID);
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Successfully assigned default scheduler to {indicatorsWithoutSchedulers.Count} indicators",
+                indicatorsUpdated = indicatorsWithoutSchedulers.Count,
+                defaultSchedulerID = defaultScheduler.SchedulerID,
+                defaultSchedulerName = defaultScheduler.SchedulerName,
+                updatedIndicators = indicatorsWithoutSchedulers.Select(i => new
+                {
+                    indicatorID = i.IndicatorID,
+                    indicatorName = i.IndicatorName,
+                    schedulerID = i.SchedulerID
+                }).ToList(),
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning default schedulers");
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"Error assigning default schedulers: {ex.Message}",
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
+    /// Manually trigger execution of a specific indicator
+    /// </summary>
+    [HttpPost("execute-indicator/{indicatorId}")]
+    public async Task<IActionResult> ExecuteIndicator(long indicatorId)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var indicatorExecutionService = scope.ServiceProvider.GetRequiredService<IIndicatorExecutionService>();
+
+            _logger.LogInformation("Manual execution requested for indicator ID: {IndicatorID}", indicatorId);
+
+            var result = await indicatorExecutionService.ExecuteIndicatorAsync(
+                indicatorId,
+                "Manual",
+                saveResults: true,
+                CancellationToken.None);
+
+            if (result.IsSuccess)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Indicator {indicatorId} executed successfully",
+                    indicatorId = indicatorId,
+                    executionResult = result.Value,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"Failed to execute indicator {indicatorId}: {result.Error.Message}",
+                    indicatorId = indicatorId,
+                    error = result.Error.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing indicator {IndicatorID}", indicatorId);
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"Error executing indicator {indicatorId}: {ex.Message}",
+                indicatorId = indicatorId,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
+    /// Manually trigger execution of all due indicators
+    /// </summary>
+    [HttpPost("execute-due-indicators")]
+    public async Task<IActionResult> ExecuteDueIndicators()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var indicatorExecutionService = scope.ServiceProvider.GetRequiredService<IIndicatorExecutionService>();
+
+            _logger.LogInformation("Manual execution of all due indicators requested");
+
+            var results = await indicatorExecutionService.ExecuteDueIndicatorsAsync("Manual", CancellationToken.None);
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Executed {results.Count} due indicators",
+                executedCount = results.Count,
+                results = results.Select(r => new
+                {
+                    indicatorId = r.IndicatorId,
+                    indicatorName = r.IndicatorName,
+                    success = r.IsSuccess,
+                    message = r.Message,
+                    executionTime = r.ExecutionTime,
+                    currentValue = r.CurrentValue
+                }).ToList(),
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing due indicators");
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"Error executing due indicators: {ex.Message}",
+                timestamp = DateTime.UtcNow
             });
         }
     }
