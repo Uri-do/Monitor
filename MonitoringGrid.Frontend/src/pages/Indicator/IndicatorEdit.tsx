@@ -31,11 +31,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
 
-import { useIndicator, useUpdateIndicator } from '@/hooks/useIndicators';
+import { useIndicator } from '@/hooks/useIndicators';
 import { useActiveCollectors, useCollectorItemNames } from '@/hooks/useMonitorStatistics';
 import { useSchedulers } from '@/hooks/useSchedulers';
 import { LoadingSpinner, PageHeader, FormLayout, FormSection, FormActions } from '@/components';
+import { indicatorApi } from '@/services/api';
 import { UpdateIndicatorRequest } from '@/types/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Validation schema
 const indicatorValidationSchema = yup.object({
@@ -74,14 +76,19 @@ const IndicatorEdit: React.FC = () => {
     data: indicator,
     isLoading,
     error,
-  } = useIndicator(indicatorId, {
-    enabled: !!id,
-  });
+  } = useIndicator(indicatorId, !!id);
 
   const { data: collectors = [] } = useActiveCollectors();
   const { data: schedulers = [] } = useSchedulers();
-  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
-  const updateMutation = useUpdateIndicator();
+
+  const queryClient = useQueryClient();
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateIndicatorRequest) => indicatorApi.updateIndicator(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['indicators'] });
+      queryClient.invalidateQueries({ queryKey: ['indicators', indicatorId] });
+    },
+  });
 
   // Form setup
   const {
@@ -89,7 +96,6 @@ const IndicatorEdit: React.FC = () => {
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<IndicatorFormData>({
     resolver: yupResolver(indicatorValidationSchema),
@@ -109,6 +115,9 @@ const IndicatorEdit: React.FC = () => {
       isActive: true,
     },
   });
+
+  // Get collector items based on selected collector
+  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
 
   // Update form when indicator data is loaded
   useEffect(() => {
@@ -132,9 +141,25 @@ const IndicatorEdit: React.FC = () => {
   }, [indicator, reset]);
 
   const onSubmit = (data: IndicatorFormData) => {
-    const updateData: UpdateIndicatorRequest = {
+    // Prepare the update data to match the API exactly
+    const updateData = {
       indicatorID: indicatorId,
-      ...data,
+      indicatorName: data.indicatorName,
+      indicatorCode: data.indicatorCode,
+      indicatorDesc: data.indicatorDesc || undefined,
+      collectorID: data.collectorID,
+      collectorItemName: data.collectorItemName,
+      schedulerID: data.schedulerID || undefined,
+      isActive: data.isActive ?? true,
+      lastMinutes: data.lastMinutes || 60,
+      thresholdType: data.thresholdType,
+      thresholdField: data.thresholdField,
+      thresholdComparison: data.thresholdComparison,
+      thresholdValue: data.thresholdValue,
+      priority: data.priority, // Keep as string - API expects string
+      ownerContactId: indicator?.ownerContactId || 1, // Use existing or default
+      averageLastDays: indicator?.averageLastDays || undefined,
+      contactIds: [], // Empty array for now - contacts feature can be added later
     };
 
     updateMutation.mutate(updateData, {
@@ -527,12 +552,24 @@ const IndicatorEdit: React.FC = () => {
           {/* Form Actions */}
           <Grid item xs={12}>
             <FormActions
-              onCancel={() => navigate(`/indicators/${indicatorId}`)}
-              onSubmit={handleSubmit(onSubmit)}
-              submitText="Update Indicator"
-              submitIcon={<SaveIcon />}
-              cancelIcon={<CancelIcon />}
-              loading={isSubmitting || updateMutation.isPending}
+              primaryAction={{
+                label: "Update Indicator",
+                onClick: handleSubmit(onSubmit),
+                variant: "contained",
+                color: "primary",
+                startIcon: <SaveIcon />,
+                loading: isSubmitting || updateMutation.isPending,
+                type: "submit"
+              }}
+              secondaryActions={[
+                {
+                  label: "Cancel",
+                  onClick: () => navigate(`/indicators/${indicatorId}`),
+                  variant: "outlined",
+                  color: "secondary",
+                  startIcon: <CancelIcon />
+                }
+              ]}
             />
           </Grid>
         </FormLayout>

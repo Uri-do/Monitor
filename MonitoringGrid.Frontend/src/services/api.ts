@@ -419,8 +419,10 @@ export const monitorStatisticsApi = {
 // Scheduler API endpoints
 export const schedulerApi = {
   // Get all schedulers
-  getSchedulers: async (): Promise<SchedulerDto[]> => {
-    const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers');
+  getSchedulers: async (includeDisabled: boolean = false): Promise<SchedulerDto[]> => {
+    const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers', {
+      params: { includeDisabled }
+    });
     return response.data;
   },
 
@@ -454,6 +456,32 @@ export const schedulerApi = {
   toggleScheduler: async (id: number, enabled: boolean): Promise<SchedulerDto> => {
     const response: AxiosResponse<SchedulerDto> = await api.patch(`/schedulers/${id}/toggle`, {
       enabled,
+    });
+    return response.data;
+  },
+
+  // Get indicators with their scheduler information
+  getIndicatorsWithSchedulers: async (): Promise<any[]> => {
+    const response: AxiosResponse<any[]> = await api.get('/schedulers/indicators');
+    return response.data;
+  },
+
+  // Get indicators assigned to a specific scheduler
+  getIndicatorsByScheduler: async (id: number): Promise<any[]> => {
+    const response: AxiosResponse<any[]> = await api.get(`/schedulers/${id}/indicators`);
+    return response.data;
+  },
+
+  // Get indicators that are due for execution
+  getDueIndicators: async (): Promise<any[]> => {
+    const response: AxiosResponse<any[]> = await api.get('/schedulers/due-indicators');
+    return response.data;
+  },
+
+  // Get upcoming executions for the next specified hours
+  getUpcomingExecutions: async (hours: number = 24): Promise<any[]> => {
+    const response: AxiosResponse<any[]> = await api.get('/schedulers/upcoming', {
+      params: { hours }
     });
     return response.data;
   },

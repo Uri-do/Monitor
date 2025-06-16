@@ -1,59 +1,131 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { schedulerApi } from '@/services/api';
+import { SchedulerDto, CreateSchedulerRequest, UpdateSchedulerRequest } from '@/types/api';
+import { useConditionalQuery, useDynamicQuery, useStableQuery } from './useGenericQuery';
 
-// Simple placeholder hook for schedulers
-export const useSchedulers = () => {
+// Get all schedulers
+export const useSchedulers = (includeDisabled: boolean = false) => {
   return useQuery({
-    queryKey: ['schedulers'],
-    queryFn: async () => {
-      // Placeholder data matching SchedulerDto structure
-      return [
-        {
-          schedulerID: 1,
-          schedulerName: 'Daily Scheduler',
-          schedulerDescription: 'Runs daily at midnight',
-          scheduleType: 'cron',
-          cronExpression: '0 0 * * *',
-          intervalMinutes: null,
-          timezone: 'UTC',
-          isEnabled: true,
-          displayText: 'Daily at 00:00 UTC',
-          indicatorCount: 5,
-          nextExecutionTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        },
-        {
-          schedulerID: 2,
-          schedulerName: 'Hourly Scheduler',
-          schedulerDescription: 'Runs every hour',
-          scheduleType: 'interval',
-          cronExpression: null,
-          intervalMinutes: 60,
-          timezone: 'UTC',
-          isEnabled: true,
-          displayText: 'Every 60 minutes',
-          indicatorCount: 3,
-          nextExecutionTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        },
-        {
-          schedulerID: 3,
-          schedulerName: 'Weekly Scheduler',
-          schedulerDescription: 'Runs weekly on Sunday',
-          scheduleType: 'cron',
-          cronExpression: '0 0 * * 0',
-          intervalMinutes: null,
-          timezone: 'UTC',
-          isEnabled: false,
-          displayText: 'Weekly on Sunday at 00:00 UTC',
-          indicatorCount: 2,
-          nextExecutionTime: null,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        }
-      ];
-    },
+    queryKey: ['schedulers', includeDisabled],
+    queryFn: () => schedulerApi.getSchedulers(includeDisabled),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+};
+
+// Get scheduler by ID
+export const useScheduler = (id: number, options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: ['schedulers', id],
+    queryFn: () => schedulerApi.getScheduler(id),
+    enabled: options?.enabled ?? !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Create scheduler mutation
+export const useCreateScheduler = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateSchedulerRequest) => schedulerApi.createScheduler(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schedulers'] });
+    },
+  });
+};
+
+// Update scheduler mutation
+export const useUpdateScheduler = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateSchedulerRequest) => schedulerApi.updateScheduler(data),
+    onSuccess: (updatedScheduler) => {
+      queryClient.invalidateQueries({ queryKey: ['schedulers'] });
+      queryClient.invalidateQueries({ queryKey: ['schedulers', updatedScheduler.schedulerID] });
+    },
+  });
+};
+
+// Delete scheduler mutation
+export const useDeleteScheduler = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => schedulerApi.deleteScheduler(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schedulers'] });
+    },
+  });
+};
+
+// Toggle scheduler enabled/disabled
+export const useToggleScheduler = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
+      schedulerApi.toggleScheduler(id, enabled),
+    onSuccess: (updatedScheduler) => {
+      queryClient.invalidateQueries({ queryKey: ['schedulers'] });
+      queryClient.invalidateQueries({ queryKey: ['schedulers', updatedScheduler.schedulerID] });
+    },
+  });
+};
+
+// Hook to get upcoming indicator executions
+export const useUpcomingExecutions = (hours: number = 24) => {
+  return useConditionalQuery(
+    ['schedulers', 'upcoming', hours],
+    () => schedulerApi.getUpcomingExecutions(hours),
+    [hours],
+    {
+      errorContext: `Loading upcoming executions for next ${hours} hours`,
+      preset: 'dynamic',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+// Hook to get due indicators
+export const useDueIndicators = () => {
+  return useDynamicQuery(
+    ['schedulers', 'due-indicators'],
+    () => schedulerApi.getDueIndicators(),
+    {
+      errorContext: 'Loading due indicators',
+      graceful404: true,
+      fallbackValue: [],
+      // Refresh every 30 seconds since this is time-sensitive
+      staleTime: 30 * 1000,
+      cacheTime: 60 * 1000,
+      refetchInterval: 30 * 1000,
+    }
+  );
+};
+
+// Hook to get indicators with scheduler information
+export const useIndicatorsWithSchedulers = () => {
+  return useStableQuery(
+    ['schedulers', 'indicators'],
+    () => schedulerApi.getIndicatorsWithSchedulers(),
+    {
+      errorContext: 'Loading indicators with schedulers',
+      graceful404: true,
+      fallbackValue: [],
+    }
+  );
+};
+
+export default {
+  useSchedulers,
+  useScheduler,
+  useCreateScheduler,
+  useUpdateScheduler,
+  useDeleteScheduler,
+  useToggleScheduler,
+  useUpcomingExecutions,
+  useDueIndicators,
+  useIndicatorsWithSchedulers,
 };

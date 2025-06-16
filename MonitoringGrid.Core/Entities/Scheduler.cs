@@ -89,15 +89,20 @@ namespace MonitoringGrid.Core.Entities
                 return null;
 
             var now = DateTime.UtcNow;
-            var baseTime = lastExecution ?? now;
+
+            // If never executed before, return current time (due immediately)
+            if (!lastExecution.HasValue)
+                return now;
+
+            var baseTime = lastExecution.Value;
 
             return ScheduleType switch
             {
-                "interval" when IntervalMinutes.HasValue => 
+                "interval" when IntervalMinutes.HasValue =>
                     baseTime.AddMinutes(IntervalMinutes.Value),
-                "onetime" when ExecutionDateTime.HasValue => 
+                "onetime" when ExecutionDateTime.HasValue =>
                     ExecutionDateTime.Value > now ? ExecutionDateTime.Value : null,
-                "cron" => 
+                "cron" =>
                     CalculateNextCronExecution(baseTime),
                 _ => null
             };
@@ -113,6 +118,8 @@ namespace MonitoringGrid.Core.Entities
             // For now, return a basic calculation for common patterns
             return CronExpression switch
             {
+                "* * * * *" => baseTime.AddMinutes(1), // Every minute
+                "*/1 * * * *" => baseTime.AddMinutes(1), // Every minute (alternative format)
                 "0 * * * *" => baseTime.AddHours(1).Date.AddHours(baseTime.Hour + 1), // Hourly
                 "*/5 * * * *" => baseTime.AddMinutes(5), // Every 5 minutes
                 "*/15 * * * *" => baseTime.AddMinutes(15), // Every 15 minutes

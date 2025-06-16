@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Chip, IconButton, Tooltip } from '@mui/material';
-import { Refresh, Timer, Dashboard as DashboardIcon } from '@mui/icons-material';
+import { Refresh, Timer, Dashboard as DashboardIcon, Build, PlayArrow, Stop } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import {
   formatCountdownWithContext,
@@ -8,6 +8,7 @@ import {
   shouldCountdownPulse,
 } from '@/utils/countdown';
 import { Card } from '@/components';
+import { useWorkerStatus } from '@/hooks/useWorker';
 
 interface DashboardHeaderProps {
   lastUpdate?: string;
@@ -16,6 +17,8 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown, onRefresh }) => {
+  const { data: workerStatus } = useWorkerStatus();
+
   return (
     <Card gradient="primary" glowEffect={true} sx={{ mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ p: 3 }}>
@@ -33,6 +36,24 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ lastUpdate, countdown
                 color: 'white',
                 fontWeight: 600,
                 animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { opacity: 1 },
+                  '50%': { opacity: 0.7 },
+                  '100%': { opacity: 1 },
+                },
+              }}
+            />
+            <Chip
+              icon={workerStatus?.isRunning ? <PlayArrow sx={{ fontSize: '14px !important' }} /> : <Stop sx={{ fontSize: '14px !important' }} />}
+              label={`Worker ${workerStatus?.isRunning ? 'Running' : 'Stopped'}`}
+              size="small"
+              sx={{
+                backgroundColor: workerStatus?.isRunning
+                  ? 'rgba(76, 175, 80, 0.2)'
+                  : 'rgba(244, 67, 54, 0.2)',
+                color: 'white',
+                fontWeight: 600,
+                animation: workerStatus?.isRunning ? 'pulse 2s infinite' : 'none',
                 '@keyframes pulse': {
                   '0%': { opacity: 1 },
                   '50%': { opacity: 0.7 },

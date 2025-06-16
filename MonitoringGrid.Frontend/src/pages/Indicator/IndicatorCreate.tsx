@@ -70,7 +70,6 @@ const IndicatorCreate: React.FC = () => {
 
   const { data: collectors = [] } = useActiveCollectors();
   const { data: schedulers = [] } = useSchedulers();
-  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
   const createMutation = useCreateIndicator();
 
   // Form setup
@@ -99,9 +98,27 @@ const IndicatorCreate: React.FC = () => {
     },
   });
 
+  // Get collector items based on selected collector
+  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
+
   const onSubmit = (data: IndicatorFormData) => {
     const createData: CreateIndicatorRequest = {
-      ...data,
+      indicatorName: data.indicatorName,
+      indicatorCode: data.indicatorCode,
+      indicatorDesc: data.indicatorDesc || undefined,
+      collectorID: data.collectorID,
+      collectorItemName: data.collectorItemName,
+      schedulerID: data.schedulerID || undefined,
+      isActive: data.isActive ?? true,
+      lastMinutes: data.lastMinutes || 60,
+      thresholdType: data.thresholdType,
+      thresholdField: data.thresholdField,
+      thresholdComparison: data.thresholdComparison,
+      thresholdValue: data.thresholdValue,
+      priority: data.priority, // Keep as string - API expects string
+      ownerContactId: 1, // Default owner contact - this should be configurable
+      averageLastDays: undefined,
+      contactIds: [], // Empty array for now - contacts feature can be added later
     };
 
     createMutation.mutate(createData, {
@@ -478,12 +495,24 @@ const IndicatorCreate: React.FC = () => {
           {/* Form Actions */}
           <Grid item xs={12}>
             <FormActions
-              onCancel={() => navigate('/indicators')}
-              onSubmit={handleSubmit(onSubmit)}
-              submitText="Create Indicator"
-              submitIcon={<SaveIcon />}
-              cancelIcon={<CancelIcon />}
-              loading={isSubmitting || createMutation.isPending}
+              primaryAction={{
+                label: "Create Indicator",
+                onClick: handleSubmit(onSubmit),
+                variant: "contained",
+                color: "primary",
+                startIcon: <SaveIcon />,
+                loading: isSubmitting || createMutation.isPending,
+                type: "submit"
+              }}
+              secondaryActions={[
+                {
+                  label: "Cancel",
+                  onClick: () => navigate('/indicators'),
+                  variant: "outlined",
+                  color: "secondary",
+                  startIcon: <CancelIcon />
+                }
+              ]}
             />
           </Grid>
         </FormLayout>

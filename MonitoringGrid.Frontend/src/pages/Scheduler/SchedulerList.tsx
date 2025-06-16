@@ -52,46 +52,7 @@ const SchedulerList: React.FC = () => {
     refetch,
   } = useQuery({
     queryKey: ['schedulers'],
-    queryFn: async () => {
-      try {
-        return await schedulerApi.getSchedulers();
-      } catch (error) {
-        // Return placeholder data if API fails
-        console.warn('Scheduler API failed, using placeholder data:', error);
-        return [
-          {
-            schedulerID: 1,
-            schedulerName: 'Daily Scheduler',
-            schedulerDescription: 'Runs daily at midnight',
-            scheduleType: 'cron',
-            cronExpression: '0 0 * * *',
-            intervalMinutes: null,
-            timezone: 'UTC',
-            isEnabled: true,
-            displayText: 'Daily at 00:00 UTC',
-            indicatorCount: 5,
-            nextExecutionTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            createdDate: new Date().toISOString(),
-            updatedDate: new Date().toISOString()
-          },
-          {
-            schedulerID: 2,
-            schedulerName: 'Hourly Scheduler',
-            schedulerDescription: 'Runs every hour',
-            scheduleType: 'interval',
-            cronExpression: null,
-            intervalMinutes: 60,
-            timezone: 'UTC',
-            isEnabled: true,
-            displayText: 'Every 60 minutes',
-            indicatorCount: 3,
-            nextExecutionTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-            createdDate: new Date().toISOString(),
-            updatedDate: new Date().toISOString()
-          }
-        ];
-      }
-    },
+    queryFn: () => schedulerApi.getSchedulers(),
     retry: false, // Don't retry failed API calls
   });
 
