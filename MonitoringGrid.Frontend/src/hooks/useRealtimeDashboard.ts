@@ -86,13 +86,14 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   // Indicator execution started handler
   const handleIndicatorExecutionStarted = useCallback((data: IndicatorExecutionStarted) => {
+    console.log('🚀 Dashboard received indicator execution started:', data);
     setState(prev => ({
       ...prev,
       runningIndicators: [
         ...(prev.runningIndicators || []).filter(indicator => indicator.indicatorID !== data.indicatorID),
         {
           indicatorID: data.indicatorID,
-          indicator: data.indicator,
+          indicator: data.indicatorName,
           owner: data.owner,
           startTime: data.startTime,
           progress: 0,
@@ -128,24 +129,25 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
   // Indicator execution completed handler
   const handleIndicatorExecutionCompleted = useCallback(
     (data: IndicatorExecutionCompleted) => {
+      console.log('✅ Dashboard received indicator execution completed:', data);
       setState(prev => ({
         ...prev,
         runningIndicators: (prev.runningIndicators || []).filter(
-          indicator => indicator.indicatorID !== data.indicatorID
+          indicator => indicator.indicatorID !== data.indicatorId
         ),
         lastUpdate: new Date(),
       }));
 
       // Update TanStack Query cache with fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.indicatorID) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.indicators.detail(data.indicatorId) });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.executionHistory.byIndicator(data.indicatorID),
+        queryKey: queryKeys.executionHistory.byIndicator(data.indicatorId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.indicators.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
 
-      // If execution generated alerts, refresh alert data
-      if (data.alertsGenerated && data.alertsGenerated > 0) {
+      // If execution had threshold breach, refresh alert data
+      if (data.thresholdBreached) {
         queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
         queryClient.invalidateQueries({ queryKey: queryKeys.alerts.statistics() });
       }

@@ -38,13 +38,10 @@ export interface WorkerStatusUpdate {
 
 export interface IndicatorExecutionStarted {
   indicatorID: number;
-  indicator: string;
+  indicatorName: string;
   owner: string;
   startTime: string;
   estimatedDuration?: number;
-  collectorID?: number;
-  collectorItemName?: string;
-  lastMinutes?: number;
   executionContext?: string;
 }
 
@@ -58,19 +55,15 @@ export interface IndicatorExecutionProgress {
 }
 
 export interface IndicatorExecutionCompleted {
-  indicatorID: number;
-  indicator: string;
-  owner?: string;
+  indicatorId: number;
+  indicatorName: string;
   success: boolean;
   value?: number;
   duration: number;
   completedAt: string;
   errorMessage?: string;
-  alertsGenerated?: number;
-  collectorID?: number;
-  collectorItemName?: string;
-  lastMinutes?: number;
-  executionContext?: string;
+  thresholdBreached: boolean;
+  executionContext: string;
 }
 
 export interface CountdownUpdate {
@@ -124,6 +117,8 @@ export interface SignalREvents {
   onCountdownUpdate: (data: CountdownUpdate) => void;
   onNextIndicatorScheduleUpdate: (data: NextIndicatorScheduleUpdate) => void;
   onRunningIndicatorsUpdate: (data: RunningIndicatorsUpdate) => void;
+  // Test events
+  onTestMessage: (data: any) => void;
 }
 
 class SignalRService {
@@ -189,6 +184,7 @@ class SignalRService {
     // Test events
     this.connection.on('TestMessage', (data: any) => {
       console.log('✅ SignalR Test Message received:', data);
+      this.eventHandlers.onTestMessage?.(data);
     });
 
     this.connection.on('GroupTestMessage', (data: any) => {
@@ -450,6 +446,19 @@ class SignalRService {
       } catch (error) {
         console.error(`Error sending message ${method}:`, error);
       }
+    }
+  }
+
+  public async invoke(method: string, ...args: any[]): Promise<any> {
+    if (this.connection && this.connection.state === 'Connected') {
+      try {
+        return await this.connection.invoke(method, ...args);
+      } catch (error) {
+        console.error(`Error invoking method ${method}:`, error);
+        throw error;
+      }
+    } else {
+      throw new Error('SignalR connection is not established');
     }
   }
 

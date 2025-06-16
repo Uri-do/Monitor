@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
+using static MonitoringGrid.Core.Interfaces.IIndicatorExecutionService;
 
 namespace MonitoringGrid.Api.Services;
 
@@ -85,8 +88,11 @@ public class SimpleIndicatorProcessor : BackgroundService
             {
                 try
                 {
-                    _logger.LogInformation("🚀 Executing indicator {IndicatorId}: {IndicatorName}", 
+                    _logger.LogInformation("🚀 Executing indicator {IndicatorId}: {IndicatorName}",
                         indicator.IndicatorID, indicator.IndicatorName);
+
+                    // Broadcast execution started
+                    await BroadcastIndicatorExecutionStartedAsync(indicator);
 
                     var result = await indicatorExecutionService.ExecuteIndicatorAsync(
                         indicator.IndicatorID,
@@ -97,21 +103,30 @@ public class SimpleIndicatorProcessor : BackgroundService
                     if (result.WasSuccessful)
                     {
                         successCount++;
-                        _logger.LogInformation("✅ Indicator {IndicatorId} executed successfully in {Duration}ms. Current value: {Value}", 
+                        _logger.LogInformation("✅ Indicator {IndicatorId} executed successfully in {Duration}ms. Current value: {Value}",
                             indicator.IndicatorID, result.ExecutionDuration.TotalMilliseconds, result.CurrentValue);
+
+                        // Broadcast successful completion
+                        await BroadcastIndicatorExecutionCompletedAsync(indicator, result, true);
                     }
                     else
                     {
                         failureCount++;
-                        _logger.LogWarning("❌ Indicator {IndicatorId} execution failed: {Error}", 
+                        _logger.LogWarning("❌ Indicator {IndicatorId} execution failed: {Error}",
                             indicator.IndicatorID, result.ErrorMessage);
+
+                        // Broadcast failed completion
+                        await BroadcastIndicatorExecutionCompletedAsync(indicator, result, false);
                     }
                 }
                 catch (Exception ex)
                 {
                     failureCount++;
-                    _logger.LogError(ex, "💥 Exception executing indicator {IndicatorId}: {IndicatorName}", 
+                    _logger.LogError(ex, "💥 Exception executing indicator {IndicatorId}: {IndicatorName}",
                         indicator.IndicatorID, indicator.IndicatorName);
+
+                    // Broadcast exception completion
+                    await BroadcastIndicatorExecutionExceptionAsync(indicator, ex);
                 }
             }
 
@@ -121,6 +136,92 @@ public class SimpleIndicatorProcessor : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "💥 Critical error during indicator processing");
+        }
+    }
+
+    private async Task BroadcastIndicatorExecutionStartedAsync(Core.Entities.Indicator indicator)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var realtimeService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+
+            var dto = new IndicatorExecutionStartedDto
+            {
+                IndicatorID = indicator.IndicatorID,
+                IndicatorName = indicator.IndicatorName,
+                Owner = indicator.OwnerContact?.Name ?? "System",
+                StartTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ExecutionContext = "SimpleProcessor"
+            };
+
+            await realtimeService.SendIndicatorExecutionStartedAsync(dto);
+            _logger.LogDebug("Broadcasted Indicator execution started for {IndicatorId}: {IndicatorName}",
+                indicator.IndicatorID, indicator.IndicatorName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast indicator execution started for {IndicatorId}", indicator.IndicatorID);
+        }
+    }
+
+    private async Task BroadcastIndicatorExecutionCompletedAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result, bool success)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var realtimeService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+
+            var dto = new IndicatorExecutionCompletedDto
+            {
+                IndicatorId = indicator.IndicatorID,
+                IndicatorName = indicator.IndicatorName,
+                Success = success,
+                Value = result.CurrentValue,
+                Duration = (int)result.ExecutionDuration.TotalMilliseconds,
+                CompletedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ErrorMessage = result.ErrorMessage,
+                ThresholdBreached = result.ThresholdBreached,
+                ExecutionContext = "SimpleProcessor"
+            };
+
+            await realtimeService.SendIndicatorExecutionCompletedAsync(dto);
+            _logger.LogDebug("Broadcasted Indicator execution completed for {IndicatorId}: {IndicatorName}, Success: {Success}",
+                indicator.IndicatorID, indicator.IndicatorName, success);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast indicator execution completed for {IndicatorId}", indicator.IndicatorID);
+        }
+    }
+
+    private async Task BroadcastIndicatorExecutionExceptionAsync(Core.Entities.Indicator indicator, Exception exception)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var realtimeService = scope.ServiceProvider.GetRequiredService<IRealtimeNotificationService>();
+
+            var dto = new IndicatorExecutionCompletedDto
+            {
+                IndicatorId = indicator.IndicatorID,
+                IndicatorName = indicator.IndicatorName,
+                Success = false,
+                Value = null,
+                Duration = 0,
+                CompletedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ErrorMessage = exception.Message,
+                ThresholdBreached = false,
+                ExecutionContext = "SimpleProcessor"
+            };
+
+            await realtimeService.SendIndicatorExecutionCompletedAsync(dto);
+            _logger.LogDebug("Broadcasted Indicator execution exception for {IndicatorId}: {IndicatorName}",
+                indicator.IndicatorID, indicator.IndicatorName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast indicator execution exception for {IndicatorId}", indicator.IndicatorID);
         }
     }
 }

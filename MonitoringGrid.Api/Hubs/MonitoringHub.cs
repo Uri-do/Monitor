@@ -284,6 +284,19 @@ public class MonitoringHub : Hub
             Message = $"Left group {groupName}"
         });
     }
+
+    /// <summary>
+    /// Test connection method for debugging SignalR connectivity
+    /// </summary>
+    public async Task TestConnection()
+    {
+        _logger.LogInformation("Test connection called by client {ConnectionId}", Context.ConnectionId);
+        await Clients.Caller.SendAsync("TestMessage", new {
+            message = "Test connection successful",
+            connectionId = Context.ConnectionId,
+            timestamp = DateTime.UtcNow
+        });
+    }
 }
 
 /// <summary>

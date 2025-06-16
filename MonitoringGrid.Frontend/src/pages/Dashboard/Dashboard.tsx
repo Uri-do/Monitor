@@ -15,6 +15,7 @@ import NextIndicatorExecutionCard from './components/NextIndicatorExecutionCard'
 import RecentAlertsCard from './components/RecentAlertsCard';
 import TopAlertingIndicatorsCard from './components/TopAlertingKpisCard';
 import ExecutionErrorsCard from './components/ExecutionErrorsCard';
+import RealtimeIndicatorMonitor from '@/components/RealtimeIndicatorMonitor';
 
 const Dashboard: React.FC = () => {
   const { isEnabled: realtimeEnabled, enableRealtime } = useRealtime();
@@ -96,6 +97,11 @@ const Dashboard: React.FC = () => {
           indicatorLoading={indicatorLoading}
           alertLoading={alertLoading}
         />
+
+        {/* Real-time Indicator Monitor - Test Component */}
+        <Grid item xs={12} md={6}>
+          <RealtimeIndicatorMonitor />
+        </Grid>
 
         {/* Indicators Due for Execution - Moved to top */}
         <IndicatorsDueCard indicatorDashboard={mergedIndicatorDashboard} />
