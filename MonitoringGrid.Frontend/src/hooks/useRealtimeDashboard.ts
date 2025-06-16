@@ -89,7 +89,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     setState(prev => ({
       ...prev,
       runningIndicators: [
-        ...prev.runningIndicators.filter(indicator => indicator.indicatorID !== data.indicatorID),
+        ...(prev.runningIndicators || []).filter(indicator => indicator.indicatorID !== data.indicatorID),
         {
           indicatorID: data.indicatorID,
           indicator: data.indicator,
@@ -108,7 +108,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
   const handleIndicatorExecutionProgress = useCallback((data: IndicatorExecutionProgress) => {
     setState(prev => ({
       ...prev,
-      runningIndicators: prev.runningIndicators.map(indicator =>
+      runningIndicators: (prev.runningIndicators || []).map(indicator =>
         indicator.indicatorID === data.indicatorID
           ? {
               ...indicator,

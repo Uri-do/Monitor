@@ -48,6 +48,20 @@ builder.Services.Configure<MonitoringGrid.Core.Models.EmailConfiguration>(
 builder.Services.Configure<MonitoringGrid.Core.Models.MonitoringConfiguration>(
     builder.Configuration.GetSection("Monitoring"));
 
+// Worker Configuration - bind from MonitoringGrid section and Worker section
+builder.Services.Configure<WorkerConfiguration>(config =>
+{
+    // Bind Worker section for worker-specific settings
+    builder.Configuration.GetSection("Worker").Bind(config);
+
+    // Override ApiBaseUrl from MonitoringGrid section
+    var apiBaseUrl = builder.Configuration.GetValue<string>("MonitoringGrid:ApiBaseUrl");
+    if (!string.IsNullOrEmpty(apiBaseUrl))
+    {
+        config.ApiBaseUrl = apiBaseUrl;
+    }
+});
+
 // Add Infrastructure services (includes all core services, cache, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 

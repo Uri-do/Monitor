@@ -197,6 +197,15 @@ const WorkerManagement: React.FC = () => {
     );
   }
 
+  // Show loading spinner while status is being fetched
+  if (!status) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <LoadingSpinner />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <PageHeader
@@ -395,16 +404,16 @@ const WorkerManagement: React.FC = () => {
                 sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 <Memory />
-                Worker Services ({status.services.length})
+                Worker Services ({(status.services || []).length})
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Background services that handle Indicator monitoring, scheduled tasks, health
                 checks, and alert processing
               </Typography>
 
-              {status.services.length > 0 ? (
+              {(status.services || []).length > 0 ? (
                 <Stack spacing={2}>
-                  {status.services.map((service, index) => (
+                  {(status.services || []).map((service, index) => (
                     <Paper
                       key={index}
                       sx={{

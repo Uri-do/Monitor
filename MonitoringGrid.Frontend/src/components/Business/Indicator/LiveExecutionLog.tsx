@@ -86,7 +86,7 @@ const LiveExecutionLog: React.FC<LiveExecutionLogProps> = ({
     if (isPaused) return;
 
     // Handle execution started events
-    dashboardState.runningIndicators.forEach(indicator => {
+    (dashboardState.runningIndicators || []).forEach(indicator => {
       const existingEntry = logEntries.find(
         entry => entry.indicatorID === indicator.indicatorID && entry.type === 'started'
       );
