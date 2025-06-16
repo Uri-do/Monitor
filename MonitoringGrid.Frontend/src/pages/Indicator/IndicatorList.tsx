@@ -61,9 +61,9 @@ const IndicatorList: React.FC = () => {
     return indicators.filter(indicator => {
       const matchesSearch =
         !filters.search ||
-        indicator.indicatorName.toLowerCase().includes(filters.search.toLowerCase()) ||
-        indicator.indicatorCode.toLowerCase().includes(filters.search.toLowerCase()) ||
-        indicator.collectorItemName.toLowerCase().includes(filters.search.toLowerCase());
+        (indicator.indicatorName && indicator.indicatorName.toLowerCase().includes(filters.search.toLowerCase())) ||
+        (indicator.indicatorCode && indicator.indicatorCode.toLowerCase().includes(filters.search.toLowerCase())) ||
+        (indicator.collectorItemName && indicator.collectorItemName.toLowerCase().includes(filters.search.toLowerCase()));
 
       return matchesSearch;
     });
@@ -179,7 +179,7 @@ const IndicatorList: React.FC = () => {
       <PageHeader
         title="Indicators"
         subtitle="Monitor and manage your performance indicators"
-        icon={<KpiIcon />}
+        icon={<IndicatorIcon />}
         primaryAction={{
           label: 'Create Indicator',
           icon: <AddIcon />,

@@ -22,7 +22,7 @@ public class ContactController : BaseApiController
         IMediator mediator,
         ILogger<ContactController> logger,
         IPerformanceMetricsService? performanceMetrics = null)
-        : base(mediator, logger, performanceMetrics)
+        : base(mediator, logger)
     {
     }
 

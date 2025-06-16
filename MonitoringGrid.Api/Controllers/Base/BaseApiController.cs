@@ -16,16 +16,14 @@ public abstract class BaseApiController : ControllerBase
 {
     protected readonly IMediator Mediator;
     protected readonly ILogger Logger;
-    protected readonly IPerformanceMetricsService? PerformanceMetrics;
+    // Performance metrics removed for simplification
 
     protected BaseApiController(
         IMediator mediator,
-        ILogger logger,
-        IPerformanceMetricsService? performanceMetrics = null)
+        ILogger logger)
     {
         Mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        PerformanceMetrics = performanceMetrics;
     }
 
     /// <summary>
@@ -42,29 +40,22 @@ public abstract class BaseApiController : ControllerBase
         try
         {
             Logger.LogDebug("Executing {OperationName} with command {CommandType}", operationName, typeof(TCommand).Name);
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.requests");
 
             var result = await Mediator.Send(command);
 
             stopwatch.Stop();
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.duration", stopwatch.Elapsed);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter($"{metricPrefix}.success");
                 return successAction?.Invoke(result.Value) ?? Ok(result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.failure");
             Logger.LogWarning("Command {CommandType} failed: {Error}", typeof(TCommand).Name, result.Error);
             return BadRequest(CreateErrorResponse(result.Error));
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.error");
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.Elapsed);
-            
+
             Logger.LogError(ex, "Error executing {OperationName} with command {CommandType}", operationName, typeof(TCommand).Name);
             return StatusCode(500, CreateErrorResponse("Internal server error"));
         }
@@ -84,29 +75,22 @@ public abstract class BaseApiController : ControllerBase
         try
         {
             Logger.LogDebug("Executing {OperationName} with query {QueryType}", operationName, typeof(TQuery).Name);
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.requests");
 
             var result = await Mediator.Send(query);
 
             stopwatch.Stop();
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.duration", stopwatch.Elapsed);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter($"{metricPrefix}.success");
                 return successAction?.Invoke(result.Value) ?? Ok(result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.failure");
             Logger.LogWarning("Query {QueryType} failed: {Error}", typeof(TQuery).Name, result.Error);
             return BadRequest(CreateErrorResponse(result.Error));
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.error");
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.Elapsed);
-            
+
             Logger.LogError(ex, "Error executing {OperationName} with query {QueryType}", operationName, typeof(TQuery).Name);
             return StatusCode(500, CreateErrorResponse("Internal server error"));
         }
@@ -125,29 +109,22 @@ public abstract class BaseApiController : ControllerBase
         try
         {
             Logger.LogDebug("Executing {OperationName} with command {CommandType}", operationName, typeof(TCommand).Name);
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.requests");
 
             var result = await Mediator.Send(command);
 
             stopwatch.Stop();
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.duration", stopwatch.Elapsed);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter($"{metricPrefix}.success");
                 return NoContent();
             }
-
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.failure");
             Logger.LogWarning("Command {CommandType} failed: {Error}", typeof(TCommand).Name, result.Error);
             return BadRequest(CreateErrorResponse(result.Error));
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            PerformanceMetrics?.IncrementCounter($"{metricPrefix}.error");
-            PerformanceMetrics?.RecordDuration($"{metricPrefix}.error_duration", stopwatch.Elapsed);
-            
+
             Logger.LogError(ex, "Error executing {OperationName} with command {CommandType}", operationName, typeof(TCommand).Name);
             return StatusCode(500, CreateErrorResponse("Internal server error"));
         }

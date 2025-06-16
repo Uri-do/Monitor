@@ -1,5 +1,6 @@
-// Advanced Chart Components
-export { AdvancedChart } from './AdvancedChart';
+// Chart Components
+export { Chart } from './Chart';
+export { LazyChart } from './LazyChart';
 
 // Chart types and interfaces
-export type { ChartDataPoint, ChartSeries, AdvancedChartProps } from './AdvancedChart';
+export type { ChartDataPoint, ChartSeries } from './Chart';

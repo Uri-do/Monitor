@@ -19,6 +19,8 @@ export {
   FormLayout,
   FormSection,
   FormActions,
+  InfoItem,
+  ConfirmationDialog,
 } from './UI';
 
 // ===== BUSINESS LOGIC COMPONENTS =====

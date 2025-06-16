@@ -30,7 +30,7 @@ public class ApiDocumentationController : BaseApiController
         IAdvancedPerformanceMonitoring performanceMonitoring,
         IAdvancedSecurityService securityService,
         IPerformanceMetricsService? performanceMetrics = null)
-        : base(mediator, logger, performanceMetrics)
+        : base(mediator, logger)
     {
         _documentationService = documentationService;
         _performanceMonitoring = performanceMonitoring;

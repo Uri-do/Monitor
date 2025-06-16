@@ -3,6 +3,8 @@ using MonitoringGrid.Worker.Services;
 using MonitoringGrid.Worker.Configuration;
 using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Services;
+using MonitoringGrid.Infrastructure;
+using Microsoft.Extensions.Http;
 using MonitoringGrid.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
@@ -45,12 +47,11 @@ builder.Services.Configure<MonitoringGrid.Core.Models.EmailConfiguration>(
 builder.Services.Configure<MonitoringGrid.Core.Models.MonitoringConfiguration>(
     builder.Configuration.GetSection("Monitoring"));
 
-// Core Services
-builder.Services.AddScoped<IIndicatorService, MonitoringGrid.Infrastructure.Services.IndicatorService>();
-builder.Services.AddScoped<IIndicatorExecutionService, MonitoringGrid.Infrastructure.Services.IndicatorExecutionService>();
-builder.Services.AddScoped<IEmailService, MonitoringGrid.Infrastructure.Services.EmailService>();
-builder.Services.AddScoped<ISmsService, MonitoringGrid.Infrastructure.Services.SmsService>();
-builder.Services.AddScoped<IRepository<MonitoringGrid.Core.Entities.Indicator>, MonitoringGrid.Infrastructure.Repositories.Repository<MonitoringGrid.Core.Entities.Indicator>>();
+// Add Infrastructure services (includes all core services, cache, etc.)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Add HttpClient
+builder.Services.AddHttpClient();
 
 // Worker Services
 builder.Services.AddHostedService<IndicatorMonitoringWorker>();

@@ -24,7 +24,7 @@ public class IndicatorControllerSimple : BaseApiController
         IMapper mapper,
         ILogger<IndicatorControllerSimple> logger,
         IPerformanceMetricsService? performanceMetrics = null)
-        : base(mediator, logger, performanceMetrics)
+        : base(mediator, logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
@@ -67,24 +67,19 @@ public class IndicatorControllerSimple : BaseApiController
         try
         {
             Logger.LogDebug("Creating indicator {IndicatorName}", request.IndicatorName);
-            PerformanceMetrics?.IncrementCounter("indicator.create.requests");
 
             var command = _mapper.Map<CreateIndicatorCommand>(request);
             var result = await Mediator.Send(command);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter("indicator.create.success");
                 return CreatedAtAction(nameof(GetIndicator), new { id = result.Value.IndicatorID }, result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter("indicator.create.failure");
             return BadRequest(result.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error creating indicator {IndicatorName}", request.IndicatorName);
-            PerformanceMetrics?.IncrementCounter("indicator.create.error");
             return StatusCode(500, "Internal server error");
         }
     }
@@ -107,24 +102,19 @@ public class IndicatorControllerSimple : BaseApiController
             }
 
             Logger.LogDebug("Updating indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.update.requests");
 
             var command = _mapper.Map<UpdateIndicatorCommand>(request);
             var result = await Mediator.Send(command);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter("indicator.update.success");
                 return Ok(result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter("indicator.update.failure");
             return BadRequest(result.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error updating indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.update.error");
             return StatusCode(500, "Internal server error");
         }
     }
@@ -142,24 +132,19 @@ public class IndicatorControllerSimple : BaseApiController
         try
         {
             Logger.LogDebug("Deleting indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.delete.requests");
 
             var command = new DeleteIndicatorCommand(id);
             var result = await Mediator.Send(command);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter("indicator.delete.success");
                 return NoContent();
             }
-
-            PerformanceMetrics?.IncrementCounter("indicator.delete.failure");
             return BadRequest(result.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error deleting indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.delete.error");
             return StatusCode(500, "Internal server error");
         }
     }
@@ -177,28 +162,23 @@ public class IndicatorControllerSimple : BaseApiController
         try
         {
             Logger.LogDebug("Executing indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.execute.requests");
 
             var command = new ExecuteIndicatorCommand(
-                id, 
-                request?.ExecutionContext ?? "Manual", 
+                id,
+                request?.ExecutionContext ?? "Manual",
                 request?.SaveResults ?? true);
-            
+
             var result = await Mediator.Send(command);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter("indicator.execute.success");
                 return Ok(result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter("indicator.execute.failure");
             return BadRequest(result.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error executing indicator {IndicatorId}", id);
-            PerformanceMetrics?.IncrementCounter("indicator.execute.error");
             return StatusCode(500, "Internal server error");
         }
     }
@@ -214,24 +194,19 @@ public class IndicatorControllerSimple : BaseApiController
         try
         {
             Logger.LogDebug("Getting indicator dashboard");
-            PerformanceMetrics?.IncrementCounter("indicator.dashboard.requests");
 
             var query = new GetIndicatorDashboardQuery();
             var result = await Mediator.Send(query);
 
             if (result.IsSuccess)
             {
-                PerformanceMetrics?.IncrementCounter("indicator.dashboard.success");
                 return Ok(result.Value);
             }
-
-            PerformanceMetrics?.IncrementCounter("indicator.dashboard.failure");
             return BadRequest(result.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error getting indicator dashboard");
-            PerformanceMetrics?.IncrementCounter("indicator.dashboard.error");
             return StatusCode(500, "Internal server error");
         }
     }

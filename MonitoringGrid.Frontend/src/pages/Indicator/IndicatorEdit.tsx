@@ -32,7 +32,7 @@ import * as yup from 'yup';
 import toast from 'react-hot-toast';
 
 import { useIndicator, useUpdateIndicator } from '@/hooks/useIndicators';
-import { useCollectors } from '@/hooks/useCollectors';
+import { useActiveCollectors, useCollectorItemNames } from '@/hooks/useMonitorStatistics';
 import { useSchedulers } from '@/hooks/useSchedulers';
 import { LoadingSpinner, PageHeader, FormLayout, FormSection, FormActions } from '@/components';
 import { UpdateIndicatorRequest } from '@/types/api';
@@ -78,8 +78,9 @@ const IndicatorEdit: React.FC = () => {
     enabled: !!id,
   });
 
-  const { data: collectors = [] } = useCollectors();
+  const { data: collectors = [] } = useActiveCollectors();
   const { data: schedulers = [] } = useSchedulers();
+  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
   const updateMutation = useUpdateIndicator();
 
   // Form setup
@@ -87,6 +88,8 @@ const IndicatorEdit: React.FC = () => {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<IndicatorFormData>({
     resolver: yupResolver(indicatorValidationSchema),
@@ -265,6 +268,8 @@ const IndicatorEdit: React.FC = () => {
               subtitle="Configure collector and data item"
               icon={<CollectorIcon />}
             >
+
+
               <Grid item xs={12} md={6}>
                 <Controller
                   name="collectorID"
@@ -297,14 +302,24 @@ const IndicatorEdit: React.FC = () => {
                   name="collectorItemName"
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Collector Item Name"
-                      fullWidth
-                      error={!!errors.collectorItemName}
-                      helperText={errors.collectorItemName?.message}
-                      placeholder="e.g., ConnectionCount"
-                    />
+                    <FormControl fullWidth error={!!errors.collectorItemName}>
+                      <InputLabel>Collector Item Name</InputLabel>
+                      <Select {...field} label="Collector Item Name" disabled={!watch('collectorID')}>
+                        <MenuItem value="">
+                          <em>Select an item</em>
+                        </MenuItem>
+                        {collectorItems.map((item) => (
+                          <MenuItem key={item} value={item}>
+                            {item}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.collectorItemName && (
+                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
+                          {errors.collectorItemName.message}
+                        </Box>
+                      )}
+                    </FormControl>
                   )}
                 />
               </Grid>

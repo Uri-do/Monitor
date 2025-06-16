@@ -298,7 +298,29 @@ export const monitorStatisticsApi = {
     const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
       '/monitorstatistics/collectors?activeOnly=true'
     );
-    return response.data.value || [];
+    const collectors = response.data.value || [];
+
+    // Transform the data to match the expected format
+    return collectors.map((collector: any) => ({
+      id: collector.collectorID,
+      collectorID: collector.collectorID,
+      collectorCode: collector.collectorCode,
+      collectorDesc: collector.collectorDesc,
+      displayName: collector.collectorCode || `Collector ${collector.collectorID}`,
+      frequencyMinutes: collector.frequencyMinutes || 0,
+      lastMinutes: collector.lastMinutes,
+      storeProcedure: collector.storeProcedure,
+      isActive: collector.isActive,
+      isActiveStatus: collector.isActive || false,
+      updatedDate: collector.updatedDate,
+      lastRun: collector.lastRun,
+      lastRunResult: collector.lastRunResult,
+      frequencyDisplay: `${collector.frequencyMinutes || 0} minutes`,
+      lastRunDisplay: collector.lastRun ? new Date(collector.lastRun).toLocaleString() : 'Never',
+      statusDisplay: collector.isActive ? 'Active' : 'Inactive',
+      statisticsCount: 0,
+      itemNames: []
+    }));
   },
 
   // Get all collectors
@@ -306,7 +328,29 @@ export const monitorStatisticsApi = {
     const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
       '/monitorstatistics/collectors?activeOnly=false'
     );
-    return response.data.value || [];
+    const collectors = response.data.value || [];
+
+    // Transform the data to match the expected format
+    return collectors.map((collector: any) => ({
+      id: collector.collectorID,
+      collectorID: collector.collectorID,
+      collectorCode: collector.collectorCode,
+      collectorDesc: collector.collectorDesc,
+      displayName: collector.collectorCode || `Collector ${collector.collectorID}`,
+      frequencyMinutes: collector.frequencyMinutes || 0,
+      lastMinutes: collector.lastMinutes,
+      storeProcedure: collector.storeProcedure,
+      isActive: collector.isActive,
+      isActiveStatus: collector.isActive || false,
+      updatedDate: collector.updatedDate,
+      lastRun: collector.lastRun,
+      lastRunResult: collector.lastRunResult,
+      frequencyDisplay: `${collector.frequencyMinutes || 0} minutes`,
+      lastRunDisplay: collector.lastRun ? new Date(collector.lastRun).toLocaleString() : 'Never',
+      statusDisplay: collector.isActive ? 'Active' : 'Inactive',
+      statisticsCount: 0,
+      itemNames: []
+    }));
   },
 
   // Get collector by ID
@@ -314,7 +358,31 @@ export const monitorStatisticsApi = {
     const response: AxiosResponse<{ isSuccess: boolean; value: any }> = await api.get(
       `/monitorstatistics/collectors/${collectorId}`
     );
-    return response.data.value;
+    const collector = response.data.value;
+
+    if (!collector) return null;
+
+    // Transform the data to match the expected format
+    return {
+      id: collector.collectorID,
+      collectorID: collector.collectorID,
+      collectorCode: collector.collectorCode,
+      collectorDesc: collector.collectorDesc,
+      displayName: collector.collectorCode || `Collector ${collector.collectorID}`,
+      frequencyMinutes: collector.frequencyMinutes || 0,
+      lastMinutes: collector.lastMinutes,
+      storeProcedure: collector.storeProcedure,
+      isActive: collector.isActive,
+      isActiveStatus: collector.isActive || false,
+      updatedDate: collector.updatedDate,
+      lastRun: collector.lastRun,
+      lastRunResult: collector.lastRunResult,
+      frequencyDisplay: `${collector.frequencyMinutes || 0} minutes`,
+      lastRunDisplay: collector.lastRun ? new Date(collector.lastRun).toLocaleString() : 'Never',
+      statusDisplay: collector.isActive ? 'Active' : 'Inactive',
+      statisticsCount: 0,
+      itemNames: []
+    };
   },
 
   // Get collector item names

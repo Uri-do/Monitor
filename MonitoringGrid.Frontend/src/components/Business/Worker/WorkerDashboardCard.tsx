@@ -209,7 +209,7 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
       if (currentStatus.isRunning) {
         toast.success('Worker service started successfully');
       } else {
-        toast.info('Worker service stopped');
+        toast('Worker service stopped', { icon: 'ℹ️' });
       }
     }
     if (currentStatus) {

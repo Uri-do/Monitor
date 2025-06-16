@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonProps, Box } from '@mui/material';
+import { Button as MuiButton, ButtonProps, Box } from '@mui/material';
 
 interface CustomButtonProps extends Omit<ButtonProps, 'color'> {
   children: React.ReactNode;
@@ -64,7 +64,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   const isOutlined = variant === 'outlined';
 
   return (
-    <Button
+    <MuiButton
       variant={variant}
       disabled={disabled || loading}
       sx={{
@@ -115,7 +115,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
         ) : null}
         {children}
       </Box>
-    </Button>
+    </MuiButton>
   );
 };
 
@@ -128,5 +128,8 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// Named export for compatibility
+export const Button = CustomButton;
 
 export default CustomButton;

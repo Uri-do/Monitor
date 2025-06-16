@@ -242,11 +242,14 @@ public static class ApplicationBuilderExtensions
         {
             endpoints.MapControllers();
             endpoints.MapHealthChecks("/health");
-            
+
+            // SignalR Hubs
+            endpoints.MapHub<MonitoringGrid.Api.Hubs.MonitoringHub>("/monitoring-hub");
+
             // Default route for SPA
             endpoints.MapFallbackToFile("index.html");
         });
-        
+
         return app;
     }
 

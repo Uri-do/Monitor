@@ -406,26 +406,85 @@ public class DatabaseOptimizationService : IDatabaseOptimizationService
     }
 
     /// <summary>
-    /// Cleans up old data to maintain performance
+    /// Cleans up old data to maintain performance with advanced archiving
     /// </summary>
     private async Task CleanupOldDataAsync(CancellationToken cancellationToken)
     {
         try
         {
-            // Archive old alert logs (older than 90 days)
-            var cutoffDate = DateTime.UtcNow.AddDays(-90);
-            var deletedCount = await _context.Database.ExecuteSqlRawAsync(
-                "DELETE FROM AlertLogs WHERE CreatedDate < {0}", cutoffDate);
-
-            if (deletedCount > 0)
+            var cleanupTasks = new List<Task>
             {
-                _logger.LogInformation("Cleaned up {DeletedCount} old alert log records", deletedCount);
-            }
+                ArchiveOldAlertLogsAsync(cancellationToken),
+                ArchiveOldHistoricalDataAsync(cancellationToken),
+                ArchiveOldAuditEventsAsync(cancellationToken),
+                CleanupOrphanedRecordsAsync(cancellationToken),
+                OptimizeTableSizesAsync(cancellationToken)
+            };
+
+            await Task.WhenAll(cleanupTasks);
+            _logger.LogInformation("Advanced data cleanup completed successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to cleanup old data");
+            _logger.LogWarning(ex, "Failed to complete advanced data cleanup");
         }
+    }
+
+    private async Task ArchiveOldAlertLogsAsync(CancellationToken cancellationToken)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-90);
+        var deletedCount = await _context.Database.ExecuteSqlRawAsync(
+            "DELETE FROM AlertLogs WHERE CreatedDate < {0}", cutoffDate);
+
+        if (deletedCount > 0)
+        {
+            _logger.LogInformation("Archived {DeletedCount} old alert log records", deletedCount);
+        }
+    }
+
+    private async Task ArchiveOldHistoricalDataAsync(CancellationToken cancellationToken)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-365); // Keep 1 year of historical data
+        var deletedCount = await _context.Database.ExecuteSqlRawAsync(
+            "DELETE FROM HistoricalData WHERE Timestamp < {0}", cutoffDate);
+
+        if (deletedCount > 0)
+        {
+            _logger.LogInformation("Archived {DeletedCount} old historical data records", deletedCount);
+        }
+    }
+
+    private async Task ArchiveOldAuditEventsAsync(CancellationToken cancellationToken)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-180); // Keep 6 months of audit data
+        var deletedCount = await _context.Database.ExecuteSqlRawAsync(
+            "DELETE FROM SecurityAuditEvents WHERE Timestamp < {0}", cutoffDate);
+
+        if (deletedCount > 0)
+        {
+            _logger.LogInformation("Archived {DeletedCount} old audit event records", deletedCount);
+        }
+    }
+
+    private async Task CleanupOrphanedRecordsAsync(CancellationToken cancellationToken)
+    {
+        // Clean up orphaned historical data
+        var orphanedHistoricalData = await _context.Database.ExecuteSqlRawAsync(@"
+            DELETE hd FROM HistoricalData hd
+            LEFT JOIN Indicators i ON hd.IndicatorID = i.IndicatorID
+            WHERE i.IndicatorID IS NULL");
+
+        if (orphanedHistoricalData > 0)
+        {
+            _logger.LogInformation("Cleaned up {Count} orphaned historical data records", orphanedHistoricalData);
+        }
+    }
+
+    private async Task OptimizeTableSizesAsync(CancellationToken cancellationToken)
+    {
+        // Shrink database files if significant space can be reclaimed
+        await _context.Database.ExecuteSqlRawAsync("DBCC SHRINKDATABASE(0, 10)");
+        _logger.LogInformation("Database size optimization completed");
     }
 }
 

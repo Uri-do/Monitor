@@ -58,9 +58,9 @@ const ContactList: React.FC = () => {
     const searchLower = filters.search.toLowerCase();
     return contacts.filter(
       contact =>
-        contact.name.toLowerCase().includes(searchLower) ||
-        contact.email?.toLowerCase().includes(searchLower) ||
-        contact.phone?.toLowerCase().includes(searchLower)
+        (contact.name && contact.name.toLowerCase().includes(searchLower)) ||
+        (contact.email && contact.email.toLowerCase().includes(searchLower)) ||
+        (contact.phone && contact.phone.toLowerCase().includes(searchLower))
     );
   }, [contacts, filters.search]);
 

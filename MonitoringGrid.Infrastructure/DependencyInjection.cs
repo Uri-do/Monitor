@@ -8,6 +8,7 @@ using MonitoringGrid.Infrastructure.Data;
 using MonitoringGrid.Infrastructure.Repositories;
 using MonitoringGrid.Infrastructure.Services;
 using MonitoringGrid.Infrastructure.Events;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Infrastructure;
 
@@ -111,7 +112,7 @@ public static class DependencyInjection
         services.AddScoped<ISchedulerService, SchedulerService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IContactService, ContactService>();
-        services.AddScoped<IPerformanceMetricsService, PerformanceMetricsService>();
+        // Performance monitoring will be added via AddPerformanceMonitoring extension
         services.AddScoped<IAlertService, AlertService>();
 
         // Notification Services - Optimized lifetimes
@@ -169,12 +170,14 @@ public static class DependencyInjection
     /// <summary>
     /// Add performance monitoring services
     /// </summary>
-    public static IServiceCollection AddPerformanceMonitoring(this IServiceCollection services)
+    public static IServiceCollection AddPerformanceMonitoring(this IServiceCollection services, IConfiguration configuration)
     {
+        // Add existing performance monitoring service
         services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
 
-        // Add performance counters and metrics
+        // Add performance metrics services
         services.AddSingleton<IPerformanceMetricsCollector, PerformanceMetricsCollector>();
+        services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
 
         return services;
     }

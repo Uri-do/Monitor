@@ -66,7 +66,7 @@ export const LazyWrapper: React.FC<LazyWrapperProps> = ({
 }) => {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
-      <Suspense fallback={fallback || <DefaultLoadingFallback minHeight={minHeight} />}>
+      <Suspense fallback={fallback || <DefaultLoadingFallback minHeight={minHeight || 200} />}>
         {children}
       </Suspense>
     </ErrorBoundary>
