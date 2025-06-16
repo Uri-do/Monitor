@@ -130,7 +130,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     (data: IndicatorExecutionCompleted) => {
       setState(prev => ({
         ...prev,
-        runningIndicators: prev.runningIndicators.filter(
+        runningIndicators: (prev.runningIndicators || []).filter(
           indicator => indicator.indicatorID !== data.indicatorID
         ),
         lastUpdate: new Date(),
@@ -171,7 +171,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
 
   // Next Indicator schedule update handler
   const handleNextIndicatorScheduleUpdate = useCallback((data: NextIndicatorScheduleUpdate) => {
-    if (data.nextIndicators.length > 0) {
+    if ((data.nextIndicators || []).length > 0) {
       const nextIndicator = data.nextIndicators[0];
       setState(prev => ({
         ...prev,
@@ -186,7 +186,7 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
   const handleRunningIndicatorsUpdate = useCallback((data: RunningIndicatorsUpdate) => {
     setState(prev => ({
       ...prev,
-      runningIndicators: data.runningIndicators,
+      runningIndicators: data.runningIndicators || [],
       lastUpdate: new Date(),
     }));
   }, []);
