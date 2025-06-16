@@ -40,7 +40,7 @@ const TopAlertingIndicatorsCard: React.FC<TopAlertingIndicatorsCardProps> = ({
             </Typography>
           </Box>
           <List sx={{ p: 0 }}>
-            {alertDashboard.topAlertingKpis.slice(0, 5).map(indicator => (
+            {(alertDashboard?.topAlertingKpis || []).slice(0, 5).map(indicator => (
               <ListItem
                 key={indicator.kpiId}
                 button

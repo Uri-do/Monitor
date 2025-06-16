@@ -32,20 +32,22 @@ export const VirtualizedList = <T,>({
   emptyMessage = 'No items to display',
   loadingMessage = 'Loading...',
 }: VirtualizedListProps<T>) => {
+  const itemsArray = Array.isArray(items) ? items : [];
+
   const isItemLoaded = useCallback(
     (index: number) => {
-      return !!items[index];
+      return !!itemsArray[index];
     },
-    [items]
+    [itemsArray]
   );
 
-  const itemCount = hasNextPage ? items.length + 1 : items.length;
+  const itemCount = hasNextPage ? itemsArray.length + 1 : itemsArray.length;
 
   const Item = useCallback(
     ({ index, style }: ListChildComponentProps) => {
       let content;
 
-      if (index >= items.length) {
+      if (index >= itemsArray.length) {
         // Loading item
         content = (
           <Box
@@ -62,13 +64,13 @@ export const VirtualizedList = <T,>({
         );
       } else {
         // Regular item
-        const item = items[index];
+        const item = itemsArray[index];
         content = renderItem(item, index, style);
       }
 
       return <div style={style}>{content}</div>;
     },
-    [items, renderItem, loadingMessage]
+    [itemsArray, renderItem, loadingMessage]
   );
 
   const ListComponent = useMemo(() => {
@@ -78,7 +80,7 @@ export const VirtualizedList = <T,>({
     return List;
   }, [itemHeight]);
 
-  if (items.length === 0 && !isNextPageLoading) {
+  if (itemsArray.length === 0 && !isNextPageLoading) {
     return (
       <Box
         display="flex"
@@ -162,14 +164,15 @@ export const VirtualizedGrid = <T,>({
   className,
   emptyMessage = 'No items to display',
 }: VirtualizedGridProps<T>) => {
-  const rowCount = Math.ceil(items.length / columnCount);
+  const itemsArray = Array.isArray(items) ? items : [];
+  const rowCount = Math.ceil(itemsArray.length / columnCount);
 
   const Cell = useCallback(
     ({ columnIndex, rowIndex, style }: any) => {
       const itemIndex = rowIndex * columnCount + columnIndex;
-      
-      if (itemIndex >= items.length) {
-        if (itemIndex === items.length && isNextPageLoading) {
+
+      if (itemIndex >= itemsArray.length) {
+        if (itemIndex === itemsArray.length && isNextPageLoading) {
           return (
             <div style={style}>
               <Box
@@ -186,13 +189,13 @@ export const VirtualizedGrid = <T,>({
         return <div style={style} />;
       }
 
-      const item = items[itemIndex];
+      const item = itemsArray[itemIndex];
       return renderItem(item, rowIndex, columnIndex, style);
     },
-    [items, columnCount, renderItem, isNextPageLoading]
+    [itemsArray, columnCount, renderItem, isNextPageLoading]
   );
 
-  if (items.length === 0 && !isNextPageLoading) {
+  if (itemsArray.length === 0 && !isNextPageLoading) {
     return (
       <Box
         display="flex"

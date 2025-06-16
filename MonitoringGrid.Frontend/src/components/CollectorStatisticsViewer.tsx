@@ -566,7 +566,7 @@ export const CollectorStatisticsViewer: React.FC<CollectorStatisticsViewerProps>
                       Item Visibility (click to toggle):
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {uniqueItemNames.map((itemName, index) => (
+                      {(Array.isArray(uniqueItemNames) ? uniqueItemNames : []).map((itemName, index) => (
                         <Chip
                           key={itemName}
                           label={itemName}

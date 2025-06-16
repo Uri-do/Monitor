@@ -102,7 +102,7 @@ export const DataTableBody: React.FC<DataTableBodyProps> = ({
 
   return (
     <TableBody>
-      {data.map((row, index) => {
+      {(Array.isArray(data) ? data : []).map((row, index) => {
         const isItemSelected = isSelected(row);
         return (
           <TableRow
@@ -150,7 +150,7 @@ export const DataTableBody: React.FC<DataTableBodyProps> = ({
               </TableCell>
             )}
 
-            {columns.map(column => (
+            {(Array.isArray(columns) ? columns : []).map(column => (
               <TableCell
                 key={column.id}
                 align={column.align || 'left'}
@@ -200,7 +200,7 @@ export const DataTableBody: React.FC<DataTableBodyProps> = ({
                     </Tooltip>
                   )}
 
-                  {actions?.map((action, actionIndex) => (
+                  {(Array.isArray(actions) ? actions : []).map((action, actionIndex) => (
                     <Tooltip key={actionIndex} title={action.label}>
                       <IconButton
                         size="small"

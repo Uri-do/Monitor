@@ -26,6 +26,7 @@ import {
   AutorenewOutlined,
   Timer,
   PlayCircle,
+  Warning,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -93,6 +94,9 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
           break;
         case 'restart':
           result = await workerApi.restart();
+          break;
+        case 'force-stop':
+          result = await workerApi.forceStop();
           break;
         default:
           throw new Error(`Unknown action: ${action}`);
@@ -424,6 +428,28 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
                 >
                   Restart
                 </Button>
+
+                <Tooltip title="Emergency stop - kills all worker processes">
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => performAction('force-stop')}
+                    disabled={
+                      actionLoading === 'force-stop' ||
+                      currentStatus.mode === 'Integrated'
+                    }
+                    startIcon={
+                      actionLoading === 'force-stop' ? (
+                        <CircularProgress size={14} />
+                      ) : (
+                        <Warning />
+                      )
+                    }
+                  >
+                    Force Stop
+                  </Button>
+                </Tooltip>
               </Box>
 
               {/* Integration Mode Alert */}

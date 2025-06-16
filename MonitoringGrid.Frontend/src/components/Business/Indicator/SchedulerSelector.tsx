@@ -71,7 +71,7 @@ export const SchedulerSelector: React.FC<SchedulerSelectorProps> = ({
   });
 
   // Transform schedulers to match GenericSelectorOption interface
-  const schedulerOptions: SchedulerOption[] = (schedulers || []).map(scheduler => ({
+  const schedulerOptions: SchedulerOption[] = (Array.isArray(schedulers) ? schedulers : []).map(scheduler => ({
     id: scheduler.schedulerID,
     name: scheduler.schedulerName || `Scheduler ${scheduler.schedulerID}`,
     description: scheduler.schedulerDescription,

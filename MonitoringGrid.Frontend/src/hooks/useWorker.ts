@@ -129,9 +129,26 @@ export const useRestartWorker = () => {
   });
 };
 
+// Hook to force stop worker (emergency cleanup)
+export const useForceStopWorker = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => workerApi.forceStop(),
+    onSuccess: () => {
+      // Invalidate worker status to refresh
+      queryClient.invalidateQueries({ queryKey: workerQueryKeys.status() });
+    },
+    onError: (error) => {
+      ErrorHandlers.mutation(error, 'Failed to force stop worker');
+    },
+  });
+};
+
 export default {
   useWorkerStatus,
   useStartWorker,
   useStopWorker,
   useRestartWorker,
+  useForceStopWorker,
 };

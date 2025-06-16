@@ -65,7 +65,7 @@ const Dashboard: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['alerts', 'dashboard'] });
     refetchIndicator();
     refetchAlert();
-    dashboardState.refreshDashboard();
+    dashboardState?.refreshDashboard();
   };
 
   if (indicatorLoading || alertLoading) {
@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <DashboardHeader
         lastUpdate={indicatorDashboard?.lastUpdate}
-        countdown={dashboardState.countdown}
+        countdown={dashboardState?.countdown}
         onRefresh={handleRefresh}
       />
 
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
         {/* Running Indicators */}
         <RunningIndicatorsCard
           indicatorDashboard={mergedIndicatorDashboard}
-          realtimeRunningIndicators={(dashboardState.runningIndicators || []).map(indicator => ({
+          realtimeRunningIndicators={(dashboardState?.runningIndicators || []).map(indicator => ({
             indicatorId: indicator.indicatorID,
             indicator: indicator.indicator,
             owner: indicator.owner,
@@ -118,8 +118,8 @@ const Dashboard: React.FC = () => {
         {/* Next Indicator Due */}
         <NextIndicatorExecutionCard
           indicatorDashboard={mergedIndicatorDashboard}
-          countdown={dashboardState.countdown}
-          isConnected={dashboardState.isConnected}
+          countdown={dashboardState?.countdown}
+          isConnected={dashboardState?.isConnected}
         />
 
         {/* Execution Errors - Real-time error monitoring */}

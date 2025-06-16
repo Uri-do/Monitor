@@ -22,6 +22,7 @@ using MonitoringGrid.Api.Monitoring;
 using MonitoringGrid.Api.Security;
 using MonitoringGrid.Api.Caching;
 using MonitoringGrid.Api.Events;
+using Quartz;
 
 namespace MonitoringGrid.Api.Extensions;
 
@@ -238,8 +239,12 @@ public static class ServiceCollectionExtensions
         // Performance monitoring (using Core interface and Infrastructure implementation)
         services.AddSingleton<MonitoringGrid.Core.Interfaces.IPerformanceMetricsService, MonitoringGrid.Infrastructure.Services.PerformanceMetricsService>();
 
-        // Note: Background services are handled by Worker project
-        // No hosted services registered here to avoid conflicts
+        // Add Worker services if integrated mode is enabled
+        var enableWorkerServices = configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableWorkerServices", false);
+        if (enableWorkerServices)
+        {
+            services.AddWorkerServices(configuration);
+        }
 
         return services;
     }
@@ -327,5 +332,31 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddEnterpriseApiVersioning(this IServiceCollection services)
     {
         return services.AddAdvancedApiVersioning();
+    }
+
+    /// <summary>
+    /// Add Worker services for integrated mode
+    /// </summary>
+    public static IServiceCollection AddWorkerServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Add Quartz.NET for scheduling
+        services.AddQuartz(q =>
+        {
+            q.UseSimpleTypeLoader();
+            q.UseInMemoryStore();
+            q.UseDefaultThreadPool(tp =>
+            {
+                tp.MaxConcurrency = 10;
+            });
+        });
+
+        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+        // Add Worker hosted services
+        services.AddHostedService<MonitoringGrid.Worker.Services.IndicatorMonitoringWorker>();
+        services.AddHostedService<MonitoringGrid.Worker.Services.ScheduledTaskWorker>();
+        services.AddHostedService<MonitoringGrid.Worker.Services.HealthCheckWorker>();
+
+        return services;
     }
 }

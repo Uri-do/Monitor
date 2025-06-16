@@ -26,9 +26,12 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
   const navigate = useNavigate();
 
   // Use real-time data if available, otherwise fall back to dashboard data
+  const realtimeArray = Array.isArray(realtimeRunningIndicators) ? realtimeRunningIndicators : [];
+  const dashboardArray = Array.isArray(indicatorDashboard?.runningIndicators) ? indicatorDashboard.runningIndicators : [];
+
   const runningIndicators: RunningIndicator[] =
-    realtimeRunningIndicators.length > 0
-      ? realtimeRunningIndicators.map(indicator => ({
+    realtimeArray.length > 0
+      ? realtimeArray.map(indicator => ({
           indicatorID: indicator.indicatorId,
           indicator: indicator.indicator,
           owner: indicator.owner,
@@ -36,7 +39,7 @@ const RunningIndicatorsCard: React.FC<RunningIndicatorsCardProps> = ({
           progress: indicator.progress,
           estimatedCompletion: indicator.estimatedCompletion,
         }))
-      : (indicatorDashboard?.runningIndicators || []).map(indicator => ({
+      : dashboardArray.map(indicator => ({
           indicatorID: indicator.indicatorId,
           indicator: indicator.indicatorName,
           owner: 'System', // Fallback since IndicatorStatusDto doesn't have owner

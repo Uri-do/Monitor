@@ -120,7 +120,7 @@ export const Chart: React.FC<ChartProps> = ({
       theme.palette.success.main,
     ];
 
-    return series.map((s, index) => s.color || baseColors[index % baseColors.length]);
+    return (Array.isArray(series) ? series : []).map((s, index) => s.color || baseColors[index % baseColors.length]);
   }, [series, theme]);
 
   // Custom tooltip component
@@ -134,7 +134,7 @@ export const Chart: React.FC<ChartProps> = ({
           <Typography variant="body2" fontWeight="bold">
             {label}
           </Typography>
-          {payload.map((entry: any, index: number) => (
+          {(Array.isArray(payload) ? payload : []).map((entry: any, index: number) => (
             <Typography key={index} variant="body2" sx={{ color: entry.color }}>
               {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
             </Typography>
@@ -146,9 +146,10 @@ export const Chart: React.FC<ChartProps> = ({
   // Export functionality
   const handleExport = (format: 'png' | 'svg' | 'csv') => {
     if (format === 'csv') {
+      const dataArray = Array.isArray(data) ? data : [];
       const csvContent = [
-        Object.keys(data[0] || {}).join(','),
-        ...data.map(row => Object.values(row).join(',')),
+        Object.keys(dataArray[0] || {}).join(','),
+        ...dataArray.map(row => Object.values(row).join(',')),
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -189,8 +190,12 @@ export const Chart: React.FC<ChartProps> = ({
 
   // Render different chart types
   const renderChart = () => {
+    const dataArray = Array.isArray(data) ? data : [];
+    const seriesArray = Array.isArray(series) ? series : [];
+    const thresholdsArray = Array.isArray(thresholds) ? thresholds : [];
+
     const commonProps = {
-      data,
+      data: dataArray,
       margin: { top: 20, right: 30, left: 20, bottom: 20 },
     };
 
@@ -208,7 +213,7 @@ export const Chart: React.FC<ChartProps> = ({
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
             {showLegend && <Legend />}
-            {thresholds.map((threshold, index) => (
+            {thresholdsArray.map((threshold, index) => (
               <ReferenceLine
                 key={index}
                 y={threshold.value}
@@ -217,7 +222,7 @@ export const Chart: React.FC<ChartProps> = ({
                 label={threshold.label}
               />
             ))}
-            {series.map((s, index) => (
+            {seriesArray.map((s, index) => (
               <Line
                 key={s.key}
                 type="monotone"
@@ -248,7 +253,7 @@ export const Chart: React.FC<ChartProps> = ({
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
             {showLegend && <Legend />}
-            {series.map((s, index) => (
+            {seriesArray.map((s, index) => (
               <Area
                 key={s.key}
                 type="monotone"
@@ -275,7 +280,7 @@ export const Chart: React.FC<ChartProps> = ({
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
             {showLegend && <Legend />}
-            {series.map((s, index) => (
+            {seriesArray.map((s, index) => (
               <Bar
                 key={s.key}
                 dataKey={s.key}
@@ -290,7 +295,7 @@ export const Chart: React.FC<ChartProps> = ({
         return (
           <PieChart>
             <Pie
-              data={data}
+              data={dataArray}
               cx="50%"
               cy="50%"
               outerRadius={Math.min(height * 0.3, 120)}
@@ -299,7 +304,7 @@ export const Chart: React.FC<ChartProps> = ({
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               animationDuration={animations ? 1000 : 0}
             >
-              {data.map((entry, index) => (
+              {dataArray.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
               ))}
             </Pie>
@@ -321,11 +326,11 @@ export const Chart: React.FC<ChartProps> = ({
             <YAxis dataKey="y" stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
             {showLegend && <Legend />}
-            {series.map((s, index) => (
+            {seriesArray.map((s, index) => (
               <Scatter
                 key={s.key}
                 name={s.name}
-                data={data}
+                data={dataArray}
                 fill={chartColors[index]}
                 animationDuration={animations ? 1000 : 0}
               />
@@ -346,7 +351,7 @@ export const Chart: React.FC<ChartProps> = ({
             <YAxis stroke={theme.palette.text.secondary} />
             {showTooltip && <RechartsTooltip content={<CustomTooltip />} />}
             {showLegend && <Legend />}
-            {series.map((s, index) => {
+            {seriesArray.map((s, index) => {
               const color = chartColors[index];
               switch (s.type) {
                 case 'area':

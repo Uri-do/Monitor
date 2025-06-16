@@ -189,12 +189,16 @@ public class WorkerController : ControllerBase
                 var allWorkerProcesses = GetAllWorkerProcesses();
                 if (allWorkerProcesses.Any())
                 {
-                    var runningWorker = allWorkerProcesses.First();
+                    var runningWorkers = allWorkerProcesses.Select(p => p.Id).ToList();
+                    var message = allWorkerProcesses.Count == 1
+                        ? $"Worker is already running (PID: {runningWorkers.First()})"
+                        : $"Multiple workers are already running (PIDs: {string.Join(", ", runningWorkers)})";
+
                     return BadRequest(new WorkerActionResultDto
                     {
                         Success = false,
-                        Message = $"Worker is already running (PID: {runningWorker.Id}). Found {allWorkerProcesses.Count} worker process(es).",
-                        ProcessId = runningWorker.Id,
+                        Message = message,
+                        ProcessId = runningWorkers.First(),
                         Timestamp = DateTime.UtcNow
                     });
                 }
@@ -287,34 +291,106 @@ public class WorkerController : ControllerBase
 
             lock (_processLock)
             {
-                if (_workerProcess == null || _workerProcess.HasExited)
+                // Get all worker processes (both tracked and external)
+                var allWorkerProcesses = GetAllWorkerProcesses();
+
+                if (allWorkerProcesses.Count == 0)
                 {
+                    // Clean up tracked process reference if it exists
+                    if (_workerProcess != null)
+                    {
+                        try
+                        {
+                            _workerProcess.Dispose();
+                        }
+                        catch { }
+                        _workerProcess = null;
+                    }
+
                     return BadRequest(new WorkerActionResultDto
                     {
                         Success = false,
-                        Message = "Worker is not running",
+                        Message = "No worker processes are currently running",
                         Timestamp = DateTime.UtcNow
                     });
                 }
 
-                var processId = _workerProcess.Id;
+                var stoppedProcesses = new List<int>();
+                var failedProcesses = new List<int>();
 
-                // Worker cleanup will be handled automatically by the application shutdown handler
-
-                _workerProcess.Kill();
-                _workerProcess.WaitForExit(5000); // Wait up to 5 seconds
-                _workerProcess.Dispose();
-                _workerProcess = null;
-
-                _logger.LogInformation("Stopped Worker process with PID: {ProcessId}", processId);
-
-                return Ok(new WorkerActionResultDto
+                // Stop all worker processes
+                foreach (var process in allWorkerProcesses)
                 {
-                    Success = true,
-                    Message = $"Worker stopped successfully (PID: {processId})",
-                    ProcessId = processId,
-                    Timestamp = DateTime.UtcNow
-                });
+                    try
+                    {
+                        var processId = process.Id;
+                        _logger.LogInformation("Attempting to stop Worker process with PID: {ProcessId}", processId);
+
+                        // Try graceful shutdown first
+                        if (!process.HasExited)
+                        {
+                            process.CloseMainWindow();
+                            if (!process.WaitForExit(3000)) // Wait 3 seconds for graceful shutdown
+                            {
+                                // Force kill if graceful shutdown failed
+                                process.Kill();
+                                process.WaitForExit(5000); // Wait up to 5 seconds for force kill
+                            }
+                        }
+
+                        stoppedProcesses.Add(processId);
+                        _logger.LogInformation("Successfully stopped Worker process with PID: {ProcessId}", processId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to stop Worker process with PID: {ProcessId}", process.Id);
+                        failedProcesses.Add(process.Id);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            process.Dispose();
+                        }
+                        catch { }
+                    }
+                }
+
+                // Clean up tracked process reference
+                if (_workerProcess != null)
+                {
+                    try
+                    {
+                        _workerProcess.Dispose();
+                    }
+                    catch { }
+                    _workerProcess = null;
+                }
+
+                // Return result
+                if (stoppedProcesses.Count > 0)
+                {
+                    var message = failedProcesses.Count > 0
+                        ? $"Stopped {stoppedProcesses.Count} worker process(es). Failed to stop {failedProcesses.Count} process(es)."
+                        : $"Successfully stopped {stoppedProcesses.Count} worker process(es)";
+
+                    return Ok(new WorkerActionResultDto
+                    {
+                        Success = failedProcesses.Count == 0,
+                        Message = message,
+                        ProcessId = stoppedProcesses.FirstOrDefault(),
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    return StatusCode(500, new WorkerActionResultDto
+                    {
+                        Success = false,
+                        Message = "Failed to stop any worker processes",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
             }
         }
         catch (Exception ex)
@@ -483,6 +559,99 @@ public class WorkerController : ControllerBase
     }
 
     /// <summary>
+    /// Force kill all worker processes (emergency cleanup)
+    /// </summary>
+    [HttpPost("force-stop")]
+    public ActionResult<WorkerActionResultDto> ForceStopWorkers()
+    {
+        try
+        {
+            _logger.LogWarning("Force stop requested for all worker processes");
+
+            var allWorkerProcesses = GetAllWorkerProcesses();
+            if (allWorkerProcesses.Count == 0)
+            {
+                return Ok(new WorkerActionResultDto
+                {
+                    Success = true,
+                    Message = "No worker processes found to stop",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            var killedProcesses = new List<int>();
+            var failedProcesses = new List<int>();
+
+            foreach (var process in allWorkerProcesses)
+            {
+                try
+                {
+                    var processId = process.Id;
+                    _logger.LogWarning("Force killing Worker process with PID: {ProcessId}", processId);
+
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true); // Kill entire process tree
+                        process.WaitForExit(10000); // Wait up to 10 seconds
+                    }
+
+                    killedProcesses.Add(processId);
+                    _logger.LogInformation("Force killed Worker process with PID: {ProcessId}", processId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to force kill Worker process with PID: {ProcessId}", process.Id);
+                    failedProcesses.Add(process.Id);
+                }
+                finally
+                {
+                    try
+                    {
+                        process.Dispose();
+                    }
+                    catch { }
+                }
+            }
+
+            // Clean up tracked process reference
+            lock (_processLock)
+            {
+                if (_workerProcess != null)
+                {
+                    try
+                    {
+                        _workerProcess.Dispose();
+                    }
+                    catch { }
+                    _workerProcess = null;
+                }
+            }
+
+            var message = failedProcesses.Count > 0
+                ? $"Force killed {killedProcesses.Count} process(es). Failed to kill {failedProcesses.Count} process(es)."
+                : $"Successfully force killed {killedProcesses.Count} worker process(es)";
+
+            return Ok(new WorkerActionResultDto
+            {
+                Success = failedProcesses.Count == 0,
+                Message = message,
+                ProcessId = killedProcesses.FirstOrDefault(),
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during force stop");
+            return StatusCode(500, new WorkerActionResultDto
+            {
+                Success = false,
+                Message = $"Error during force stop: {ex.Message}",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
     /// Manually trigger worker cleanup (for testing)
     /// </summary>
     [HttpPost("cleanup-workers")]
@@ -530,45 +699,102 @@ public class WorkerController : ControllerBase
     {
         try
         {
-            return System.Diagnostics.Process.GetProcesses()
-                .Where(p =>
-                {
-                    try
-                    {
-                        // Check for direct MonitoringGrid.Worker process name
-                        if (p.ProcessName.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase))
-                            return true;
+            var workerProcesses = new List<Process>();
+            var allProcesses = System.Diagnostics.Process.GetProcesses();
 
-                        // Check for dotnet processes running MonitoringGrid.Worker
-                        if (p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+            foreach (var process in allProcesses)
+            {
+                try
+                {
+                    // Skip current API process
+                    if (process.Id == Environment.ProcessId)
+                        continue;
+
+                    // Skip if process has already exited
+                    if (process.HasExited)
+                        continue;
+
+                    var isWorkerProcess = false;
+
+                    // Check for direct MonitoringGrid.Worker process name
+                    if (process.ProcessName.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isWorkerProcess = true;
+                    }
+                    // Check for dotnet processes running MonitoringGrid.Worker
+                    else if (process.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
                         {
-                            try
+                            // Method 1: Check command line arguments
+                            var commandLine = GetProcessCommandLine(process.Id);
+                            if (commandLine?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true)
                             {
-                                // Check command line arguments for MonitoringGrid.Worker
-                                var commandLine = GetProcessCommandLine(p.Id);
-                                return commandLine?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                                isWorkerProcess = true;
                             }
-                            catch
+                            // Method 2: Check main module path
+                            else if (process.MainModule?.FileName?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true)
                             {
-                                // Fallback to checking main module
-                                return p.MainModule?.FileName?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                                isWorkerProcess = true;
+                            }
+                            // Method 3: Check working directory (if accessible)
+                            else
+                            {
+                                try
+                                {
+                                    var startInfo = process.StartInfo;
+                                    if (startInfo?.WorkingDirectory?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true)
+                                    {
+                                        isWorkerProcess = true;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Working directory not accessible, ignore
+                                }
                             }
                         }
+                        catch
+                        {
+                            // If we can't check command line or module, skip this process
+                        }
+                    }
 
-                        return false;
-                    }
-                    catch
+                    if (isWorkerProcess)
                     {
-                        return false;
+                        workerProcesses.Add(process);
+                        _logger.LogDebug("Found worker process: PID {ProcessId}, Name: {ProcessName}",
+                            process.Id, process.ProcessName);
                     }
-                })
-                .Where(p => p.Id != Environment.ProcessId) // Exclude current API process
-                .OrderByDescending(p => p.StartTime) // Get the most recently started process
-                .ToList();
+                }
+                catch (Exception ex)
+                {
+                    // Process might have exited or access denied, skip it
+                    _logger.LogDebug(ex, "Error checking process {ProcessId}", process.Id);
+                    try
+                    {
+                        process.Dispose();
+                    }
+                    catch { }
+                }
+            }
+
+            // Sort by start time (most recent first)
+            return workerProcesses.OrderByDescending(p =>
+            {
+                try
+                {
+                    return p.StartTime;
+                }
+                catch
+                {
+                    return DateTime.MinValue;
+                }
+            }).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error getting worker processes");
+            _logger.LogError(ex, "Error getting worker processes");
             return new List<Process>();
         }
     }

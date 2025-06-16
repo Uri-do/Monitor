@@ -7,8 +7,10 @@ export const useCollectors = () => {
     queryKey: ['collectors'],
     queryFn: async () => {
       const response = await monitorStatisticsApi.getActiveCollectors();
+      // Ensure response is an array before mapping
+      const collectors = Array.isArray(response) ? response : [];
       // Transform the response to match the expected format
-      return response.map((collector: any) => ({
+      return collectors.map((collector: any) => ({
         id: collector.collectorID,
         collectorID: collector.collectorID,
         name: collector.collectorCode,

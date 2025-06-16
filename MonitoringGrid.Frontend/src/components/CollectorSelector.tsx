@@ -75,7 +75,7 @@ export const CollectorSelector: React.FC<CollectorSelectorProps> = ({
   } = useCollectorItemNames(internalCollectorId || 0);
 
   // Transform collectors to match GenericSelectorOption interface
-  const collectorOptions: CollectorOption[] = (collectors || []).map(collector => ({
+  const collectorOptions: CollectorOption[] = (Array.isArray(collectors) ? collectors : []).map(collector => ({
     id: collector.collectorID,
     name: collector.displayName || collector.collectorCode || `Collector ${collector.collectorID}`,
     description: collector.collectorDesc,

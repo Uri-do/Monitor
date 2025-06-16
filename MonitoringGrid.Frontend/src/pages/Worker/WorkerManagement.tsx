@@ -33,6 +33,7 @@ import {
   Timer,
   TrendingUp,
   AccessTime,
+  Warning,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
@@ -137,6 +138,9 @@ const WorkerManagement: React.FC = () => {
         case 'restart':
           result = await workerApi.restart();
           break;
+        case 'force-stop':
+          result = await workerApi.forceStop();
+          break;
         default:
           throw new Error(`Unknown action: ${action}`);
       }
@@ -234,6 +238,14 @@ const WorkerManagement: React.FC = () => {
               actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
             onClick: () => performAction('restart'),
             gradient: 'warning',
+          },
+          {
+            label: 'Force Stop',
+            icon:
+              actionLoading === 'force-stop' ? <CircularProgress size={16} /> : <Warning />,
+            onClick: () => performAction('force-stop'),
+            gradient: 'error',
+            tooltip: 'Emergency stop - kills all worker processes',
           },
         ]}
         onRefresh={fetchStatus}

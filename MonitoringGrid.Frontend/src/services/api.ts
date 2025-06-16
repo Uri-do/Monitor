@@ -300,8 +300,10 @@ export const monitorStatisticsApi = {
     );
     const collectors = response.data.value || [];
 
+    // Ensure collectors is an array before mapping
+    const collectorsArray = Array.isArray(collectors) ? collectors : [];
     // Transform the data to match the expected format
-    return collectors.map((collector: any) => ({
+    return collectorsArray.map((collector: any) => ({
       id: collector.collectorID,
       collectorID: collector.collectorID,
       collectorCode: collector.collectorCode,
@@ -330,8 +332,10 @@ export const monitorStatisticsApi = {
     );
     const collectors = response.data.value || [];
 
+    // Ensure collectors is an array before mapping
+    const collectorsArray = Array.isArray(collectors) ? collectors : [];
     // Transform the data to match the expected format
-    return collectors.map((collector: any) => ({
+    return collectorsArray.map((collector: any) => ({
       id: collector.collectorID,
       collectorID: collector.collectorID,
       collectorCode: collector.collectorCode,
@@ -1041,6 +1045,12 @@ export const workerApi = {
   // Restart worker service
   restart: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/worker/restart');
+    return response.data;
+  },
+
+  // Force stop all worker processes (emergency cleanup)
+  forceStop: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/worker/force-stop');
     return response.data;
   },
 
