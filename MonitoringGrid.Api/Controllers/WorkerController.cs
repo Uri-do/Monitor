@@ -439,42 +439,7 @@ public class WorkerController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Execute a specific Indicator manually
-    /// </summary>
-    [HttpPost("execute-indicator/{indicatorId}")]
-    public async Task<IActionResult> ExecuteIndicator(long indicatorId)
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
 
-            var indicator = await context.Indicators.FindAsync(indicatorId);
-            if (indicator == null)
-            {
-                return NotFound(new { success = false, message = "Indicator not found" });
-            }
-
-            // Mark as currently running
-            indicator.IsCurrentlyRunning = true;
-            await context.SaveChangesAsync();
-
-            _logger.LogInformation("Manual execution requested for Indicator {IndicatorId}: {IndicatorName}", indicatorId, indicator.IndicatorName);
-
-            return Ok(new {
-                success = true,
-                message = $"Indicator execution started: {indicator.IndicatorName}",
-                indicatorId = indicatorId,
-                indicatorName = indicator.IndicatorName
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing Indicator {IndicatorId}", indicatorId);
-            return StatusCode(500, new { success = false, message = "Failed to execute Indicator" });
-        }
-    }
 
     /// <summary>
     /// Activate all Indicators (for testing)
@@ -817,14 +782,16 @@ public class WorkerController : ControllerBase
                 saveResults: true,
                 CancellationToken.None);
 
-            if (result.IsSuccess)
+            if (result.WasSuccessful)
             {
                 return Ok(new
                 {
                     success = true,
                     message = $"Indicator {indicatorId} executed successfully",
                     indicatorId = indicatorId,
-                    executionResult = result.Value,
+                    indicatorName = result.IndicatorName,
+                    currentValue = result.CurrentValue,
+                    executionDuration = result.ExecutionDuration.TotalMilliseconds,
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -833,9 +800,10 @@ public class WorkerController : ControllerBase
                 return BadRequest(new
                 {
                     success = false,
-                    message = $"Failed to execute indicator {indicatorId}: {result.Error.Message}",
+                    message = $"Failed to execute indicator {indicatorId}: {result.ErrorMessage}",
                     indicatorId = indicatorId,
-                    error = result.Error.Message,
+                    indicatorName = result.IndicatorName,
+                    error = result.ErrorMessage,
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -875,12 +843,13 @@ public class WorkerController : ControllerBase
                 executedCount = results.Count,
                 results = results.Select(r => new
                 {
-                    indicatorId = r.IndicatorId,
+                    indicatorId = r.IndicatorID,
                     indicatorName = r.IndicatorName,
-                    success = r.IsSuccess,
-                    message = r.Message,
-                    executionTime = r.ExecutionTime,
-                    currentValue = r.CurrentValue
+                    success = r.WasSuccessful,
+                    errorMessage = r.ErrorMessage,
+                    executionDuration = r.ExecutionDuration.TotalMilliseconds,
+                    currentValue = r.CurrentValue,
+                    thresholdBreached = r.ThresholdBreached
                 }).ToList(),
                 timestamp = DateTime.UtcNow
             });
