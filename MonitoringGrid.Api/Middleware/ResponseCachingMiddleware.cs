@@ -84,28 +84,28 @@ public class ResponseCachingMiddleware
         
         return path switch
         {
-            var p when p?.Contains("/api/kpi/dashboard") == true => new CacheConfiguration
+            var p when p?.Contains("/api/indicator/dashboard") == true => new CacheConfiguration
             {
                 Enabled = false, // Disable caching for dashboard to show real-time data
                 Duration = TimeSpan.Zero,
                 VaryByQuery = false,
-                Tags = new[] { "dashboard", "kpi" }
+                Tags = new[] { "dashboard", "indicator" }
             },
-            var p when p?.Contains("/api/kpi") == true && !p.Contains("/execute") => new CacheConfiguration
+            var p when p?.Contains("/api/indicator") == true && !p.Contains("/execute") => new CacheConfiguration
             {
                 Enabled = true,
                 Duration = TimeSpan.FromMinutes(5),
                 VaryByQuery = true,
-                Tags = new[] { "kpi" }
+                Tags = new[] { "indicator" }
             },
-            var p when p?.Contains("/api/kpi/contacts") == true => new CacheConfiguration
+            var p when p?.Contains("/api/contacts") == true => new CacheConfiguration
             {
                 Enabled = true,
                 Duration = TimeSpan.FromMinutes(10),
                 VaryByQuery = false,
                 Tags = new[] { "contacts" }
             },
-            var p when p?.Contains("/api/kpi/alerts/statistics") == true => new CacheConfiguration
+            var p when p?.Contains("/api/alerts/statistics") == true => new CacheConfiguration
             {
                 Enabled = true,
                 Duration = TimeSpan.FromMinutes(3),

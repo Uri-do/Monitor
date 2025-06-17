@@ -183,14 +183,14 @@ public class ApiDocumentationService : IApiDocumentationService
             new EndpointDocumentation
             {
                 Method = "GET",
-                Path = "/api/kpi/alerts",
+                Path = "/api/alerts",
                 Summary = "Get alerts with advanced filtering",
                 Description = "Retrieves alerts with comprehensive filtering, sorting, and pagination. Includes real-time updates via SignalR integration.",
                 Parameters = new List<ParameterDocumentation>
                 {
                     new() { Name = "severity", Type = "string", Description = "Filter by severity (Low, Medium, High, Critical)", Required = false },
                     new() { Name = "status", Type = "string", Description = "Filter by status (Active, Acknowledged, Resolved)", Required = false },
-                    new() { Name = "kpiId", Type = "integer", Description = "Filter by KPI identifier", Required = false },
+                    new() { Name = "indicatorId", Type = "integer", Description = "Filter by Indicator identifier", Required = false },
                     new() { Name = "fromDate", Type = "datetime", Description = "Filter alerts from date (ISO 8601)", Required = false },
                     new() { Name = "toDate", Type = "datetime", Description = "Filter alerts to date (ISO 8601)", Required = false },
                     new() { Name = "page", Type = "integer", Description = "Page number for pagination", Required = false },

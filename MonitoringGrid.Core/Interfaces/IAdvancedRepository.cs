@@ -39,7 +39,7 @@ public interface IAdvancedRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Gets paged results with filtering and sorting
     /// </summary>
-    Task<MonitoringGrid.Core.Models.PagedResult<T>> GetPagedAsync(
+    Task<PagedResult<T>> GetPagedAsync(
         int page,
         int pageSize,
         Expression<Func<T, bool>>? filter = null,
@@ -57,7 +57,7 @@ public interface IAdvancedRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Gets paged projected results
     /// </summary>
-    Task<MonitoringGrid.Core.Models.PagedResult<TResult>> GetProjectedPagedAsync<TResult>(
+    Task<PagedResult<TResult>> GetProjectedPagedAsync<TResult>(
         Expression<Func<T, TResult>> selector,
         int page,
         int pageSize,

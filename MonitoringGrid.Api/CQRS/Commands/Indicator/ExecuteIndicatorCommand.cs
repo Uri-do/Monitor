@@ -1,13 +1,13 @@
 using MediatR;
 using MonitoringGrid.Core.Common;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 
 namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 
 /// <summary>
 /// Command to execute an indicator
 /// </summary>
-public class ExecuteIndicatorCommand : IRequest<Result<IndicatorExecutionResultDto>>
+public class ExecuteIndicatorCommand : IRequest<Result<IndicatorExecutionResultResponse>>
 {
     public long IndicatorID { get; set; }
     public string ExecutionContext { get; set; } = "Manual";

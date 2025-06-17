@@ -1,13 +1,13 @@
 using MediatR;
 using MonitoringGrid.Core.Common;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 
 namespace MonitoringGrid.Api.CQRS.Queries.Indicator;
 
 /// <summary>
 /// Query to get indicators with optional filtering
 /// </summary>
-public class GetIndicatorsQuery : IRequest<Result<List<IndicatorDto>>>
+public class GetIndicatorsQuery : IRequest<Result<List<IndicatorResponse>>>
 {
     public bool? IsActive { get; set; }
     public string? Priority { get; set; }

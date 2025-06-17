@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using System.Data;
@@ -195,8 +196,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
                     Total = reader.GetInt32("Total"),
                     Marked = reader.GetInt32("Marked"),
                     MarkedPercent = reader.GetDecimal("MarkedPercent"),
-                    Day = reader.GetDateTime("Day"),
-                    Hour = reader.GetInt32("Hour")
+                    Timestamp = reader.GetDateTime("Day").AddHours(reader.GetInt32("Hour"))
                 };
 
                 statistics.Add(statistic);
@@ -269,11 +269,10 @@ public class ProgressPlayDbService : IProgressPlayDbService
                     ItemName = reader.GetString("ItemName"),
                     Total = reader.GetInt32("Total"),
                     Marked = reader.GetInt32("Marked"),
-                    MarkedPercent = reader.FieldCount > 3 && !reader.IsDBNull("MarkedPercent") 
-                        ? reader.GetDecimal("MarkedPercent") 
+                    MarkedPercent = reader.FieldCount > 3 && !reader.IsDBNull("MarkedPercent")
+                        ? reader.GetDecimal("MarkedPercent")
                         : (reader.GetInt32("Total") > 0 ? (decimal)reader.GetInt32("Marked") / reader.GetInt32("Total") * 100 : 0),
-                    Day = DateTime.UtcNow.Date,
-                    Hour = DateTime.UtcNow.Hour
+                    Timestamp = DateTime.UtcNow
                 };
 
                 results.Add(result);

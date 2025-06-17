@@ -1,11 +1,13 @@
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.ValueObjects;
 using MonitoringGrid.Core.Events;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Core.Services;
 
 /// <summary>
-/// Domain service for complex Indicator business logic
+/// Enhanced domain service for complex Indicator business logic with Result pattern
 /// </summary>
 public class IndicatorDomainService
 {
@@ -60,9 +62,9 @@ public class IndicatorDomainService
     }
 
     /// <summary>
-    /// Validates indicator configuration for business rules
+    /// Validates indicator configuration for business rules with enhanced Result pattern
     /// </summary>
-    public ValidationResult ValidateIndicatorConfiguration(Indicator indicator)
+    public Result<ValidationResult> ValidateIndicatorConfiguration(Indicator indicator)
     {
         var errors = new List<string>();
         var warnings = new List<string>();
@@ -119,12 +121,14 @@ public class IndicatorDomainService
             warnings.Add("Scheduler ID is set but Scheduler entity is not loaded");
         }
 
-        return new ValidationResult
+        var validationResult = new ValidationResult
         {
             IsValid = !errors.Any(),
-            Errors = errors,
-            Warnings = warnings
+            Errors = errors.Select(e => new ValidationError { Message = e }).ToList(),
+            Warnings = warnings.Select(w => new ValidationWarning { Message = w }).ToList()
         };
+
+        return Result<ValidationResult>.Success(validationResult);
     }
 
     /// <summary>
@@ -249,6 +253,174 @@ public class IndicatorDomainService
         return events;
     }
 
+    /// <summary>
+    /// Validates SQL query for security and performance
+    /// </summary>
+    public Result<SqlQuery> ValidateSqlQuery(string query)
+    {
+        try
+        {
+            var sqlQuery = new SqlQuery(query);
+
+            // Additional business rule validations
+            if (sqlQuery.IsHighComplexity())
+            {
+                return Result.Failure<SqlQuery>(Error.Validation(
+                    "SQL_QUERY_TOO_COMPLEX",
+                    "The SQL query is too complex and may impact performance"));
+            }
+
+            var tableReferences = sqlQuery.GetTableReferences();
+            if (tableReferences.Count > 10)
+            {
+                return Result.Failure<SqlQuery>(Error.Validation(
+                    "SQL_QUERY_TOO_MANY_TABLES",
+                    "The SQL query references too many tables"));
+            }
+
+            return Result.Success(sqlQuery);
+        }
+        catch (ArgumentException ex)
+        {
+            return Result.Failure<SqlQuery>(Error.Validation(
+                "INVALID_SQL_QUERY",
+                ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Validates indicator code for business rules
+    /// </summary>
+    public Result<IndicatorCode> ValidateIndicatorCode(string code, bool isUpdate = false, long? existingIndicatorId = null)
+    {
+        try
+        {
+            var indicatorCode = new IndicatorCode(code);
+
+            // Additional business rule validations
+            if (indicatorCode.IsSystemCode() && !isUpdate)
+            {
+                return Result.Failure<IndicatorCode>(Error.Validation(
+                    "SYSTEM_CODE_NOT_ALLOWED",
+                    "System indicator codes can only be created by system processes"));
+            }
+
+            return Result.Success(indicatorCode);
+        }
+        catch (ArgumentException ex)
+        {
+            return Result.Failure<IndicatorCode>(Error.Validation(
+                "INVALID_INDICATOR_CODE",
+                ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Validates execution context for business rules
+    /// </summary>
+    public Result<ValueObjects.ExecutionContext> ValidateExecutionContext(string context, bool requiresUserPermission = false)
+    {
+        try
+        {
+            var executionContext = new ValueObjects.ExecutionContext(context);
+
+            // Additional business rule validations
+            if (requiresUserPermission && !executionContext.RequiresUserPermission())
+            {
+                return Result.Failure<ValueObjects.ExecutionContext>(Error.Validation(
+                    "EXECUTION_CONTEXT_REQUIRES_PERMISSION",
+                    "This execution context requires user permission"));
+            }
+
+            return Result.Success(executionContext);
+        }
+        catch (ArgumentException ex)
+        {
+            return Result.Failure<ValueObjects.ExecutionContext>(Error.Validation(
+                "INVALID_EXECUTION_CONTEXT",
+                ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Calculates indicator health score based on multiple factors
+    /// </summary>
+    public Result<IndicatorHealthScore> CalculateHealthScore(Indicator indicator, List<IndicatorExecutionSummary> recentExecutions)
+    {
+        try
+        {
+            var score = 100; // Start with perfect score
+            var issues = new List<string>();
+
+            // Check execution success rate
+            if (recentExecutions.Any())
+            {
+                var successRate = recentExecutions.Count(e => e.WasSuccessful) / (double)recentExecutions.Count;
+                if (successRate < 0.5)
+                {
+                    score -= 40;
+                    issues.Add("Low success rate");
+                }
+                else if (successRate < 0.8)
+                {
+                    score -= 20;
+                    issues.Add("Moderate success rate");
+                }
+            }
+
+            // Check for recent failures
+            var recentFailures = recentExecutions.Where(e => !e.WasSuccessful).ToList();
+            if (recentFailures.Count >= 3)
+            {
+                score -= 30;
+                issues.Add("Multiple recent failures");
+            }
+
+            // Check execution frequency
+            if (indicator.Scheduler != null && indicator.LastRun.HasValue)
+            {
+                var nextExecution = indicator.Scheduler.GetNextExecutionTime(indicator.LastRun);
+                if (nextExecution.HasValue && DateTime.UtcNow > nextExecution.Value.AddHours(1))
+                {
+                    score -= 25;
+                    issues.Add("Overdue execution");
+                }
+            }
+
+            // Check configuration validity
+            var validationResult = ValidateIndicatorConfiguration(indicator);
+            if (validationResult.IsSuccess && !validationResult.Value.IsValid)
+            {
+                score -= 15;
+                issues.Add("Configuration issues");
+            }
+
+            var healthLevel = score switch
+            {
+                >= 90 => HealthLevel.Healthy,
+                >= 70 => HealthLevel.Warning,
+                >= 50 => HealthLevel.Critical,
+                _ => HealthLevel.Unknown
+            };
+
+            var healthScore = new IndicatorHealthScore
+            {
+                Score = Math.Max(0, score),
+                HealthLevel = healthLevel,
+                Issues = issues,
+                LastCalculated = DateTime.UtcNow
+            };
+
+            return Result.Success(healthScore);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<IndicatorHealthScore>(Error.Failure(
+                "HEALTH_CALCULATION_ERROR",
+                $"Failed to calculate indicator health score: {ex.Message}"));
+        }
+    }
+
     private static double CalculateVolatility(List<decimal> values)
     {
         if (values.Count < 2)
@@ -261,13 +433,15 @@ public class IndicatorDomainService
 }
 
 /// <summary>
-/// Validation result for indicator configuration
+/// Enhanced indicator health score
 /// </summary>
-public class ValidationResult
+public class IndicatorHealthScore
 {
-    public bool IsValid { get; set; }
-    public List<string> Errors { get; set; } = new();
-    public List<string> Warnings { get; set; } = new();
+    public int Score { get; set; }
+    public HealthLevel HealthLevel { get; set; }
+    public List<string> Issues { get; set; } = new();
+    public DateTime LastCalculated { get; set; }
+    public Dictionary<string, object>? Metrics { get; set; }
 }
 
 /// <summary>

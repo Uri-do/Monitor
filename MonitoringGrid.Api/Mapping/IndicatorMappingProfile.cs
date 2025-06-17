@@ -15,11 +15,11 @@ public class IndicatorMappingProfile : Profile
 {
     public IndicatorMappingProfile()
     {
-        // Indicator mappings
-        CreateMap<Indicator, IndicatorDto>()
-            .ForMember(dest => dest.OwnerContact, opt => opt.MapFrom(src => src.OwnerContact))
-            .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)))
-            .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
+        // Indicator mappings - IndicatorDto doesn't exist - commented out
+        // CreateMap<Indicator, IndicatorDto>()
+        //     .ForMember(dest => dest.OwnerContact, opt => opt.MapFrom(src => src.OwnerContact))
+        //     .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)))
+        //     .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
 
         // Scheduler mappings
         CreateMap<Scheduler, SchedulerDto>()
@@ -44,80 +44,83 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
             .ForMember(dest => dest.Indicators, opt => opt.Ignore());
 
-        CreateMap<CreateIndicatorRequest, Indicator>()
-            .ForMember(dest => dest.IndicatorID, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.LastRun, opt => opt.Ignore())
-            .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
-            .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
-            .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
-            .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
-            .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
-            .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
-            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
+        // CreateIndicatorRequest doesn't exist - commented out
+        // CreateMap<CreateIndicatorRequest, Indicator>()
+        //     .ForMember(dest => dest.IndicatorID, opt => opt.Ignore())
+        //     .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+        //     .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+        //     .ForMember(dest => dest.LastRun, opt => opt.Ignore())
+        //     .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
+        //     .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
+        //     .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
+        //     .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
+        //     .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
+        //     .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
+        //     .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
+        //     .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
+        //     .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
 
-        CreateMap<UpdateIndicatorRequest, Indicator>()
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.LastRun, opt => opt.Ignore())
-            .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
-            .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
-            .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
-            .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
-            .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
-            .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
-            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
-            .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
-            .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
+        // UpdateIndicatorRequest doesn't exist - commented out
+        // CreateMap<UpdateIndicatorRequest, Indicator>()
+        //     .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+        //     .ForMember(dest => dest.UpdatedDate, opt => opt.Ignore())
+        //     .ForMember(dest => dest.LastRun, opt => opt.Ignore())
+        //     .ForMember(dest => dest.LastRunResult, opt => opt.Ignore())
+        //     .ForMember(dest => dest.AverageHour, opt => opt.Ignore())
+        //     .ForMember(dest => dest.IsCurrentlyRunning, opt => opt.Ignore())
+        //     .ForMember(dest => dest.ExecutionStartTime, opt => opt.Ignore())
+        //     .ForMember(dest => dest.ExecutionContext, opt => opt.Ignore())
+        //     .ForMember(dest => dest.OwnerContact, opt => opt.Ignore())
+        //     .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore())
+        //     .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
+        //     .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
 
-        // Indicator execution result mappings
-        CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();
+        // Indicator execution result mappings - IndicatorExecutionResult and IndicatorExecutionResultDto don't exist - commented out
+        // CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();
 
-        // Dashboard mappings
-        CreateMap<IndicatorDashboard, IndicatorDashboardDto>();
-        CreateMap<IndicatorExecutionSummary, IndicatorExecutionSummaryDto>();
-        CreateMap<IndicatorCountByPriority, IndicatorCountByPriorityDto>();
+        // Dashboard mappings - These DTOs don't exist - commented out
+        // CreateMap<IndicatorDashboard, IndicatorDashboardDto>();
+        // CreateMap<IndicatorExecutionSummary, IndicatorExecutionSummaryDto>();
+        // CreateMap<IndicatorCountByPriority, IndicatorCountByPriorityDto>();
 
-        // Statistics mappings
-        CreateMap<IndicatorStatistics, IndicatorStatisticsDto>();
-        CreateMap<IndicatorValueTrend, IndicatorValueTrendDto>();
+        // Statistics mappings - These DTOs don't exist - commented out
+        // CreateMap<IndicatorStatistics, IndicatorStatisticsDto>();
+        // CreateMap<IndicatorValueTrend, IndicatorValueTrendDto>();
 
-        // Test result mappings
-        CreateMap<IndicatorTestResult, IndicatorExecutionResultDto>()
-            .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"));
+        // Test result mappings - These DTOs don't exist - commented out
+        // CreateMap<IndicatorTestResult, IndicatorExecutionResultDto>()
+        //     .ForMember(dest => dest.ExecutionTime, opt => opt.MapFrom(src => DateTime.UtcNow))
+        //     .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"));
 
-        // Execution status mappings
-        CreateMap<IndicatorExecutionStatus, IndicatorStatusDto>()
-            .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src => src.NextRun))
-            .ForMember(dest => dest.LastError, opt => opt.MapFrom(src => src.Status == "error" ? "Execution error" : null));
+        // Execution status mappings - These DTOs don't exist - commented out
+        // CreateMap<IndicatorExecutionStatus, IndicatorStatusDto>()
+        //     .ForMember(dest => dest.NextRun, opt => opt.MapFrom(src => src.NextRun))
+        //     .ForMember(dest => dest.LastError, opt => opt.MapFrom(src => src.Status == "error" ? "Execution error" : null));
 
-        // Execution history mappings
-        CreateMap<IndicatorExecutionHistory, IndicatorExecutionSummaryDto>()
-            .ForMember(dest => dest.IndicatorName, opt => opt.Ignore())
-            .ForMember(dest => dest.Priority, opt => opt.Ignore());
+        // Execution history mappings - These DTOs don't exist - commented out
+        // CreateMap<IndicatorExecutionHistory, IndicatorExecutionSummaryDto>()
+        //     .ForMember(dest => dest.IndicatorName, opt => opt.Ignore())
+        //     .ForMember(dest => dest.Priority, opt => opt.Ignore());
 
         // Collector mappings
         CreateMap<Collector, MonitoringGrid.Core.Entities.CollectorDto>()
             .ForMember(dest => dest.AvailableItems, opt => opt.MapFrom(src => src.Statistics.Select(s => s.ItemName).Distinct()));
 
-        CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();
+        // CollectorStatisticDto doesn't exist - commented out
+        // CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();
 
-        // Request to command mappings
-        CreateMap<CreateIndicatorRequest, CreateIndicatorCommand>();
-        CreateMap<UpdateIndicatorRequest, UpdateIndicatorCommand>();
-        CreateMap<ExecuteIndicatorRequest, ExecuteIndicatorCommand>();
-        CreateMap<TestIndicatorRequest, ExecuteIndicatorCommand>()
-            .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"))
-            .ForMember(dest => dest.SaveResults, opt => opt.MapFrom(src => false));
+        // Request to command mappings - These request DTOs don't exist - commented out
+        // CreateMap<CreateIndicatorRequest, CreateIndicatorCommand>();
+        // CreateMap<UpdateIndicatorRequest, UpdateIndicatorCommand>();
+        // CreateMap<ExecuteIndicatorRequest, ExecuteIndicatorCommand>();
+        // CreateMap<TestIndicatorRequest, ExecuteIndicatorCommand>()
+        //     .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"))
+        //     .ForMember(dest => dest.SaveResults, opt => opt.MapFrom(src => false));
 
-        CreateMap<IndicatorFilterRequest, GetIndicatorsQuery>();
+        // CreateMap<IndicatorFilterRequest, GetIndicatorsQuery>();
 
-        // Bulk operation mappings
-        CreateMap<BulkIndicatorOperationRequest, List<long>>()
-            .ConvertUsing(src => src.IndicatorIDs);
+        // Bulk operation mappings - BulkIndicatorOperationRequest doesn't exist - commented out
+        // CreateMap<BulkIndicatorOperationRequest, List<long>>()
+        //     .ConvertUsing(src => src.IndicatorIDs);
     }
 }

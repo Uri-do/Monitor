@@ -3,13 +3,13 @@ namespace MonitoringGrid.Core.Models;
 /// <summary>
 /// Configuration validation result
 /// </summary>
-public class ValidationResult
+public class ConfigurationValidationResult
 {
     public bool IsValid { get; set; }
     public string? ErrorMessage { get; set; }
 
-    public static ValidationResult Success() => new() { IsValid = true };
-    public static ValidationResult Error(string message) => new() { IsValid = false, ErrorMessage = message };
+    public static ConfigurationValidationResult Success() => new() { IsValid = true };
+    public static ConfigurationValidationResult Error(string message) => new() { IsValid = false, ErrorMessage = message };
 }
 
 /// <summary>

@@ -77,6 +77,22 @@ public class IndicatorDashboardUpdateDto
 }
 
 /// <summary>
+/// DTO for Indicator execution summary in dashboard
+/// </summary>
+public class IndicatorExecutionSummaryDto
+{
+    public long ExecutionId { get; set; }
+    public long IndicatorId { get; set; }
+    public string IndicatorName { get; set; } = string.Empty;
+    public DateTime ExecutionTime { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public long DurationMs { get; set; }
+    public int ResultCount { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? ExecutionContext { get; set; }
+}
+
+/// <summary>
 /// DTO for Indicator status summary in dashboard
 /// </summary>
 public class IndicatorStatusSummaryDto

@@ -46,7 +46,7 @@ public class ContactController : BaseApiController
         [FromQuery] int pageSize = 20)
     {
         var validationError = ValidateModelState();
-        if (validationError != null) return validationError;
+        if (validationError != null) return BadRequest(validationError);
 
         if (page < 1) return ValidationError(nameof(page), "Page must be greater than 0");
         if (pageSize < 1 || pageSize > 100) return ValidationError(nameof(pageSize), "Page size must be between 1 and 100");
@@ -97,10 +97,10 @@ public class ContactController : BaseApiController
     [ProducesResponseType(typeof(ApiResponse<ContactDto>), 201)]
     [ProducesResponseType(typeof(ValidationErrorResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 500)]
-    public async Task<IActionResult> CreateContact([FromBody] MonitoringGrid.Api.DTOs.CreateContactRequest request)
+    public async Task<IActionResult> CreateContact([FromBody] MonitoringGrid.Api.DTOs.Contacts.CreateContactRequest request)
     {
         var validationError = ValidateModelState();
-        if (validationError != null) return validationError;
+        if (validationError != null) return BadRequest(validationError);
 
         var command = new CreateContactCommand(
             request.Name,
@@ -126,10 +126,10 @@ public class ContactController : BaseApiController
     [ProducesResponseType(typeof(ValidationErrorResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
     [ProducesResponseType(typeof(ApiResponse), 500)]
-    public async Task<IActionResult> UpdateContact(int id, [FromBody] MonitoringGrid.Api.DTOs.UpdateContactRequest request)
+    public async Task<IActionResult> UpdateContact(int id, [FromBody] MonitoringGrid.Api.DTOs.Contacts.UpdateContactRequest request)
     {
         var validationError = ValidateModelState();
-        if (validationError != null) return validationError;
+        if (validationError != null) return BadRequest(validationError);
 
         if (id <= 0) return ValidationError(nameof(id), "Contact ID must be greater than 0");
         if (id != request.ContactID) return ValidationError(nameof(id), "Contact ID in URL does not match request body");
@@ -210,7 +210,7 @@ public class ContactController : BaseApiController
     public async Task<IActionResult> BulkUpdateContactStatus([FromBody] BulkUpdateContactStatusRequest request)
     {
         var validationError = ValidateModelState();
-        if (validationError != null) return validationError;
+        if (validationError != null) return BadRequest(validationError);
 
         if (!request.ContactIds.Any())
         {

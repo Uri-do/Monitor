@@ -56,9 +56,9 @@ public class CollectorDto
 }
 
 /// <summary>
-/// DTO for collector statistics
+/// DTO for collector statistics (entity-specific)
 /// </summary>
-public class CollectorStatisticDto
+public class CollectorEntityStatisticDto
 {
     public string ItemName { get; set; } = string.Empty;
     public int Total { get; set; }

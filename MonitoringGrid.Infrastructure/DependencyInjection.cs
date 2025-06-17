@@ -128,18 +128,14 @@ public static class DependencyInjection
         // External Services
         services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
 
-        // Security Services - Fixed lifetimes for database dependencies
-        services.AddScoped<ISecurityService, SecurityService>(); // Scoped - depends on MonitoringContext
+        // Security Services - Consolidated without adapters
+        services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
 
-        // Security Service Adapters for backward compatibility
-        services.AddScoped<ISecurityAuditService>(provider =>
-            new SecurityAuditServiceAdapter(provider.GetRequiredService<ISecurityService>()));
-        services.AddScoped<IAuthenticationService>(provider =>
-            new AuthenticationServiceAdapter(provider.GetRequiredService<ISecurityService>()));
-
-        services.AddScoped<IThreatDetectionService>(provider =>
-            new ThreatDetectionServiceAdapter(provider.GetRequiredService<ISecurityService>()));
+        // Direct service registrations (no adapters needed)
+        services.AddScoped<IAuthenticationService, SecurityService>();
+        services.AddScoped<ISecurityAuditService, SecurityService>();
+        services.AddScoped<IThreatDetectionService, SecurityService>();
 
 
         return services;

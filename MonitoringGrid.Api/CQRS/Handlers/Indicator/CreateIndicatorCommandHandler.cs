@@ -2,7 +2,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Events;
@@ -13,7 +13,7 @@ namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
 /// <summary>
 /// Handler for creating new indicators
 /// </summary>
-public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorCommand, Result<IndicatorDto>>
+public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorCommand, Result<IndicatorResponse>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIndicatorService _indicatorService;
@@ -38,7 +38,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
         _logger = logger;
     }
 
-    public async Task<Result<IndicatorDto>> Handle(CreateIndicatorCommand request, CancellationToken cancellationToken)
+    public async Task<Result<IndicatorResponse>> Handle(CreateIndicatorCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -48,12 +48,12 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var collector = await _statisticsService.GetCollectorByCollectorIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
+                return Result.Failure<IndicatorResponse>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
 
             if (!(collector.IsActive ?? false))
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
+                return Result.Failure<IndicatorResponse>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
             }
 
             // Validate collector item name exists
@@ -62,7 +62,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 var availableItems = await _statisticsService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
                 if (!availableItems.Contains(request.CollectorItemName))
                 {
-                    return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
+                    return Result.Failure<IndicatorResponse>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
                 }
             }
 
@@ -71,7 +71,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var ownerContact = await contactRepository.GetByIdAsync(request.OwnerContactId, cancellationToken);
             if (ownerContact == null)
             {
-                return Result.Failure<IndicatorDto>("OWNER_CONTACT_NOT_FOUND", $"Owner contact with ID {request.OwnerContactId} not found");
+                return Result.Failure<IndicatorResponse>("OWNER_CONTACT_NOT_FOUND", $"Owner contact with ID {request.OwnerContactId} not found");
             }
 
             // Validate additional contacts if provided
@@ -81,7 +81,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 var missingContactIds = request.ContactIds.Except(contacts.Select(c => c.ContactId)).ToList();
                 if (missingContactIds.Any())
                 {
-                    return Result.Failure<IndicatorDto>("CONTACTS_NOT_FOUND", $"Contacts not found: {string.Join(", ", missingContactIds)}");
+                    return Result.Failure<IndicatorResponse>("CONTACTS_NOT_FOUND", $"Contacts not found: {string.Join(", ", missingContactIds)}");
                 }
             }
 
@@ -92,11 +92,11 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 var scheduler = await schedulerRepository.GetByIdAsync(request.SchedulerID.Value, cancellationToken);
                 if (scheduler == null)
                 {
-                    return Result.Failure<IndicatorDto>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {request.SchedulerID} not found");
+                    return Result.Failure<IndicatorResponse>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {request.SchedulerID} not found");
                 }
                 if (!scheduler.IsEnabled)
                 {
-                    return Result.Failure<IndicatorDto>("SCHEDULER_DISABLED", $"Scheduler '{scheduler.SchedulerName}' is disabled");
+                    return Result.Failure<IndicatorResponse>("SCHEDULER_DISABLED", $"Scheduler '{scheduler.SchedulerName}' is disabled");
                 }
             }
 
@@ -105,7 +105,7 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
             var existingIndicator = await indicatorRepository.GetAsync(i => i.IndicatorCode == request.IndicatorCode, cancellationToken);
             if (existingIndicator.Any())
             {
-                return Result.Failure<IndicatorDto>("DUPLICATE_CODE", $"Indicator with code '{request.IndicatorCode}' already exists");
+                return Result.Failure<IndicatorResponse>("DUPLICATE_CODE", $"Indicator with code '{request.IndicatorCode}' already exists");
             }
 
             // Create the indicator entity
@@ -137,33 +137,64 @@ public class CreateIndicatorCommandHandler : IRequestHandler<CreateIndicatorComm
                 ownerContact.Name));
 
             // Save the indicator
-            var createdIndicator = await _indicatorService.CreateIndicatorAsync(indicator, cancellationToken);
+            var createRequest = new Core.Models.CreateIndicatorRequest
+            {
+                IndicatorName = indicator.IndicatorName,
+                IndicatorCode = indicator.IndicatorCode,
+                IndicatorDesc = indicator.IndicatorDesc,
+                CollectorID = indicator.CollectorID,
+                CollectorItemName = indicator.CollectorItemName,
+                SchedulerID = indicator.SchedulerID,
+                IsActive = indicator.IsActive,
+                LastMinutes = indicator.LastMinutes,
+                ThresholdType = indicator.ThresholdType,
+                ThresholdField = indicator.ThresholdField,
+                ThresholdComparison = indicator.ThresholdComparison,
+                ThresholdValue = indicator.ThresholdValue,
+                Priority = indicator.Priority,
+                OwnerContactId = indicator.OwnerContactId,
+                AverageLastDays = indicator.AverageLastDays
+            };
+            var createdIndicatorResult = await _indicatorService.CreateIndicatorAsync(createRequest);
+            if (!createdIndicatorResult.IsSuccess)
+            {
+                return Result.Failure<IndicatorResponse>("CREATE_FAILED", createdIndicatorResult.Error?.Message ?? "Failed to create indicator");
+            }
+
+            var createdIndicator = createdIndicatorResult.Value;
 
             // Add contacts if provided
             if (request.ContactIds.Any())
             {
-                await _indicatorService.AddContactsToIndicatorAsync(
-                    createdIndicator.IndicatorID,
-                    request.ContactIds,
-                    cancellationToken);
+                var assignmentOptions = new Core.Models.ContactAssignmentOptions
+                {
+                    ValidateContacts = true,
+                    AssignmentReason = "Indicator creation"
+                };
+                await _indicatorService.AddContactsToIndicatorAsync(createdIndicator.IndicatorID, request.ContactIds, assignmentOptions, cancellationToken);
             }
 
             // Reload with contacts for mapping
-            var indicatorWithContacts = await _indicatorService.GetIndicatorByIdAsync(
+            var indicatorWithContactsResult = await _indicatorService.GetIndicatorByIdAsync(
                 createdIndicator.IndicatorID,
                 cancellationToken);
 
-            var indicatorDto = _mapper.Map<IndicatorDto>(indicatorWithContacts);
+            if (!indicatorWithContactsResult.IsSuccess)
+            {
+                return Result.Failure<IndicatorResponse>("RELOAD_FAILED", "Failed to reload created indicator");
+            }
+
+            var indicatorDto = _mapper.Map<IndicatorResponse>(indicatorWithContactsResult.Value);
 
             _logger.LogInformation("Successfully created indicator {IndicatorId}: {IndicatorName}",
                 createdIndicator.IndicatorID, createdIndicator.IndicatorName);
 
-            return Result<IndicatorDto>.Success(indicatorDto);
+            return Result<IndicatorResponse>.Success(indicatorDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create indicator: {IndicatorName}", request.IndicatorName);
-            return Result.Failure<IndicatorDto>("CREATE_FAILED", $"Failed to create indicator: {ex.Message}");
+            return Result.Failure<IndicatorResponse>("CREATE_FAILED", $"Failed to create indicator: {ex.Message}");
         }
     }
 

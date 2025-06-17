@@ -3,33 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Button,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Schedule,
-  PlayArrow,
-  Stop,
-  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
 import { schedulerApi } from '@/services/api';
 import { SchedulerDto, CreateSchedulerRequest } from '@/types/api';
-import { DataTable, DataTableColumn, PageHeader, StatusChip, LoadingSpinner } from '@/components';
+import { PageHeader, LoadingSpinner } from '@/components';
 import { multiFieldSearch } from '@/utils/stringUtils';
+import {
+  SchedulerTable,
+  SchedulerCreateDialog,
+  SchedulerFilters,
+  SchedulerFiltersType,
+} from './components';
+import toast from 'react-hot-toast';
 
 /**
  * SchedulerList component for managing schedulers
@@ -39,8 +29,11 @@ const SchedulerList: React.FC = () => {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<SchedulerFiltersType>({
     search: '',
+    status: 'all',
+    scheduleType: 'all',
+    timezone: '',
   });
   const [selectedRows, setSelectedRows] = useState<SchedulerDto[]>([]);
 
@@ -56,23 +49,7 @@ const SchedulerList: React.FC = () => {
     retry: false, // Don't retry failed API calls
   });
 
-  // Form for creating new scheduler
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<CreateSchedulerRequest>({
-    defaultValues: {
-      schedulerName: '',
-      schedulerDescription: '',
-      scheduleType: 'interval',
-      intervalMinutes: 60,
-      cronExpression: '',
-      timezone: 'UTC',
-      isEnabled: true,
-    },
-  });
+
 
   // Create scheduler mutation
   const createMutation = useMutation({
@@ -80,14 +57,16 @@ const SchedulerList: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedulers'] });
       setCreateDialogOpen(false);
-      reset();
+      setError(null);
+      toast.success('Scheduler created successfully');
     },
     onError: (error: any) => {
       setError(error.response?.data?.message || 'Failed to create scheduler');
+      toast.error('Failed to create scheduler');
     },
   });
 
-  // Filter schedulers based on search
+  // Filter schedulers based on all filters
   const filteredSchedulers = useMemo(() => {
     if (!Array.isArray(schedulers)) {
       return [];
@@ -99,14 +78,35 @@ const SchedulerList: React.FC = () => {
         return false;
       }
 
-      // Use safe multi-field search utility
-      return multiFieldSearch(filters.search, [
+      // Search filter
+      if (filters.search && !multiFieldSearch(filters.search, [
         scheduler.schedulerName,
         scheduler.schedulerDescription,
         scheduler.scheduleType
-      ]);
+      ])) {
+        return false;
+      }
+
+      // Status filter
+      if (filters.status !== 'all') {
+        const isActive = scheduler.isActive || scheduler.isEnabled;
+        if (filters.status === 'active' && !isActive) return false;
+        if (filters.status === 'inactive' && isActive) return false;
+      }
+
+      // Schedule type filter
+      if (filters.scheduleType !== 'all' && scheduler.scheduleType !== filters.scheduleType) {
+        return false;
+      }
+
+      // Timezone filter
+      if (filters.timezone && scheduler.timezone !== filters.timezone) {
+        return false;
+      }
+
+      return true;
     });
-  }, [schedulers, filters.search]);
+  }, [schedulers, filters]);
 
   // Delete scheduler mutation
   const deleteMutation = useMutation({
@@ -119,9 +119,9 @@ const SchedulerList: React.FC = () => {
     },
   });
 
-  const handleCreateScheduler = (data: CreateSchedulerRequest) => {
+  const handleCreateScheduler = async (data: CreateSchedulerRequest) => {
     setError(null);
-    createMutation.mutate(data);
+    return createMutation.mutateAsync(data);
   };
 
   const handleDeleteScheduler = (scheduler: SchedulerDto) => {
@@ -130,76 +130,20 @@ const SchedulerList: React.FC = () => {
     }
   };
 
-  const getScheduleTypeColor = (scheduleType: string) => {
-    switch (scheduleType) {
-      case 'interval':
-        return 'primary';
-      case 'cron':
-        return 'secondary';
-      case 'onetime':
-        return 'warning';
-      default:
-        return 'default';
-    }
+  const handleToggleStatus = (scheduler: SchedulerDto) => {
+    // TODO: Implement toggle functionality
+    console.log('Toggle scheduler:', scheduler.schedulerID);
+    toast.info('Toggle functionality coming soon');
   };
 
-  const getSchedulerStatus = (scheduler: SchedulerDto): string => {
-    return scheduler.isEnabled ? 'active' : 'inactive';
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all',
+      scheduleType: 'all',
+      timezone: '',
+    });
   };
-
-  // Define table columns
-  const columns: DataTableColumn<SchedulerDto>[] = [
-    {
-      id: 'schedulerName',
-      label: 'Name',
-      sortable: true,
-      width: 200,
-      render: (value, row) => (
-        <Box>
-          <Box sx={{ fontWeight: 'medium', mb: 0.5 }}>{value}</Box>
-          {row.schedulerDescription && (
-            <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-              {row.schedulerDescription}
-            </Box>
-          )}
-        </Box>
-      ),
-    },
-    {
-      id: 'scheduleType',
-      label: 'Type',
-      sortable: true,
-      width: 100,
-      render: value => <StatusChip status={value} />,
-    },
-    {
-      id: 'displayText',
-      label: 'Schedule',
-      sortable: false,
-      width: 200,
-    },
-    {
-      id: 'isEnabled',
-      label: 'Status',
-      sortable: true,
-      width: 100,
-      render: (value, row) => <StatusChip status={getSchedulerStatus(row)} />,
-    },
-    {
-      id: 'indicatorCount',
-      label: 'Indicators',
-      sortable: true,
-      width: 100,
-      render: value => `${value} indicators`,
-    },
-    {
-      id: 'nextExecutionTime',
-      label: 'Next Run',
-      sortable: true,
-      width: 150,
-      render: value => (value ? new Date(value).toLocaleString() : 'N/A'),
-    },
-  ];
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -217,19 +161,15 @@ const SchedulerList: React.FC = () => {
     <Box>
       <PageHeader
         title="Schedulers"
-        subtitle="Manage scheduling configurations for indicators"
+        subtitle={`Manage scheduling configurations for indicators (${filteredSchedulers.length} of ${schedulers.length} schedulers)`}
         icon={<Schedule />}
         primaryAction={{
           label: 'Create Scheduler',
           icon: <AddIcon />,
           onClick: () => setCreateDialogOpen(true),
         }}
-        actions={[
-          {
-            label: 'Refresh',
-            onClick: () => refetch(),
-          },
-        ]}
+        onRefresh={refetch}
+        refreshing={isLoading}
       />
 
       {/* Error Alert */}
@@ -239,138 +179,34 @@ const SchedulerList: React.FC = () => {
         </Alert>
       )}
 
-      <DataTable
-        columns={columns}
-        data={filteredSchedulers}
+      {/* Filters */}
+      <SchedulerFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={handleClearFilters}
+        totalCount={schedulers.length}
+        filteredCount={filteredSchedulers.length}
+      />
+
+      {/* Scheduler Table */}
+      <SchedulerTable
+        schedulers={filteredSchedulers}
         loading={isLoading}
-        selectable={true}
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
-        defaultActions={{
-          view: scheduler => navigate(`/schedulers/${scheduler.schedulerID}`),
-          edit: scheduler => navigate(`/schedulers/${scheduler.schedulerID}/edit`),
-          delete: handleDeleteScheduler,
-        }}
-        actions={[
-          {
-            label: 'Toggle Status',
-            icon: <PlayArrow />,
-            onClick: scheduler => {
-              // TODO: Implement toggle functionality
-              console.log('Toggle scheduler:', scheduler.schedulerID);
-            },
-          },
-        ]}
-        emptyMessage="No schedulers found. Create your first scheduler to get started."
-        rowKey="schedulerID"
+        onView={(scheduler) => navigate(`/schedulers/${scheduler.schedulerID}`)}
+        onEdit={(scheduler) => navigate(`/schedulers/${scheduler.schedulerID}/edit`)}
+        onDelete={handleDeleteScheduler}
+        onToggleStatus={handleToggleStatus}
       />
 
       {/* Create Scheduler Dialog */}
-      <Dialog
+      <SchedulerCreateDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Schedule sx={{ mr: 1 }} />
-            Create New Scheduler
-          </Box>
-        </DialogTitle>
-        <form onSubmit={handleSubmit(handleCreateScheduler)}>
-          <DialogContent>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="schedulerName"
-                  control={control}
-                  rules={{ required: 'Scheduler name is required' }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Scheduler Name"
-                      fullWidth
-                      error={!!errors.schedulerName}
-                      helperText={errors.schedulerName?.message}
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="scheduleType"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth>
-                      <InputLabel>Schedule Type</InputLabel>
-                      <Select {...field} label="Schedule Type" required>
-                        <MenuItem value="interval">Interval</MenuItem>
-                        <MenuItem value="cron">Cron Expression</MenuItem>
-                        <MenuItem value="onetime">One Time</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Controller
-                  name="schedulerDescription"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField {...field} label="Description" fullWidth multiline rows={2} />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="intervalMinutes"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Interval (minutes)"
-                      type="number"
-                      fullWidth
-                      inputProps={{ min: 1 }}
-                      helperText="For interval-based schedules"
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="timezone"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth>
-                      <InputLabel>Timezone</InputLabel>
-                      <Select {...field} label="Timezone">
-                        <MenuItem value="UTC">UTC</MenuItem>
-                        <MenuItem value="America/New_York">Eastern Time</MenuItem>
-                        <MenuItem value="America/Chicago">Central Time</MenuItem>
-                        <MenuItem value="America/Denver">Mountain Time</MenuItem>
-                        <MenuItem value="America/Los_Angeles">Pacific Time</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Scheduler'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+        onSubmit={handleCreateScheduler}
+        loading={createMutation.isPending}
+      />
     </Box>
   );
 };

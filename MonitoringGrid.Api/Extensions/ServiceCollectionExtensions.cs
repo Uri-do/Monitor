@@ -176,6 +176,9 @@ public static class ServiceCollectionExtensions
 
             // Custom operation filters
             c.OperationFilter<PerformanceMonitorOperationFilter>();
+
+            // Fix schema ID conflicts by using fully qualified type names
+            c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
         });
 
         return services;
@@ -190,6 +193,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IIndicatorService, IndicatorService>();
         services.AddScoped<ISchedulerService, SchedulerService>();
         // services.AddScoped<IExecutionHistoryService, ExecutionHistoryService>(); // TODO: Implement ExecutionHistoryService
+
+        // Testing services
+        services.AddScoped<MonitoringGrid.Api.Services.ApiTestingService>();
+        services.AddHttpClient(); // Required for API testing
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IAlertService, AlertService>();
         services.AddScoped<IUserService, UserService>();

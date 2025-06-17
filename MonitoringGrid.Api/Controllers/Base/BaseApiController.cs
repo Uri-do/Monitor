@@ -139,7 +139,35 @@ public abstract class BaseApiController : ControllerBase
         {
             ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
             ["path"] = HttpContext.Request.Path.Value ?? "",
-            ["method"] = HttpContext.Request.Method
+            ["method"] = HttpContext.Request.Method,
+            ["timestamp"] = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Creates a standardized error response with error code
+    /// </summary>
+    protected virtual object CreateErrorResponse(string error, string errorCode)
+    {
+        return ApiResponse.ErrorResponse(error, new Dictionary<string, object>
+        {
+            ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            ["path"] = HttpContext.Request.Path.Value ?? "",
+            ["method"] = HttpContext.Request.Method,
+            ["timestamp"] = DateTime.UtcNow,
+            ["errorCode"] = errorCode
+        });
+    }
+
+    /// <summary>
+    /// Creates a standardized success response
+    /// </summary>
+    protected virtual object CreateSuccessResponse<T>(T data, string? message = null)
+    {
+        return ApiResponse<T>.Success(data, message, new Dictionary<string, object>
+        {
+            ["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            ["timestamp"] = DateTime.UtcNow
         });
     }
 
@@ -222,13 +250,59 @@ public abstract class BaseApiController : ControllerBase
                     kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray() ?? Array.Empty<string>()
                 );
 
-            return BadRequest(new
+            return BadRequest(CreateValidationErrorResponse(errors));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Creates a standardized validation error response
+    /// </summary>
+    protected virtual object CreateValidationErrorResponse(Dictionary<string, string[]> errors)
+    {
+        return new
+        {
+            error = "Validation failed",
+            details = errors,
+            timestamp = DateTime.UtcNow,
+            traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            path = HttpContext.Request.Path.Value ?? "",
+            method = HttpContext.Request.Method
+        };
+    }
+
+    /// <summary>
+    /// Validates a single parameter and returns error response if invalid
+    /// </summary>
+    protected IActionResult? ValidateParameter<T>(T value, string parameterName, Func<T, bool> validator, string errorMessage)
+    {
+        if (!validator(value))
+        {
+            var errors = new Dictionary<string, string[]>
             {
-                error = "Validation failed",
-                details = errors,
-                timestamp = DateTime.UtcNow,
-                traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-            });
+                [parameterName] = new[] { errorMessage }
+            };
+            return BadRequest(CreateValidationErrorResponse(errors));
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Validates multiple parameters and returns combined error response if any are invalid
+    /// </summary>
+    protected IActionResult? ValidateParameters(params (bool isValid, string parameterName, string errorMessage)[] validations)
+    {
+        var errors = validations
+            .Where(v => !v.isValid)
+            .ToDictionary(
+                v => v.parameterName,
+                v => new[] { v.errorMessage }
+            );
+
+        if (errors.Any())
+        {
+            return BadRequest(CreateValidationErrorResponse(errors));
         }
 
         return null;

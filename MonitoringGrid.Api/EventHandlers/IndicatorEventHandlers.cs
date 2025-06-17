@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Hubs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Events;
 

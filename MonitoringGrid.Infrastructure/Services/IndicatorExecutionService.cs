@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
 using MonitoringGrid.Infrastructure.Data;
 using System.Diagnostics;
 
@@ -43,32 +45,36 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 indicatorId, executionContext);
 
             // Get the indicator
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
-            if (indicator == null)
+            var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            if (!indicatorResult.IsSuccess)
             {
                 return new IndicatorExecutionResult
                 {
-                    IndicatorID = indicatorId,
+                    ExecutionId = 0,
+                    IndicatorId = indicatorId,
                     IndicatorName = "Unknown",
                     WasSuccessful = false,
                     ErrorMessage = $"Indicator {indicatorId} not found",
                     ExecutionDuration = stopwatch.Elapsed,
-                    ExecutionTime = executionTime,
+                    StartTime = executionTime,
                     ExecutionContext = executionContext
                 };
             }
+
+            var indicator = indicatorResult.Value;
 
             // Check if indicator is active
             if (!indicator.IsActive)
             {
                 return new IndicatorExecutionResult
                 {
-                    IndicatorID = indicatorId,
+                    ExecutionId = 0,
+                    IndicatorId = indicatorId,
                     IndicatorName = indicator.IndicatorName,
                     WasSuccessful = false,
                     ErrorMessage = "Indicator is not active",
                     ExecutionDuration = stopwatch.Elapsed,
-                    ExecutionTime = executionTime,
+                    StartTime = executionTime,
                     ExecutionContext = executionContext
                 };
             }
@@ -77,7 +83,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             indicator.StartExecution(executionContext);
             if (saveResults)
             {
-                await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
             }
 
             try
@@ -138,19 +144,31 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 // Evaluate threshold
                 var thresholdBreached = EvaluateThreshold(indicator, currentValue, historicalAverage);
 
+                // Convert DTOs to Models for the result
+                var rawDataModels = rawData.Select(dto => new Core.Models.CollectorStatisticDto
+                {
+                    StatisticID = 0, // Not available from DTO
+                    ItemName = dto.ItemName ?? string.Empty,
+                    StatisticDate = dto.Timestamp,
+                    Total = (int)(dto.Total ?? 0),
+                    Marked = (int)(dto.Marked ?? 0),
+                    MarkedPercent = dto.MarkedPercent ?? 0,
+                    CreatedDate = dto.Timestamp
+                }).ToList();
+
                 var result = new IndicatorExecutionResult
                 {
-                    IndicatorID = indicatorId,
+                    ExecutionId = 0, // Will be set when saved to database
+                    IndicatorId = indicatorId,
                     IndicatorName = indicator.IndicatorName,
                     WasSuccessful = true,
-                    CurrentValue = currentValue,
+                    Value = currentValue,
                     ThresholdValue = indicator.ThresholdValue,
                     ThresholdBreached = thresholdBreached,
-                    RawData = rawData,
+                    RawData = rawDataModels,
                     ExecutionDuration = stopwatch.Elapsed,
-                    ExecutionTime = executionTime,
-                    ExecutionContext = executionContext,
-                    HistoricalAverage = historicalAverage
+                    StartTime = executionTime,
+                    ExecutionContext = executionContext
                 };
 
                 // Save results if requested
@@ -177,15 +195,16 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 indicator.CompleteExecution();
                 if (saveResults)
                 {
-                    await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+                    await _context.SaveChangesAsync(cancellationToken);
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute indicator {IndicatorId}", indicatorId);
-            
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+
+            var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            var indicator = indicatorResult.IsSuccess ? indicatorResult.Value : null;
             return CreateFailureResult(indicator, ex.Message, stopwatch.Elapsed, executionTime, executionContext);
         }
     }
@@ -216,10 +235,10 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         _logger.LogDebug("Testing indicator {IndicatorId}", indicatorId);
 
         // Get the indicator and temporarily override LastMinutes if provided
-        var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
-        if (indicator != null && overrideLastMinutes.HasValue)
+        var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+        if (indicatorResult.IsSuccess && overrideLastMinutes.HasValue)
         {
-            indicator.LastMinutes = overrideLastMinutes.Value;
+            indicatorResult.Value.LastMinutes = overrideLastMinutes.Value;
         }
 
         // Execute without saving results
@@ -231,8 +250,14 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     {
         _logger.LogDebug("Executing due indicators with context {ExecutionContext}", executionContext);
 
-        var dueIndicators = await _indicatorService.GetDueIndicatorsAsync(cancellationToken);
-        var indicatorIds = dueIndicators.Select(i => i.IndicatorID).ToList();
+        var dueIndicatorsResult = await _indicatorService.GetDueIndicatorsAsync(null, cancellationToken);
+        if (!dueIndicatorsResult.IsSuccess)
+        {
+            _logger.LogWarning("Failed to get due indicators: {Error}", dueIndicatorsResult.Error.Message);
+            return new List<IndicatorExecutionResult>();
+        }
+
+        var indicatorIds = dueIndicatorsResult.Value.Select(i => i.IndicatorID).ToList();
 
         _logger.LogInformation("Found {Count} due indicators for execution", indicatorIds.Count);
 
@@ -242,8 +267,8 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     public async Task<IndicatorExecutionStatus> GetIndicatorExecutionStatusAsync(long indicatorId,
         CancellationToken cancellationToken = default)
     {
-        var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
-        if (indicator == null)
+        var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+        if (!indicatorResult.IsSuccess)
         {
             return new IndicatorExecutionStatus
             {
@@ -253,6 +278,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             };
         }
 
+        var indicator = indicatorResult.Value;
         return new IndicatorExecutionStatus
         {
             IndicatorID = indicatorId,
@@ -271,16 +297,17 @@ public class IndicatorExecutionService : IIndicatorExecutionService
     {
         try
         {
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
-            if (indicator == null || !indicator.IsCurrentlyRunning)
+            var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(indicatorId, cancellationToken);
+            if (!indicatorResult.IsSuccess || !indicatorResult.Value.IsCurrentlyRunning)
             {
                 return false;
             }
 
+            var indicator = indicatorResult.Value;
             indicator.CompleteExecution();
-            await _indicatorService.UpdateIndicatorAsync(indicator, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Cancelled execution of indicator {IndicatorId}: {IndicatorName}", 
+            _logger.LogInformation("Cancelled execution of indicator {IndicatorId}: {IndicatorName}",
                 indicatorId, indicator.IndicatorName);
 
             return true;
@@ -300,14 +327,14 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         return Task.FromResult(new List<IndicatorExecutionHistory>());
     }
 
-    private static decimal GetValueByField(CollectorStatisticDto data, string field)
+    private static decimal GetValueByField(Core.DTOs.CollectorStatisticDto data, string field)
     {
         return field.ToLower() switch
         {
-            "total" => data.Total,
-            "marked" => data.Marked,
-            "markedpercent" => data.MarkedPercent,
-            _ => data.Total
+            "total" => data.Total ?? 0,
+            "marked" => data.Marked ?? 0,
+            "markedpercent" => data.MarkedPercent ?? 0,
+            _ => data.Total ?? 0
         };
     }
 
@@ -345,17 +372,18 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         return "idle";
     }
 
-    private static IndicatorExecutionResult CreateFailureResult(Core.Entities.Indicator? indicator, string errorMessage, 
+    private static IndicatorExecutionResult CreateFailureResult(Core.Entities.Indicator? indicator, string errorMessage,
         TimeSpan duration, DateTime executionTime, string executionContext)
     {
         return new IndicatorExecutionResult
         {
-            IndicatorID = indicator?.IndicatorID ?? 0L,
+            ExecutionId = 0,
+            IndicatorId = indicator?.IndicatorID ?? 0L,
             IndicatorName = indicator?.IndicatorName ?? "Unknown",
             WasSuccessful = false,
             ErrorMessage = errorMessage,
             ExecutionDuration = duration,
-            ExecutionTime = executionTime,
+            StartTime = executionTime,
             ExecutionContext = executionContext
         };
     }
@@ -366,7 +394,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         try
         {
             // Update indicator last run
-            indicator.LastRun = result.ExecutionTime;
+            indicator.LastRun = result.StartTime;
             indicator.LastRunResult = result.WasSuccessful ? "Success" : result.ErrorMessage;
 
             // TODO: Save to new IndicatorsExecutionHistory table
@@ -389,11 +417,11 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             var alertLog = new AlertLog
             {
                 IndicatorId = indicator.IndicatorID,
-                TriggerTime = result.ExecutionTime,
+                TriggerTime = result.StartTime,
                 Message = $"Indicator '{indicator.IndicatorName}' threshold breached. " +
-                         $"Current value: {result.CurrentValue}, Threshold: {result.ThresholdValue}",
-                CurrentValue = result.CurrentValue,
-                HistoricalValue = result.HistoricalAverage,
+                         $"Current value: {result.Value}, Threshold: {result.ThresholdValue}",
+                CurrentValue = result.Value,
+                HistoricalValue = null, // TODO: Add historical value to IndicatorExecutionResult
                 IsResolved = false,
                 SentTo = indicator.OwnerContact?.Email ?? "Unknown",
                 SentVia = 2 // Email
@@ -409,7 +437,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
             _logger.LogWarning("Alert triggered for indicator {IndicatorId}: {IndicatorName}, " +
                 "Value: {CurrentValue}, Threshold: {ThresholdValue}",
-                indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue, result.ThresholdValue);
+                indicator.IndicatorID, indicator.IndicatorName, result.Value, result.ThresholdValue);
         }
         catch (Exception ex)
         {

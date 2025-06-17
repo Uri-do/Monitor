@@ -34,51 +34,6 @@ public class Contact
 
 
 
-/// <summary>
-/// Represents an alert log entry
-/// </summary>
-[Table("AlertLogs", Schema = "monitoring")]
-public class AlertLog
-{
-    [Key]
-    public long AlertId { get; set; }
-
-    public int KpiId { get; set; }
-
-    public DateTime TriggerTime { get; set; } = DateTime.UtcNow;
-
-    [Required]
-    [MaxLength(500)]
-    public string Message { get; set; } = string.Empty;
-
-    public string? Details { get; set; }
-
-    /// <summary>
-    /// How the alert was sent: 1=SMS, 2=Email, 3=Both
-    /// </summary>
-    public byte SentVia { get; set; }
-
-    [Required]
-    public string SentTo { get; set; } = string.Empty;
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? CurrentValue { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? HistoricalValue { get; set; }
-
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal? DeviationPercent { get; set; }
-
-    public bool IsResolved { get; set; } = false;
-
-    public DateTime? ResolvedTime { get; set; }
-
-    [MaxLength(100)]
-    public string? ResolvedBy { get; set; }
-
-    // Navigation properties
-}
 
 
 

@@ -81,7 +81,7 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     // Add authentication token if available
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       // Log token usage for debugging (only first 20 chars for security)
@@ -145,7 +145,7 @@ api.interceptors.response.use(
 
       try {
         // Attempt to refresh the token
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = sessionStorage.getItem('refresh_token');
         if (!refreshToken) {
           throw new Error('No refresh token available');
         }
@@ -171,9 +171,9 @@ api.interceptors.response.use(
         }
 
         // Update stored tokens
-        localStorage.setItem('auth_token', newToken);
+        sessionStorage.setItem('auth_token', newToken);
         if (result.token?.refreshToken || result.refreshToken) {
-          localStorage.setItem('refresh_token', result.token?.refreshToken || result.refreshToken);
+          sessionStorage.setItem('refresh_token', result.token?.refreshToken || result.refreshToken);
         }
 
         // Update the authorization header for the original request
@@ -191,8 +191,8 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
 
         // Clear stored tokens
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('refresh_token');
 
         // Redirect to login page if not already there or in demo mode
         const currentPath = window.location.pathname;

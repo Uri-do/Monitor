@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
+using MonitoringGrid.Core.Models;
 using static MonitoringGrid.Core.Interfaces.IIndicatorExecutionService;
 
 namespace MonitoringGrid.Api.Services;
@@ -70,7 +72,9 @@ public class SimpleIndicatorProcessor : BackgroundService
 
             // Get due indicators
             _logger.LogInformation("🔍 Getting due indicators...");
-            var dueIndicators = await indicatorService.GetDueIndicatorsAsync(cancellationToken);
+            var priorityFilter = new PriorityFilterOptions();
+            var dueIndicatorsResult = await indicatorService.GetDueIndicatorsAsync(priorityFilter, cancellationToken);
+            var dueIndicators = dueIndicatorsResult.IsSuccess ? dueIndicatorsResult.Value : new List<Core.Entities.Indicator>();
             
             _logger.LogInformation("📊 Found {Count} indicators due for execution", dueIndicators.Count());
 
@@ -104,7 +108,7 @@ public class SimpleIndicatorProcessor : BackgroundService
                     {
                         successCount++;
                         _logger.LogInformation("✅ Indicator {IndicatorId} executed successfully in {Duration}ms. Current value: {Value}",
-                            indicator.IndicatorID, result.ExecutionDuration.TotalMilliseconds, result.CurrentValue);
+                            indicator.IndicatorID, result.ExecutionDuration.TotalMilliseconds, result.Value);
 
                         // Broadcast successful completion
                         await BroadcastIndicatorExecutionCompletedAsync(indicator, result, true);
@@ -177,7 +181,7 @@ public class SimpleIndicatorProcessor : BackgroundService
                 IndicatorId = indicator.IndicatorID,
                 IndicatorName = indicator.IndicatorName,
                 Success = success,
-                Value = result.CurrentValue,
+                Value = result.Value,
                 Duration = (int)result.ExecutionDuration.TotalMilliseconds,
                 CompletedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 ErrorMessage = result.ErrorMessage,

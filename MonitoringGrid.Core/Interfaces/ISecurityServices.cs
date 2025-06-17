@@ -1,3 +1,4 @@
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Security;
 using System.Security.Claims;
@@ -5,45 +6,45 @@ using System.Security.Claims;
 namespace MonitoringGrid.Core.Interfaces;
 
 /// <summary>
-/// Interface for authentication service
+/// Enhanced interface for authentication service with Result pattern
 /// </summary>
 public interface IAuthenticationService
 {
-    Task<LoginResponse> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default);
-    Task<JwtToken> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
-    Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
-    Task<User?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
-    Task<bool> RevokeTokenAsync(string token, CancellationToken cancellationToken = default);
-    Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
-    Task<bool> ResetPasswordAsync(string email, CancellationToken cancellationToken = default);
-    Task LogoutAsync(string userId, string token, CancellationToken cancellationToken = default);
+    Task<Result<LoginResponse>> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default);
+    Task<Result<JwtToken>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result<User>> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result> RevokeTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
+    Task<Result> ResetPasswordAsync(string email, CancellationToken cancellationToken = default);
+    Task<Result> LogoutAsync(string userId, string token, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Interface for authorization service
+/// Enhanced interface for authorization service with Result pattern
 /// </summary>
 public interface IAuthorizationService
 {
-    Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
-    Task<bool> HasRoleAsync(string userId, string role, CancellationToken cancellationToken = default);
-    Task<bool> CanAccessResourceAsync(string userId, string resource, string action, CancellationToken cancellationToken = default);
-    Task<List<string>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
-    Task<List<string>> GetUserRolesAsync(string userId, CancellationToken cancellationToken = default);
-    Task<bool> AssignRoleAsync(string userId, string roleId, CancellationToken cancellationToken = default);
-    Task<bool> RemoveRoleAsync(string userId, string roleId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
+    Task<Result<bool>> HasRoleAsync(string userId, string role, CancellationToken cancellationToken = default);
+    Task<Result<bool>> CanAccessResourceAsync(string userId, string resource, string action, CancellationToken cancellationToken = default);
+    Task<Result<List<string>>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<Result<List<string>>> GetUserRolesAsync(string userId, CancellationToken cancellationToken = default);
+    Task<Result> AssignRoleAsync(string userId, string roleId, CancellationToken cancellationToken = default);
+    Task<Result> RemoveRoleAsync(string userId, string roleId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Interface for JWT token service
+/// Enhanced interface for JWT token service with Result pattern
 /// </summary>
 public interface IJwtTokenService
 {
-    string GenerateAccessToken(User user, List<Claim>? additionalClaims = null);
-    string GenerateRefreshToken();
-    ClaimsPrincipal? ValidateToken(string token);
-    DateTime GetTokenExpiration(string token);
-    Task<bool> IsTokenBlacklistedAsync(string token, CancellationToken cancellationToken = default);
-    Task BlacklistTokenAsync(string token, DateTime expiration, CancellationToken cancellationToken = default);
+    Result<string> GenerateAccessToken(User user, List<Claim>? additionalClaims = null);
+    Result<string> GenerateRefreshToken();
+    Result<ClaimsPrincipal> ValidateToken(string token);
+    Result<DateTime> GetTokenExpiration(string token);
+    Task<Result<bool>> IsTokenBlacklistedAsync(string token, CancellationToken cancellationToken = default);
+    Task<Result> BlacklistTokenAsync(string token, DateTime expiration, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

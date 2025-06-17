@@ -2,6 +2,7 @@ using MonitoringGrid.Worker.Configuration;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Entities;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -180,7 +181,8 @@ public class IndicatorMonitoringWorker : BackgroundService
     private async Task<List<Indicator>> GetDueIndicatorsAsync(IIndicatorService indicatorService, CancellationToken cancellationToken)
     {
         _logger.LogInformation("GetDueIndicatorsAsync - Calling indicatorService.GetDueIndicatorsAsync");
-        var dueIndicators = await indicatorService.GetDueIndicatorsAsync(cancellationToken);
+        var dueIndicatorsResult = await indicatorService.GetDueIndicatorsAsync(null, cancellationToken);
+        var dueIndicators = dueIndicatorsResult.IsSuccess ? dueIndicatorsResult.Value : new List<Indicator>();
 
         _logger.LogInformation("GetDueIndicatorsAsync - Service returned {Count} due indicators", dueIndicators?.Count ?? 0);
 
@@ -260,7 +262,7 @@ public class IndicatorMonitoringWorker : BackgroundService
             if (result.WasSuccessful)
             {
                 _logger.LogInformation("Successfully executed Indicator {IndicatorId}: {IndicatorName}. Value: {Value}",
-                    indicator.IndicatorID, indicator.IndicatorName, result.CurrentValue);
+                    indicator.IndicatorID, indicator.IndicatorName, result.Value);
                 _indicatorsProcessedCounter.Add(1, new KeyValuePair<string, object?>("status", "success"));
 
                 // Update tracking
@@ -269,7 +271,7 @@ public class IndicatorMonitoringWorker : BackgroundService
                 _lastActivityTime = DateTime.UtcNow;
 
                 // Broadcast successful completion
-                await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.CurrentValue, stopwatch.Elapsed);
+                await BroadcastIndicatorExecutionCompletedAsync(indicator, true, result.Value, stopwatch.Elapsed);
             }
             else
             {
@@ -496,7 +498,8 @@ public class IndicatorMonitoringWorker : BackgroundService
             var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
 
             var now = DateTime.UtcNow;
-            var allIndicators = await indicatorService.GetAllIndicatorsAsync(CancellationToken.None);
+            var allIndicatorsResult = await indicatorService.GetAllIndicatorsAsync(null, CancellationToken.None);
+            var allIndicators = allIndicatorsResult.IsSuccess ? allIndicatorsResult.Value.Items.ToList() : new List<Indicator>();
 
             _logger.LogDebug("Countdown: Found {Count} total indicators", allIndicators.Count);
 

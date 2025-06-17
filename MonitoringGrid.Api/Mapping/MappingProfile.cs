@@ -28,17 +28,19 @@ public class MappingProfile : Profile
                     IsActive = ic.Indicator != null ? ic.Indicator.IsActive : false
                 }).ToList() : new List<IndicatorSummaryDto>()));
 
-        CreateMap<MonitoringGrid.Api.DTOs.CreateContactRequest, Contact>()
-            .ForMember(dest => dest.ContactId, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
+        // CreateContactRequest DTO doesn't exist - commented out
+        // CreateMap<MonitoringGrid.Api.DTOs.CreateContactRequest, Contact>()
+            // .ForMember(dest => dest.ContactId, opt => opt.Ignore())
+            // .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            // .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
+            // .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
 
-        CreateMap<MonitoringGrid.Api.DTOs.UpdateContactRequest, Contact>()
-            .ForMember(dest => dest.ContactId, opt => opt.MapFrom(src => src.ContactID))
-            .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
-            .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
+        // UpdateContactRequest DTO doesn't exist - commented out
+        // CreateMap<MonitoringGrid.Api.DTOs.UpdateContactRequest, Contact>()
+            // .ForMember(dest => dest.ContactId, opt => opt.MapFrom(src => src.ContactID))
+            // .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
+            // .ForMember(dest => dest.ModifiedDate, opt => opt.Ignore())
+            // .ForMember(dest => dest.IndicatorContacts, opt => opt.Ignore());
 
         // Alert mappings
         CreateMap<AlertLog, AlertLogDto>()

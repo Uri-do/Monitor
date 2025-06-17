@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Security;
@@ -17,42 +18,42 @@ public interface ISecurityService
     /// <summary>
     /// Authenticates a user with login credentials
     /// </summary>
-    Task<LoginResponse> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default);
-    
+    Task<Result<LoginResponse>> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Refreshes an access token using a refresh token
     /// </summary>
-    Task<JwtToken> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
-    
+    Task<Result<JwtToken>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Validates a JWT token
     /// </summary>
-    Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
-    
+    Task<Result<bool>> ValidateTokenAsync(string token, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Gets user information from a JWT token
     /// </summary>
-    Task<User?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
-    
+    Task<Result<User>> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Revokes a JWT token
     /// </summary>
-    Task<bool> RevokeTokenAsync(string token, CancellationToken cancellationToken = default);
-    
+    Task<Result> RevokeTokenAsync(string token, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Changes a user's password
     /// </summary>
-    Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
+    Task<Result> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Resets a user's password
     /// </summary>
-    Task<bool> ResetPasswordAsync(string email, CancellationToken cancellationToken = default);
+    Task<Result> ResetPasswordAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Logs out a user
     /// </summary>
-    Task LogoutAsync(string userId, string token, CancellationToken cancellationToken = default);
+    Task<Result> LogoutAsync(string userId, string token, CancellationToken cancellationToken = default);
 
     #endregion
 

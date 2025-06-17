@@ -38,6 +38,7 @@ const Administration = React.lazy(() => import('@/pages/Admin/Administration'));
 const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
 const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
+const ApiTestingPage = React.lazy(() => import('@/pages/ApiTesting/ApiTestingPage'));
 
 // Route configuration interface
 export interface RouteConfig {
@@ -151,6 +152,13 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/worker',
     element: WorkerManagement,
+  },
+
+  // API Testing
+  {
+    path: '/api-testing',
+    element: ApiTestingPage,
+    requiredRoles: ['Admin'],
   },
 
   // User Profile

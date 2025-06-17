@@ -2,16 +2,17 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
 
 /// <summary>
 /// Handler for getting indicators with filtering
 /// </summary>
-public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Result<List<IndicatorDto>>>
+public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Result<List<IndicatorResponse>>>
 {
     private readonly IIndicatorService _indicatorService;
     private readonly IMapper _mapper;
@@ -27,7 +28,7 @@ public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Res
         _logger = logger;
     }
 
-    public async Task<Result<List<IndicatorDto>>> Handle(GetIndicatorsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<IndicatorResponse>>> Handle(GetIndicatorsQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -36,23 +37,15 @@ public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Res
 
             List<Core.Entities.Indicator> indicators;
 
-            // Apply filters
-            if (request.OwnerContactId.HasValue)
+            // Apply filters - get all indicators first, then filter in memory for now
+            var filterOptions = new IndicatorFilterOptions();
+            var allIndicatorsResult = await _indicatorService.GetAllIndicatorsAsync(filterOptions, cancellationToken);
+            if (!allIndicatorsResult.IsSuccess)
             {
-                indicators = await _indicatorService.GetIndicatorsByOwnerAsync(request.OwnerContactId.Value, cancellationToken);
+                return Result.Failure<List<IndicatorResponse>>("GET_FAILED", allIndicatorsResult.Error?.Message ?? "Failed to get indicators");
             }
-            else if (!string.IsNullOrEmpty(request.Priority))
-            {
-                indicators = await _indicatorService.GetIndicatorsByPriorityAsync(request.Priority, cancellationToken);
-            }
-            else if (request.IsActive.HasValue && request.IsActive.Value)
-            {
-                indicators = await _indicatorService.GetActiveIndicatorsAsync(cancellationToken);
-            }
-            else
-            {
-                indicators = await _indicatorService.GetAllIndicatorsAsync(cancellationToken);
-            }
+
+            indicators = allIndicatorsResult.Value.Items.ToList();
 
             // Apply additional filters
             if (request.IsActive.HasValue)
@@ -102,17 +95,17 @@ public class GetIndicatorsQueryHandler : IRequestHandler<GetIndicatorsQuery, Res
             var skip = (request.Page - 1) * request.PageSize;
             indicators = indicators.Skip(skip).Take(request.PageSize).ToList();
 
-            var indicatorDtos = _mapper.Map<List<IndicatorDto>>(indicators);
+            var indicatorDtos = _mapper.Map<List<IndicatorResponse>>(indicators);
 
             _logger.LogDebug("Retrieved {Count} indicators (total: {TotalCount})", 
                 indicatorDtos.Count, totalCount);
 
-            return Result<List<IndicatorDto>>.Success(indicatorDtos);
+            return Result<List<IndicatorResponse>>.Success(indicatorDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get indicators");
-            return Result.Failure<List<IndicatorDto>>("GET_FAILED", $"Failed to get indicators: {ex.Message}");
+            return Result.Failure<List<IndicatorResponse>>("GET_FAILED", $"Failed to get indicators: {ex.Message}");
         }
     }
 

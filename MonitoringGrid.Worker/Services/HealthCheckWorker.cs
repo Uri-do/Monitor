@@ -155,7 +155,8 @@ public class IndicatorExecutionHealthCheck : IHealthCheck
             var indicatorService = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Core.Interfaces.IIndicatorService>();
 
             // Check if we can retrieve Indicators
-            var indicators = await indicatorService.GetAllIndicatorsAsync(cancellationToken);
+            var indicatorsResult = await indicatorService.GetAllIndicatorsAsync(null, cancellationToken);
+            var indicators = indicatorsResult.IsSuccess ? indicatorsResult.Value.Items.ToList() : new List<MonitoringGrid.Core.Entities.Indicator>();
             var activeIndicators = indicators.Count(i => i.IsActive);
             var totalIndicators = indicators.Count();
 

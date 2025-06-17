@@ -1,4 +1,5 @@
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Core.Interfaces;
 
@@ -50,54 +51,8 @@ public interface IIndicatorExecutionService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>
-/// Result of indicator execution
-/// </summary>
-public class IndicatorExecutionResult
-{
-    public long IndicatorID { get; set; }
-    public string IndicatorName { get; set; } = string.Empty;
-    public bool WasSuccessful { get; set; }
-    public decimal? CurrentValue { get; set; }
-    public decimal? ThresholdValue { get; set; }
-    public bool ThresholdBreached { get; set; }
-    public string? ErrorMessage { get; set; }
-    public List<CollectorStatisticDto> RawData { get; set; } = new();
-    public TimeSpan ExecutionDuration { get; set; }
-    public DateTime ExecutionTime { get; set; }
-    public string ExecutionContext { get; set; } = string.Empty;
-    public decimal? HistoricalAverage { get; set; }
-    public string? AlertMessage { get; set; }
-}
 
-/// <summary>
-/// Indicator execution status
-/// </summary>
-public class IndicatorExecutionStatus
-{
-    public long IndicatorID { get; set; }
-    public string IndicatorName { get; set; } = string.Empty;
-    public bool IsCurrentlyRunning { get; set; }
-    public DateTime? ExecutionStartTime { get; set; }
-    public string? ExecutionContext { get; set; }
-    public TimeSpan? ExecutionDuration { get; set; }
-    public DateTime? LastRun { get; set; }
-    public DateTime? NextRun { get; set; }
-    public string Status { get; set; } = string.Empty; // "idle", "running", "error", "completed"
-}
 
-/// <summary>
-/// Indicator execution history entry
-/// </summary>
-public class IndicatorExecutionHistory
-{
-    public int HistoryId { get; set; }
-    public long IndicatorID { get; set; }
-    public DateTime ExecutionTime { get; set; }
-    public bool WasSuccessful { get; set; }
-    public decimal? Value { get; set; }
-    public string? ErrorMessage { get; set; }
-    public TimeSpan ExecutionDuration { get; set; }
-    public string ExecutionContext { get; set; } = string.Empty;
-    public bool AlertTriggered { get; set; }
-}
+
+
+

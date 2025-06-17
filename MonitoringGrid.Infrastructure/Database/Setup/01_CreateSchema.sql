@@ -11,7 +11,8 @@ BEGIN
 END
 GO
 
--- KPI Configuration Table
+-- Legacy KPI Configuration Table (deprecated - use Indicators table instead)
+-- This table is maintained for backward compatibility only
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'monitoring.KPIs') AND type in (N'U'))
 BEGIN
     CREATE TABLE monitoring.KPIs (

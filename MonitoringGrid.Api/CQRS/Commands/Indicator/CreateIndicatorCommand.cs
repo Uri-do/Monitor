@@ -1,14 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
 using MonitoringGrid.Core.Common;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 
 namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 
 /// <summary>
 /// Command to create a new indicator
 /// </summary>
-public class CreateIndicatorCommand : IRequest<Result<IndicatorDto>>
+public class CreateIndicatorCommand : IRequest<Result<IndicatorResponse>>
 {
     [Required]
     [MaxLength(255)]

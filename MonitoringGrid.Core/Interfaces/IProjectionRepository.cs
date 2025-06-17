@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Core.Interfaces;
 
@@ -102,21 +103,7 @@ public interface IProjectionRepository<T> where T : class
         params Expression<Func<T, object>>[] includes);
 }
 
-/// <summary>
-/// Paged result container for efficient pagination
-/// </summary>
-public class PagedResult<T>
-{
-    public IEnumerable<T> Items { get; set; } = new List<T>();
-    public int TotalCount { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
-    public bool HasPreviousPage => PageNumber > 1;
-    public bool HasNextPage => PageNumber < TotalPages;
-    public int StartIndex => (PageNumber - 1) * PageSize + 1;
-    public int EndIndex => Math.Min(PageNumber * PageSize, TotalCount);
-}
+
 
 /// <summary>
 /// Performance metrics for query optimization

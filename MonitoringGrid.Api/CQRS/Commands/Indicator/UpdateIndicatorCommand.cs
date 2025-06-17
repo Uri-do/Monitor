@@ -1,14 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
 using MonitoringGrid.Core.Common;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 
 namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 
 /// <summary>
 /// Command to update an existing indicator
 /// </summary>
-public class UpdateIndicatorCommand : IRequest<Result<IndicatorDto>>
+public class UpdateIndicatorCommand : IRequest<Result<IndicatorResponse>>
 {
     public int IndicatorID { get; set; }
 

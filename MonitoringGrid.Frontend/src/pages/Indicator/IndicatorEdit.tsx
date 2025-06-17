@@ -3,30 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Alert,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Grid,
-  FormControlLabel,
-  Switch,
-  InputAdornment,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Assessment as IndicatorIcon,
   ArrowBack as BackIcon,
-  Code as CodeIcon,
-  Description as DescriptionIcon,
-  Storage as CollectorIcon,
-  Schedule as SchedulerIcon,
-  Timer as TimerIcon,
-  TrendingUp as ThresholdIcon,
-  PriorityHigh as PriorityIcon,
 } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
@@ -34,10 +19,19 @@ import toast from 'react-hot-toast';
 import { useIndicator } from '@/hooks/useIndicators';
 import { useActiveCollectors, useCollectorItemNames } from '@/hooks/useMonitorStatistics';
 import { useSchedulers } from '@/hooks/useSchedulers';
-import { LoadingSpinner, PageHeader, FormLayout, FormSection, FormActions } from '@/components';
+import { LoadingSpinner, PageHeader, FormLayout, FormActions } from '@/components';
 import { indicatorApi } from '@/services/api';
 import { UpdateIndicatorRequest } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Import form sections
+import {
+  BasicInformationSection,
+  DataSourceSection,
+  SchedulingSection,
+  ThresholdConfigurationSection,
+  StatusSection,
+} from './components';
 
 // Validation schema
 const indicatorValidationSchema = yup.object({
@@ -204,350 +198,32 @@ const IndicatorEdit: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <FormLayout fullWidth spacing={3}>
           {/* Basic Information */}
-          <Grid item xs={12}>
-            <FormSection
-              title="Basic Information"
-              subtitle="Configure indicator name, code, and description"
-              icon={<IndicatorIcon />}
-            >
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="indicatorName"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Indicator Name"
-                      fullWidth
-                      error={!!errors.indicatorName}
-                      helperText={errors.indicatorName?.message}
-                      placeholder="e.g., Database Connection Count"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <IndicatorIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="indicatorCode"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Indicator Code"
-                      fullWidth
-                      error={!!errors.indicatorCode}
-                      helperText={errors.indicatorCode?.message}
-                      placeholder="e.g., DB_CONN_COUNT"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CodeIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Controller
-                  name="indicatorDesc"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      fullWidth
-                      multiline
-                      rows={3}
-                      error={!!errors.indicatorDesc}
-                      helperText={errors.indicatorDesc?.message}
-                      placeholder="Describe what this indicator monitors..."
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <DescriptionIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-            </FormSection>
-          </Grid>
+          <BasicInformationSection control={control} errors={errors} />
 
           {/* Data Source Configuration */}
-          <Grid item xs={12}>
-            <FormSection
-              title="Data Source"
-              subtitle="Configure collector and data item"
-              icon={<CollectorIcon />}
-            >
-
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="collectorID"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.collectorID}>
-                      <InputLabel>Collector</InputLabel>
-                      <Select {...field} label="Collector">
-                        <MenuItem value={0}>
-                          <em>Select a collector</em>
-                        </MenuItem>
-                        {collectors.map((collector) => (
-                          <MenuItem key={collector.collectorID} value={collector.collectorID}>
-                            {collector.displayName}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.collectorID && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.collectorID.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="collectorItemName"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.collectorItemName}>
-                      <InputLabel>Collector Item Name</InputLabel>
-                      <Select {...field} label="Collector Item Name" disabled={!watch('collectorID')}>
-                        <MenuItem value="">
-                          <em>Select an item</em>
-                        </MenuItem>
-                        {collectorItems.map((item) => (
-                          <MenuItem key={item} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.collectorItemName && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.collectorItemName.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            </FormSection>
-          </Grid>
+          <DataSourceSection
+            control={control}
+            errors={errors}
+            collectors={collectors}
+            collectorItems={collectorItems}
+            selectedCollectorID={watch('collectorID')}
+          />
 
           {/* Scheduling Configuration */}
-          <Grid item xs={12}>
-            <FormSection
-              title="Scheduling"
-              subtitle="Configure when and how often to check this indicator"
-              icon={<SchedulerIcon />}
-            >
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="schedulerID"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.schedulerID}>
-                      <InputLabel>Scheduler</InputLabel>
-                      <Select {...field} label="Scheduler">
-                        <MenuItem value={0}>
-                          <em>Select a scheduler</em>
-                        </MenuItem>
-                        {schedulers.map((scheduler) => (
-                          <MenuItem key={scheduler.schedulerID} value={scheduler.schedulerID}>
-                            {scheduler.schedulerName}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.schedulerID && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.schedulerID.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="lastMinutes"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Data Window (Minutes)"
-                      type="number"
-                      fullWidth
-                      error={!!errors.lastMinutes}
-                      helperText={errors.lastMinutes?.message || 'How far back to look for data'}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <TimerIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-            </FormSection>
-          </Grid>
+          <SchedulingSection
+            control={control}
+            errors={errors}
+            schedulers={schedulers}
+          />
 
           {/* Threshold Configuration */}
-          <Grid item xs={12}>
-            <FormSection
-              title="Threshold Configuration"
-              subtitle="Define when this indicator should trigger alerts"
-              icon={<ThresholdIcon />}
-            >
-              <Grid item xs={12} md={4}>
-                <Controller
-                  name="thresholdType"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.thresholdType}>
-                      <InputLabel>Threshold Type</InputLabel>
-                      <Select {...field} label="Threshold Type">
-                        <MenuItem value="count">Count</MenuItem>
-                        <MenuItem value="sum">Sum</MenuItem>
-                        <MenuItem value="average">Average</MenuItem>
-                        <MenuItem value="min">Minimum</MenuItem>
-                        <MenuItem value="max">Maximum</MenuItem>
-                      </Select>
-                      {errors.thresholdType && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.thresholdType.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <Controller
-                  name="thresholdField"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Threshold Field"
-                      fullWidth
-                      error={!!errors.thresholdField}
-                      helperText={errors.thresholdField?.message}
-                      placeholder="e.g., value, count"
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <Controller
-                  name="thresholdComparison"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.thresholdComparison}>
-                      <InputLabel>Comparison</InputLabel>
-                      <Select {...field} label="Comparison">
-                        <MenuItem value="gt">Greater Than (&gt;)</MenuItem>
-                        <MenuItem value="gte">Greater Than or Equal (&gt;=)</MenuItem>
-                        <MenuItem value="lt">Less Than (&lt;)</MenuItem>
-                        <MenuItem value="lte">Less Than or Equal (&lt;=)</MenuItem>
-                        <MenuItem value="eq">Equal (=)</MenuItem>
-                        <MenuItem value="ne">Not Equal (≠)</MenuItem>
-                      </Select>
-                      {errors.thresholdComparison && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.thresholdComparison.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="thresholdValue"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Threshold Value"
-                      type="number"
-                      fullWidth
-                      error={!!errors.thresholdValue}
-                      helperText={errors.thresholdValue?.message}
-                      placeholder="e.g., 100"
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="priority"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.priority}>
-                      <InputLabel>Priority</InputLabel>
-                      <Select {...field} label="Priority">
-                        <MenuItem value="low">Low</MenuItem>
-                        <MenuItem value="medium">Medium</MenuItem>
-                        <MenuItem value="high">High</MenuItem>
-                        <MenuItem value="critical">Critical</MenuItem>
-                      </Select>
-                      {errors.priority && (
-                        <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                          {errors.priority.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            </FormSection>
-          </Grid>
+          <ThresholdConfigurationSection
+            control={control}
+            errors={errors}
+          />
 
           {/* Status Configuration */}
-          <Grid item xs={12}>
-            <FormSection
-              title="Status"
-              subtitle="Configure indicator status and activation"
-              icon={<PriorityIcon />}
-            >
-              <Grid item xs={12}>
-                <Controller
-                  name="isActive"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={<Switch {...field} checked={field.value} />}
-                      label="Active"
-                    />
-                  )}
-                />
-              </Grid>
-            </FormSection>
-          </Grid>
+          <StatusSection control={control} />
 
           {/* Form Actions */}
           <Grid item xs={12}>

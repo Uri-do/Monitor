@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BCrypt.Net;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
@@ -17,10 +18,9 @@ namespace MonitoringGrid.Infrastructure.Services;
 
 /// <summary>
 /// Unified security service consolidating all security-related operations
-/// Replaces: AuthenticationService, JwtTokenService, EncryptionService, 
-/// SecurityAuditService, ThreatDetectionService, TwoFactorService
+/// Implements all security interfaces to eliminate the need for adapters
 /// </summary>
-public class SecurityService : ISecurityService
+public class SecurityService : ISecurityService, IAuthenticationService, ISecurityAuditService, IThreatDetectionService
 {
     private readonly MonitoringContext _context;
     private readonly SecurityConfiguration _securityConfig;
@@ -70,7 +70,7 @@ public class SecurityService : ISecurityService
 
     #region Authentication Domain
 
-    public async Task<LoginResponse> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)
+    public async Task<Result<LoginResponse>> AuthenticateAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -80,7 +80,7 @@ public class SecurityService : ISecurityService
             if (await IsIpAddressSuspiciousAsync(ipAddress, cancellationToken))
             {
                 await LogLoginAttemptAsync(request.Username, ipAddress, false, "Suspicious IP address", cancellationToken);
-                return new LoginResponse { IsSuccess = false, ErrorMessage = "Authentication failed" };
+                return Result.Failure<LoginResponse>(Error.Validation("Authentication.SuspiciousIp", "Authentication failed"));
             }
 
             // Find user
@@ -90,14 +90,14 @@ public class SecurityService : ISecurityService
             if (user == null)
             {
                 await LogLoginAttemptAsync(request.Username, ipAddress, false, "User not found", cancellationToken);
-                return new LoginResponse { IsSuccess = false, ErrorMessage = "Invalid credentials" };
+                return Result.Failure<LoginResponse>(Error.Validation("Authentication.InvalidCredentials", "Invalid credentials"));
             }
 
             // Verify password
             if (!VerifyPassword(request.Password, user.PasswordHash))
             {
                 await LogLoginAttemptAsync(request.Username, ipAddress, false, "Invalid password", cancellationToken);
-                return new LoginResponse { IsSuccess = false, ErrorMessage = "Invalid credentials" };
+                return Result.Failure<LoginResponse>(Error.Validation("Authentication.InvalidCredentials", "Invalid credentials"));
             }
 
             // Check if 2FA is enabled
@@ -106,12 +106,13 @@ public class SecurityService : ISecurityService
 
             if (twoFactorSettings != null && string.IsNullOrEmpty(request.TwoFactorCode))
             {
-                return new LoginResponse
+                var twoFactorResponse = new LoginResponse
                 {
                     IsSuccess = false,
                     RequiresTwoFactor = true,
                     ErrorMessage = "Two-factor authentication required"
                 };
+                return Result<LoginResponse>.Success(twoFactorResponse);
             }
 
             // Validate 2FA if provided
@@ -120,7 +121,7 @@ public class SecurityService : ISecurityService
                 if (!await ValidateTwoFactorCodeAsync(user.UserId, request.TwoFactorCode, cancellationToken))
                 {
                     await LogLoginAttemptAsync(request.Username, ipAddress, false, "Invalid 2FA code", cancellationToken);
-                    return new LoginResponse { IsSuccess = false, ErrorMessage = "Invalid two-factor code" };
+                    return Result.Failure<LoginResponse>(Error.Validation("Authentication.InvalidTwoFactor", "Invalid two-factor code"));
                 }
             }
 
@@ -143,7 +144,7 @@ public class SecurityService : ISecurityService
 
             await LogLoginAttemptAsync(request.Username, ipAddress, true, "Successful login", cancellationToken);
 
-            return new LoginResponse
+            var successResponse = new LoginResponse
             {
                 IsSuccess = true,
                 Token = new JwtToken
@@ -155,15 +156,17 @@ public class SecurityService : ISecurityService
                 },
                 User = user
             };
+
+            return Result<LoginResponse>.Success(successResponse);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during authentication for user {Username}", request.Username);
-            return new LoginResponse { IsSuccess = false, ErrorMessage = "Authentication failed" };
+            return Result.Failure<LoginResponse>(Error.Failure("Authentication.Failed", "Authentication failed"));
         }
     }
 
-    public async Task<JwtToken> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<Result<JwtToken>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -173,80 +176,90 @@ public class SecurityService : ISecurityService
 
             if (tokenEntity?.User == null)
             {
-                throw new SecurityTokenException("Invalid refresh token");
+                return Result.Failure<JwtToken>(Error.Validation("Token.InvalidRefreshToken", "Invalid refresh token"));
             }
 
             // Generate new access token
             var accessToken = GenerateAccessToken(tokenEntity.User);
 
-            return new JwtToken
+            var newToken = new JwtToken
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes)
             };
+
+            return Result<JwtToken>.Success(newToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing token");
-            throw;
+            return Result.Failure<JwtToken>(Error.Failure("Token.RefreshFailed", $"Token refresh failed: {ex.Message}"));
         }
     }
 
-    public async Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
             // Check if token is blacklisted
             if (await IsTokenBlacklistedAsync(token, cancellationToken))
-                return false;
+                return Result<bool>.Success(false);
 
             // Validate token structure
             var principal = ValidateTokenStructure(token);
-            return principal != null;
+            return Result<bool>.Success(principal != null);
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            _logger.LogError(ex, "Error validating token");
+            return Result.Failure<bool>(Error.Failure("Token.ValidationFailed", $"Token validation failed: {ex.Message}"));
         }
     }
 
-    public async Task<User?> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<Result<User>> GetUserFromTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
             var principal = ValidateTokenStructure(token);
-            if (principal == null) return null;
+            if (principal == null)
+                return Result.Failure<User>(Error.Validation("Token.Invalid", "Invalid token"));
 
             var userId = principal.FindFirst("user_id")?.Value;
-            if (string.IsNullOrEmpty(userId)) return null;
+            if (string.IsNullOrEmpty(userId))
+                return Result.Failure<User>(Error.Validation("Token.MissingUserId", "User ID not found in token"));
 
-            return await _context.Users
+            var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive, cancellationToken);
+
+            if (user == null)
+                return Result.Failure<User>(Error.NotFound("User", "User not found or inactive"));
+
+            return Result<User>.Success(user);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user from token");
-            return null;
+            return Result.Failure<User>(Error.Failure("Token.UserRetrievalFailed", $"Failed to get user from token: {ex.Message}"));
         }
     }
 
-    public async Task<bool> RevokeTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<Result> RevokeTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
             var expiration = GetTokenExpiration(token);
             await BlacklistTokenAsync(token, expiration, cancellationToken);
-            return true;
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error revoking token");
-            return false;
+            return Result.Failure(Error.Failure("Token.RevocationFailed", $"Token revocation failed: {ex.Message}"));
         }
     }
 
-    public async Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -256,14 +269,14 @@ public class SecurityService : ISecurityService
             if (user == null)
             {
                 await LogPasswordChangeAsync(userId, false, cancellationToken);
-                return false;
+                return Result.Failure(Error.NotFound("User", "User not found"));
             }
 
             // Verify current password
             if (!VerifyPassword(request.CurrentPassword, user.PasswordHash))
             {
                 await LogPasswordChangeAsync(userId, false, cancellationToken);
-                return false;
+                return Result.Failure(Error.Validation("Password.IncorrectCurrent", "Current password is incorrect"));
             }
 
             // Hash new password
@@ -273,17 +286,17 @@ public class SecurityService : ISecurityService
             await _context.SaveChangesAsync(cancellationToken);
             await LogPasswordChangeAsync(userId, true, cancellationToken);
 
-            return true;
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error changing password for user {UserId}", userId);
             await LogPasswordChangeAsync(userId, false, cancellationToken);
-            return false;
+            return Result.Failure(Error.Failure("Password.ChangeFailed", $"Password change failed: {ex.Message}"));
         }
     }
 
-    public async Task<bool> ResetPasswordAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Result> ResetPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -293,7 +306,7 @@ public class SecurityService : ISecurityService
             if (user == null)
             {
                 // Don't reveal if email exists for security
-                return true;
+                return Result.Success();
             }
 
             // Generate temporary password
@@ -306,16 +319,16 @@ public class SecurityService : ISecurityService
             // TODO: Send email with temporary password
             _logger.LogInformation("Password reset for user {Email}", email);
 
-            return true;
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resetting password for email {Email}", email);
-            return false;
+            return Result.Failure(Error.Failure("Password.ResetFailed", $"Password reset failed: {ex.Message}"));
         }
     }
 
-    public async Task LogoutAsync(string userId, string token, CancellationToken cancellationToken = default)
+    public async Task<Result> LogoutAsync(string userId, string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -334,11 +347,12 @@ public class SecurityService : ISecurityService
             }, cancellationToken);
 
             _logger.LogInformation("User {UserId} logged out successfully", userId);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during logout for user {UserId}", userId);
-            throw;
+            return Result.Failure(Error.Failure("Authentication.LogoutFailed", $"Logout failed: {ex.Message}"));
         }
     }
 

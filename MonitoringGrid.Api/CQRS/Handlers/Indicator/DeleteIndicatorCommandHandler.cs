@@ -30,11 +30,13 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
             _logger.LogDebug("Deleting indicator {IndicatorId}", request.IndicatorID);
 
             // Get the indicator to validate it exists and get details for the event
-            var indicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
-            if (indicator == null)
+            var indicatorResult = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
+            if (!indicatorResult.IsSuccess)
             {
                 return Result.Failure<bool>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
             }
+
+            var indicator = indicatorResult.Value;
 
             // Check if indicator is currently running
             if (indicator.IsCurrentlyRunning)
@@ -49,9 +51,15 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
                 indicator.OwnerContact?.Name ?? "Unknown"));
 
             // Delete the indicator
-            var success = await _indicatorService.DeleteIndicatorAsync(request.IndicatorID, cancellationToken);
+            var deleteOptions = new Core.Models.DeleteIndicatorOptions
+            {
+                Force = false, // Force property doesn't exist in DeleteIndicatorCommand
+                ArchiveData = true,
+                DeletionReason = "Manual deletion"
+            };
+            var deleteResult = await _indicatorService.DeleteIndicatorAsync(request.IndicatorID, deleteOptions, cancellationToken);
 
-            if (success)
+            if (deleteResult.IsSuccess)
             {
                 _logger.LogInformation("Successfully deleted indicator {IndicatorId}: {IndicatorName}",
                     indicator.IndicatorID, indicator.IndicatorName);
@@ -61,7 +69,7 @@ public class DeleteIndicatorCommandHandler : IRequestHandler<DeleteIndicatorComm
             {
                 _logger.LogWarning("Failed to delete indicator {IndicatorId}: {IndicatorName}",
                     indicator.IndicatorID, indicator.IndicatorName);
-                return Result.Failure<bool>("DELETE_FAILED", "Failed to delete indicator");
+                return Result.Failure<bool>("DELETE_FAILED", deleteResult.Error?.Message ?? "Failed to delete indicator");
             }
         }
         catch (Exception ex)

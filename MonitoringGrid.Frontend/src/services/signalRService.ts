@@ -472,7 +472,7 @@ class SignalRService {
 
   public updateAuthToken(token: string): void {
     // Store new token using the same key as authService
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
 
     // Restart connection with new token
     if (this.connection) {

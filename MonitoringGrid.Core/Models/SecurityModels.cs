@@ -839,22 +839,27 @@ public class BulkOperationResult
     /// <summary>
     /// Total number of items requested for processing
     /// </summary>
-    public int TotalRequested { get; set; }
+    public int TotalItems { get; set; }
 
     /// <summary>
     /// Number of items successfully processed
     /// </summary>
-    public int SuccessCount { get; set; }
+    public int SuccessfulItems { get; set; }
 
     /// <summary>
     /// Number of items that failed processing
     /// </summary>
-    public int FailureCount => TotalRequested - SuccessCount;
+    public int FailedItems { get; set; }
+
+    /// <summary>
+    /// Individual results for each item
+    /// </summary>
+    public List<BulkOperationItem> Results { get; set; } = new();
 
     /// <summary>
     /// Success rate as a percentage
     /// </summary>
-    public double SuccessRate => TotalRequested > 0 ? (double)SuccessCount / TotalRequested * 100 : 0;
+    public double SuccessRate => TotalItems > 0 ? (double)SuccessfulItems / TotalItems * 100 : 0;
 
     /// <summary>
     /// List of error messages for failed operations

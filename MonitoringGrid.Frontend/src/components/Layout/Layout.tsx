@@ -35,6 +35,7 @@ import {
   History as HistoryIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  BugReport as BugReportIcon,
   DarkMode,
   LightMode,
   Build as WorkerIcon,
@@ -153,6 +154,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       text: 'Worker Management',
       icon: <WorkerIcon />,
       path: '/worker',
+    },
+    {
+      text: 'API Testing',
+      icon: <BugReportIcon />,
+      path: '/api-testing',
+      // requiredPermissions: ['System:Admin'], // Admin only feature
     },
     {
       text: 'Administration',

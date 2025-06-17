@@ -2,7 +2,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Events;
@@ -13,7 +13,7 @@ namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
 /// <summary>
 /// Handler for updating existing indicators
 /// </summary>
-public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorCommand, Result<IndicatorDto>>
+public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorCommand, Result<IndicatorResponse>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIndicatorService _indicatorService;
@@ -35,36 +35,38 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
         _logger = logger;
     }
 
-    public async Task<Result<IndicatorDto>> Handle(UpdateIndicatorCommand request, CancellationToken cancellationToken)
+    public async Task<Result<IndicatorResponse>> Handle(UpdateIndicatorCommand request, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogDebug("Updating indicator {IndicatorId}: {IndicatorName}", request.IndicatorID, request.IndicatorName);
 
             // Get existing indicator
-            var existingIndicator = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
-            if (existingIndicator == null)
+            var existingIndicatorResult = await _indicatorService.GetIndicatorByIdAsync(request.IndicatorID, cancellationToken);
+            if (!existingIndicatorResult.IsSuccess)
             {
-                return Result.Failure<IndicatorDto>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
+                return Result.Failure<IndicatorResponse>("INDICATOR_NOT_FOUND", $"Indicator with ID {request.IndicatorID} not found");
             }
+
+            var existingIndicator = existingIndicatorResult.Value;
 
             // Validate collector exists and is active
             var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
+                return Result.Failure<IndicatorResponse>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
 
             if (!collector.IsActive)
             {
-                return Result.Failure<IndicatorDto>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
+                return Result.Failure<IndicatorResponse>("COLLECTOR_INACTIVE", $"Collector {collector.CollectorCode} is not active");
             }
 
             // Validate collector item name exists
             var availableItems = await _progressPlayDbService.GetCollectorItemNamesAsync(request.CollectorID, cancellationToken);
             if (!availableItems.Contains(request.CollectorItemName))
             {
-                return Result.Failure<IndicatorDto>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
+                return Result.Failure<IndicatorResponse>("ITEM_NOT_FOUND", $"Item '{request.CollectorItemName}' not found for collector {collector.CollectorCode}");
             }
 
             // Validate owner contact exists
@@ -72,7 +74,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             var ownerContact = await contactRepository.GetByIdAsync(request.OwnerContactId, cancellationToken);
             if (ownerContact == null)
             {
-                return Result.Failure<IndicatorDto>("OWNER_CONTACT_NOT_FOUND", $"Owner contact with ID {request.OwnerContactId} not found");
+                return Result.Failure<IndicatorResponse>("OWNER_CONTACT_NOT_FOUND", $"Owner contact with ID {request.OwnerContactId} not found");
             }
 
             // Validate additional contacts if provided
@@ -82,7 +84,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
                 var missingContactIds = request.ContactIds.Except(contacts.Select(c => c.ContactId)).ToList();
                 if (missingContactIds.Any())
                 {
-                    return Result.Failure<IndicatorDto>("CONTACTS_NOT_FOUND", $"Contacts not found: {string.Join(", ", missingContactIds)}");
+                    return Result.Failure<IndicatorResponse>("CONTACTS_NOT_FOUND", $"Contacts not found: {string.Join(", ", missingContactIds)}");
                 }
             }
 
@@ -93,11 +95,11 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
                 var scheduler = await schedulerRepository.GetByIdAsync(request.SchedulerID.Value, cancellationToken);
                 if (scheduler == null)
                 {
-                    return Result.Failure<IndicatorDto>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {request.SchedulerID} not found");
+                    return Result.Failure<IndicatorResponse>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {request.SchedulerID} not found");
                 }
                 if (!scheduler.IsEnabled)
                 {
-                    return Result.Failure<IndicatorDto>("SCHEDULER_DISABLED", $"Scheduler '{scheduler.SchedulerName}' is disabled");
+                    return Result.Failure<IndicatorResponse>("SCHEDULER_DISABLED", $"Scheduler '{scheduler.SchedulerName}' is disabled");
                 }
             }
 
@@ -108,7 +110,7 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
                 cancellationToken);
             if (duplicateIndicator.Any())
             {
-                return Result.Failure<IndicatorDto>("DUPLICATE_CODE", $"Indicator with code '{request.IndicatorCode}' already exists");
+                return Result.Failure<IndicatorResponse>("DUPLICATE_CODE", $"Indicator with code '{request.IndicatorCode}' already exists");
             }
 
             // Update the indicator properties
@@ -136,7 +138,32 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
                 ownerContact.Name));
 
             // Update the indicator
-            var updatedIndicator = await _indicatorService.UpdateIndicatorAsync(existingIndicator, cancellationToken);
+            var updateRequest = new Core.Models.UpdateIndicatorRequest
+            {
+                IndicatorID = existingIndicator.IndicatorID,
+                IndicatorName = request.IndicatorName,
+                IndicatorCode = request.IndicatorCode,
+                IndicatorDesc = request.IndicatorDesc,
+                CollectorID = request.CollectorID,
+                CollectorItemName = request.CollectorItemName,
+                SchedulerID = request.SchedulerID,
+                IsActive = request.IsActive,
+                LastMinutes = request.LastMinutes,
+                ThresholdType = request.ThresholdType,
+                ThresholdField = request.ThresholdField,
+                ThresholdComparison = request.ThresholdComparison,
+                ThresholdValue = request.ThresholdValue,
+                Priority = request.Priority,
+                OwnerContactId = request.OwnerContactId,
+                AverageLastDays = request.AverageLastDays,
+            };
+            var updatedIndicatorResult = await _indicatorService.UpdateIndicatorAsync(updateRequest, cancellationToken);
+            if (!updatedIndicatorResult.IsSuccess)
+            {
+                return Result.Failure<IndicatorResponse>("UPDATE_FAILED", updatedIndicatorResult.Error?.Message ?? "Failed to update indicator");
+            }
+
+            var updatedIndicator = updatedIndicatorResult.Value;
 
             // Update contacts
             var currentContactIds = existingIndicator.IndicatorContacts.Select(ic => ic.ContactId).ToList();
@@ -145,37 +172,46 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
 
             if (contactsToRemove.Any())
             {
-                await _indicatorService.RemoveContactsFromIndicatorAsync(
-                    updatedIndicator.IndicatorID,
-                    contactsToRemove,
-                    cancellationToken);
+                var removalOptions = new Core.Models.ContactRemovalOptions
+                {
+                    CheckDependencies = true,
+                    RemovalReason = "Indicator update"
+                };
+                await _indicatorService.RemoveContactsFromIndicatorAsync(updatedIndicator.IndicatorID, contactsToRemove, removalOptions, cancellationToken);
             }
 
             if (contactsToAdd.Any())
             {
-                await _indicatorService.AddContactsToIndicatorAsync(
-                    updatedIndicator.IndicatorID,
-                    contactsToAdd,
-                    cancellationToken);
+                var assignmentOptions = new Core.Models.ContactAssignmentOptions
+                {
+                    ValidateContacts = true,
+                    AssignmentReason = "Indicator update"
+                };
+                await _indicatorService.AddContactsToIndicatorAsync(updatedIndicator.IndicatorID, contactsToAdd, assignmentOptions, cancellationToken);
             }
 
             // Reload with updated contacts for mapping
-            var indicatorWithContacts = await _indicatorService.GetIndicatorByIdAsync(
+            var indicatorWithContactsResult = await _indicatorService.GetIndicatorByIdAsync(
                 updatedIndicator.IndicatorID,
                 cancellationToken);
 
-            var indicatorDto = _mapper.Map<IndicatorDto>(indicatorWithContacts);
+            if (!indicatorWithContactsResult.IsSuccess)
+            {
+                return Result.Failure<IndicatorResponse>("RELOAD_FAILED", "Failed to reload updated indicator");
+            }
+
+            var indicatorDto = _mapper.Map<IndicatorResponse>(indicatorWithContactsResult.Value);
 
             _logger.LogInformation("Successfully updated indicator {IndicatorId}: {IndicatorName}",
                 updatedIndicator.IndicatorID, updatedIndicator.IndicatorName);
 
-            return Result<IndicatorDto>.Success(indicatorDto);
+            return Result<IndicatorResponse>.Success(indicatorDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update indicator {IndicatorId}: {IndicatorName}",
                 request.IndicatorID, request.IndicatorName);
-            return Result.Failure<IndicatorDto>("UPDATE_FAILED", $"Failed to update indicator: {ex.Message}");
+            return Result.Failure<IndicatorResponse>("UPDATE_FAILED", $"Failed to update indicator: {ex.Message}");
         }
     }
 

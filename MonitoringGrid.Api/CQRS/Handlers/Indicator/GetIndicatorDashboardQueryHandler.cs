@@ -2,16 +2,17 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
-using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
 
 namespace MonitoringGrid.Api.CQRS.Handlers.Indicator;
 
 /// <summary>
 /// Handler for getting indicator dashboard data
 /// </summary>
-public class GetIndicatorDashboardQueryHandler : IRequestHandler<GetIndicatorDashboardQuery, Result<IndicatorDashboardDto>>
+public class GetIndicatorDashboardQueryHandler : IRequestHandler<GetIndicatorDashboardQuery, Result<IndicatorDashboardResponse>>
 {
     private readonly IIndicatorService _indicatorService;
     private readonly IMapper _mapper;
@@ -27,37 +28,26 @@ public class GetIndicatorDashboardQueryHandler : IRequestHandler<GetIndicatorDas
         _logger = logger;
     }
 
-    public async Task<Result<IndicatorDashboardDto>> Handle(GetIndicatorDashboardQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IndicatorDashboardResponse>> Handle(GetIndicatorDashboardQuery request, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogDebug("Getting indicator dashboard data");
 
-            var dashboardData = await _indicatorService.GetIndicatorDashboardAsync(cancellationToken);
-            var dashboardDto = _mapper.Map<IndicatorDashboardDto>(dashboardData);
+            var dashboardOptions = new DashboardOptions();
+            var dashboardData = await _indicatorService.GetIndicatorDashboardAsync(dashboardOptions, cancellationToken);
+            var dashboardDto = _mapper.Map<IndicatorDashboardResponse>(dashboardData);
 
-            // Add indicator statuses
-            var allIndicators = await _indicatorService.GetAllIndicatorsAsync(cancellationToken);
-            dashboardDto.IndicatorStatuses = allIndicators.Select(i => new IndicatorStatusDto
-            {
-                IndicatorID = i.IndicatorID,
-                IndicatorName = i.IndicatorName,
-                IsActive = i.IsActive,
-                IsCurrentlyRunning = i.IsCurrentlyRunning,
-                LastRun = i.LastRun,
-                NextRun = i.GetNextRunTime(),
-                Status = GetIndicatorStatus(i),
-                LastError = i.LastRunResult?.Contains("Error") == true ? i.LastRunResult : null
-            }).ToList();
+            // Dashboard data is already populated by the service and mapper
 
             _logger.LogDebug("Successfully retrieved indicator dashboard data");
 
-            return Result<IndicatorDashboardDto>.Success(dashboardDto);
+            return Result<IndicatorDashboardResponse>.Success(dashboardDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get indicator dashboard data");
-            return Result.Failure<IndicatorDashboardDto>("DASHBOARD_FAILED", $"Failed to get dashboard data: {ex.Message}");
+            return Result.Failure<IndicatorDashboardResponse>("DASHBOARD_FAILED", $"Failed to get dashboard data: {ex.Message}");
         }
     }
 

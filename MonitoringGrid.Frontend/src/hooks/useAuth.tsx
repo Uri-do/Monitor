@@ -87,7 +87,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } else {
         console.log('No token found, user needs to login');
-        setState(prev => ({ ...prev, isLoading: false }));
+        setState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
       }
     };
 

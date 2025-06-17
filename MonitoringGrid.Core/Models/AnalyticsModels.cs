@@ -38,9 +38,9 @@ public class TrendChange
 }
 
 /// <summary>
-/// Indicator performance metrics
+/// Basic indicator performance metrics for analytics
 /// </summary>
-public class IndicatorPerformanceMetrics
+public class IndicatorAnalyticsMetrics
 {
     public long IndicatorId { get; set; }
     public string IndicatorName { get; set; } = string.Empty;

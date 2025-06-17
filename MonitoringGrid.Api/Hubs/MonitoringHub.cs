@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Hubs;
 
 namespace MonitoringGrid.Api.Hubs;
 
@@ -548,7 +549,9 @@ public class RealtimeNotificationService : IRealtimeNotificationService
     {
         try
         {
-            _logger.LogDebug("Sending countdown update for next Indicator {IndicatorId}: {Seconds} seconds", countdown.NextIndicatorID, countdown.SecondsUntilDue);
+            var nextIndicator = countdown.NextIndicators.FirstOrDefault();
+            _logger.LogDebug("Sending countdown update for next Indicator {IndicatorId}: {Seconds} seconds",
+                nextIndicator?.IndicatorId ?? 0, nextIndicator?.SecondsUntilDue ?? 0);
 
             await _hubContext.Clients.Group("Dashboard")
                 .SendAsync("CountdownUpdate", countdown);

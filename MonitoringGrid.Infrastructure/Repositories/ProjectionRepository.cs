@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Models;
 using MonitoringGrid.Infrastructure.Data;
 using System.Diagnostics;
 using System.Linq.Expressions;
@@ -74,7 +75,7 @@ public class ProjectionRepository<T> : IProjectionRepository<T> where T : class
         {
             Items = items,
             TotalCount = totalCount,
-            PageNumber = pageNumber,
+            Page = pageNumber,
             PageSize = pageSize
         };
     }
@@ -107,7 +108,7 @@ public class ProjectionRepository<T> : IProjectionRepository<T> where T : class
         {
             Items = items,
             TotalCount = totalCount,
-            PageNumber = pageNumber,
+            Page = pageNumber,
             PageSize = pageSize
         };
     }

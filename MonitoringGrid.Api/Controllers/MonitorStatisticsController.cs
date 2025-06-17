@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
+using MonitoringGrid.Api.Controllers.Base;
+using MonitoringGrid.Api.DTOs.MonitorStatistics;
 using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Api.CQRS.Queries.MonitorStatistics;
+using System.Diagnostics;
 
 namespace MonitoringGrid.Api.Controllers;
 
@@ -13,142 +16,399 @@ namespace MonitoringGrid.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class MonitorStatisticsController : ControllerBase
+[Authorize]
+[Produces("application/json")]
+[ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+[ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
+public class MonitorStatisticsController : BaseApiController
 {
-    private readonly IMediator _mediator;
     private readonly IMonitorStatisticsService _statisticsService;
-    private readonly ILogger<MonitorStatisticsController> _logger;
 
     public MonitorStatisticsController(
         IMediator mediator,
         IMonitorStatisticsService statisticsService,
         ILogger<MonitorStatisticsController> logger)
+        : base(mediator, logger)
     {
-        _mediator = mediator;
         _statisticsService = statisticsService;
-        _logger = logger;
     }
 
     /// <summary>
-    /// Get all active statistics collectors
+    /// Get all statistics collectors
     /// </summary>
+    /// <param name="request">Get collectors request parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of collectors</returns>
     [HttpGet("collectors")]
-    public async Task<ActionResult<Result<List<MonitorStatisticsCollectorDto>>>> GetActiveCollectors(
-        [FromQuery] bool activeOnly = true,
+    [ProducesResponseType(typeof(List<CollectorResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<CollectorResponse>>> GetCollectors(
+        [FromQuery] GetCollectorsRequest? request = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetCollectorsQuery { ActiveOnly = activeOnly };
-        var result = await _mediator.Send(query, cancellationToken);
+        var stopwatch = Stopwatch.StartNew();
 
-        if (result.IsSuccess)
-            return Ok(result);
+        try
+        {
+            request ??= new GetCollectorsRequest();
 
-        return StatusCode(500, result);
+            var validationError = ValidateModelState();
+            if (validationError != null) return BadRequest(validationError);
+
+            var query = new GetCollectorsQuery { ActiveOnly = request.ActiveOnly };
+            var result = await Mediator.Send(query, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode(500, CreateErrorResponse(result.Error?.Message ?? "Failed to get collectors", "GET_COLLECTORS_FAILED"));
+            }
+
+            stopwatch.Stop();
+
+            // Map to enhanced response DTOs
+            var collectors = result.Value.Select(c => new CollectorResponse
+            {
+                ID = c.ID,
+                CollectorID = c.CollectorID,
+                CollectorCode = c.CollectorCode,
+                CollectorDesc = c.CollectorDesc,
+                FrequencyMinutes = c.FrequencyMinutes,
+                LastMinutes = c.LastMinutes ?? 0,
+                StoreProcedure = c.StoreProcedure,
+                IsActive = c.IsActive ?? false,
+                UpdatedDate = c.UpdatedDate,
+                LastRun = c.LastRun,
+                LastRunResult = c.LastRunResult,
+                Details = request.IncludeDetails ? new Dictionary<string, object>
+                {
+                    ["QueryDurationMs"] = stopwatch.ElapsedMilliseconds,
+                    ["FilterApplied"] = request.ActiveOnly ? "ActiveOnly" : "All",
+                    ["SearchTerm"] = request.SearchTerm ?? "None"
+                } : null
+            }).ToList();
+
+            Logger.LogDebug("Retrieved {Count} collectors in {Duration}ms", collectors.Count, stopwatch.ElapsedMilliseconds);
+
+            return Ok(CreateSuccessResponse(collectors, $"Retrieved {collectors.Count} collectors"));
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogWarning("Get collectors operation was cancelled");
+            return StatusCode(499, CreateErrorResponse("Get collectors operation was cancelled", "OPERATION_CANCELLED"));
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            Logger.LogError(ex, "Error getting collectors");
+            return StatusCode(500, CreateErrorResponse($"Error getting collectors: {ex.Message}", "GET_COLLECTORS_ERROR"));
+        }
     }
 
     /// <summary>
     /// Get collector by ID
     /// </summary>
+    /// <param name="collectorId">Collector ID</param>
+    /// <param name="request">Get collector request parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Collector details</returns>
     [HttpGet("collectors/{collectorId}")]
-    [AllowAnonymous]
-    public async Task<ActionResult<Result<MonitorStatisticsCollectorDto>>> GetCollector(long collectorId, CancellationToken cancellationToken = default)
+    [ProducesResponseType(typeof(CollectorResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CollectorResponse>> GetCollector(
+        long collectorId,
+        [FromQuery] GetCollectorRequest? request = null,
+        CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
-            _logger.LogDebug("Getting collector {CollectorId}", collectorId);
-            
-            var collector = await _statisticsService.GetCollectorByCollectorIdAsync(collectorId, cancellationToken);
-            
-            if (collector == null)
+            request ??= new GetCollectorRequest { CollectorId = collectorId };
+
+            // Validate collector ID matches route parameter
+            if (request.CollectorId != collectorId)
             {
-                return NotFound(Result<MonitorStatisticsCollectorDto>.Failure("COLLECTOR_NOT_FOUND", $"Collector {collectorId} not found"));
+                request.CollectorId = collectorId; // Use route parameter
             }
 
-            var dto = new MonitorStatisticsCollectorDto
+            var validationError = ValidateModelState();
+            if (validationError != null) return BadRequest(validationError);
+
+            // Additional validation for collector ID
+            var paramValidation = ValidateParameter(collectorId, nameof(collectorId),
+                id => id > 0, "Collector ID must be a positive integer");
+            if (paramValidation != null) return BadRequest(paramValidation);
+
+            Logger.LogDebug("Getting collector {CollectorId}", collectorId);
+
+            var collector = await _statisticsService.GetCollectorByCollectorIdAsync(collectorId, cancellationToken);
+
+            if (collector == null)
+            {
+                return NotFound(CreateErrorResponse($"Collector {collectorId} not found", "COLLECTOR_NOT_FOUND"));
+            }
+
+            stopwatch.Stop();
+
+            var response = new CollectorResponse
             {
                 ID = collector.ID,
                 CollectorID = collector.CollectorID,
                 CollectorCode = collector.CollectorCode,
                 CollectorDesc = collector.CollectorDesc,
                 FrequencyMinutes = collector.FrequencyMinutes,
-                LastMinutes = collector.LastMinutes,
+                LastMinutes = collector.LastMinutes ?? 0,
                 StoreProcedure = collector.StoreProcedure,
-                IsActive = collector.IsActive,
+                IsActive = collector.IsActive ?? false,
                 UpdatedDate = collector.UpdatedDate,
                 LastRun = collector.LastRun,
-                LastRunResult = collector.LastRunResult
+                LastRunResult = collector.LastRunResult,
+                Details = request.IncludeDetails ? new Dictionary<string, object>
+                {
+                    ["QueryDurationMs"] = stopwatch.ElapsedMilliseconds,
+                    ["LastAccessTime"] = DateTime.UtcNow,
+                    ["RequestedMetrics"] = request.IncludeMetrics
+                } : null
             };
 
-            return Ok(Result<MonitorStatisticsCollectorDto>.Success(dto));
+            // Add metrics if requested
+            if (request.IncludeMetrics)
+            {
+                response.Metrics = new CollectorMetrics
+                {
+                    LastSuccessfulExecution = collector.LastRun,
+                    NextScheduledExecution = collector.LastRun?.AddMinutes(collector.FrequencyMinutes)
+                };
+            }
+
+            Logger.LogDebug("Retrieved collector {CollectorId} in {Duration}ms",
+                collectorId, stopwatch.ElapsedMilliseconds);
+
+            return Ok(CreateSuccessResponse(response, $"Retrieved collector {collectorId}"));
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogWarning("Get collector operation was cancelled for collector {CollectorId}", collectorId);
+            return StatusCode(499, CreateErrorResponse("Get collector operation was cancelled", "OPERATION_CANCELLED"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting collector {CollectorId}", collectorId);
-            return StatusCode(500, Result<MonitorStatisticsCollectorDto>.Failure("GET_COLLECTOR_FAILED", "Failed to retrieve collector"));
+            stopwatch.Stop();
+            Logger.LogError(ex, "Error getting collector {CollectorId}", collectorId);
+            return StatusCode(500, CreateErrorResponse($"Failed to retrieve collector {collectorId}: {ex.Message}", "GET_COLLECTOR_ERROR"));
         }
     }
 
     /// <summary>
     /// Get item names for a specific collector
     /// </summary>
+    /// <param name="collectorId">Collector ID</param>
+    /// <param name="request">Get collector item names request parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of item names</returns>
     [HttpGet("collectors/{collectorId}/items")]
-    [AllowAnonymous]
-    public async Task<ActionResult<Result<List<string>>>> GetCollectorItemNames(long collectorId, CancellationToken cancellationToken = default)
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<string>>> GetCollectorItemNames(
+        long collectorId,
+        [FromQuery] GetCollectorItemNamesRequest? request = null,
+        CancellationToken cancellationToken = default)
     {
-        var query = new GetCollectorItemNamesQuery(collectorId);
-        var result = await _mediator.Send(query, cancellationToken);
+        var stopwatch = Stopwatch.StartNew();
 
-        if (result.IsSuccess)
-            return Ok(result);
+        try
+        {
+            request ??= new GetCollectorItemNamesRequest { CollectorId = collectorId };
 
-        return StatusCode(500, result);
+            // Validate collector ID matches route parameter
+            if (request.CollectorId != collectorId)
+            {
+                request.CollectorId = collectorId; // Use route parameter
+            }
+
+            var validationError = ValidateModelState();
+            if (validationError != null) return BadRequest(validationError);
+
+            // Additional validation for collector ID
+            var paramValidation = ValidateParameter(collectorId, nameof(collectorId),
+                id => id > 0, "Collector ID must be a positive integer");
+            if (paramValidation != null) return BadRequest(paramValidation);
+
+            var query = new GetCollectorItemNamesQuery(collectorId);
+            var result = await Mediator.Send(query, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode(500, CreateErrorResponse(result.Error?.Message ?? "Failed to get item names", "GET_ITEM_NAMES_FAILED"));
+            }
+
+            var itemNames = result.Value;
+
+            // Apply search filter if specified
+            if (!string.IsNullOrEmpty(request.SearchTerm))
+            {
+                itemNames = itemNames
+                    .Where(name => name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            // Apply max items limit if specified
+            if (request.MaxItems.HasValue && itemNames.Count > request.MaxItems.Value)
+            {
+                itemNames = itemNames.Take(request.MaxItems.Value).ToList();
+            }
+
+            stopwatch.Stop();
+
+            Logger.LogDebug("Retrieved {Count} item names for collector {CollectorId} in {Duration}ms",
+                itemNames.Count, collectorId, stopwatch.ElapsedMilliseconds);
+
+            return Ok(CreateSuccessResponse(itemNames, $"Retrieved {itemNames.Count} item names for collector {collectorId}"));
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogWarning("Get collector item names operation was cancelled for collector {CollectorId}", collectorId);
+            return StatusCode(499, CreateErrorResponse("Get collector item names operation was cancelled", "OPERATION_CANCELLED"));
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            Logger.LogError(ex, "Error getting item names for collector {CollectorId}", collectorId);
+            return StatusCode(500, CreateErrorResponse($"Failed to retrieve item names for collector {collectorId}: {ex.Message}", "GET_ITEM_NAMES_ERROR"));
+        }
     }
 
     /// <summary>
     /// Get statistics for a collector
     /// </summary>
+    /// <param name="collectorId">Collector ID</param>
+    /// <param name="request">Get statistics request parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Statistics data</returns>
     [HttpGet("collectors/{collectorId}/statistics")]
-    [AllowAnonymous]
-    public async Task<ActionResult<Result<List<MonitorStatisticsDto>>>> GetStatistics(
+    [ProducesResponseType(typeof(BulkStatisticsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BulkStatisticsResponse>> GetStatistics(
         long collectorId,
-        [FromQuery] DateTime? fromDate = null,
-        [FromQuery] DateTime? toDate = null,
-        [FromQuery] int hours = 24,
+        [FromQuery] GetStatisticsRequest? request = null,
         CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
-            _logger.LogDebug("Getting statistics for collector {CollectorId}", collectorId);
-            
-            List<Core.Entities.MonitorStatistics> statistics;
-            
-            if (fromDate.HasValue && toDate.HasValue)
+            request ??= new GetStatisticsRequest { CollectorId = collectorId };
+
+            // Validate collector ID matches route parameter
+            if (request.CollectorId != collectorId)
             {
-                statistics = await _statisticsService.GetStatisticsAsync(collectorId, fromDate.Value, toDate.Value, cancellationToken);
+                request.CollectorId = collectorId; // Use route parameter
+            }
+
+            var validationError = ValidateModelState();
+            if (validationError != null) return BadRequest(validationError);
+
+            // Additional validation for collector ID
+            var paramValidation = ValidateParameter(collectorId, nameof(collectorId),
+                id => id > 0, "Collector ID must be a positive integer");
+            if (paramValidation != null) return BadRequest(paramValidation);
+
+            Logger.LogDebug("Getting statistics for collector {CollectorId}", collectorId);
+
+            List<Core.Entities.MonitorStatistics> statistics;
+
+            if (request.FromDate.HasValue && request.ToDate.HasValue)
+            {
+                statistics = await _statisticsService.GetStatisticsAsync(collectorId, request.FromDate.Value, request.ToDate.Value, cancellationToken);
             }
             else
             {
-                statistics = await _statisticsService.GetLatestStatisticsAsync(collectorId, hours, cancellationToken);
+                statistics = await _statisticsService.GetLatestStatisticsAsync(collectorId, request.Hours, cancellationToken);
             }
-            
-            var dtos = statistics.Select(s => new MonitorStatisticsDto
+
+            // Apply item name filter if specified
+            if (!string.IsNullOrEmpty(request.ItemName))
+            {
+                statistics = statistics
+                    .Where(s => s.ItemName.Contains(request.ItemName, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            stopwatch.Stop();
+
+            // Map to enhanced response DTOs
+            var statisticsResponse = statistics.Select(s => new StatisticsResponse
             {
                 Day = s.Day,
                 Hour = s.Hour,
                 CollectorID = s.CollectorID,
                 ItemName = s.ItemName,
-                Total = s.Total,
-                Marked = s.Marked,
-                MarkedPercent = s.MarkedPercent,
-                UpdatedDate = s.UpdatedDate
+                Total = (long)(s.Total ?? 0),
+                Marked = (long)(s.Marked ?? 0),
+                MarkedPercent = s.MarkedPercent ?? 0,
+                UpdatedDate = s.UpdatedDate ?? DateTime.UtcNow
             }).ToList();
 
-            return Ok(Result<List<MonitorStatisticsDto>>.Success(dtos));
+            var response = new BulkStatisticsResponse
+            {
+                CollectorId = collectorId,
+                TotalCount = statisticsResponse.Count(),
+                DateRange = new DateRange
+                {
+                    StartDate = request.FromDate ?? DateTime.UtcNow.AddHours(-request.Hours),
+                    EndDate = request.ToDate ?? DateTime.UtcNow,
+                    TotalHours = request.Hours
+                },
+                Statistics = statisticsResponse,
+                QueryMetrics = new QueryMetrics
+                {
+                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
+                    QueryCount = 1,
+                    CacheHit = false
+                }
+            };
+
+            // Add aggregates if requested
+            if (request.IncludeAggregates && statisticsResponse.Any())
+            {
+                response.Aggregates = new StatisticsAggregates
+                {
+                    TotalSum = statisticsResponse.Sum(s => s.Total),
+                    MarkedSum = statisticsResponse.Sum(s => s.Marked),
+                    AverageMarkedPercent = statisticsResponse.Average(s => s.MarkedPercent),
+                    Peak = new StatisticsPeak
+                    {
+                        HighestTotal = statisticsResponse.Max(s => s.Total),
+                        HighestMarked = statisticsResponse.Max(s => s.Marked),
+                        HighestMarkedPercent = statisticsResponse.Max(s => s.MarkedPercent),
+                        PeakTime = statisticsResponse.OrderByDescending(s => s.Total).First().Day
+                    },
+                    ItemAggregates = statisticsResponse
+                        .GroupBy(s => s.ItemName)
+                        .Select(g => new ItemAggregate
+                        {
+                            ItemName = g.Key,
+                            Total = g.Sum(s => s.Total),
+                            Marked = g.Sum(s => s.Marked),
+                            AverageMarkedPercent = g.Average(s => s.MarkedPercent)
+                        }).ToList()
+                };
+            }
+
+            Logger.LogDebug("Retrieved {Count} statistics for collector {CollectorId} in {Duration}ms",
+                statisticsResponse.Count, collectorId, stopwatch.ElapsedMilliseconds);
+
+            return Ok(CreateSuccessResponse(response, $"Retrieved {statisticsResponse.Count} statistics for collector {collectorId}"));
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogWarning("Get statistics operation was cancelled for collector {CollectorId}", collectorId);
+            return StatusCode(499, CreateErrorResponse("Get statistics operation was cancelled", "OPERATION_CANCELLED"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting statistics for collector {CollectorId}", collectorId);
-            return StatusCode(500, Result<List<MonitorStatisticsDto>>.Failure("GET_STATISTICS_FAILED", "Failed to retrieve statistics"));
+            stopwatch.Stop();
+            Logger.LogError(ex, "Error getting statistics for collector {CollectorId}", collectorId);
+            return StatusCode(500, CreateErrorResponse($"Failed to retrieve statistics for collector {collectorId}: {ex.Message}", "GET_STATISTICS_ERROR"));
         }
     }
 }

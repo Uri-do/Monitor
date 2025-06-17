@@ -180,46 +180,10 @@ export const useAsyncPerformance = () => {
   return { measureAsync };
 };
 
-// Performance debugging component
+// Performance debugging component - REMOVED FOR SECURITY
+// This component has been removed to prevent information disclosure in production
+// Performance monitoring is still available through internal metrics but not exposed in UI
 export const PerformanceDebugger: React.FC = () => {
-  const { metrics, budgetViolations, isMonitoring } = usePerformance();
-
-  if (process.env.NODE_ENV !== 'development') {
-    return null;
-  }
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 10,
-        right: 10,
-        background: 'rgba(0, 0, 0, 0.8)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        zIndex: 9999,
-        maxWidth: '300px',
-      }}
-    >
-      <div>Performance Monitor: {isMonitoring ? '🟢' : '🔴'}</div>
-      {metrics.fcp && <div>FCP: {metrics.fcp.toFixed(0)}ms</div>}
-      {metrics.lcp && <div>LCP: {metrics.lcp.toFixed(0)}ms</div>}
-      {metrics.fid && <div>FID: {metrics.fid.toFixed(0)}ms</div>}
-      {metrics.cls && <div>CLS: {metrics.cls.toFixed(3)}</div>}
-      {metrics.ttfb && <div>TTFB: {metrics.ttfb.toFixed(0)}ms</div>}
-      {budgetViolations.length > 0 && (
-        <div style={{ color: 'red', marginTop: '5px' }}>
-          Budget Violations: {budgetViolations.length}
-        </div>
-      )}
-      {metrics.memoryUsage && (
-        <div>
-          Memory: {((metrics.memoryUsage.usedJSHeapSize || 0) / 1024 / 1024).toFixed(1)}MB
-        </div>
-      )}
-    </div>
-  );
+  // Always return null - performance panels removed for security hardening
+  return null;
 };
