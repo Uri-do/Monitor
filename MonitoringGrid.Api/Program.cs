@@ -40,8 +40,17 @@ builder.Services.AddDataProtection();
 // Add Infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Add Simple Indicator Processor (bypass worker process issues)
-builder.Services.AddHostedService<MonitoringGrid.Api.Services.SimpleIndicatorProcessor>();
+// Add Simple Indicator Processor only if worker services are disabled
+var enableWorkerServices = builder.Configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableWorkerServices", true);
+if (!enableWorkerServices)
+{
+    builder.Services.AddHostedService<MonitoringGrid.Api.Services.SimpleIndicatorProcessor>();
+    Console.WriteLine("✅ SimpleIndicatorProcessor registered (worker services disabled)");
+}
+else
+{
+    Console.WriteLine("⚠️ SimpleIndicatorProcessor skipped (worker services enabled)");
+}
 
 // Build the application
 var app = builder.Build();

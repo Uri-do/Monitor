@@ -197,6 +197,35 @@ public class MonitoringHub : Hub
     }
 
     /// <summary>
+    /// Client-callable method for worker to broadcast indicator execution progress
+    /// </summary>
+    public async Task SendIndicatorExecutionProgressAsync(object indicatorProgress)
+    {
+        try
+        {
+            _logger.LogDebug("Worker broadcasting indicator execution progress: {Data}", indicatorProgress);
+
+            // Broadcast to dashboard subscribers
+            await Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionProgress", indicatorProgress);
+
+            // Broadcast to specific indicator group if available
+            if (indicatorProgress is IDictionary<string, object> dict && dict.ContainsKey("IndicatorId"))
+            {
+                var indicatorId = dict["IndicatorId"];
+                await Clients.Group($"Indicator_{indicatorId}")
+                    .SendAsync("IndicatorExecutionProgress", indicatorProgress);
+            }
+
+            _logger.LogDebug("Worker indicator execution progress broadcast completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast worker indicator execution progress");
+        }
+    }
+
+    /// <summary>
     /// Client-callable method for worker to broadcast countdown updates
     /// </summary>
     public async Task SendIndicatorCountdownUpdateAsync(object countdownUpdate)
@@ -327,6 +356,7 @@ public interface IRealtimeNotificationService
 
     // Indicator real-time events
     Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution);
+    Task SendIndicatorExecutionProgressAsync(IndicatorExecutionProgressDto indicatorProgress);
     Task SendIndicatorExecutionCompletedAsync(IndicatorExecutionCompletedDto indicatorCompletion);
     Task SendIndicatorCountdownUpdateAsync(IndicatorCountdownUpdateDto countdown);
 
@@ -604,6 +634,26 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send Indicator execution completed notification for Indicator {IndicatorId}", indicatorCompletion.IndicatorId);
+        }
+    }
+
+    public async Task SendIndicatorExecutionProgressAsync(IndicatorExecutionProgressDto indicatorProgress)
+    {
+        try
+        {
+            _logger.LogDebug("Sending Indicator execution progress for Indicator {IndicatorId}: {Progress}%", indicatorProgress.IndicatorId, indicatorProgress.Progress);
+
+            await _hubContext.Clients.Group("Dashboard")
+                .SendAsync("IndicatorExecutionProgress", indicatorProgress);
+
+            await _hubContext.Clients.Group($"Indicator_{indicatorProgress.IndicatorId}")
+                .SendAsync("IndicatorExecutionProgress", indicatorProgress);
+
+            _logger.LogDebug("Indicator execution progress sent for Indicator {IndicatorId}", indicatorProgress.IndicatorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Indicator execution progress for Indicator {IndicatorId}", indicatorProgress.IndicatorId);
         }
     }
 

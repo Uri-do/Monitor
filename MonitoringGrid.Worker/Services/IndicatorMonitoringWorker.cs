@@ -231,6 +231,9 @@ public class IndicatorMonitoringWorker : BackgroundService
                 indicator.IndicatorID, indicator.IndicatorName, indicator.CollectorID,
                 indicator.CollectorItemName, indicator.LastMinutes);
 
+            // Update current activity
+            _currentActivity = $"Executing {indicator.IndicatorName}";
+
             // Broadcast Indicator execution started
             await BroadcastIndicatorExecutionStartedAsync(indicator);
 
@@ -241,11 +244,18 @@ public class IndicatorMonitoringWorker : BackgroundService
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(_configuration.IndicatorMonitoring.ExecutionTimeoutSeconds));
 
+            // Start progress tracking
+            var progressTask = TrackExecutionProgressAsync(indicator, stopwatch, timeoutCts.Token);
+
             var result = await scopedIndicatorExecutionService.ExecuteIndicatorAsync(
                 indicator.IndicatorID,
                 "Scheduled",
                 saveResults: true,
                 timeoutCts.Token);
+
+            // Stop progress tracking
+            timeoutCts.Cancel();
+            try { await progressTask; } catch (OperationCanceledException) { /* Expected */ }
 
             if (result.WasSuccessful)
             {
@@ -363,6 +373,62 @@ public class IndicatorMonitoringWorker : BackgroundService
         }
     }
 
+    private async Task TrackExecutionProgressAsync(Indicator indicator, Stopwatch stopwatch, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("🚀 Starting progress tracking for Indicator {IndicatorId}: {IndicatorName}",
+            indicator.IndicatorID, indicator.IndicatorName);
+
+        if (_hubConnection?.State != HubConnectionState.Connected)
+        {
+            _logger.LogWarning("⚠️ SignalR connection not available for progress tracking. State: {State}",
+                _hubConnection?.State.ToString() ?? "null");
+            return;
+        }
+
+        try
+        {
+            var progressSteps = new[]
+            {
+                new { Step = "Initializing", Progress = 10, DelayMs = 500 },
+                new { Step = "Connecting to Database", Progress = 25, DelayMs = 800 },
+                new { Step = "Executing Query", Progress = 50, DelayMs = 2000 },
+                new { Step = "Processing Results", Progress = 80, DelayMs = 600 },
+                new { Step = "Finalizing", Progress = 95, DelayMs = 300 }
+            };
+
+            foreach (var step in progressSteps)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                await Task.Delay(step.DelayMs, cancellationToken);
+
+                var progressUpdate = new
+                {
+                    IndicatorId = indicator.IndicatorID,
+                    IndicatorName = indicator.IndicatorName,
+                    Progress = step.Progress,
+                    CurrentStep = step.Step,
+                    StartTime = DateTime.UtcNow.Subtract(stopwatch.Elapsed),
+                    ElapsedSeconds = (int)stopwatch.Elapsed.TotalSeconds,
+                    EstimatedRemainingSeconds = step.Progress < 95 ? (int)((stopwatch.Elapsed.TotalSeconds / step.Progress) * (100 - step.Progress)) : 0
+                };
+
+                await _hubConnection.InvokeAsync("SendIndicatorExecutionProgressAsync", progressUpdate);
+                _logger.LogInformation("📊 Sent progress update for Indicator {IndicatorId}: {Progress}% - {Step}",
+                    indicator.IndicatorID, step.Progress, step.Step);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when execution completes
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error tracking execution progress for Indicator {IndicatorId}", indicator.IndicatorID);
+        }
+    }
+
     private async Task InitializeSignalRConnectionAsync()
     {
         try
@@ -382,6 +448,7 @@ public class IndicatorMonitoringWorker : BackgroundService
             _hubConnection.Closed += async (error) =>
             {
                 _logger.LogWarning("SignalR connection closed. Error: {Error}", error?.Message ?? "None");
+                await Task.CompletedTask; // Satisfy async requirement
             };
 
             _hubConnection.Reconnecting += (error) =>

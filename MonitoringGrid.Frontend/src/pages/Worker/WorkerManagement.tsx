@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -34,6 +34,7 @@ import {
   TrendingUp,
   AccessTime,
   Warning,
+  Clear,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
@@ -44,6 +45,7 @@ import RunningIndicatorsDisplay, {
 import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
 import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
+import { signalRService } from '@/services/signalRService';
 
 interface WorkerService {
   name: string;
@@ -85,6 +87,9 @@ const WorkerManagement: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true); // Enable auto-refresh by default
 
+  // Enhanced indicator tracking
+  const [allIndicators, setAllIndicators] = useState<RunningIndicator[]>([]);
+
   // Real-time dashboard data
   const {
     workerStatus: realtimeWorkerStatus,
@@ -110,6 +115,67 @@ const WorkerManagement: React.FC = () => {
     }
   };
 
+  // Event handlers for indicator execution
+  const handleIndicatorExecutionStarted = useCallback((data: any) => {
+    console.log('🚀 Indicator execution started:', data);
+    const newIndicator: RunningIndicator = {
+      indicatorID: data.IndicatorID || data.indicatorID,
+      indicator: data.IndicatorName || data.indicatorName,
+      owner: data.Owner || data.owner,
+      startTime: data.StartTime || data.startTime,
+      progress: 0,
+      currentStep: 'Starting...',
+      status: 'running',
+    };
+
+    setAllIndicators(prev => {
+      const filtered = prev.filter(ind => ind.indicatorID !== newIndicator.indicatorID);
+      return [newIndicator, ...filtered];
+    });
+  }, []);
+
+  const handleIndicatorExecutionProgress = useCallback((data: any) => {
+    console.log('📊 Indicator execution progress:', data);
+    setAllIndicators(prev =>
+      prev.map(indicator =>
+        indicator.indicatorID === (data.IndicatorId || data.indicatorId)
+          ? {
+              ...indicator,
+              progress: data.Progress || data.progress,
+              currentStep: data.CurrentStep || data.currentStep,
+              elapsedTime: data.ElapsedSeconds || data.elapsedSeconds,
+            }
+          : indicator
+      )
+    );
+  }, []);
+
+  const handleIndicatorExecutionCompleted = useCallback((data: any) => {
+    console.log('✅ Indicator execution completed:', data);
+    setAllIndicators(prev =>
+      prev.map(indicator =>
+        indicator.indicatorID === (data.IndicatorId || data.indicatorId)
+          ? {
+              ...indicator,
+              status: data.Success || data.success ? 'completed' : 'failed',
+              progress: 100,
+              currentStep: data.Success || data.success ? 'Completed Successfully' : 'Failed',
+              completedAt: data.CompletedAt || data.completedAt || new Date().toISOString(),
+              duration: data.Duration ? data.Duration * 1000 : undefined, // Convert seconds to milliseconds
+              value: data.Value || data.value,
+              errorMessage: data.ErrorMessage || data.errorMessage,
+            }
+          : indicator
+      )
+    );
+  }, []);
+
+  // Clear completed indicators
+  const clearCompletedIndicators = useCallback(() => {
+    setAllIndicators(prev => prev.filter(ind => ind.status === 'running'));
+    toast.success('Cleared completed indicators');
+  }, []);
+
   // Auto-refresh effect
   useEffect(() => {
     fetchStatus();
@@ -121,6 +187,21 @@ const WorkerManagement: React.FC = () => {
     const interval = setInterval(fetchStatus, 3000); // More frequent polling when auto-refresh is enabled
     return () => clearInterval(interval);
   }, [autoRefresh]);
+
+  // SignalR event handlers
+  useEffect(() => {
+    if (!signalRConnected) return;
+
+    signalRService.on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
+    signalRService.on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
+    signalRService.on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
+
+    return () => {
+      signalRService.off('onIndicatorExecutionStarted');
+      signalRService.off('onIndicatorExecutionProgress');
+      signalRService.off('onIndicatorExecutionCompleted');
+    };
+  }, [signalRConnected, handleIndicatorExecutionStarted, handleIndicatorExecutionProgress, handleIndicatorExecutionCompleted]);
 
   // Perform worker actions
   const performAction = async (action: string) => {
@@ -426,20 +507,52 @@ const WorkerManagement: React.FC = () => {
           </Grid>
         )}
 
-        {/* Running Indicators */}
-        {runningIndicators && runningIndicators.length > 0 && (
+        {/* Running and Completed Indicators */}
+        {allIndicators && allIndicators.length > 0 && (
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                >
-                  <TrendingUp />
-                  Currently Running Indicators ({runningIndicators.length})
-                </Typography>
-                <RunningIndicatorsDisplay runningIndicators={runningIndicators} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
+                    <TrendingUp />
+                    Indicator Executions ({allIndicators.length})
+                    <Chip
+                      label={`${allIndicators.filter(ind => ind.status === 'running').length} Running`}
+                      size="small"
+                      color="primary"
+                      sx={{ ml: 1 }}
+                    />
+                    <Chip
+                      label={`${allIndicators.filter(ind => ind.status === 'completed').length} Completed`}
+                      size="small"
+                      color="success"
+                    />
+                    <Chip
+                      label={`${allIndicators.filter(ind => ind.status === 'failed').length} Failed`}
+                      size="small"
+                      color="error"
+                    />
+                  </Typography>
+                  {allIndicators.some(ind => ind.status !== 'running') && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Clear />}
+                      onClick={clearCompletedIndicators}
+                      sx={{ ml: 2 }}
+                    >
+                      Clear Completed
+                    </Button>
+                  )}
+                </Box>
+                <RunningIndicatorsDisplay
+                  runningIndicators={allIndicators}
+                  variant="section"
+                  showProgress={true}
+                />
               </CardContent>
             </Card>
           </Grid>

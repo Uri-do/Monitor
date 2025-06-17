@@ -28,6 +28,11 @@ export interface RunningIndicator {
   estimatedCompletion?: string;
   currentStep?: string;
   elapsedTime?: number;
+  status?: 'running' | 'completed' | 'failed';
+  completedAt?: string;
+  duration?: number;
+  value?: number;
+  errorMessage?: string;
 }
 
 interface RunningIndicatorsDisplayProps {
@@ -66,7 +71,29 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
 
   const displayIndicators = maxDisplay ? runningIndicators.slice(0, maxDisplay) : runningIndicators;
 
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'failed': return 'error';
+      case 'running':
+      default: return 'primary';
+    }
+  };
+
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case 'completed': return 'Completed';
+      case 'failed': return 'Failed';
+      case 'running':
+      default: return 'Running';
+    }
+  };
+
   const renderIndicatorItem = (indicator: RunningIndicator, _index: number) => {
+    const statusColor = getStatusColor(indicator.status);
+    const statusLabel = getStatusLabel(indicator.status);
+    const isCompleted = indicator.status === 'completed' || indicator.status === 'failed';
+
     if (compact) {
       // Compact version for WorkerDashboardCard
       return (
@@ -76,10 +103,11 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
             mb: 2,
             p: 1.5,
             border: 1,
-            borderColor: 'success.main',
+            borderColor: `${statusColor}.main`,
             borderRadius: 1,
-            backgroundColor: 'success.light',
-            color: 'success.contrastText',
+            backgroundColor: `${statusColor}.light`,
+            color: `${statusColor}.contrastText`,
+            opacity: isCompleted ? 0.8 : 1,
           }}
         >
           <Box
@@ -89,9 +117,9 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
               {indicator.indicator}
             </Typography>
             <Chip
-              label="Running"
+              label={statusLabel}
               size="small"
-              color="success"
+              color={statusColor}
               sx={{ fontSize: '0.6rem', height: 16 }}
             />
           </Box>
@@ -100,7 +128,19 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
             Started: {formatDateTime(indicator.startTime)}
           </Typography>
 
-          {showProgress && indicator.progress !== undefined && (
+          {isCompleted && indicator.completedAt && (
+            <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
+              Completed: {formatDateTime(indicator.completedAt)}
+            </Typography>
+          )}
+
+          {isCompleted && indicator.duration && (
+            <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
+              Duration: {Math.round(indicator.duration / 1000)}s
+            </Typography>
+          )}
+
+          {showProgress && indicator.progress !== undefined && !isCompleted && (
             <Box sx={{ mt: 1 }}>
               <LinearProgress
                 variant="determinate"
@@ -112,6 +152,22 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
               />
               <Typography variant="caption" sx={{ opacity: 0.8 }}>
                 {indicator.progress}% - {indicator.currentStep}
+              </Typography>
+            </Box>
+          )}
+
+          {isCompleted && indicator.progress !== undefined && (
+            <Box sx={{ mt: 1 }}>
+              <LinearProgress
+                variant="determinate"
+                value={100}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                }}
+              />
+              <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                100% - {indicator.status === 'completed' ? 'Completed Successfully' : 'Failed'}
               </Typography>
             </Box>
           )}
@@ -129,7 +185,8 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
             bgcolor: 'background.paper',
             borderRadius: 1,
             border: 1,
-            borderColor: 'divider',
+            borderColor: isCompleted ? `${statusColor}.light` : 'divider',
+            opacity: isCompleted ? 0.9 : 1,
           }}
         >
           <Grid container spacing={2} alignItems="center">
@@ -140,8 +197,8 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: 'success.main',
-                    animation: 'pulse 1s infinite',
+                    bgcolor: `${statusColor}.main`,
+                    animation: isCompleted ? 'none' : 'pulse 1s infinite',
                     '@keyframes pulse': {
                       '0%': { opacity: 1, transform: 'scale(1)' },
                       '50%': { opacity: 0.6, transform: 'scale(1.3)' },
@@ -150,12 +207,30 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
                   }}
                 />
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="medium">
-                    {indicator.indicator}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      {indicator.indicator}
+                    </Typography>
+                    <Chip
+                      label={statusLabel}
+                      size="small"
+                      color={statusColor}
+                      sx={{ fontSize: '0.7rem', height: 18 }}
+                    />
+                  </Box>
                   <Typography variant="body2" color="text.secondary">
                     Owner: {indicator.owner}
                   </Typography>
+                  {isCompleted && indicator.value !== undefined && (
+                    <Typography variant="body2" color="text.secondary">
+                      Value: {indicator.value}
+                    </Typography>
+                  )}
+                  {indicator.errorMessage && (
+                    <Typography variant="body2" color="error.main">
+                      Error: {indicator.errorMessage}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </Grid>
@@ -164,15 +239,30 @@ const RunningIndicatorsDisplay: React.FC<RunningIndicatorsDisplayProps> = ({
                 <Typography variant="body2" color="text.secondary">
                   Started: {formatDateTime(indicator.startTime)}
                 </Typography>
+                {isCompleted && indicator.completedAt && (
+                  <Typography variant="body2" color="text.secondary">
+                    Completed: {formatDateTime(indicator.completedAt)}
+                  </Typography>
+                )}
+                {isCompleted && indicator.duration && (
+                  <Typography variant="body2" color="text.secondary">
+                    Duration: {Math.round(indicator.duration / 1000)}s
+                  </Typography>
+                )}
                 {showProgress && indicator.progress !== undefined && (
                   <Box sx={{ mt: 1 }}>
                     <LinearProgress
                       variant="determinate"
-                      value={indicator.progress}
+                      value={isCompleted ? 100 : indicator.progress}
+                      color={statusColor}
                       sx={{ height: 4, borderRadius: 2 }}
                     />
                     <Typography variant="caption" color="text.secondary">
-                      {indicator.progress}% - {indicator.currentStep || 'Processing...'}
+                      {isCompleted ? '100%' : `${indicator.progress}%`} - {
+                        isCompleted
+                          ? (indicator.status === 'completed' ? 'Completed Successfully' : 'Failed')
+                          : (indicator.currentStep || 'Processing...')
+                      }
                     </Typography>
                   </Box>
                 )}
