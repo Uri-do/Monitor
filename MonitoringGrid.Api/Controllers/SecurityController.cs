@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using MediatR;
 using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.DTOs.Security;
 using ApiKeyService = MonitoringGrid.Api.Authentication.IApiKeyService;
 using MonitoringGrid.Api.Filters;
@@ -1534,9 +1535,11 @@ public class SecurityController : BaseApiController
             FirstName = user.FirstName ?? string.Empty,
             LastName = user.LastName ?? string.Empty,
             FullName = $"{user.FirstName} {user.LastName}".Trim(),
+            DisplayName = user.DisplayName ?? string.Empty,
             IsActive = user.IsActive,
-            IsLockedOut = user.IsLockedOut,
+            IsLockedOut = user.IsLockedOut(),
             Roles = new List<string>(), // User entity doesn't have Roles property in Core
+            Permissions = new List<string>(), // User entity doesn't have Permissions property in Core
             LastLogin = user.LastLogin,
             CreatedDate = user.CreatedDate,
             FailedLoginAttempts = user.FailedLoginAttempts,
@@ -1548,7 +1551,7 @@ public class SecurityController : BaseApiController
             response.Details = new Dictionary<string, object>
             {
                 ["AccountAge"] = (DateTime.UtcNow - user.CreatedDate).TotalDays,
-                ["DaysSinceLastLogin"] = user.LastLogin.HasValue ? (DateTime.UtcNow - user.LastLogin.Value).TotalDays : null,
+                ["DaysSinceLastLogin"] = user.LastLogin != null ? (DateTime.UtcNow - (DateTime)user.LastLogin).TotalDays : null,
                 ["SecurityScore"] = CalculateUserSecurityScore(user),
                 ["RoleCount"] = response.Roles.Count
             };
@@ -1622,13 +1625,13 @@ public class SecurityController : BaseApiController
             score -= 20;
 
         // Deduct if account is locked
-        if (user.IsLockedOut)
+        if (user.IsLockedOut())
             score -= 30;
 
         // Deduct for old last login
-        if (user.LastLogin.HasValue)
+        if (user.LastLogin != null)
         {
-            var daysSinceLogin = (DateTime.UtcNow - user.LastLogin.Value).TotalDays;
+            var daysSinceLogin = (DateTime.UtcNow - (DateTime)user.LastLogin).TotalDays;
             if (daysSinceLogin > 30) score -= 10;
             if (daysSinceLogin > 90) score -= 20;
         }

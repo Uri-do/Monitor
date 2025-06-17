@@ -6,6 +6,7 @@ using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Interfaces;
 using System.Diagnostics;

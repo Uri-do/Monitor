@@ -1,3 +1,5 @@
+using MonitoringGrid.Api.DTOs.Common;
+
 namespace MonitoringGrid.Api.DTOs.Indicators;
 
 /// <summary>
@@ -754,28 +756,4 @@ public class IndicatorOperationResponse
     public string? PerformedBy { get; set; }
 }
 
-/// <summary>
-/// Query performance metrics
-/// </summary>
-public class QueryMetrics
-{
-    /// <summary>
-    /// Query execution time in milliseconds
-    /// </summary>
-    public long ExecutionTimeMs { get; set; }
 
-    /// <summary>
-    /// Number of database queries executed
-    /// </summary>
-    public int QueryCount { get; set; }
-
-    /// <summary>
-    /// Cache hit information
-    /// </summary>
-    public bool CacheHit { get; set; }
-
-    /// <summary>
-    /// Query timestamp
-    /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-}

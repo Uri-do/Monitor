@@ -67,7 +67,11 @@ const UserMenu: React.FC = () => {
     return null;
   }
 
-  const getInitials = (displayName: string) => {
+  const getInitials = (displayName: string | undefined | null) => {
+    if (!displayName || typeof displayName !== 'string') {
+      return user.email?.charAt(0)?.toUpperCase() || 'U';
+    }
+
     return displayName
       .split(' ')
       .map(name => name.charAt(0))
@@ -77,7 +81,7 @@ const UserMenu: React.FC = () => {
   };
 
   const getPrimaryRole = () => {
-    if (user.roles.length === 0) return 'User';
+    if (!user.roles || user.roles.length === 0) return 'User';
     return user.roles[0].name;
   };
 

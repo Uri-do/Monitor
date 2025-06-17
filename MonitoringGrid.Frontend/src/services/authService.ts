@@ -31,7 +31,13 @@ class AuthService {
       throw new Error(result.errorMessage || 'Login failed');
     }
 
-    return result;
+    // Handle nested response structure from backend
+    if (result.data && !result.data.isSuccess) {
+      throw new Error(result.data.errorMessage || 'Login failed');
+    }
+
+    // Return the nested data if it exists, otherwise return the result directly
+    return result.data || result;
   }
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {
@@ -112,13 +118,19 @@ class AuthService {
 
   shouldRefreshToken(): boolean {
     const token = this.getToken();
-    if (!token) {
+    if (!token || typeof token !== 'string' || token.trim() === '') {
       return false;
     }
 
     try {
+      // Validate JWT format first
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return true; // Invalid format, should refresh
+      }
+
       // Decode JWT token to check expiration
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1]));
       const currentTime = Math.floor(Date.now() / 1000);
 
       // Refresh if token expires within the next 10 minutes (600 seconds)
@@ -158,9 +170,19 @@ class AuthService {
   }
 
   private isTokenExpired(token: string): boolean {
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return true;
+    }
+
     try {
+      // Validate JWT format first
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return true; // Invalid format, consider expired
+      }
+
       // Decode JWT token to check expiration
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1]));
       const currentTime = Math.floor(Date.now() / 1000);
 
       // Check if token is actually expired (not just expiring soon)
@@ -195,7 +217,7 @@ class AuthService {
 
   isAuthenticated(): boolean {
     const token = this.getToken();
-    if (!token) {
+    if (!token || typeof token !== 'string' || token.trim() === '') {
       return false;
     }
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.Validation;
 
 namespace MonitoringGrid.Api.DTOs.Indicators;
@@ -328,48 +329,7 @@ public class DeleteIndicatorRequest
     public bool ArchiveData { get; set; } = true;
 }
 
-/// <summary>
-/// Enhanced request DTO for executing indicators
-/// </summary>
-public class ExecuteIndicatorRequest
-{
-    /// <summary>
-    /// Indicator ID to execute
-    /// </summary>
-    [Required]
-    [PositiveInteger]
-    public long IndicatorId { get; set; }
 
-    /// <summary>
-    /// Execution context
-    /// </summary>
-    [SearchTerm(0, 100)]
-    public string? ExecutionContext { get; set; } = "Manual";
-
-    /// <summary>
-    /// Whether to save execution results
-    /// </summary>
-    [BooleanFlag]
-    public bool SaveResults { get; set; } = true;
-
-    /// <summary>
-    /// Override last minutes parameter
-    /// </summary>
-    [Range(1, 10080)]
-    public int? OverrideLastMinutes { get; set; }
-
-    /// <summary>
-    /// Execution timeout in seconds
-    /// </summary>
-    [Range(1, 3600)]
-    public int TimeoutSeconds { get; set; } = 300;
-
-    /// <summary>
-    /// Whether to send alerts if thresholds are met
-    /// </summary>
-    [BooleanFlag]
-    public bool SendAlerts { get; set; } = true;
-}
 
 /// <summary>
 /// Request DTO for getting indicator dashboard

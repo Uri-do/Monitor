@@ -424,10 +424,16 @@ export const monitorStatisticsApi = {
 export const schedulerApi = {
   // Get all schedulers
   getSchedulers: async (includeDisabled: boolean = false): Promise<SchedulerDto[]> => {
-    const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers', {
-      params: { includeDisabled }
-    });
-    return response.data;
+    try {
+      const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers', {
+        params: { includeDisabled }
+      });
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Failed to fetch schedulers:', error);
+      // Return empty array for any error (including 401 Unauthorized)
+      return [];
+    }
   },
 
   // Get scheduler by ID
@@ -466,28 +472,48 @@ export const schedulerApi = {
 
   // Get indicators with their scheduler information
   getIndicatorsWithSchedulers: async (): Promise<any[]> => {
-    const response: AxiosResponse<any[]> = await api.get('/schedulers/indicators');
-    return response.data;
+    try {
+      const response: AxiosResponse<any[]> = await api.get('/schedulers/indicators');
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Failed to fetch indicators with schedulers:', error);
+      return [];
+    }
   },
 
   // Get indicators assigned to a specific scheduler
   getIndicatorsByScheduler: async (id: number): Promise<any[]> => {
-    const response: AxiosResponse<any[]> = await api.get(`/schedulers/${id}/indicators`);
-    return response.data;
+    try {
+      const response: AxiosResponse<any[]> = await api.get(`/schedulers/${id}/indicators`);
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Failed to fetch indicators by scheduler:', error);
+      return [];
+    }
   },
 
   // Get indicators that are due for execution
   getDueIndicators: async (): Promise<any[]> => {
-    const response: AxiosResponse<any[]> = await api.get('/schedulers/due-indicators');
-    return response.data;
+    try {
+      const response: AxiosResponse<any[]> = await api.get('/schedulers/due-indicators');
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Failed to fetch due indicators:', error);
+      return [];
+    }
   },
 
   // Get upcoming executions for the next specified hours
   getUpcomingExecutions: async (hours: number = 24): Promise<any[]> => {
-    const response: AxiosResponse<any[]> = await api.get('/schedulers/upcoming', {
-      params: { hours }
-    });
-    return response.data;
+    try {
+      const response: AxiosResponse<any[]> = await api.get('/schedulers/upcoming', {
+        params: { hours }
+      });
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Failed to fetch upcoming executions:', error);
+      return [];
+    }
   },
 };
 

@@ -4,6 +4,7 @@ using MediatR;
 using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.DTOs.Alerts;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Core.DTOs;
 using Swashbuckle.AspNetCore.Annotations;
 using AutoMapper;

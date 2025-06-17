@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.Validation;
 
 namespace MonitoringGrid.Api.DTOs.Worker;
@@ -75,36 +76,7 @@ public class RestartWorkerRequest
     public int? StartupTimeoutMs { get; set; }
 }
 
-/// <summary>
-/// Request DTO for executing a specific indicator
-/// </summary>
-public class ExecuteIndicatorRequest
-{
-    /// <summary>
-    /// Indicator ID to execute
-    /// </summary>
-    [Required]
-    [IndicatorId]
-    public long IndicatorId { get; set; }
 
-    /// <summary>
-    /// Execution context
-    /// </summary>
-    [ExecutionContext]
-    public string Context { get; set; } = "Manual";
-
-    /// <summary>
-    /// Whether to save execution results
-    /// </summary>
-    [BooleanFlag]
-    public bool SaveResults { get; set; } = true;
-
-    /// <summary>
-    /// Execution timeout in milliseconds
-    /// </summary>
-    [Timeout(1000, 300000)] // 1 second to 5 minutes
-    public int? TimeoutMs { get; set; }
-}
 
 /// <summary>
 /// Request DTO for executing due indicators

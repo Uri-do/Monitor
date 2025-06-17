@@ -84,18 +84,16 @@ public static class ConfigurationExtensions
     /// </summary>
     private static void ValidateConnectionStrings(IConfiguration configuration)
     {
-        var connectionStrings = configuration.GetSection("ConnectionStrings");
-        
         var requiredConnections = new[] { "DefaultConnection", "SourceDatabase" };
-        
+
         foreach (var connectionName in requiredConnections)
         {
-            var connectionString = connectionStrings[connectionName];
+            var connectionString = configuration.GetConnectionString(connectionName);
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new InvalidOperationException($"Connection string '{connectionName}' is required but not configured");
             }
-            
+
             // Basic validation - ensure it contains required keywords
             if (!connectionString.Contains("Data Source") && !connectionString.Contains("Server"))
             {

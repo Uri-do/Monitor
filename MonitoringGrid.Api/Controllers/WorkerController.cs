@@ -7,6 +7,7 @@ using MediatR;
 using MonitoringGrid.Api.Constants;
 using MonitoringGrid.Api.Controllers.Base;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.DTOs.Worker;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Entities;

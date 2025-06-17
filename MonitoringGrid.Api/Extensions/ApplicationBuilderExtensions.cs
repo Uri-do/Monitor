@@ -124,15 +124,9 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     public static IApplicationBuilder UseCorsConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (env.IsDevelopment())
-        {
-            app.UseCors("DevelopmentPolicy");
-        }
-        else
-        {
-            app.UseCors("DefaultPolicy");
-        }
-        
+        // Use the default policy for all environments
+        app.UseCors();
+
         return app;
     }
 

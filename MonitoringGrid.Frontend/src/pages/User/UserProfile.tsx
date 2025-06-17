@@ -94,7 +94,11 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  const getInitials = (displayName: string) => {
+  const getInitials = (displayName: string | undefined | null) => {
+    if (!displayName || typeof displayName !== 'string') {
+      return user?.email?.charAt(0)?.toUpperCase() || 'U';
+    }
+
     return displayName
       .split(' ')
       .map(name => name.charAt(0))
@@ -104,7 +108,7 @@ const UserProfile: React.FC = () => {
   };
 
   const getPrimaryRole = () => {
-    if (!user || user.roles.length === 0) return 'User';
+    if (!user || !user.roles || user.roles.length === 0) return 'User';
     return user.roles[0].name;
   };
 
@@ -233,18 +237,22 @@ const UserProfile: React.FC = () => {
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {user.roles.map(role => (
-                  <Chip
-                    key={role.roleId}
-                    label={role.name}
-                    color={role.name === 'Admin' ? 'error' : 'primary'}
-                    variant="outlined"
-                  />
-                ))}
+                {user.roles && user.roles.length > 0 ? (
+                  user.roles.map(role => (
+                    <Chip
+                      key={role.roleId}
+                      label={role.name}
+                      color={role.name === 'Admin' ? 'error' : 'primary'}
+                      variant="outlined"
+                    />
+                  ))
+                ) : (
+                  <Chip label="User" color="default" variant="outlined" />
+                )}
               </Box>
 
               <Typography variant="body2" color="text.secondary">
-                Permissions: {user.permissions.length} granted
+                Permissions: {user.permissions?.length || 0} granted
               </Typography>
             </CardContent>
           </Card>

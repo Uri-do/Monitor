@@ -1,5 +1,6 @@
 using MonitoringGrid.Api.Extensions;
 using MonitoringGrid.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,18 +22,89 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
-// Add all services using organized extension methods
-builder.Services.AddDatabaseServices(builder.Configuration);
-builder.Services.AddAuthenticationServices(builder.Configuration);
-builder.Services.AddMediatRServices();
-builder.Services.AddValidationServices();
-builder.Services.AddMappingServices();
-builder.Services.AddSwaggerServices();
-builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddCachingServices(builder.Configuration);
-builder.Services.AddCorsServices(builder.Configuration);
-builder.Services.AddHealthCheckServices(builder.Configuration);
-builder.Services.AddRateLimitingServices(builder.Configuration);
+// Add basic services
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
+builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
+
+// Add Authentication and Authorization
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        // For development, allow any token - in production this should be properly configured
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = false,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = false,
+            RequireExpirationTime = false,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddResponseCompression();
+builder.Services.AddMemoryCache();
+
+// Add Entity Framework
+builder.Services.AddDbContext<MonitoringGrid.Infrastructure.Data.MonitoringContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Add MediatR - scan all relevant assemblies for handlers
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly); // API assembly
+    cfg.RegisterServicesFromAssembly(typeof(MonitoringGrid.Core.Entities.Indicator).Assembly); // Core assembly
+    cfg.RegisterServicesFromAssembly(typeof(MonitoringGrid.Infrastructure.DependencyInjection).Assembly); // Infrastructure assembly
+});
+
+// Add custom middleware options
+builder.Services.AddSingleton(new MonitoringGrid.Api.Middleware.ResponseCachingOptions
+{
+    Enabled = true,
+    DefaultDuration = TimeSpan.FromMinutes(5),
+    MaxCacheSize = 100,
+    EnableCompression = true
+});
+
+builder.Services.AddCors(options =>
+{
+    // Get allowed origins from configuration
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+
+    // Development policy - more permissive
+    options.AddPolicy("DevelopmentPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+    });
+
+    // Default policy for production
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+    });
+});
+builder.Services.AddHealthChecks();
 
 // Add Round 3 Enterprise Features
 builder.Services.AddDataProtection();

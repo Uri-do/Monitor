@@ -1,3 +1,5 @@
+using MonitoringGrid.Api.DTOs.Common;
+
 namespace MonitoringGrid.Api.DTOs.Security;
 
 /// <summary>
@@ -369,6 +371,11 @@ public class UserResponse
     public string FullName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Display name
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Whether the user is active
     /// </summary>
     public bool IsActive { get; set; }
@@ -382,6 +389,11 @@ public class UserResponse
     /// User roles
     /// </summary>
     public List<string> Roles { get; set; } = new();
+
+    /// <summary>
+    /// User permissions
+    /// </summary>
+    public List<string> Permissions { get; set; } = new();
 
     /// <summary>
     /// Last login time
@@ -737,28 +749,4 @@ public class SecurityOperationResponse
     public string? PerformedBy { get; set; }
 }
 
-/// <summary>
-/// Query performance metrics
-/// </summary>
-public class QueryMetrics
-{
-    /// <summary>
-    /// Query execution time in milliseconds
-    /// </summary>
-    public long ExecutionTimeMs { get; set; }
 
-    /// <summary>
-    /// Number of database queries executed
-    /// </summary>
-    public int QueryCount { get; set; }
-
-    /// <summary>
-    /// Cache hit information
-    /// </summary>
-    public bool CacheHit { get; set; }
-
-    /// <summary>
-    /// Query timestamp
-    /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-}

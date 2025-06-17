@@ -16,7 +16,7 @@ export interface User {
   createdDate: string;
   modifiedDate: string;
   roles: Role[];
-  permissions: string[];
+  permissions?: string[];
 }
 
 export interface Role {

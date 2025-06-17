@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using MonitoringGrid.Api.Controllers.Base;
+using MonitoringGrid.Api.DTOs.Common;
 using MonitoringGrid.Api.DTOs.MonitorStatistics;
 using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Interfaces;
