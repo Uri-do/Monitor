@@ -6,6 +6,8 @@ import {
 } from '@mui/material';
 import {
   History as HistoryIcon,
+  Visibility as ViewIcon,
+  Assessment as KpiIcon,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 
@@ -17,9 +19,10 @@ import {
   LoadingSpinner,
   Dialog,
   Button,
+  DataTable,
+  DataTableColumn,
 } from '@/components';
 import {
-  ExecutionHistoryTable,
   ExecutionDetailView,
 } from './components';
 import { ExecutionHistoryFilters } from './types';
@@ -36,6 +39,76 @@ const ExecutionHistoryList: React.FC = () => {
     open: boolean;
     execution?: ExecutionHistoryDetailDto;
   }>({ open: false });
+
+  // Define table columns
+  const columns: DataTableColumn[] = [
+    {
+      id: 'indicator',
+      label: 'Indicator',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) => row.indicator || 'N/A',
+    },
+    {
+      id: 'kpiOwner',
+      label: 'Owner',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) => row.kpiOwner || 'N/A',
+    },
+    {
+      id: 'timestamp',
+      label: 'Executed At',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) =>
+        new Date(row.timestamp).toLocaleString(),
+    },
+    {
+      id: 'executedBy',
+      label: 'Executed By',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) => row.executedBy || 'System',
+    },
+    {
+      id: 'executionMethod',
+      label: 'Method',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) => row.executionMethod || 'Unknown',
+    },
+    {
+      id: 'isSuccessful',
+      label: 'Status',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) => (
+        <Box
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            color: 'white',
+            backgroundColor: row.isSuccessful ? '#4caf50' : '#f44336',
+          }}
+        >
+          {row.isSuccessful ? 'Success' : 'Failed'}
+        </Box>
+      ),
+    },
+    {
+      id: 'currentValue',
+      label: 'Current Value',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) =>
+        row.currentValue?.toFixed(2) || 'N/A',
+    },
+    {
+      id: 'executionTimeMs',
+      label: 'Duration',
+      sortable: true,
+      render: (row: ExecutionHistoryDto) =>
+        row.executionTimeMs ? `${row.executionTimeMs}ms` : 'N/A',
+    },
+  ];
 
   // Fetch execution history
   const {

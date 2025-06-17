@@ -53,6 +53,7 @@ public class WorkerController : BaseApiController
     /// <param name="request">Status request parameters</param>
     /// <returns>Worker status information</returns>
     [HttpGet("status")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(WorkerStatusResponse), StatusCodes.Status200OK)]
     public ActionResult<WorkerStatusResponse> GetStatus([FromQuery] GetWorkerStatusRequest? request = null)
     {
@@ -236,6 +237,7 @@ public class WorkerController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Worker operation result</returns>
     [HttpPost("start")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(WorkerOperationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<WorkerOperationResponse>> StartWorker(
@@ -415,6 +417,7 @@ public class WorkerController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Worker operation result</returns>
     [HttpPost("stop")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(WorkerOperationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     public ActionResult<WorkerOperationResponse> StopWorker(
@@ -588,6 +591,7 @@ public class WorkerController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Worker operation result</returns>
     [HttpPost("restart")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(WorkerOperationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<WorkerOperationResponse>> RestartWorker(

@@ -31,7 +31,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
 builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
 
-// Add Authentication and Authorization
+// Add Authentication and Authorization (temporarily disabled for development)
+// TODO: Implement proper JWT authentication with signing keys
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
