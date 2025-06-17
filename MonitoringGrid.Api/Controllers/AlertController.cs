@@ -20,15 +20,18 @@ public class AlertController : ControllerBase
     private readonly IAlertRepository _alertRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<AlertController> _logger;
+    private readonly ICacheService _cacheService;
 
     public AlertController(
         IAlertRepository alertRepository,
         IMapper mapper,
-        ILogger<AlertController> logger)
+        ILogger<AlertController> logger,
+        ICacheService cacheService)
     {
         _alertRepository = alertRepository;
         _mapper = mapper;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -182,25 +185,34 @@ public class AlertController : ControllerBase
         {
             _logger.LogDebug("Getting alert dashboard data");
 
-            var dashboard = await _alertRepository.GetDashboardAsync();
-
-            var dashboardDto = new AlertDashboardDto
-            {
-                TotalAlertsToday = dashboard.TotalAlertsToday,
-                UnresolvedAlerts = dashboard.UnresolvedAlerts,
-                CriticalAlerts = dashboard.CriticalAlerts,
-                AlertsLastHour = dashboard.AlertsLastHour,
-                AlertTrendPercentage = dashboard.AlertTrendPercentage,
-                HourlyTrend = dashboard.HourlyTrend.Select(h => new AlertTrendDto
+            // Use caching to reduce database load - cache for 30 seconds
+            const string cacheKey = "alert-dashboard";
+            var dashboardDto = await _cacheService.GetOrSetAsync(
+                cacheKey,
+                async () =>
                 {
-                    Date = h.Date,
-                    AlertCount = h.AlertCount,
-                    CriticalCount = h.CriticalCount,
-                    HighCount = h.HighCount,
-                    MediumCount = h.MediumCount,
-                    LowCount = h.LowCount
-                }).ToList()
-            };
+                    var dashboard = await _alertRepository.GetDashboardAsync();
+
+                    return new AlertDashboardDto
+                    {
+                        TotalAlertsToday = dashboard.TotalAlertsToday,
+                        UnresolvedAlerts = dashboard.UnresolvedAlerts,
+                        CriticalAlerts = dashboard.CriticalAlerts,
+                        AlertsLastHour = dashboard.AlertsLastHour,
+                        AlertTrendPercentage = dashboard.AlertTrendPercentage,
+                        HourlyTrend = dashboard.HourlyTrend.Select(h => new AlertTrendDto
+                        {
+                            Date = h.Date,
+                            AlertCount = h.AlertCount,
+                            CriticalCount = h.CriticalCount,
+                            HighCount = h.HighCount,
+                            MediumCount = h.MediumCount,
+                            LowCount = h.LowCount
+                        }).ToList()
+                    };
+                },
+                TimeSpan.FromSeconds(30), // Cache for 30 seconds to balance freshness with performance
+                cancellationToken);
 
             return Ok(dashboardDto);
         }

@@ -160,29 +160,68 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         var now = DateTime.UtcNow;
         var today = now.Date;
         var lastHour = now.AddHours(-1);
+        var yesterday = today.AddDays(-1);
+        var last24Hours = now.AddHours(-24);
 
-        var alertsToday = await _dbSet.CountAsync(a => a.TriggerTime >= today);
-        var unresolvedAlerts = await _dbSet.CountAsync(a => !a.IsResolved);
-        var criticalAlerts = await _dbSet.CountAsync(a => !a.IsResolved && a.DeviationPercent >= 50);
-        var alertsLastHour = await _dbSet.CountAsync(a => a.TriggerTime >= lastHour);
+        // Execute all basic counts in parallel for better performance
+        var basicStatsTask = Task.WhenAll(
+            _dbSet.CountAsync(a => a.TriggerTime >= today),
+            _dbSet.CountAsync(a => !a.IsResolved),
+            _dbSet.CountAsync(a => !a.IsResolved && a.DeviationPercent >= 50),
+            _dbSet.CountAsync(a => a.TriggerTime >= lastHour),
+            _dbSet.CountAsync(a => a.TriggerTime >= yesterday && a.TriggerTime < today)
+        );
+
+        // Get hourly trend data with a single optimized query
+        var hourlyTrendTask = GetHourlyTrendDataAsync(last24Hours, now);
+
+        // Wait for all tasks to complete
+        var basicStats = await basicStatsTask;
+        var hourlyTrendData = await hourlyTrendTask;
+
+        var alertsToday = basicStats[0];
+        var unresolvedAlerts = basicStats[1];
+        var criticalAlerts = basicStats[2];
+        var alertsLastHour = basicStats[3];
+        var alertsYesterday = basicStats[4];
 
         // Calculate trend (compare with yesterday)
-        var yesterday = today.AddDays(-1);
-        var alertsYesterday = await _dbSet.CountAsync(a => a.TriggerTime >= yesterday && a.TriggerTime < today);
         var alertTrendPercentage = alertsYesterday > 0
             ? ((decimal)(alertsToday - alertsYesterday) / alertsYesterday) * 100
             : alertsToday > 0 ? 100 : 0;
 
-        // Hourly trend for last 24 hours
+        return new AlertDashboard
+        {
+            TotalAlertsToday = alertsToday,
+            UnresolvedAlerts = unresolvedAlerts,
+            CriticalAlerts = criticalAlerts,
+            AlertsLastHour = alertsLastHour,
+            AlertTrendPercentage = alertTrendPercentage,
+            HourlyTrend = hourlyTrendData
+        };
+    }
+
+    /// <summary>
+    /// Get hourly trend data with a single optimized database query
+    /// </summary>
+    private async Task<List<AlertTrend>> GetHourlyTrendDataAsync(DateTime startTime, DateTime endTime)
+    {
+        // Use a single query to get all alerts in the last 24 hours
+        var alerts = await _dbSet
+            .Where(a => a.TriggerTime >= startTime && a.TriggerTime < endTime)
+            .Select(a => new { a.TriggerTime, a.DeviationPercent })
+            .ToListAsync();
+
+        // Group alerts by hour and calculate counts in memory (much more efficient than 24 separate queries)
         var hourlyTrend = new List<AlertTrend>();
+        var now = endTime;
+
         for (int i = 23; i >= 0; i--)
         {
             var hourStart = now.AddHours(-i).Date.AddHours(now.AddHours(-i).Hour);
             var hourEnd = hourStart.AddHours(1);
 
-            var hourlyAlerts = await _dbSet
-                .Where(a => a.TriggerTime >= hourStart && a.TriggerTime < hourEnd)
-                .ToListAsync();
+            var hourlyAlerts = alerts.Where(a => a.TriggerTime >= hourStart && a.TriggerTime < hourEnd).ToList();
 
             hourlyTrend.Add(new AlertTrend
             {
@@ -195,15 +234,7 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
             });
         }
 
-        return new AlertDashboard
-        {
-            TotalAlertsToday = alertsToday,
-            UnresolvedAlerts = unresolvedAlerts,
-            CriticalAlerts = criticalAlerts,
-            AlertsLastHour = alertsLastHour,
-            AlertTrendPercentage = alertTrendPercentage,
-            HourlyTrend = hourlyTrend
-        };
+        return hourlyTrend;
     }
 
     public async Task<IEnumerable<AlertLog>> GetAlertsByIndicatorAsync(long indicatorId, int days = 30)

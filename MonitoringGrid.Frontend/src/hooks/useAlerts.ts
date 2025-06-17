@@ -32,15 +32,15 @@ export const useAlertStatistics = (timeRangeDays: number) => {
 };
 
 /**
- * useAlertDashboard hook for dashboard data with real-time optimization
+ * useAlertDashboard hook for dashboard data with optimized caching
  */
 export const useAlertDashboard = () => {
   return useQuery({
     queryKey: queryKeys.alerts.dashboard(),
     queryFn: alertApi.getDashboard,
     placeholderData: previousData => previousData,
-    staleTime: 10 * 1000, // Consider data fresh for 10 seconds for real-time dashboard
-    refetchInterval: 10 * 1000, // Auto-refetch every 10 seconds for real-time updates
+    staleTime: 25 * 1000, // Consider data fresh for 25 seconds (slightly less than backend cache)
+    refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds to match backend cache expiration
     retry: 2,
     retryDelay: 1000,
   });
