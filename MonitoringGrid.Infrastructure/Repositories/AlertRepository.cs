@@ -163,27 +163,30 @@ public class AlertRepository : Repository<AlertLog>, IAlertRepository
         var yesterday = today.AddDays(-1);
         var last24Hours = now.AddHours(-24);
 
-        // Execute all basic counts in parallel for better performance
-        var basicStatsTask = Task.WhenAll(
-            _dbSet.CountAsync(a => a.TriggerTime >= today),
-            _dbSet.CountAsync(a => !a.IsResolved),
-            _dbSet.CountAsync(a => !a.IsResolved && a.DeviationPercent >= 50),
-            _dbSet.CountAsync(a => a.TriggerTime >= lastHour),
-            _dbSet.CountAsync(a => a.TriggerTime >= yesterday && a.TriggerTime < today)
-        );
+        // Execute queries sequentially to avoid DbContext threading issues
+        // Use a single optimized query to get all counts at once
+        var alertCounts = await _dbSet
+            .Where(a => a.TriggerTime >= yesterday) // Get all alerts from yesterday onwards
+            .GroupBy(a => 1) // Group all records together
+            .Select(g => new
+            {
+                AlertsToday = g.Count(a => a.TriggerTime >= today),
+                UnresolvedAlerts = g.Count(a => !a.IsResolved),
+                CriticalAlerts = g.Count(a => !a.IsResolved && a.DeviationPercent >= 50),
+                AlertsLastHour = g.Count(a => a.TriggerTime >= lastHour),
+                AlertsYesterday = g.Count(a => a.TriggerTime >= yesterday && a.TriggerTime < today)
+            })
+            .FirstOrDefaultAsync();
 
-        // Get hourly trend data with a single optimized query
-        var hourlyTrendTask = GetHourlyTrendDataAsync(last24Hours, now);
+        // Handle case where no alerts exist
+        var alertsToday = alertCounts?.AlertsToday ?? 0;
+        var unresolvedAlerts = alertCounts?.UnresolvedAlerts ?? 0;
+        var criticalAlerts = alertCounts?.CriticalAlerts ?? 0;
+        var alertsLastHour = alertCounts?.AlertsLastHour ?? 0;
+        var alertsYesterday = alertCounts?.AlertsYesterday ?? 0;
 
-        // Wait for all tasks to complete
-        var basicStats = await basicStatsTask;
-        var hourlyTrendData = await hourlyTrendTask;
-
-        var alertsToday = basicStats[0];
-        var unresolvedAlerts = basicStats[1];
-        var criticalAlerts = basicStats[2];
-        var alertsLastHour = basicStats[3];
-        var alertsYesterday = basicStats[4];
+        // Get hourly trend data with a separate query
+        var hourlyTrendData = await GetHourlyTrendDataAsync(last24Hours, now);
 
         // Calculate trend (compare with yesterday)
         var alertTrendPercentage = alertsYesterday > 0

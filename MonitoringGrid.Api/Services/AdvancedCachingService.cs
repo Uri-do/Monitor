@@ -287,15 +287,10 @@ public class AdvancedCachingService : IAdvancedCachingService
             var correlationId = _correlationIdService.GetCorrelationId();
             _logger.LogInformation("Starting cache warmup [{CorrelationId}]", correlationId);
 
-            // Warmup frequently accessed Indicator data
-            var warmupTasks = new List<Task>
-            {
-                WarmupIndicatorDataAsync(cancellationToken),
-                WarmupSystemConfigurationAsync(cancellationToken),
-                WarmupUserPermissionsAsync(cancellationToken)
-            };
-
-            await Task.WhenAll(warmupTasks);
+            // Warmup frequently accessed data sequentially to avoid DbContext threading issues
+            await WarmupIndicatorDataAsync(cancellationToken);
+            await WarmupSystemConfigurationAsync(cancellationToken);
+            await WarmupUserPermissionsAsync(cancellationToken);
 
             _logger.LogInformation("Cache warmup completed [{CorrelationId}]", correlationId);
         }

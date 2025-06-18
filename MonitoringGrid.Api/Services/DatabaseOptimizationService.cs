@@ -239,14 +239,10 @@ public class DatabaseOptimizationService : IDatabaseOptimizationService
         {
             _logger.LogInformation("Starting database maintenance tasks [{CorrelationId}]", correlationId);
 
-            var maintenanceTasks = new List<Task>
-            {
-                UpdateStatisticsAsync(cancellationToken),
-                RebuildFragmentedIndexesAsync(cancellationToken),
-                CleanupOldDataAsync(cancellationToken)
-            };
-
-            await Task.WhenAll(maintenanceTasks);
+            // Execute maintenance tasks sequentially to avoid DbContext threading issues
+            await UpdateStatisticsAsync(cancellationToken);
+            await RebuildFragmentedIndexesAsync(cancellationToken);
+            await CleanupOldDataAsync(cancellationToken);
 
             _logger.LogInformation("Database maintenance tasks completed [{CorrelationId}]", correlationId);
         }
@@ -412,16 +408,12 @@ public class DatabaseOptimizationService : IDatabaseOptimizationService
     {
         try
         {
-            var cleanupTasks = new List<Task>
-            {
-                ArchiveOldAlertLogsAsync(cancellationToken),
-                ArchiveOldHistoricalDataAsync(cancellationToken),
-                ArchiveOldAuditEventsAsync(cancellationToken),
-                CleanupOrphanedRecordsAsync(cancellationToken),
-                OptimizeTableSizesAsync(cancellationToken)
-            };
-
-            await Task.WhenAll(cleanupTasks);
+            // Execute cleanup tasks sequentially to avoid DbContext threading issues
+            await ArchiveOldAlertLogsAsync(cancellationToken);
+            await ArchiveOldHistoricalDataAsync(cancellationToken);
+            await ArchiveOldAuditEventsAsync(cancellationToken);
+            await CleanupOrphanedRecordsAsync(cancellationToken);
+            await OptimizeTableSizesAsync(cancellationToken);
             _logger.LogInformation("Advanced data cleanup completed successfully");
         }
         catch (Exception ex)

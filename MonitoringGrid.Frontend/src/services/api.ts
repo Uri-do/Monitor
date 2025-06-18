@@ -87,7 +87,7 @@ api.interceptors.request.use(
       // Log token usage for debugging (only first 20 chars for security)
       console.debug(`API Request with token: ${token.substring(0, 20)}...`);
     } else {
-      console.debug('API Request without token');
+      console.debug('API Request without token (anonymous access)');
     }
     return config;
   },

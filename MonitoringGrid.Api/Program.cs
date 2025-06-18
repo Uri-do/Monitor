@@ -31,26 +31,50 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
 builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
 
-// Add Authentication and Authorization (temporarily disabled for development)
-// TODO: Implement proper JWT authentication with signing keys
+// Add Authentication and Authorization (configured for development)
+var jwtSettings = builder.Configuration.GetSection("Security:Jwt");
+var secretKey = jwtSettings["SecretKey"] ?? "MonitoringGrid-Super-Secret-Key-That-Is-Long-Enough-For-HMAC-SHA256-Algorithm-2024";
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
-        // For development, allow any token - in production this should be properly configured
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
-            ValidateIssuerSigningKey = false,
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = false,
-            RequireExpirationTime = false,
-            ClockSkew = TimeSpan.Zero
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"] ?? "MonitoringGrid.Api",
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"] ?? "MonitoringGrid.Frontend",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+
+        // Handle authentication failures gracefully
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                // Log authentication failures but don't block anonymous endpoints
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogDebug("JWT Authentication failed: {Error}", context.Exception.Message);
+                return Task.CompletedTask;
+            }
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Add policy for development endpoints that allow anonymous access
+    options.AddPolicy("AllowAnonymous", policy => policy.RequireAssertion(_ => true));
+
+    // Default policy requires authentication
+    options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 builder.Services.AddResponseCompression();
 builder.Services.AddMemoryCache();

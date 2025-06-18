@@ -201,6 +201,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+
+
   // Proactive token refresh - check every 5 minutes
   useEffect(() => {
     if (!state.isAuthenticated || !state.token) {
