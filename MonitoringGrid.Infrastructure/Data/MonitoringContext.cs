@@ -22,6 +22,7 @@ public class MonitoringContext : DbContext
     public DbSet<Config> Config { get; set; }
     public DbSet<SystemStatus> SystemStatus { get; set; }
     public DbSet<Scheduler> Schedulers { get; set; }
+    public DbSet<ExecutionHistory> ExecutionHistory { get; set; }
 
     public DbSet<ScheduledJob> ScheduledJobs { get; set; }
 
@@ -50,6 +51,7 @@ public class MonitoringContext : DbContext
         modelBuilder.ApplyConfiguration(new ConfigConfiguration());
         modelBuilder.ApplyConfiguration(new SystemStatusConfiguration());
         modelBuilder.ApplyConfiguration(new SchedulerConfiguration());
+        modelBuilder.ApplyConfiguration(new ExecutionHistoryConfiguration());
 
         modelBuilder.ApplyConfiguration(new ScheduledJobConfiguration());
 

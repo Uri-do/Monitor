@@ -17,6 +17,12 @@ import {
   LinearProgress,
   Tooltip,
   Stack,
+  Tabs,
+  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -35,6 +41,10 @@ import {
   AccessTime,
   Warning,
   Clear,
+  Settings,
+  Visibility,
+  Queue,
+  Timeline,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
@@ -46,6 +56,34 @@ import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
 import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';
 import { signalRService } from '@/services/signalRService';
+import {
+  WorkerDetailsPanel,
+  UpcomingIndicatorsQueue,
+  RealTimeExecutionMonitor,
+  RealTimeProcessingMonitor,
+} from '@/components/Business/Worker';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`worker-tabpanel-${index}`}
+      aria-labelledby={`worker-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 interface WorkerService {
   name: string;
@@ -86,6 +124,7 @@ const WorkerManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true); // Enable auto-refresh by default
+  const [activeTab, setActiveTab] = useState(0);
 
   // Enhanced indicator tracking
   const [allIndicators, setAllIndicators] = useState<RunningIndicator[]>([]);
@@ -725,6 +764,89 @@ const WorkerManagement: React.FC = () => {
                 </Typography>
               )}
             </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Enhanced Worker Details - Tabbed Interface */}
+        <Grid item xs={12}>
+          <Card sx={{ mt: 3 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={activeTab}
+                onChange={(_, newValue) => setActiveTab(newValue)}
+                aria-label="worker management tabs"
+              >
+                <Tab
+                  label="Real-Time Processing"
+                  icon={<Visibility />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Indicators Queue"
+                  icon={<Queue />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Execution History"
+                  icon={<Timeline />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Worker Details"
+                  icon={<Settings />}
+                  iconPosition="start"
+                />
+              </Tabs>
+            </Box>
+
+            <TabPanel value={activeTab} index={0}>
+              <RealTimeProcessingMonitor
+                refreshInterval={2000}
+                maxCompletedResults={15}
+                showDetailedMetrics={true}
+              />
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={1}>
+              <UpcomingIndicatorsQueue
+                refreshInterval={10000}
+                maxDisplay={20}
+                showDueIndicators={true}
+                showUpcomingHours={24}
+                onExecuteIndicator={async (indicatorId) => {
+                  try {
+                    await workerApi.executeIndicator(indicatorId);
+                    toast.success('Indicator execution started');
+                    // Refresh status after execution
+                    setTimeout(fetchStatus, 2000);
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to execute indicator');
+                  }
+                }}
+              />
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={2}>
+              <RealTimeExecutionMonitor
+                maxResults={50}
+                showRunningOnly={false}
+                showCompletedResults={true}
+                autoRefresh={true}
+                onViewDetails={(indicatorId) => {
+                  console.log('View details for indicator:', indicatorId);
+                  // TODO: Navigate to indicator details or open modal
+                }}
+              />
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={3}>
+              <WorkerDetailsPanel
+                refreshInterval={5000}
+                showMetrics={true}
+                showUpcomingQueue={false}
+                showServices={false} // Already shown above
+              />
+            </TabPanel>
           </Card>
         </Grid>
       </Grid>

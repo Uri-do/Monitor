@@ -319,12 +319,38 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         }
     }
 
-    public Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
+    public async Task<List<IndicatorExecutionHistory>> GetIndicatorExecutionHistoryAsync(long indicatorId, int days = 30,
         CancellationToken cancellationToken = default)
     {
-        // TODO: Implement with new IndicatorsExecutionHistory table
-        // For now, return empty list since HistoricalData table is obsolete
-        return Task.FromResult(new List<IndicatorExecutionHistory>());
+        try
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-days);
+
+            var executionHistoryData = await _context.ExecutionHistory
+                .Where(eh => eh.IndicatorID == indicatorId && eh.ExecutedAt >= cutoffDate)
+                .OrderByDescending(eh => eh.ExecutedAt)
+                .ToListAsync(cancellationToken);
+
+            var history = executionHistoryData.Select(eh => new IndicatorExecutionHistory
+            {
+                HistoryId = (int)eh.ExecutionHistoryID,
+                IndicatorID = eh.IndicatorID,
+                ExecutionTime = eh.ExecutedAt,
+                WasSuccessful = eh.Success,
+                Value = eh.Result != null && decimal.TryParse(eh.Result, out var val) ? val : null,
+                ErrorMessage = eh.ErrorMessage,
+                ExecutionDuration = TimeSpan.FromMilliseconds(eh.DurationMs),
+                ExecutionContext = eh.ExecutionContext ?? "Unknown",
+                AlertTriggered = false // TODO: Determine from metadata or separate field
+            }).ToList();
+
+            return history;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get execution history for indicator {IndicatorId}", indicatorId);
+            return new List<IndicatorExecutionHistory>();
+        }
     }
 
     private static decimal GetValueByField(Core.DTOs.CollectorStatisticDto data, string field)
@@ -388,7 +414,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         };
     }
 
-    private async Task SaveExecutionResultsAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result, 
+    private async Task SaveExecutionResultsAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result,
         CancellationToken cancellationToken)
     {
         try
@@ -397,10 +423,32 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             indicator.LastRun = result.StartTime;
             indicator.LastRunResult = result.WasSuccessful ? "Success" : result.ErrorMessage;
 
-            // TODO: Save to new IndicatorsExecutionHistory table
-            // Historical data saving is temporarily disabled since HistoricalData table is obsolete
+            // Save execution history
+            var executionHistory = new Core.Entities.ExecutionHistory
+            {
+                IndicatorID = indicator.IndicatorID,
+                ExecutedAt = result.StartTime,
+                DurationMs = (long)result.ExecutionDuration.TotalMilliseconds,
+                Success = result.WasSuccessful,
+                Result = result.Value?.ToString(),
+                ErrorMessage = result.ErrorMessage,
+                RecordCount = result.RawData?.Count,
+                ExecutionContext = result.ExecutionContext ?? "Scheduled",
+                ExecutedBy = "System", // TODO: Get from current user context
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    ThresholdValue = result.ThresholdValue,
+                    ThresholdBreached = result.ThresholdBreached,
+                    AlertTriggered = result.AlertTriggered,
+                    RawDataCount = result.RawData?.Count ?? 0
+                })
+            };
 
+            _context.ExecutionHistory.Add(executionHistory);
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogDebug("Saved execution history for indicator {IndicatorId}, Success: {Success}, Duration: {Duration}ms",
+                indicator.IndicatorID, result.WasSuccessful, result.ExecutionDuration.TotalMilliseconds);
         }
         catch (Exception ex)
         {

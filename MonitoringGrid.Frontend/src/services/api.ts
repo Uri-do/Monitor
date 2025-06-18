@@ -1050,10 +1050,17 @@ export const securityApi = {
 
 // Worker API endpoints
 export const workerApi = {
-  // Get worker status
-  getStatus: async (): Promise<any> => {
-    const response = await api.get('/worker/status');
-    return response.data;
+  // Get worker status with detailed information
+  getStatus: async (includeDetails: boolean = true, includeMetrics: boolean = true): Promise<any> => {
+    try {
+      const response = await api.get('/worker/status', {
+        params: { includeDetails, includeMetrics }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch worker status:', error);
+      return null;
+    }
   },
 
   // Start worker service
@@ -1080,12 +1087,70 @@ export const workerApi = {
     return response.data;
   },
 
-  // Get worker logs
-  getLogs: async (lines?: number): Promise<string[]> => {
-    const response = await api.get('/worker/logs', {
-      params: { lines },
-    });
-    return response.data;
+  // Get debug information about indicators
+  getDebugIndicators: async (): Promise<any> => {
+    try {
+      const response = await api.get('/worker/debug-indicators');
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch debug indicators:', error);
+      return null;
+    }
+  },
+
+  // Get cleanup status
+  getCleanupStatus: async (): Promise<any> => {
+    try {
+      const response = await api.get('/worker/cleanup-status');
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch cleanup status:', error);
+      return null;
+    }
+  },
+
+  // Execute a specific indicator
+  executeIndicator: async (indicatorId: number): Promise<any> => {
+    try {
+      const response = await api.post(`/worker/execute-indicator/${indicatorId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to execute indicator:', error);
+      throw error;
+    }
+  },
+
+  // Execute all due indicators
+  executeDueIndicators: async (): Promise<any> => {
+    try {
+      const response = await api.post('/worker/execute-due-indicators');
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to execute due indicators:', error);
+      throw error;
+    }
+  },
+
+  // Test worker logic
+  testWorkerLogic: async (): Promise<any> => {
+    try {
+      const response = await api.post('/worker/test-worker-logic');
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to test worker logic:', error);
+      throw error;
+    }
+  },
+
+  // Cleanup workers
+  cleanupWorkers: async (): Promise<any> => {
+    try {
+      const response = await api.post('/worker/cleanup-workers');
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to cleanup workers:', error);
+      throw error;
+    }
   },
 };
 
