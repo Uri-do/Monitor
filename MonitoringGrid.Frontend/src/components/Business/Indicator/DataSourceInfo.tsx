@@ -35,6 +35,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({ indicator }) => 
                   {collector?.displayName ||
                     collector?.collectorDesc ||
                     collector?.collectorCode ||
+                    indicator.collectorName ||
                     'Unknown Collector'}
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 500, mb: 1, color: 'text.primary' }}>
@@ -53,6 +54,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({ indicator }) => 
                 {collector?.displayName ||
                   collector?.collectorDesc ||
                   collector?.collectorCode ||
+                  indicator.collectorName ||
                   'collector'}
               </strong>{' '}
               data source

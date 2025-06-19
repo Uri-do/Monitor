@@ -97,10 +97,10 @@ export const useDueIndicators = () => {
       errorContext: 'Loading due indicators',
       graceful404: true,
       fallbackValue: [],
-      // Refresh every 30 seconds since this is time-sensitive
-      staleTime: 30 * 1000,
-      cacheTime: 60 * 1000,
-      refetchInterval: 30 * 1000,
+      // Refresh every 2 minutes since this is time-sensitive but not critical
+      staleTime: 120 * 1000,
+      cacheTime: 300 * 1000,
+      refetchInterval: 120 * 1000,
     }
   );
 };

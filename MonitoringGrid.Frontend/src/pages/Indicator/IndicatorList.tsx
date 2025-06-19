@@ -223,6 +223,9 @@ const IndicatorList: React.FC = () => {
         ]}
         emptyMessage="No indicators found. Create your first indicator to get started."
         rowKey="indicatorID"
+        defaultRowsPerPage={50}
+        rowsPerPageOptions={[25, 50, 100, 200]}
+        maxHeight="none"
       />
     </Box>
   );

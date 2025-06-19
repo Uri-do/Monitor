@@ -85,67 +85,13 @@ const UpcomingIndicatorsQueue: React.FC<UpcomingIndicatorsQueueProps> = ({
   const fetchQueueData = async () => {
     try {
       setError(null);
-      
-      // Fetch upcoming executions - using mock data for now
-      const mockUpcomingResponse = [
-        {
-          indicatorId: 1,
-          indicatorName: 'Daily Sales Analysis',
-          scheduledTime: new Date(Date.now() + 300000).toISOString(), // 5 minutes from now
-          schedulerName: 'Daily Reports',
-          lastExecuted: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          estimatedDuration: 120,
-          priority: 'high',
-          owner: 'System',
-          collectorName: 'Sales Database',
-        },
-        {
-          indicatorId: 2,
-          indicatorName: 'Website Traffic Analysis',
-          scheduledTime: new Date(Date.now() + 900000).toISOString(), // 15 minutes from now
-          schedulerName: 'Hourly Analytics',
-          lastExecuted: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          estimatedDuration: 60,
-          priority: 'medium',
-          owner: 'marketing.team',
-          collectorName: 'Google Analytics',
-        },
-        {
-          indicatorId: 3,
-          indicatorName: 'Customer Satisfaction Score',
-          scheduledTime: new Date(Date.now() + 1800000).toISOString(), // 30 minutes from now
-          schedulerName: 'Customer Metrics',
-          lastExecuted: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-          estimatedDuration: 45,
-          priority: 'medium',
-          owner: 'support.team',
-          collectorName: 'Survey API',
-        },
-        {
-          indicatorId: 4,
-          indicatorName: 'Inventory Levels Check',
-          scheduledTime: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
-          schedulerName: 'Inventory Monitor',
-          lastExecuted: null,
-          estimatedDuration: 30,
-          priority: 'high',
-          owner: 'System',
-          collectorName: 'Inventory Database',
-        },
-        {
-          indicatorId: 5,
-          indicatorName: 'Revenue Forecast',
-          scheduledTime: new Date(Date.now() + 7200000).toISOString(), // 2 hours from now
-          schedulerName: 'Financial Reports',
-          lastExecuted: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          estimatedDuration: 180,
-          priority: 'low',
-          owner: 'finance.team',
-          collectorName: 'Financial Database',
-        },
-      ];
 
-      const processedUpcoming = mockUpcomingResponse.map((item: any) => ({
+      // Fetch upcoming executions from API
+      const upcomingResponse = await schedulerApi.getUpcomingExecutions(showUpcomingHours);
+
+      // Ensure we have a valid array response
+      const upcomingArray = Array.isArray(upcomingResponse) ? upcomingResponse : [];
+      const processedUpcoming = upcomingArray.map((item: any) => ({
         indicatorId: item.indicatorId || item.id,
         indicatorName: item.indicatorName || item.name,
         scheduledTime: item.scheduledTime || item.nextExecution,
@@ -159,36 +105,13 @@ const UpcomingIndicatorsQueue: React.FC<UpcomingIndicatorsQueueProps> = ({
       }));
       setUpcomingExecutions(processedUpcoming.slice(0, maxDisplay));
 
-      // Fetch due indicators if enabled - using mock data for now
+      // Fetch due indicators if enabled
       if (showDueIndicators) {
-        const mockDueResponse = [
-          {
-            indicatorId: 6,
-            indicatorName: 'System Health Check',
-            schedulerName: 'System Monitor',
-            lastExecuted: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
-            isOverdue: true,
-            minutesOverdue: 15,
-          },
-          {
-            indicatorId: 7,
-            indicatorName: 'Database Performance',
-            schedulerName: 'DB Monitor',
-            lastExecuted: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-            isOverdue: true,
-            minutesOverdue: 45,
-          },
-          {
-            indicatorId: 8,
-            indicatorName: 'API Response Times',
-            schedulerName: 'API Monitor',
-            lastExecuted: null,
-            isOverdue: false,
-            minutesOverdue: 0,
-          },
-        ];
+        const dueResponse = await schedulerApi.getDueIndicators();
 
-        const processedDue = mockDueResponse.map((item: any) => ({
+        // Ensure we have a valid array response
+        const dueArray = Array.isArray(dueResponse) ? dueResponse : [];
+        const processedDue = dueArray.map((item: any) => ({
           indicatorId: item.indicatorId || item.id,
           indicatorName: item.indicatorName || item.name,
           schedulerName: item.schedulerName || item.scheduler,
@@ -268,9 +191,12 @@ const UpcomingIndicatorsQueue: React.FC<UpcomingIndicatorsQueueProps> = ({
 
   useEffect(() => {
     fetchQueueData();
-    
-    const interval = setInterval(fetchQueueData, refreshInterval);
-    return () => clearInterval(interval);
+
+    // Only use polling if refreshInterval is provided and reasonable (> 30 seconds for queue data)
+    if (refreshInterval && refreshInterval >= 30000) {
+      const interval = setInterval(fetchQueueData, refreshInterval);
+      return () => clearInterval(interval);
+    }
   }, [refreshInterval, maxDisplay, showDueIndicators, showUpcomingHours]);
 
   if (loading) {

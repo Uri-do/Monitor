@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Grid,
@@ -49,6 +49,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { useThrottledCallback } from '@/hooks/useThrottledCallback';
 import RunningIndicatorsDisplay, {
   RunningIndicator,
 } from '@/components/Business/Indicator/RunningIndicatorsDisplay';
@@ -114,7 +115,7 @@ interface WorkerActionResult {
   timestamp: string;
 }
 
-const WorkerManagement: React.FC = () => {
+const WorkerManagement: React.FC = React.memo(() => {
   const {
     isEnabled: realtimeEnabled,
     isConnected: signalRConnected,
@@ -123,7 +124,7 @@ const WorkerManagement: React.FC = () => {
   const [status, setStatus] = useState<WorkerStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true); // Enable auto-refresh by default
+  const [autoRefresh, setAutoRefresh] = useState(false); // Disable auto-refresh by default since we use SignalR
   const [activeTab, setActiveTab] = useState(0);
 
   // Enhanced indicator tracking
@@ -133,22 +134,48 @@ const WorkerManagement: React.FC = () => {
   const {
     workerStatus: realtimeWorkerStatus,
     runningIndicators,
-    countdown,
+    countdown: rawCountdown,
     nextIndicatorDue,
     isConnected: realtimeConnected,
     lastUpdate: realtimeLastUpdate,
     dashboardData,
   } = useRealtimeDashboard();
 
+  // Calculate countdown on-demand to avoid constant re-renders
+  const countdown = useMemo(() => {
+    if (!nextIndicatorDue?.scheduledTime) return null;
+    const scheduledTime = new Date(nextIndicatorDue.scheduledTime).getTime();
+    const now = Date.now();
+    const secondsUntilDue = Math.max(0, Math.floor((scheduledTime - now) / 1000));
+    return secondsUntilDue > 0 ? secondsUntilDue : null;
+  }, [nextIndicatorDue?.scheduledTime]);
+
   // Fetch worker status
   const fetchStatus = async () => {
     setLoading(true);
     try {
       const response = await workerApi.getStatus();
-      setStatus(response);
+      if (response) {
+        setStatus(response);
+      } else {
+        // Set a default status if API returns null
+        setStatus({
+          isRunning: false,
+          mode: 'Unknown',
+          services: [],
+          timestamp: new Date().toISOString(),
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch worker status:', error);
       toast.error('Failed to fetch worker status');
+      // Set a default status on error
+      setStatus({
+        isRunning: false,
+        mode: 'Unknown',
+        services: [],
+        timestamp: new Date().toISOString(),
+      });
     } finally {
       setLoading(false);
     }
@@ -221,26 +248,60 @@ const WorkerManagement: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!autoRefresh) return;
+    // Only use polling if auto-refresh is enabled AND SignalR is not connected
+    if (!autoRefresh || realtimeEnabled) return;
 
-    const interval = setInterval(fetchStatus, 3000); // More frequent polling when auto-refresh is enabled
+    const interval = setInterval(fetchStatus, 5000); // Less frequent polling when SignalR is not available
     return () => clearInterval(interval);
-  }, [autoRefresh]);
+  }, [autoRefresh, realtimeEnabled]);
+
+  // Handle worker status updates from SignalR - optimized and throttled to prevent unnecessary re-renders
+  const handleWorkerStatusUpdateInternal = useCallback((workerStatus: any) => {
+    console.log('🔧 Worker status update received:', workerStatus);
+    // Only update if there are actual changes
+    setStatus(prevStatus => {
+      if (!prevStatus) return prevStatus;
+
+      const hasChanges =
+        prevStatus.isRunning !== workerStatus.isRunning ||
+        prevStatus.mode !== workerStatus.mode ||
+        prevStatus.processId !== workerStatus.processId ||
+        prevStatus.startTime !== workerStatus.startTime;
+
+      if (!hasChanges) return prevStatus; // Prevent unnecessary re-render
+
+      return {
+        ...prevStatus,
+        isRunning: workerStatus.isRunning,
+        mode: workerStatus.mode,
+        processId: workerStatus.processId,
+        startTime: workerStatus.startTime,
+        uptime: workerStatus.uptimeFormatted || workerStatus.uptime,
+        services: workerStatus.services || prevStatus?.services || [],
+        timestamp: workerStatus.timestamp || new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  // Throttle worker status updates to maximum once every 2 seconds
+  const handleWorkerStatusUpdate = useThrottledCallback(handleWorkerStatusUpdateInternal, 2000);
 
   // SignalR event handlers
   useEffect(() => {
     if (!signalRConnected) return;
 
+    signalRService.on('onWorkerStatusUpdate', handleWorkerStatusUpdate);
     signalRService.on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
     signalRService.on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
     signalRService.on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
 
     return () => {
+      signalRService.off('onWorkerStatusUpdate');
       signalRService.off('onIndicatorExecutionStarted');
       signalRService.off('onIndicatorExecutionProgress');
       signalRService.off('onIndicatorExecutionCompleted');
     };
-  }, [signalRConnected, handleIndicatorExecutionStarted, handleIndicatorExecutionProgress, handleIndicatorExecutionCompleted]);
+  }, [signalRConnected, handleWorkerStatusUpdate, handleIndicatorExecutionStarted, handleIndicatorExecutionProgress, handleIndicatorExecutionCompleted]);
 
   // Perform worker actions
   const performAction = async (action: string) => {
@@ -248,15 +309,31 @@ const WorkerManagement: React.FC = () => {
     try {
       let result: { success: boolean; message: string };
 
+      // Check if we're in integrated mode and use appropriate endpoints
+      const isIntegratedMode = status?.mode === 'Integrated';
+
       switch (action) {
         case 'start':
+          if (isIntegratedMode) {
+            toast.error('Worker services are already running in integrated mode with the API');
+            return;
+          }
           result = await workerApi.start();
           break;
         case 'stop':
+          if (isIntegratedMode) {
+            toast.error('Cannot stop integrated worker services. Use restart to restart the API.');
+            return;
+          }
           result = await workerApi.stop();
           break;
         case 'restart':
-          result = await workerApi.restart();
+          if (isIntegratedMode) {
+            // Use the new restart-api endpoint for integrated mode
+            result = await workerApi.restartApi();
+          } else {
+            result = await workerApi.restart();
+          }
           break;
         case 'force-stop':
           result = await workerApi.forceStop();
@@ -270,16 +347,8 @@ const WorkerManagement: React.FC = () => {
 
         // Add a delay for worker initialization before checking status
         if (action === 'start' || action === 'restart') {
-          // Check status multiple times to catch the transition
-          setTimeout(async () => {
-            await fetchStatus();
-          }, 1000); // First check after 1 second
-          setTimeout(async () => {
-            await fetchStatus();
-          }, 3000); // Second check after 3 seconds
-          setTimeout(async () => {
-            await fetchStatus();
-          }, 5000); // Final check after 5 seconds
+          // Single status check after a reasonable delay - rely on SignalR for real-time updates
+          setTimeout(fetchStatus, 3000);
         } else {
           await fetchStatus();
         }
@@ -306,7 +375,8 @@ const WorkerManagement: React.FC = () => {
     return isRunning ? 'Running' : 'Stopped';
   };
 
-  if (!status) {
+  // Show loading spinner while status is being fetched
+  if (loading || !status) {
     return (
       <Box>
         <PageHeader
@@ -321,15 +391,6 @@ const WorkerManagement: React.FC = () => {
     );
   }
 
-  // Show loading spinner while status is being fetched
-  if (!status) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <LoadingSpinner />
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <PageHeader
@@ -337,7 +398,15 @@ const WorkerManagement: React.FC = () => {
         subtitle="Control and monitor the MonitoringGrid Worker service"
         icon={<Build />}
         primaryAction={
-          !status.isRunning
+          status.mode === 'Integrated'
+            ? {
+                label: 'Restart API',
+                icon: actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
+                onClick: () => performAction('restart'),
+                gradient: 'warning',
+                tooltip: 'Restart the API and all integrated worker services',
+              }
+            : !status.isRunning
             ? {
                 label: 'Start Worker',
                 icon: actionLoading === 'start' ? <CircularProgress size={16} /> : <PlayArrow />,
@@ -351,26 +420,49 @@ const WorkerManagement: React.FC = () => {
                 gradient: 'error',
               }
         }
-        secondaryActions={[
-          {
-            label: 'Restart',
-            icon:
-              actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
-            onClick: () => performAction('restart'),
-            gradient: 'warning',
-          },
-          {
-            label: 'Force Stop',
-            icon:
-              actionLoading === 'force-stop' ? <CircularProgress size={16} /> : <Warning />,
-            onClick: () => performAction('force-stop'),
-            gradient: 'error',
-            tooltip: 'Emergency stop - kills all worker processes',
-          },
-        ]}
+        secondaryActions={
+          status.mode === 'Integrated'
+            ? [
+                {
+                  label: 'Force Stop',
+                  icon:
+                    actionLoading === 'force-stop' ? <CircularProgress size={16} /> : <Warning />,
+                  onClick: () => performAction('force-stop'),
+                  gradient: 'error',
+                  tooltip: 'Emergency stop - kills all processes (use with caution)',
+                },
+              ]
+            : [
+                {
+                  label: 'Restart',
+                  icon:
+                    actionLoading === 'restart' ? <CircularProgress size={16} /> : <AutorenewOutlined />,
+                  onClick: () => performAction('restart'),
+                  gradient: 'warning',
+                },
+                {
+                  label: 'Force Stop',
+                  icon:
+                    actionLoading === 'force-stop' ? <CircularProgress size={16} /> : <Warning />,
+                  onClick: () => performAction('force-stop'),
+                  gradient: 'error',
+                  tooltip: 'Emergency stop - kills all worker processes',
+                },
+              ]
+        }
         onRefresh={fetchStatus}
         refreshing={loading}
       />
+
+      {/* Integrated Mode Info */}
+      {status.mode === 'Integrated' && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Integrated Mode:</strong> Worker services are running as part of the API process.
+            Use "Restart API" to restart all services together. Individual start/stop operations are not available in this mode.
+          </Typography>
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         {/* Status Overview */}
@@ -801,7 +893,7 @@ const WorkerManagement: React.FC = () => {
 
             <TabPanel value={activeTab} index={0}>
               <RealTimeProcessingMonitor
-                refreshInterval={2000}
+                refreshInterval={30000} // 30 seconds - rely on SignalR for real-time updates
                 maxCompletedResults={15}
                 showDetailedMetrics={true}
               />
@@ -809,7 +901,7 @@ const WorkerManagement: React.FC = () => {
 
             <TabPanel value={activeTab} index={1}>
               <UpcomingIndicatorsQueue
-                refreshInterval={10000}
+                refreshInterval={60000} // 60 seconds - queue data doesn't change frequently
                 maxDisplay={20}
                 showDueIndicators={true}
                 showUpcomingHours={24}
@@ -831,7 +923,7 @@ const WorkerManagement: React.FC = () => {
                 maxResults={50}
                 showRunningOnly={false}
                 showCompletedResults={true}
-                autoRefresh={true}
+                autoRefresh={false} // Rely on SignalR for real-time updates
                 onViewDetails={(indicatorId) => {
                   console.log('View details for indicator:', indicatorId);
                   // TODO: Navigate to indicator details or open modal
@@ -841,7 +933,7 @@ const WorkerManagement: React.FC = () => {
 
             <TabPanel value={activeTab} index={3}>
               <WorkerDetailsPanel
-                refreshInterval={5000}
+                refreshInterval={60000} // 60 seconds - worker details don't change frequently
                 showMetrics={true}
                 showUpcomingQueue={false}
                 showServices={false} // Already shown above
@@ -852,6 +944,6 @@ const WorkerManagement: React.FC = () => {
       </Grid>
     </Box>
   );
-};
+});
 
 export default WorkerManagement;

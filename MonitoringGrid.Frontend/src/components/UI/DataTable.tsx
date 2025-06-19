@@ -185,7 +185,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         <TableContainer
           component={Paper}
           sx={{
-            maxHeight,
+            ...(maxHeight && maxHeight !== 'none' && { maxHeight }),
             borderRadius: 2,
             '&::-webkit-scrollbar': {
               width: '8px',

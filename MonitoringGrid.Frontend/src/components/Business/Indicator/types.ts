@@ -12,6 +12,7 @@ export interface ExecutionLogEntry {
   duration?: number;
   success?: boolean;
   errorMessage?: string;
+  executionHistoryId?: number; // Link to detailed execution history
   details?: {
     collectorID?: number;
     collectorItemName?: string;
@@ -20,6 +21,29 @@ export interface ExecutionLogEntry {
     value?: number;
     executionContext?: string;
     alertsGenerated?: number;
+    thresholdBreached?: boolean;
+    alertThreshold?: number;
+    alertOperator?: string;
+  };
+}
+
+export interface DetailedExecutionInfo {
+  sqlQuery?: string;
+  sqlParameters?: string;
+  rawResponse?: string;
+  databaseName?: string;
+  serverName?: string;
+  sessionId?: string;
+  connectionString?: string;
+  resultCount?: number;
+  thresholdAnalysis?: {
+    threshold?: number;
+    operator?: string;
+    currentValue?: number;
+    historicalValue?: number;
+    breached: boolean;
+    severity?: string;
+    deviationPercent?: number;
   };
 }
 

@@ -42,6 +42,8 @@ import {
 } from '@mui/icons-material';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useRealtime } from '@/contexts/RealtimeContext';
+import { signalRService } from '@/services/signalRService';
+import { workerApi } from '@/services/api';
 
 interface ProcessingIndicator {
   indicatorId: number;
@@ -109,112 +111,180 @@ const RealTimeProcessingMonitor: React.FC<RealTimeProcessingMonitorProps> = ({
 
   const { isConnected } = useRealtime();
 
-  // Mock real-time data - in production this would come from SignalR
+  // Fetch real execution history from worker status
+  const fetchExecutionHistory = async () => {
+    try {
+      const workerStatus = await workerApi.getStatus(true, true, true); // Include history
+      if (workerStatus?.history && Array.isArray(workerStatus.history)) {
+        const historyItems: CompletedExecution[] = workerStatus.history.map((item: any) => ({
+          indicatorId: item.indicatorId,
+          indicatorName: item.indicatorName,
+          startTime: new Date(item.executedAt).toISOString(),
+          endTime: new Date(item.executedAt).toISOString(),
+          duration: Math.round(item.durationMs / 1000), // Convert to seconds
+          status: item.success ? 'success' : 'failed',
+          result: item.success ? 'Completed' : undefined,
+          recordCount: 0, // Not available in history
+          memoryUsage: 0, // Not available in history
+          cpuUsage: 0, // Not available in history
+          thresholdBreached: false, // Not available in history
+          alertTriggered: false, // Not available in history
+          executionContext: item.context || 'Unknown',
+          errorMessage: item.errorMessage,
+        }));
+
+        setCompletedExecutions(historyItems.slice(0, maxCompletedResults));
+      }
+    } catch (error) {
+      console.error('Failed to fetch execution history:', error);
+    }
+  };
+
+  // Initialize state and fetch real execution history
   useEffect(() => {
-    const mockProcessingIndicators: ProcessingIndicator[] = [
-      {
-        indicatorId: 1,
-        indicatorName: 'Daily Sales Analysis',
-        startTime: new Date(Date.now() - 45000).toISOString(),
-        progress: 75,
-        currentStep: 'Aggregating sales data by region',
-        estimatedTimeRemaining: 30,
-        memoryUsage: 128.5,
-        cpuUsage: 45.2,
-        recordsProcessed: 7500,
-        totalRecords: 10000,
-        executionContext: 'Scheduled',
-        owner: 'System',
-        collectorName: 'Sales Database',
-      },
-      {
-        indicatorId: 2,
-        indicatorName: 'Customer Satisfaction Score',
-        startTime: new Date(Date.now() - 20000).toISOString(),
-        progress: 35,
-        currentStep: 'Processing survey responses',
-        estimatedTimeRemaining: 85,
-        memoryUsage: 89.3,
-        cpuUsage: 32.1,
-        recordsProcessed: 1750,
-        totalRecords: 5000,
-        executionContext: 'Manual',
-        owner: 'john.doe',
-        collectorName: 'Survey API',
-      },
-    ];
+    // Initialize with empty arrays
+    setProcessingIndicators([]);
+    setCompletedExecutions([]);
 
-    const mockCompletedExecutions: CompletedExecution[] = [
-      {
-        indicatorId: 3,
-        indicatorName: 'Website Traffic Analysis',
-        startTime: new Date(Date.now() - 300000).toISOString(),
-        endTime: new Date(Date.now() - 240000).toISOString(),
-        duration: 60,
-        status: 'success',
-        result: 15420,
-        recordCount: 1247,
-        memoryUsage: 67.8,
-        cpuUsage: 23.4,
-        thresholdBreached: false,
-        alertTriggered: false,
-        executionContext: 'Scheduled',
-      },
-      {
-        indicatorId: 4,
-        indicatorName: 'Inventory Levels Check',
-        startTime: new Date(Date.now() - 600000).toISOString(),
-        endTime: new Date(Date.now() - 580000).toISOString(),
-        duration: 20,
-        status: 'failed',
-        errorMessage: 'Database connection timeout',
+    // Initialize empty processing stats
+    setProcessingStats({
+      totalProcessing: 0,
+      averageProgress: 0,
+      totalMemoryUsage: 0,
+      totalCpuUsage: 0,
+      estimatedCompletionTime: '',
+      queueLength: 0,
+    });
+
+    // Fetch real execution history
+    fetchExecutionHistory();
+  }, [maxCompletedResults]);
+
+  // SignalR event handlers for real-time processing updates
+  useEffect(() => {
+    if (!isConnected) return;
+
+    // Handle indicator execution started
+    const handleIndicatorExecutionStarted = (data: any) => {
+      console.log('🚀 Processing Monitor - Indicator execution started:', data);
+      const newIndicator: ProcessingIndicator = {
+        indicatorId: data.indicatorID || data.indicatorId,
+        indicatorName: data.indicatorName,
+        startTime: data.startTime,
+        progress: 0,
+        currentStep: 'Starting...',
+        estimatedTimeRemaining: data.estimatedDuration || 0,
+        memoryUsage: 0,
+        cpuUsage: 0,
+        recordsProcessed: 0,
+        totalRecords: 0,
+        executionContext: data.executionContext || 'Unknown',
+        owner: data.owner || 'System',
+        collectorName: 'Processing...',
+      };
+
+      setProcessingIndicators(prev => {
+        const filtered = prev.filter(ind => ind.indicatorId !== newIndicator.indicatorId);
+        return [newIndicator, ...filtered];
+      });
+    };
+
+    // Handle indicator execution progress
+    const handleIndicatorExecutionProgress = (data: any) => {
+      console.log('📊 Processing Monitor - Indicator execution progress:', data);
+      setProcessingIndicators(prev =>
+        prev.map(indicator =>
+          indicator.indicatorId === (data.indicatorID || data.indicatorId)
+            ? {
+                ...indicator,
+                progress: data.progress || 0,
+                currentStep: data.currentStep || indicator.currentStep,
+                estimatedTimeRemaining: data.estimatedTimeRemaining || indicator.estimatedTimeRemaining,
+              }
+            : indicator
+        )
+      );
+    };
+
+    // Handle indicator execution completed
+    const handleIndicatorExecutionCompleted = (data: any) => {
+      console.log('✅ Processing Monitor - Indicator execution completed:', data);
+
+      // Remove from processing indicators
+      setProcessingIndicators(prev =>
+        prev.filter(indicator => indicator.indicatorId !== (data.indicatorId || data.indicatorID))
+      );
+
+      // Add to completed executions
+      const completedExecution: CompletedExecution = {
+        indicatorId: data.indicatorId || data.indicatorID,
+        indicatorName: data.indicatorName,
+        startTime: data.startTime || new Date().toISOString(),
+        endTime: data.completedAt || new Date().toISOString(),
+        duration: data.duration || 0,
+        status: data.success ? 'success' : 'failed',
+        result: data.value,
         recordCount: 0,
-        memoryUsage: 34.2,
-        cpuUsage: 12.1,
-        thresholdBreached: false,
-        alertTriggered: true,
-        executionContext: 'Scheduled',
-      },
-    ];
+        memoryUsage: 0,
+        cpuUsage: 0,
+        thresholdBreached: data.thresholdBreached || false,
+        alertTriggered: data.thresholdBreached || false,
+        executionContext: data.executionContext || 'Unknown',
+        errorMessage: data.errorMessage,
+      };
 
-    setProcessingIndicators(mockProcessingIndicators);
-    setCompletedExecutions(mockCompletedExecutions);
-    
-    // Calculate processing stats
-    const totalMemory = mockProcessingIndicators.reduce((sum, ind) => sum + ind.memoryUsage, 0);
-    const totalCpu = mockProcessingIndicators.reduce((sum, ind) => sum + ind.cpuUsage, 0);
-    const avgProgress = mockProcessingIndicators.length > 0 
-      ? mockProcessingIndicators.reduce((sum, ind) => sum + ind.progress, 0) / mockProcessingIndicators.length 
+      setCompletedExecutions(prev => {
+        const updated = [completedExecution, ...prev];
+        return updated.slice(0, maxCompletedResults); // Keep only the most recent results
+      });
+
+      // Don't refresh execution history from API when using SignalR - we already have the data
+    };
+
+    // Register event handlers
+    signalRService.on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
+    signalRService.on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
+    signalRService.on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
+
+    return () => {
+      // Cleanup event handlers
+      signalRService.off('onIndicatorExecutionStarted');
+      signalRService.off('onIndicatorExecutionProgress');
+      signalRService.off('onIndicatorExecutionCompleted');
+    };
+  }, [isConnected, maxCompletedResults]);
+
+  // Update processing stats when processing indicators change
+  useEffect(() => {
+    const totalMemory = processingIndicators.reduce((sum, ind) => sum + ind.memoryUsage, 0);
+    const totalCpu = processingIndicators.reduce((sum, ind) => sum + ind.cpuUsage, 0);
+    const avgProgress = processingIndicators.length > 0
+      ? processingIndicators.reduce((sum, ind) => sum + ind.progress, 0) / processingIndicators.length
       : 0;
 
     setProcessingStats({
-      totalProcessing: mockProcessingIndicators.length,
+      totalProcessing: processingIndicators.length,
       averageProgress: avgProgress,
       totalMemoryUsage: totalMemory,
       totalCpuUsage: totalCpu,
-      estimatedCompletionTime: '2 minutes',
-      queueLength: 5,
+      estimatedCompletionTime: processingIndicators.length > 0 ? 'Calculating...' : '',
+      queueLength: 0, // This would come from worker status if available
     });
+  }, [processingIndicators]);
 
-    // Simulate real-time updates
+  // Periodic refresh of execution history - only when SignalR is not connected
+  useEffect(() => {
+    if (isConnected) return; // Don't poll when SignalR is connected
+
+    // Only poll if refreshInterval is reasonable (> 60 seconds for execution history)
+    if (!refreshInterval || refreshInterval < 60000) return;
+
     const interval = setInterval(() => {
-      setProcessingIndicators(prev => 
-        prev.map(indicator => ({
-          ...indicator,
-          progress: Math.min(indicator.progress + Math.random() * 5, 100),
-          estimatedTimeRemaining: Math.max(indicator.estimatedTimeRemaining - 2, 0),
-          recordsProcessed: Math.min(
-            indicator.recordsProcessed + Math.floor(Math.random() * 100),
-            indicator.totalRecords
-          ),
-          memoryUsage: indicator.memoryUsage + (Math.random() - 0.5) * 5,
-          cpuUsage: Math.max(0, Math.min(100, indicator.cpuUsage + (Math.random() - 0.5) * 10)),
-        }))
-      );
-    }, refreshInterval);
+      fetchExecutionHistory();
+    }, Math.max(refreshInterval * 5, 120000)); // Refresh history much less frequently, minimum 2 minutes
 
     return () => clearInterval(interval);
-  }, [refreshInterval]);
+  }, [refreshInterval, isConnected]);
 
   const formatBytes = (bytes: number) => {
     return `${bytes.toFixed(1)} MB`;

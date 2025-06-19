@@ -9,6 +9,7 @@ export interface IndicatorDto {
   indicatorCode: string;
   indicatorDesc?: string;
   collectorID?: number;
+  collectorName?: string; // Name of the collector (e.g., "Bingo")
   collectorItemName?: string;
   schedulerID?: number;
   isActive: boolean;
@@ -38,10 +39,10 @@ export interface IndicatorDto {
 export interface CreateIndicatorRequest {
   indicatorName: string;
   indicatorCode: string;
-  indicatorDesc?: string;
-  collectorID: number; // Changed from optional to required to match backend
+  indicatorDescription?: string; // Backend expects indicatorDescription
+  collectorId: number; // Backend expects collectorId (lowercase 'd')
   collectorItemName: string;
-  schedulerID?: number;
+  schedulerId?: number; // Backend expects schedulerId (lowercase 'd')
   isActive: boolean;
   lastMinutes: number;
   thresholdType: string; // Changed from optional to required to match backend

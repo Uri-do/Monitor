@@ -493,9 +493,71 @@ namespace MonitoringGrid.Infrastructure.Services
 
         public async Task<Result<List<IndicatorWithSchedulerDto>>> GetDueIndicatorsAsync()
         {
-            // Implementation will be added in next part
-            await Task.CompletedTask;
-            return Result.Success(new List<IndicatorWithSchedulerDto>());
+            try
+            {
+                _logger.LogDebug("Getting due indicators");
+
+                // Get indicators that are due for execution
+                var dueIndicators = await _context.Indicators
+                    .Include(i => i.Scheduler)
+                    .Include(i => i.OwnerContact)
+                    .Where(i => i.IsActive && i.SchedulerID.HasValue)
+                    .ToListAsync();
+
+                var dueList = new List<IndicatorWithSchedulerDto>();
+
+                foreach (var indicator in dueIndicators)
+                {
+                    // Check if indicator is due (simplified logic for now)
+                    var isDue = indicator.IsDue();
+
+                    if (isDue)
+                    {
+                        var dto = new IndicatorWithSchedulerDto
+                        {
+                            IndicatorID = indicator.IndicatorID,
+                            IndicatorName = indicator.IndicatorName,
+                            IndicatorCode = indicator.IndicatorCode ?? string.Empty,
+                            IndicatorDesc = indicator.IndicatorDesc,
+                            CollectorID = indicator.CollectorID,
+                            CollectorItemName = indicator.CollectorItemName,
+                            Priority = indicator.Priority ?? "Medium",
+                            LastMinutes = indicator.LastMinutes,
+                            ThresholdType = indicator.ThresholdType ?? string.Empty,
+                            ThresholdField = indicator.ThresholdField ?? string.Empty,
+                            ThresholdComparison = indicator.ThresholdComparison ?? string.Empty,
+                            ThresholdValue = indicator.ThresholdValue,
+                            OwnerContactId = indicator.OwnerContactId,
+                            IsActive = indicator.IsActive,
+                            CreatedDate = indicator.CreatedDate,
+                            UpdatedDate = indicator.UpdatedDate,
+                            LastRun = indicator.LastRun,
+                            SchedulerID = indicator.SchedulerID,
+                            SchedulerName = indicator.Scheduler?.SchedulerName,
+                            SchedulerDescription = indicator.Scheduler?.SchedulerDescription,
+                            ScheduleType = indicator.Scheduler?.ScheduleType,
+                            IntervalMinutes = indicator.Scheduler?.IntervalMinutes,
+                            CronExpression = indicator.Scheduler?.CronExpression,
+                            ExecutionDateTime = indicator.Scheduler?.ExecutionDateTime,
+                            Timezone = indicator.Scheduler?.Timezone,
+                            SchedulerEnabled = indicator.Scheduler?.IsEnabled,
+                            NextExecutionTime = indicator.Scheduler != null ? CalculateNextExecutionTime(indicator.Scheduler, indicator.LastRun) : null,
+                            OwnerContactName = indicator.OwnerContact?.Name,
+                            OwnerContactEmail = indicator.OwnerContact?.Email
+                        };
+
+                        dueList.Add(dto);
+                    }
+                }
+
+                _logger.LogDebug("Found {Count} due indicators", dueList.Count);
+                return Result.Success(dueList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting due indicators");
+                return Result.Failure<List<IndicatorWithSchedulerDto>>("DUE_INDICATORS_ERROR", "Failed to get due indicators");
+            }
         }
 
         public async Task<Result<DateTime?>> GetNextExecutionTimeAsync(int schedulerId, DateTime? lastExecution = null)
@@ -507,9 +569,81 @@ namespace MonitoringGrid.Infrastructure.Services
 
         public async Task<Result<List<IndicatorWithSchedulerDto>>> GetUpcomingExecutionsAsync(int hours = 24)
         {
-            // Implementation will be added in next part
-            await Task.CompletedTask;
-            return Result.Success(new List<IndicatorWithSchedulerDto>());
+            try
+            {
+                _logger.LogDebug("Getting upcoming executions for next {Hours} hours", hours);
+
+                var cutoffTime = DateTime.UtcNow.AddHours(hours);
+
+                // Get indicators with schedulers that have upcoming executions
+                var indicators = await _context.Indicators
+                    .Include(i => i.Scheduler)
+                    .Include(i => i.OwnerContact)
+                    .Where(i => i.IsActive &&
+                               i.SchedulerID.HasValue &&
+                               i.Scheduler != null &&
+                               i.Scheduler.IsEnabled)
+                    .ToListAsync();
+
+                var upcomingList = new List<IndicatorWithSchedulerDto>();
+
+                foreach (var indicator in indicators)
+                {
+                    if (indicator.Scheduler == null) continue;
+
+                    // Calculate next execution time (simplified logic)
+                    var nextExecution = CalculateNextExecutionTime(indicator.Scheduler, indicator.LastRun);
+
+                    if (nextExecution.HasValue && nextExecution.Value <= cutoffTime)
+                    {
+                        var dto = new IndicatorWithSchedulerDto
+                        {
+                            IndicatorID = indicator.IndicatorID,
+                            IndicatorName = indicator.IndicatorName,
+                            IndicatorCode = indicator.IndicatorCode ?? string.Empty,
+                            IndicatorDesc = indicator.IndicatorDesc,
+                            CollectorID = indicator.CollectorID,
+                            CollectorItemName = indicator.CollectorItemName,
+                            Priority = indicator.Priority ?? "Medium",
+                            LastMinutes = indicator.LastMinutes,
+                            ThresholdType = indicator.ThresholdType ?? string.Empty,
+                            ThresholdField = indicator.ThresholdField ?? string.Empty,
+                            ThresholdComparison = indicator.ThresholdComparison ?? string.Empty,
+                            ThresholdValue = indicator.ThresholdValue,
+                            OwnerContactId = indicator.OwnerContactId,
+                            IsActive = indicator.IsActive,
+                            CreatedDate = indicator.CreatedDate,
+                            UpdatedDate = indicator.UpdatedDate,
+                            LastRun = indicator.LastRun,
+                            SchedulerID = indicator.SchedulerID,
+                            SchedulerName = indicator.Scheduler.SchedulerName,
+                            SchedulerDescription = indicator.Scheduler.SchedulerDescription,
+                            ScheduleType = indicator.Scheduler.ScheduleType,
+                            IntervalMinutes = indicator.Scheduler.IntervalMinutes,
+                            CronExpression = indicator.Scheduler.CronExpression,
+                            ExecutionDateTime = indicator.Scheduler.ExecutionDateTime,
+                            Timezone = indicator.Scheduler.Timezone,
+                            SchedulerEnabled = indicator.Scheduler.IsEnabled,
+                            NextExecutionTime = nextExecution,
+                            OwnerContactName = indicator.OwnerContact?.Name,
+                            OwnerContactEmail = indicator.OwnerContact?.Email
+                        };
+
+                        upcomingList.Add(dto);
+                    }
+                }
+
+                // Sort by next execution time
+                upcomingList = upcomingList.OrderBy(x => x.NextExecutionTime).ToList();
+
+                _logger.LogDebug("Found {Count} upcoming executions for next {Hours} hours", upcomingList.Count, hours);
+                return Result.Success(upcomingList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting upcoming executions for next {Hours} hours", hours);
+                return Result.Failure<List<IndicatorWithSchedulerDto>>("UPCOMING_EXECUTIONS_ERROR", "Failed to get upcoming executions");
+            }
         }
 
         public async Task<Result<bool>> BulkAssignSchedulerAsync(List<long> indicatorIds, int? schedulerId, string modifiedBy = "system")
@@ -524,6 +658,69 @@ namespace MonitoringGrid.Infrastructure.Services
             // Implementation will be added in next part
             await Task.CompletedTask;
             return Result.Success(true);
+        }
+
+        private DateTime? CalculateNextExecutionTime(Scheduler scheduler, DateTime? lastExecution)
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var baseTime = lastExecution ?? now;
+
+                switch (scheduler.ScheduleType.ToLower())
+                {
+                    case "interval":
+                        if (scheduler.IntervalMinutes.HasValue && scheduler.IntervalMinutes.Value > 0)
+                        {
+                            return baseTime.AddMinutes(scheduler.IntervalMinutes.Value);
+                        }
+                        break;
+
+                    case "daily":
+                        // For daily schedules, calculate next day at the same time
+                        if (scheduler.ExecutionDateTime.HasValue)
+                        {
+                            var executionTime = scheduler.ExecutionDateTime.Value.TimeOfDay;
+                            var nextExecution = now.Date.Add(executionTime);
+                            if (nextExecution <= now)
+                            {
+                                nextExecution = nextExecution.AddDays(1);
+                            }
+                            return nextExecution;
+                        }
+                        break;
+
+                    case "weekly":
+                        // For weekly schedules, calculate next week
+                        if (scheduler.ExecutionDateTime.HasValue)
+                        {
+                            var executionTime = scheduler.ExecutionDateTime.Value;
+                            var nextExecution = executionTime;
+                            while (nextExecution <= now)
+                            {
+                                nextExecution = nextExecution.AddDays(7);
+                            }
+                            return nextExecution;
+                        }
+                        break;
+
+                    case "cron":
+                        // For cron expressions, we would need a cron parser
+                        // For now, return a default interval
+                        return baseTime.AddHours(1);
+
+                    default:
+                        // Default to 1 hour interval
+                        return baseTime.AddHours(1);
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error calculating next execution time for scheduler {SchedulerId}", scheduler.SchedulerID);
+                return null;
+            }
         }
     }
 }

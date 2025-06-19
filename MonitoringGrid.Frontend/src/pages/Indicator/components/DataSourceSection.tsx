@@ -57,24 +57,34 @@ export const DataSourceSection: React.FC<DataSourceSectionProps> = ({
             name="collectorID"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.collectorID}>
-                <InputLabel>Collector</InputLabel>
-                <Select {...field} label="Collector">
-                  <MenuItem value={0}>
-                    <em>Select a collector</em>
-                  </MenuItem>
-                  {collectors.map((collector) => (
-                    <MenuItem key={collector.collectorID} value={collector.collectorID}>
-                      {collector.displayName}
+                <FormControl fullWidth error={!!errors.collectorID}>
+                  <InputLabel>Collector</InputLabel>
+                  <Select
+                    {...field}
+                    label="Collector"
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Convert to number if it's a valid number, otherwise keep as empty string
+                      const numericValue = value === '' ? undefined : Number(value);
+                      field.onChange(numericValue);
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Select a collector</em>
                     </MenuItem>
-                  ))}
-                </Select>
-                {errors.collectorID && (
-                  <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
-                    {errors.collectorID.message}
-                  </Box>
-                )}
-              </FormControl>
+                    {collectors.map((collector) => (
+                      <MenuItem key={collector.collectorID} value={collector.collectorID}>
+                        {collector.displayName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.collectorID && (
+                    <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>
+                      {errors.collectorID.message}
+                    </Box>
+                  )}
+                </FormControl>
             )}
           />
         </Grid>

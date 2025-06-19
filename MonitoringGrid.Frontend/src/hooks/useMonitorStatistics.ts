@@ -103,7 +103,7 @@ export const useCollectorItemNames = (collectorId: number): UseQueryResult<strin
         throw error;
       }
     },
-    enabled: !!collectorId,
+    enabled: !!collectorId && collectorId > 0, // Only enable when collectorId is a positive number
     staleTime: 2 * 60 * 1000, // 2 minutes (reduced for better responsiveness)
     retry: 2,
   });

@@ -10,7 +10,7 @@ namespace MonitoringGrid.Api.CQRS.Commands.Indicator;
 /// </summary>
 public class UpdateIndicatorCommand : IRequest<Result<IndicatorResponse>>
 {
-    public int IndicatorID { get; set; }
+    public long IndicatorID { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -24,7 +24,7 @@ public class UpdateIndicatorCommand : IRequest<Result<IndicatorResponse>>
     public string? IndicatorDesc { get; set; }
 
     [Required]
-    public int CollectorID { get; set; }
+    public long CollectorID { get; set; }
 
     [Required]
     [MaxLength(255)]

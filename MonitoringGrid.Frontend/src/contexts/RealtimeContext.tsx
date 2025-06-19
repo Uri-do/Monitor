@@ -59,8 +59,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
       }
     };
 
-    // Check connection status periodically
-    const interval = setInterval(checkConnection, 5000);
+    // Check connection status less frequently
+    const interval = setInterval(checkConnection, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
   }, [isEnabled]);

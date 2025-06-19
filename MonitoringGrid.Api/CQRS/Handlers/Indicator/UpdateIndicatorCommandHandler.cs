@@ -51,11 +51,14 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             var existingIndicator = existingIndicatorResult.Value;
 
             // Validate collector exists and is active
+            _logger.LogInformation("DEBUG: Validating collector ID {CollectorId}", request.CollectorID);
             var collector = await _progressPlayDbService.GetCollectorByIdAsync(request.CollectorID, cancellationToken);
             if (collector == null)
             {
+                _logger.LogWarning("DEBUG: Collector {CollectorId} not found", request.CollectorID);
                 return Result.Failure<IndicatorResponse>("COLLECTOR_NOT_FOUND", $"Collector with ID {request.CollectorID} not found");
             }
+            _logger.LogInformation("DEBUG: Collector {CollectorId} found: {CollectorCode}", request.CollectorID, collector.CollectorCode);
 
             if (!collector.IsActive)
             {

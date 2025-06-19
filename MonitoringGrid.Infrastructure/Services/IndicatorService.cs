@@ -97,7 +97,7 @@ public class IndicatorService : IIndicatorService
     {
         try
         {
-            _logger.LogDebug("Retrieving indicator with ID {IndicatorId}", indicatorId);
+            _logger.LogInformation("DEBUG: Retrieving indicator with ID {IndicatorId}", indicatorId);
 
             var indicator = await _context.Indicators
                 .Include(i => i.IndicatorContacts)
@@ -106,16 +106,22 @@ public class IndicatorService : IIndicatorService
                 .Include(i => i.Scheduler)
                 .FirstOrDefaultAsync(i => i.IndicatorID == indicatorId, cancellationToken);
 
+            _logger.LogInformation("DEBUG: Query executed for indicator {IndicatorId}, result: {Found}",
+                indicatorId, indicator != null ? "FOUND" : "NOT FOUND");
+
             if (indicator == null)
             {
+                _logger.LogWarning("DEBUG: Indicator {IndicatorId} not found, returning failure", indicatorId);
                 return Result.Failure<Indicator>(Error.NotFound("Indicator", indicatorId));
             }
 
+            _logger.LogInformation("DEBUG: Successfully found indicator {IndicatorId}: {IndicatorName}",
+                indicator.IndicatorID, indicator.IndicatorName);
             return Result<Indicator>.Success(indicator);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving indicator {IndicatorId}", indicatorId);
+            _logger.LogError(ex, "DEBUG: Error retrieving indicator {IndicatorId}", indicatorId);
             return Result.Failure<Indicator>(Error.Failure("Indicator.RetrievalFailed", $"Failed to retrieve indicator: {ex.Message}"));
         }
     }
@@ -348,7 +354,7 @@ public class IndicatorService : IIndicatorService
 
                     return dueList;
                 },
-                CacheExpirations.Short, // Short cache for due indicators as they change frequently
+                TimeSpan.FromSeconds(30), // Very short cache for due indicators as they change every minute
                 cancellationToken);
 
             return Result<List<Indicator>>.Success(dueIndicators);

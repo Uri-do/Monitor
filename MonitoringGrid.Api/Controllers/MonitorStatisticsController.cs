@@ -211,28 +211,37 @@ public class MonitorStatisticsController : BaseApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<string>>> GetCollectorItemNames(
         long collectorId,
-        [FromQuery] GetCollectorItemNamesRequest? request = null,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] int? maxItems = null,
         CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            request ??= new GetCollectorItemNamesRequest { CollectorId = collectorId };
-
-            // Validate collector ID matches route parameter
-            if (request.CollectorId != collectorId)
-            {
-                request.CollectorId = collectorId; // Use route parameter
-            }
-
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
             // Additional validation for collector ID
             var paramValidation = ValidateParameter(collectorId, nameof(collectorId),
                 id => id > 0, "Collector ID must be a positive integer");
             if (paramValidation != null) return BadRequest(paramValidation);
+
+            // Create request object from parameters
+            var request = new GetCollectorItemNamesRequest
+            {
+                CollectorId = collectorId,
+                SearchTerm = searchTerm,
+                MaxItems = maxItems
+            };
+
+            // Validate query parameters if provided
+            if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Length > 50)
+            {
+                return BadRequest(CreateErrorResponse("Search term cannot exceed 50 characters", "INVALID_SEARCH_TERM"));
+            }
+
+            if (maxItems.HasValue && (maxItems.Value < 1 || maxItems.Value > 1000))
+            {
+                return BadRequest(CreateErrorResponse("Max items must be between 1 and 1000", "INVALID_MAX_ITEMS"));
+            }
 
             var query = new GetCollectorItemNamesQuery(collectorId);
             var result = await Mediator.Send(query, cancellationToken);

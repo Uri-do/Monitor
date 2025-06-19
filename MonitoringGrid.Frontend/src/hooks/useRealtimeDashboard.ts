@@ -246,21 +246,22 @@ export const useRealtimeDashboard = (): RealtimeDashboardState & RealtimeDashboa
     };
   }, [realtimeEnabled, realtimeConnected, subscribeToUpdates, unsubscribeFromUpdates]);
 
-  // Countdown timer - update every second
-  useEffect(() => {
-    if (state.countdown === null || state.countdown <= 0) return;
+  // Countdown timer - disabled to prevent constant re-renders
+  // The countdown will be calculated on-demand in the component instead
+  // useEffect(() => {
+  //   if (state.countdown === null || state.countdown <= 0) return;
 
-    const timer = setInterval(() => {
-      setState(prev => {
-        if (prev.countdown === null || prev.countdown <= 1) {
-          return { ...prev, countdown: null };
-        }
-        return { ...prev, countdown: prev.countdown - 1 };
-      });
-    }, 1000);
+  //   const timer = setInterval(() => {
+  //     setState(prev => {
+  //       if (prev.countdown === null || prev.countdown <= 1) {
+  //         return { ...prev, countdown: null };
+  //       }
+  //       return { ...prev, countdown: prev.countdown - 1 };
+  //     });
+  //   }, 1000);
 
-    return () => clearInterval(timer);
-  }, [state.countdown]);
+  //   return () => clearInterval(timer);
+  // }, [state.countdown]);
 
   const refreshDashboard = useCallback(() => {
     setState(prev => ({ ...prev, lastUpdate: new Date() }));

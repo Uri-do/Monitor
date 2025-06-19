@@ -5,16 +5,16 @@ import { NotFoundError } from '@/services/BaseApiService';
 export const QueryPresets = {
   // Real-time data (alerts, dashboard)
   realtime: {
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000, // 1 minute
+    refetchInterval: 120 * 1000, // 2 minutes
     refetchOnWindowFocus: true,
     retry: 2,
   },
 
   // Frequently changing data (indicators, execution history)
   dynamic: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 2 * 60 * 1000, // 2 minutes
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    refetchInterval: 3 * 60 * 1000, // 3 minutes
     refetchOnWindowFocus: true,
     retry: 2,
   },

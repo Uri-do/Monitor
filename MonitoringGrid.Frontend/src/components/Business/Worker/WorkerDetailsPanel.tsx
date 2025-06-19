@@ -130,9 +130,12 @@ const WorkerDetailsPanel: React.FC<WorkerDetailsPanelProps> = ({
 
   useEffect(() => {
     fetchWorkerDetails();
-    
-    const interval = setInterval(fetchWorkerDetails, refreshInterval);
-    return () => clearInterval(interval);
+
+    // Only use polling with reasonable intervals (minimum 30 seconds for worker details)
+    if (refreshInterval && refreshInterval >= 30000) {
+      const interval = setInterval(fetchWorkerDetails, refreshInterval);
+      return () => clearInterval(interval);
+    }
   }, [refreshInterval, showUpcomingQueue]);
 
   const formatUptime = (uptime: string) => {

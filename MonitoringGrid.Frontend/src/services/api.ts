@@ -236,8 +236,55 @@ export const indicatorApi = {
 
   // Get Indicator by ID
   getIndicator: async (id: number): Promise<IndicatorDto> => {
-    const response: AxiosResponse<IndicatorDto> = await api.get(`/indicator/${id}`);
-    return response.data;
+    const response: AxiosResponse<any> = await api.get(`/indicator/${id}`);
+
+    let rawData;
+    // Handle wrapped API response
+    if (response.data?.data) {
+      rawData = response.data.data;
+    } else {
+      // Fallback for direct response
+      rawData = response.data;
+    }
+
+    // Map API response to frontend-expected format
+    const mappedData: IndicatorDto = {
+      indicatorID: rawData.indicatorID,
+      indicatorName: rawData.indicatorName,
+      indicatorCode: rawData.indicatorCode || rawData.indicatorName || 'Unknown', // Fallback to name if code missing
+      indicatorDesc: rawData.indicatorDescription || rawData.indicatorDesc,
+      collectorID: rawData.collectorId || rawData.collectorID, // API uses collectorId
+      collectorName: rawData.collectorName, // API provides collector name
+      collectorItemName: rawData.collectorItemName || 'Not specified', // Keep the actual item name
+      schedulerID: rawData.schedulerId || rawData.schedulerID, // API uses schedulerId
+      isActive: rawData.isActive,
+      lastMinutes: rawData.lastMinutes,
+      thresholdType: rawData.thresholdType || 'threshold_value', // Default threshold type
+      thresholdField: rawData.thresholdField || 'Total', // Default threshold field
+      thresholdComparison: rawData.alertOperator || rawData.thresholdComparison || 'gt', // API uses alertOperator
+      thresholdValue: rawData.alertThreshold !== undefined ? rawData.alertThreshold : rawData.thresholdValue, // API uses alertThreshold
+      priority: rawData.priority || 'medium', // Default priority if not provided
+      ownerContactId: rawData.ownerContactId,
+      ownerName: rawData.ownerName,
+      averageLastDays: rawData.averageLastDays,
+      createdDate: rawData.createdDate,
+      updatedDate: rawData.updatedDate || rawData.modifiedDate, // API uses modifiedDate
+      modifiedDate: rawData.modifiedDate,
+      lastRun: rawData.lastRun,
+      lastRunResult: rawData.lastRunResult,
+      isCurrentlyRunning: rawData.isCurrentlyRunning || false,
+      executionStartTime: rawData.executionStartTime,
+      executionContext: rawData.executionContext,
+      ownerContact: rawData.ownerContact,
+      contacts: rawData.contacts || [], // Default to empty array if not provided
+      scheduler: rawData.scheduler
+    };
+
+    // Debug log to see what we're mapping
+    console.log('API Raw Data:', rawData);
+    console.log('Mapped Data:', mappedData);
+
+    return mappedData;
   },
 
   // Create new Indicator
@@ -295,10 +342,10 @@ export const collectorApi = {
 export const monitorStatisticsApi = {
   // Get active collectors
   getActiveCollectors: async (): Promise<any[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
+    const response: AxiosResponse<{ isSuccess: boolean; data: any[] }> = await api.get(
       '/monitorstatistics/collectors?activeOnly=true'
     );
-    const collectors = response.data.value || [];
+    const collectors = response.data.data || [];
 
     // Ensure collectors is an array before mapping
     const collectorsArray = Array.isArray(collectors) ? collectors : [];
@@ -327,10 +374,10 @@ export const monitorStatisticsApi = {
 
   // Get all collectors
   getAllCollectors: async (): Promise<any[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(
+    const response: AxiosResponse<{ isSuccess: boolean; data: any[] }> = await api.get(
       '/monitorstatistics/collectors?activeOnly=false'
     );
-    const collectors = response.data.value || [];
+    const collectors = response.data.data || [];
 
     // Ensure collectors is an array before mapping
     const collectorsArray = Array.isArray(collectors) ? collectors : [];
@@ -359,10 +406,10 @@ export const monitorStatisticsApi = {
 
   // Get collector by ID
   getCollector: async (collectorId: number): Promise<any> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: any }> = await api.get(
+    const response: AxiosResponse<{ isSuccess: boolean; data: any }> = await api.get(
       `/monitorstatistics/collectors/${collectorId}`
     );
-    const collector = response.data.value;
+    const collector = response.data.data;
 
     if (!collector) return null;
 
@@ -391,10 +438,10 @@ export const monitorStatisticsApi = {
 
   // Get collector item names
   getCollectorItemNames: async (collectorId: number): Promise<string[]> => {
-    const response: AxiosResponse<{ isSuccess: boolean; value: string[] }> = await api.get(
+    const response: AxiosResponse<{ isSuccess: boolean; data: string[] }> = await api.get(
       `/monitorstatistics/collectors/${collectorId}/items`
     );
-    return response.data.value || [];
+    return response.data.data || [];
   },
 
   // Get collector statistics
@@ -415,8 +462,8 @@ export const monitorStatisticsApi = {
     }
 
     const url = `/monitorstatistics/collectors/${collectorId}/statistics${params.toString() ? `?${params.toString()}` : ''}`;
-    const response: AxiosResponse<{ isSuccess: boolean; value: any[] }> = await api.get(url);
-    return response.data.value || [];
+    const response: AxiosResponse<{ isSuccess: boolean; data: any[] }> = await api.get(url);
+    return response.data.data || [];
   },
 };
 
@@ -455,7 +502,14 @@ export const schedulerApi = {
 
   // Get scheduler by ID
   getScheduler: async (id: number): Promise<SchedulerDto> => {
-    const response: AxiosResponse<SchedulerDto> = await api.get(`/schedulers/${id}`);
+    const response: AxiosResponse<any> = await api.get(`/schedulers/${id}`);
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
@@ -1068,11 +1122,18 @@ export const securityApi = {
 // Worker API endpoints
 export const workerApi = {
   // Get worker status with detailed information
-  getStatus: async (includeDetails: boolean = true, includeMetrics: boolean = true): Promise<any> => {
+  getStatus: async (includeDetails: boolean = true, includeMetrics: boolean = true, includeHistory: boolean = false): Promise<any> => {
     try {
       const response = await api.get('/worker/status', {
-        params: { includeDetails, includeMetrics }
+        params: { includeDetails, includeMetrics, includeHistory }
       });
+
+      // Handle wrapped API response
+      if (response.data?.data) {
+        return response.data.data;
+      }
+
+      // Fallback for direct response
       return response.data;
     } catch (error: any) {
       console.error('Failed to fetch worker status:', error);
@@ -1083,32 +1144,38 @@ export const workerApi = {
   // Start worker service
   start: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/worker/start');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   // Stop worker service
   stop: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/worker/stop');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   // Restart worker service
   restart: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/worker/restart');
-    return response.data;
+    return response.data?.data || response.data;
+  },
+
+  // Restart API (for integrated worker services)
+  restartApi: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/worker/restart-api');
+    return response.data?.data || response.data;
   },
 
   // Force stop all worker processes (emergency cleanup)
   forceStop: async (): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/worker/force-stop');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   // Get debug information about indicators
   getDebugIndicators: async (): Promise<any> => {
     try {
       const response = await api.get('/worker/debug-indicators');
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to fetch debug indicators:', error);
       return null;
@@ -1119,7 +1186,7 @@ export const workerApi = {
   getCleanupStatus: async (): Promise<any> => {
     try {
       const response = await api.get('/worker/cleanup-status');
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to fetch cleanup status:', error);
       return null;
@@ -1130,7 +1197,7 @@ export const workerApi = {
   executeIndicator: async (indicatorId: number): Promise<any> => {
     try {
       const response = await api.post(`/worker/execute-indicator/${indicatorId}`);
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to execute indicator:', error);
       throw error;
@@ -1141,7 +1208,7 @@ export const workerApi = {
   executeDueIndicators: async (): Promise<any> => {
     try {
       const response = await api.post('/worker/execute-due-indicators');
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to execute due indicators:', error);
       throw error;
@@ -1152,7 +1219,7 @@ export const workerApi = {
   testWorkerLogic: async (): Promise<any> => {
     try {
       const response = await api.post('/worker/test-worker-logic');
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to test worker logic:', error);
       throw error;
@@ -1163,7 +1230,7 @@ export const workerApi = {
   cleanupWorkers: async (): Promise<any> => {
     try {
       const response = await api.post('/worker/cleanup-workers');
-      return response.data;
+      return response.data?.data || response.data;
     } catch (error: any) {
       console.error('Failed to cleanup workers:', error);
       throw error;

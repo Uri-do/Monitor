@@ -66,8 +66,18 @@ export const SchedulingSection: React.FC<SchedulingSectionProps> = ({
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.schedulerID}>
                 <InputLabel>Scheduler</InputLabel>
-                <Select {...field} label="Scheduler">
-                  <MenuItem value={0}>
+                <Select
+                  {...field}
+                  label="Scheduler"
+                  value={field.value || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Convert to number if it's a valid number, otherwise keep as empty string
+                    const numericValue = value === '' ? undefined : Number(value);
+                    field.onChange(numericValue);
+                  }}
+                >
+                  <MenuItem value="">
                     <em>Select a scheduler</em>
                   </MenuItem>
                   {safeSchedulers.map((scheduler) => (

@@ -120,7 +120,8 @@ const IndicatorEdit: React.FC = () => {
   });
 
   // Get collector items based on selected collector
-  const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
+  const selectedCollectorId = watch('collectorID');
+  const { data: collectorItems = [] } = useCollectorItemNames(selectedCollectorId || 0);
 
   // Update form when indicator data is loaded
   useEffect(() => {
@@ -128,10 +129,10 @@ const IndicatorEdit: React.FC = () => {
       reset({
         indicatorName: indicator.indicatorName || '',
         indicatorCode: indicator.indicatorCode || '',
-        indicatorDesc: indicator.indicatorDesc || '',
-        collectorID: indicator.collectorID || 0,
+        indicatorDesc: indicator.indicatorDescription || indicator.indicatorDesc || '',
+        collectorID: indicator.collectorId || indicator.collectorID || undefined,
         collectorItemName: indicator.collectorItemName || '',
-        schedulerID: indicator.schedulerID || 0,
+        schedulerID: indicator.schedulerId || indicator.schedulerID || undefined,
         lastMinutes: indicator.lastMinutes || 60,
         thresholdType: indicator.thresholdType || 'count',
         thresholdField: indicator.thresholdField || '',
@@ -149,10 +150,10 @@ const IndicatorEdit: React.FC = () => {
       indicatorID: indicatorId,
       indicatorName: data.indicatorName,
       indicatorCode: data.indicatorCode,
-      indicatorDesc: data.indicatorDesc || undefined,
-      collectorID: data.collectorID,
+      indicatorDescription: data.indicatorDesc || undefined, // Backend expects indicatorDescription
+      collectorId: data.collectorID, // Backend expects collectorId (lowercase 'd')
       collectorItemName: data.collectorItemName,
-      schedulerID: data.schedulerID || undefined,
+      schedulerId: data.schedulerID || undefined, // Backend expects schedulerId (lowercase 'd')
       isActive: data.isActive ?? true,
       lastMinutes: data.lastMinutes || 60,
       thresholdType: data.thresholdType,

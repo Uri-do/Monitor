@@ -25,15 +25,18 @@ namespace MonitoringGrid.Api.Controllers;
 public class IndicatorController : BaseApiController
 {
     private readonly IMapper _mapper;
+    private readonly IProgressPlayDbService _progressPlayDbService;
 
     public IndicatorController(
         IMediator mediator,
         IMapper mapper,
+        IProgressPlayDbService progressPlayDbService,
         ILogger<IndicatorController> logger,
         IPerformanceMetricsService? performanceMetrics = null)
         : base(mediator, logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _progressPlayDbService = progressPlayDbService ?? throw new ArgumentNullException(nameof(progressPlayDbService));
     }
 
     /// <summary>
@@ -188,13 +191,95 @@ public class IndicatorController : BaseApiController
 
             if (result.IsSuccess)
             {
-                // Map to frontend-compatible structure
-                var response = _mapper.Map<object>(result.Value);
+                var indicator = result.Value;
+
+                // Fetch collector name if needed
+                string? collectorName = null;
+                try
+                {
+                    var collector = await _progressPlayDbService.GetCollectorByIdAsync(indicator.CollectorID, cancellationToken);
+                    collectorName = collector?.CollectorDesc ?? collector?.CollectorCode ?? "Unknown";
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Failed to fetch collector name for collector {CollectorId}", indicator.CollectorID);
+                    collectorName = "Unknown";
+                }
+
+                // Create a custom response object with all the fields the frontend expects
+                var response = new
+                {
+                    indicatorID = indicator.IndicatorID,
+                    indicatorName = indicator.IndicatorName,
+                    indicatorCode = indicator.IndicatorCode,
+                    indicatorDescription = indicator.IndicatorDesc,
+                    collectorId = indicator.CollectorID,
+                    collectorName = collectorName,
+                    collectorItemName = indicator.CollectorItemName,
+                    schedulerId = indicator.SchedulerID,
+                    isActive = indicator.IsActive,
+                    lastMinutes = indicator.LastMinutes,
+                    thresholdType = indicator.ThresholdType,
+                    thresholdField = indicator.ThresholdField,
+                    thresholdComparison = indicator.ThresholdComparison,
+                    thresholdValue = indicator.ThresholdValue,
+                    alertThreshold = indicator.ThresholdValue,
+                    alertOperator = indicator.ThresholdComparison,
+                    priority = indicator.Priority,
+                    ownerContactId = indicator.OwnerContactId,
+                    ownerName = indicator.OwnerContact?.Name,
+                    averageLastDays = indicator.AverageLastDays,
+                    createdDate = indicator.CreatedDate,
+                    modifiedDate = indicator.UpdatedDate,
+                    lastRun = indicator.LastRun,
+                    lastRunResult = indicator.LastRunResult,
+                    isCurrentlyRunning = indicator.IsCurrentlyRunning,
+                    executionStartTime = indicator.ExecutionStartTime,
+                    executionContext = indicator.ExecutionContext,
+                    ownerContact = indicator.OwnerContact != null ? new
+                    {
+                        contactID = indicator.OwnerContact.ContactId,
+                        name = indicator.OwnerContact.Name,
+                        email = indicator.OwnerContact.Email,
+                        phone = indicator.OwnerContact.Phone,
+                        isActive = indicator.OwnerContact.IsActive,
+                        createdDate = indicator.OwnerContact.CreatedDate,
+                        modifiedDate = indicator.OwnerContact.ModifiedDate
+                    } : null,
+                    contacts = indicator.IndicatorContacts?.Where(ic => ic.IsActive && ic.Contact != null)
+                        .Select(ic => new
+                        {
+                            contactID = ic.Contact.ContactId,
+                            name = ic.Contact.Name,
+                            email = ic.Contact.Email,
+                            phone = ic.Contact.Phone,
+                            isActive = ic.Contact.IsActive,
+                            createdDate = ic.Contact.CreatedDate,
+                            modifiedDate = ic.Contact.ModifiedDate
+                        }).ToArray() ?? new object[0],
+                    scheduler = indicator.Scheduler != null ? new
+                    {
+                        schedulerId = indicator.Scheduler.SchedulerID,
+                        schedulerName = indicator.Scheduler.SchedulerName,
+                        schedulerDescription = indicator.Scheduler.SchedulerDescription,
+                        scheduleType = indicator.Scheduler.ScheduleType,
+                        intervalMinutes = indicator.Scheduler.IntervalMinutes,
+                        cronExpression = indicator.Scheduler.CronExpression,
+                        isEnabled = indicator.Scheduler.IsEnabled,
+                        timezone = indicator.Scheduler.Timezone,
+                        executionDateTime = indicator.Scheduler.ExecutionDateTime,
+                        startDate = indicator.Scheduler.StartDate,
+                        endDate = indicator.Scheduler.EndDate,
+                        createdDate = indicator.Scheduler.CreatedDate,
+                        modifiedDate = indicator.Scheduler.ModifiedDate,
+                        nextExecution = indicator.Scheduler.GetNextExecutionTime(indicator.LastRun)
+                    } : null
+                };
 
                 Logger.LogInformation("Retrieved indicator {IndicatorId} in {Duration}ms",
                     id, stopwatch.ElapsedMilliseconds);
 
-                return Ok(CreateSuccessResponse(response, $"Retrieved indicator {result.Value.IndicatorName}"));
+                return Ok(CreateSuccessResponse(response, $"Retrieved indicator {indicator.IndicatorName}"));
             }
 
             Logger.LogWarning("Indicator {IndicatorId} not found", id);

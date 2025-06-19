@@ -174,8 +174,9 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 // Save results if requested
                 if (saveResults)
                 {
-                    await SaveExecutionResultsAsync(indicator, result, cancellationToken);
-                    
+                    var executionHistoryId = await SaveExecutionResultsAsync(indicator, result, cancellationToken);
+                    result.ExecutionId = executionHistoryId;
+
                     // Trigger alert if threshold breached
                     if (thresholdBreached)
                     {
@@ -414,7 +415,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
         };
     }
 
-    private async Task SaveExecutionResultsAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result,
+    private async Task<long> SaveExecutionResultsAsync(Core.Entities.Indicator indicator, IndicatorExecutionResult result,
         CancellationToken cancellationToken)
     {
         try
@@ -447,12 +448,15 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             _context.ExecutionHistory.Add(executionHistory);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogDebug("Saved execution history for indicator {IndicatorId}, Success: {Success}, Duration: {Duration}ms",
-                indicator.IndicatorID, result.WasSuccessful, result.ExecutionDuration.TotalMilliseconds);
+            _logger.LogDebug("Saved execution history for indicator {IndicatorId}, Success: {Success}, Duration: {Duration}ms, HistoryId: {HistoryId}",
+                indicator.IndicatorID, result.WasSuccessful, result.ExecutionDuration.TotalMilliseconds, executionHistory.ExecutionHistoryID);
+
+            return executionHistory.ExecutionHistoryID;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save execution results for indicator {IndicatorId}", indicator.IndicatorID);
+            return 0;
         }
     }
 

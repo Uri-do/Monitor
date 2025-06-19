@@ -27,6 +27,10 @@ public class IndicatorExecutionCompletedDto
     public string? ErrorMessage { get; set; }
     public bool ThresholdBreached { get; set; }
     public string ExecutionContext { get; set; } = string.Empty;
+    public long? ExecutionHistoryId { get; set; }
+    public decimal? AlertThreshold { get; set; }
+    public string? AlertOperator { get; set; }
+    public int? AlertsGenerated { get; set; }
 }
 
 /// <summary>

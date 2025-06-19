@@ -1,6 +1,7 @@
 using AutoMapper;
 
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Models;
@@ -68,6 +69,38 @@ public class MappingProfile : Profile
         CreateMap<AlertDashboard, AlertDashboardDto>()
             .ForMember(dest => dest.RecentAlerts, opt => opt.Ignore())
             .ForMember(dest => dest.TopAlertingIndicators, opt => opt.Ignore());
+
+        // Indicator mappings
+        CreateMap<Indicator, IndicatorResponse>()
+            .ForMember(dest => dest.IndicatorID, opt => opt.MapFrom(src => src.IndicatorID))
+            .ForMember(dest => dest.IndicatorName, opt => opt.MapFrom(src => src.IndicatorName))
+            .ForMember(dest => dest.IndicatorDescription, opt => opt.MapFrom(src => src.IndicatorDesc))
+            .ForMember(dest => dest.OwnerContactId, opt => opt.MapFrom(src => src.OwnerContactId))
+            .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.OwnerContact != null ? src.OwnerContact.Name : null))
+            .ForMember(dest => dest.CollectorId, opt => opt.MapFrom(src => src.CollectorID))
+            .ForMember(dest => dest.CollectorName, opt => opt.MapFrom(src => src.CollectorItemName))
+            .ForMember(dest => dest.SqlQuery, opt => opt.MapFrom(src => string.Empty)) // Not available in entity
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.LastMinutes, opt => opt.MapFrom(src => src.LastMinutes))
+            .ForMember(dest => dest.SchedulerId, opt => opt.MapFrom(src => src.SchedulerID))
+            .ForMember(dest => dest.SchedulerName, opt => opt.MapFrom(src => src.Scheduler != null ? src.Scheduler.SchedulerName : null))
+            .ForMember(dest => dest.AlertThreshold, opt => opt.MapFrom(src => src.ThresholdValue))
+            .ForMember(dest => dest.AlertOperator, opt => opt.MapFrom(src => src.ThresholdComparison))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate ?? DateTime.UtcNow))
+            .ForMember(dest => dest.ModifiedDate, opt => opt.MapFrom(src => src.UpdatedDate))
+            .ForMember(dest => dest.LastRun, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.LastRunStatus, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.LastRunDurationMs, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.LastRunResultCount, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.NextRun, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore()) // Not available in entity
+            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore()) // Not available in entity
+            .ForMember(dest => dest.Configuration, opt => opt.Ignore()) // Not available in entity
+            .ForMember(dest => dest.ExecutionStats, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.Scheduler, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.Collector, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.RecentExecutions, opt => opt.Ignore()) // Will be populated by service if needed
+            .ForMember(dest => dest.Details, opt => opt.Ignore()); // Will be populated by service if needed
     }
 
 

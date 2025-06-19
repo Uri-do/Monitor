@@ -44,6 +44,8 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { RunningIndicator } from '../Indicator/RunningIndicatorsDisplay';
+import { signalRService } from '@/services/signalRService';
+import { workerApi } from '@/services/api';
 
 interface ExecutionResult {
   indicatorId: number;
@@ -95,9 +97,52 @@ const RealTimeExecutionMonitor: React.FC<RealTimeExecutionMonitorProps> = ({
 
   const { isConnected } = useRealtime();
 
+  // Fetch initial execution history from API
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const status = await workerApi.getStatus();
+        if (status.executionHistory && status.executionHistory.length > 0) {
+          const apiResults: ExecutionResult[] = status.executionHistory.map((item: any) => ({
+            indicatorId: item.indicatorId,
+            indicatorName: item.indicatorName,
+            startTime: item.executedAt,
+            endTime: item.executedAt,
+            duration: Math.round(item.durationMs / 1000),
+            status: item.success ? 'completed' : 'failed',
+            errorMessage: item.errorMessage,
+            executedBy: 'System',
+            executionContext: item.context || 'Scheduled',
+          }));
+
+          setRecentResults(apiResults.slice(0, maxResults));
+
+          // Calculate stats from API data
+          const successful = apiResults.filter(r => r.status === 'completed').length;
+          const failed = apiResults.filter(r => r.status === 'failed').length;
+          const avgDuration = apiResults.length > 0
+            ? Math.round(apiResults.reduce((sum, r) => sum + (r.duration || 0), 0) / apiResults.length)
+            : 0;
+
+          setExecutionStats(prev => ({
+            ...prev,
+            totalToday: apiResults.length,
+            successfulToday: successful,
+            failedToday: failed,
+            averageDuration: avgDuration,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch initial execution history:', error);
+      }
+    };
+
+    fetchInitialData();
+  }, [maxResults]);
+
   // Mock data for demonstration - in real implementation, this would come from SignalR
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh || isConnected) return; // Only use mock data when SignalR is not connected
 
     const mockRunningIndicators: RunningIndicator[] = [
       {
@@ -211,19 +256,121 @@ const RealTimeExecutionMonitor: React.FC<RealTimeExecutionMonitorProps> = ({
       currentlyRunning: mockRunningIndicators.length,
     });
 
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setRunningIndicators(prev => 
-        prev.map(indicator => ({
-          ...indicator,
-          progress: Math.min(indicator.progress + Math.random() * 10, 100),
-          estimatedTimeRemaining: Math.max(indicator.estimatedTimeRemaining - 5, 0),
-        }))
-      );
-    }, 5000);
+    // Simulate real-time updates - disabled to prevent flickering
+    // const interval = setInterval(() => {
+    //   setRunningIndicators(prev =>
+    //     prev.map(indicator => ({
+    //       ...indicator,
+    //       progress: Math.min(indicator.progress + Math.random() * 10, 100),
+    //       estimatedTimeRemaining: Math.max(indicator.estimatedTimeRemaining - 5, 0),
+    //     }))
+    //   );
+    // }, 5000);
 
-    return () => clearInterval(interval);
-  }, [autoRefresh]);
+    // return () => clearInterval(interval);
+  }, [autoRefresh, isConnected]);
+
+  // SignalR event handlers for real-time updates
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const handleIndicatorExecutionStarted = (data: any) => {
+      console.log('🚀 RealTimeExecutionMonitor: Indicator execution started:', data);
+
+      // Add to running indicators
+      const newRunningIndicator: RunningIndicator = {
+        indicatorID: data.indicatorID,
+        indicator: data.indicatorName || data.indicator,
+        collectorID: data.collectorID,
+        collectorItemName: data.collectorItemName,
+        startTime: data.startTime,
+        lastMinutes: data.lastMinutes,
+        status: 'running',
+        progress: 0,
+        estimatedTimeRemaining: 60, // Default estimate
+        executionContext: data.executionContext || 'Scheduled',
+      };
+
+      setRunningIndicators(prev => {
+        // Remove any existing execution for this indicator
+        const filtered = prev.filter(ind => ind.indicatorID !== data.indicatorID);
+        return [...filtered, newRunningIndicator];
+      });
+
+      // Update stats
+      setExecutionStats(prev => ({
+        ...prev,
+        currentlyRunning: prev.currentlyRunning + 1,
+      }));
+    };
+
+    const handleIndicatorExecutionProgress = (data: any) => {
+      console.log('📊 RealTimeExecutionMonitor: Indicator execution progress:', data);
+
+      setRunningIndicators(prev =>
+        prev.map(indicator =>
+          indicator.indicatorID === data.indicatorId
+            ? {
+                ...indicator,
+                progress: data.progressPercentage || 0,
+                estimatedTimeRemaining: Math.max(60 - (data.progressPercentage || 0), 0),
+              }
+            : indicator
+        )
+      );
+    };
+
+    const handleIndicatorExecutionCompleted = (data: any) => {
+      console.log('✅ RealTimeExecutionMonitor: Indicator execution completed:', data);
+
+      // Remove from running indicators
+      setRunningIndicators(prev => prev.filter(ind => ind.indicatorID !== data.indicatorId));
+
+      // Add to recent results
+      const newResult: ExecutionResult = {
+        indicatorId: data.indicatorId,
+        indicatorName: data.indicatorName,
+        startTime: data.startTime,
+        endTime: new Date().toISOString(),
+        duration: Math.round(data.duration / 1000), // Convert ms to seconds
+        status: data.success ? 'completed' : 'failed',
+        errorMessage: data.errorMessage,
+        executedBy: 'System',
+        currentValue: data.value,
+        executionContext: data.executionContext || 'Scheduled',
+        recordCount: data.recordCount,
+        thresholdBreached: data.thresholdBreached,
+        alertTriggered: data.alertTriggered,
+      };
+
+      setRecentResults(prev => {
+        const updated = [newResult, ...prev];
+        return updated.slice(0, maxResults); // Keep only the most recent results
+      });
+
+      // Update stats
+      setExecutionStats(prev => ({
+        ...prev,
+        currentlyRunning: Math.max(prev.currentlyRunning - 1, 0),
+        totalToday: prev.totalToday + 1,
+        successfulToday: data.success ? prev.successfulToday + 1 : prev.successfulToday,
+        failedToday: data.success ? prev.failedToday : prev.failedToday + 1,
+        averageDuration: Math.round((prev.averageDuration * (prev.totalToday - 1) + Math.round(data.duration / 1000)) / prev.totalToday),
+      }));
+    };
+
+    // Register event handlers
+    signalRService.on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
+    signalRService.on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
+    signalRService.on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
+
+    return () => {
+      // Cleanup event handlers
+      signalRService.off('onIndicatorExecutionStarted');
+      signalRService.off('onIndicatorExecutionProgress');
+      signalRService.off('onIndicatorExecutionCompleted');
+    };
+  }, [isConnected, maxResults]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

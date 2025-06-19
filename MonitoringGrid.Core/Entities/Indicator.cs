@@ -141,6 +141,28 @@ public class Indicator : AggregateRoot
         return Scheduler.GetNextExecutionTime(LastRun);
     }
 
+    public bool IsOverdue()
+    {
+        if (!IsActive || Scheduler == null || !Scheduler.IsEnabled)
+            return false;
+
+        var nextExecution = GetNextRunTime();
+        return nextExecution.HasValue && DateTime.UtcNow > nextExecution.Value;
+    }
+
+    public int GetMinutesOverdue()
+    {
+        if (!IsOverdue())
+            return 0;
+
+        var nextExecution = GetNextRunTime();
+        if (!nextExecution.HasValue)
+            return 0;
+
+        var overdueDuration = DateTime.UtcNow - nextExecution.Value;
+        return (int)Math.Max(0, overdueDuration.TotalMinutes);
+    }
+
     /// <summary>
     /// Marks the indicator as currently executing
     /// </summary>

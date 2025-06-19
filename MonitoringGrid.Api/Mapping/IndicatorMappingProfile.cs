@@ -55,22 +55,24 @@ public class IndicatorMappingProfile : Profile
                 indicatorID = src.IndicatorID,
                 indicatorName = src.IndicatorName,
                 indicatorCode = src.IndicatorCode,
-                indicatorDesc = src.IndicatorDesc,
-                collectorID = src.CollectorID,
+                indicatorDescription = src.IndicatorDesc,
+                collectorId = src.CollectorID,
+                collectorName = "Unknown", // Will be populated by controller if needed
                 collectorItemName = src.CollectorItemName,
-                schedulerID = src.SchedulerID,
+                schedulerId = src.SchedulerID,
                 isActive = src.IsActive,
                 lastMinutes = src.LastMinutes,
                 thresholdType = src.ThresholdType,
                 thresholdField = src.ThresholdField,
                 thresholdComparison = src.ThresholdComparison,
                 thresholdValue = src.ThresholdValue,
+                alertThreshold = src.ThresholdValue, // Frontend expects this field name
+                alertOperator = src.ThresholdComparison, // Frontend expects this field name
                 priority = src.Priority,
                 ownerContactId = src.OwnerContactId,
                 ownerName = src.OwnerContact != null ? src.OwnerContact.Name : null,
                 averageLastDays = src.AverageLastDays,
                 createdDate = src.CreatedDate,
-                updatedDate = src.UpdatedDate,
                 modifiedDate = src.UpdatedDate,
                 lastRun = src.LastRun,
                 lastRunResult = src.LastRunResult,
@@ -101,7 +103,7 @@ public class IndicatorMappingProfile : Profile
                     }).ToArray() : new object[0],
                 scheduler = src.Scheduler != null ? new
                 {
-                    schedulerID = src.Scheduler.SchedulerID,
+                    schedulerId = src.Scheduler.SchedulerID,
                     schedulerName = src.Scheduler.SchedulerName,
                     schedulerDescription = src.Scheduler.SchedulerDescription,
                     scheduleType = src.Scheduler.ScheduleType,
@@ -113,7 +115,8 @@ public class IndicatorMappingProfile : Profile
                     startDate = src.Scheduler.StartDate,
                     endDate = src.Scheduler.EndDate,
                     createdDate = src.Scheduler.CreatedDate,
-                    modifiedDate = src.Scheduler.ModifiedDate
+                    modifiedDate = src.Scheduler.ModifiedDate,
+                    nextExecution = src.Scheduler.GetNextExecutionTime(src.LastRun)
                 } : null
             });
 
@@ -183,8 +186,14 @@ public class IndicatorMappingProfile : Profile
         //     .ForMember(dest => dest.AlertLogs, opt => opt.Ignore())
         //     .ForMember(dest => dest.Scheduler, opt => opt.Ignore());
 
-        // Indicator execution result mappings - IndicatorExecutionResult and IndicatorExecutionResultDto don't exist - commented out
-        // CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();
+        // Indicator execution result mappings
+        CreateMap<MonitoringGrid.Core.Models.IndicatorExecutionResult, MonitoringGrid.Api.DTOs.Indicators.IndicatorExecutionResultResponse>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.WasSuccessful ? "Success" : "Failed"))
+            .ForMember(dest => dest.IsSuccess, opt => opt.MapFrom(src => src.WasSuccessful))
+            .ForMember(dest => dest.DurationMs, opt => opt.MapFrom(src => (long)src.ExecutionDuration.TotalMilliseconds))
+            .ForMember(dest => dest.ResultCount, opt => opt.MapFrom(src => src.RawData != null ? src.RawData.Count : 0))
+            .ForMember(dest => dest.Results, opt => opt.Ignore()) // Will be populated separately if needed
+            .ForMember(dest => dest.SqlQuery, opt => opt.Ignore()); // Will be populated separately if needed
 
         // Dashboard mappings
         CreateMap<MonitoringGrid.Core.Models.IndicatorDashboard, MonitoringGrid.Api.DTOs.Indicators.IndicatorDashboardResponse>();
@@ -231,7 +240,27 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.SortDirection, opt => opt.MapFrom(src => src.SortDirection ?? "asc"));
 
         // CreateMap<CreateIndicatorRequest, CreateIndicatorCommand>();
-        // CreateMap<UpdateIndicatorRequest, UpdateIndicatorCommand>();
+
+        // Map UpdateIndicatorRequest DTO to UpdateIndicatorCommand
+        CreateMap<MonitoringGrid.Api.DTOs.Indicators.UpdateIndicatorRequest, UpdateIndicatorCommand>()
+            .ForMember(dest => dest.IndicatorID, opt => opt.MapFrom(src => src.IndicatorID))
+            .ForMember(dest => dest.IndicatorName, opt => opt.MapFrom(src => src.IndicatorName))
+            .ForMember(dest => dest.IndicatorCode, opt => opt.MapFrom(src => src.IndicatorName.Replace(" ", "_").ToUpper())) // Generate code from name
+            .ForMember(dest => dest.IndicatorDesc, opt => opt.MapFrom(src => src.IndicatorDescription))
+            .ForMember(dest => dest.CollectorID, opt => opt.MapFrom(src => src.CollectorId))
+            .ForMember(dest => dest.CollectorItemName, opt => opt.MapFrom(src => "Bingo")) // Default to "Bingo" for BetsByPlayMode collector
+            .ForMember(dest => dest.SchedulerID, opt => opt.MapFrom(src => src.SchedulerId))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.LastMinutes, opt => opt.MapFrom(src => src.LastMinutes))
+            .ForMember(dest => dest.ThresholdType, opt => opt.MapFrom(src => "threshold_value")) // Default threshold type
+            .ForMember(dest => dest.ThresholdField, opt => opt.MapFrom(src => "Total")) // Default threshold field
+            .ForMember(dest => dest.ThresholdComparison, opt => opt.MapFrom(src => src.AlertOperator ?? "gt"))
+            .ForMember(dest => dest.ThresholdValue, opt => opt.MapFrom(src => src.AlertThreshold ?? 0))
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => "medium")) // Default priority
+            .ForMember(dest => dest.OwnerContactId, opt => opt.MapFrom(src => (int)src.OwnerContactId))
+            .ForMember(dest => dest.AverageLastDays, opt => opt.MapFrom(src => (int?)null))
+            .ForMember(dest => dest.ContactIds, opt => opt.MapFrom(src => new List<int>()));
+
         // CreateMap<ExecuteIndicatorRequest, ExecuteIndicatorCommand>();
         // CreateMap<TestIndicatorRequest, ExecuteIndicatorCommand>()
         //     .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"))

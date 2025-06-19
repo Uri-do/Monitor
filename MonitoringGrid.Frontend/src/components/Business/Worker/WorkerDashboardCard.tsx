@@ -104,11 +104,9 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
 
       if (result.success) {
         toast.success(result.message);
-        // Multiple status checks for start/restart actions to catch transitions
+        // Single status check for actions - rely on SignalR for real-time updates
         if (action === 'start' || action === 'restart') {
-          setTimeout(fetchStatus, 1000);  // First check after 1 second
-          setTimeout(fetchStatus, 3000);  // Second check after 3 seconds
-          setTimeout(fetchStatus, 5000);  // Final check after 5 seconds
+          setTimeout(fetchStatus, 2000);  // Single check after 2 seconds
         } else {
           await fetchStatus(); // Immediate check for stop action
         }
@@ -224,10 +222,12 @@ const WorkerDashboardCard: React.FC<WorkerDashboardCardProps> = ({
   useEffect(() => {
     fetchStatus();
 
-    // More frequent polling for worker status since it's critical
-    const interval = setInterval(fetchStatus, 10000); // Poll every 10 seconds
-    return () => clearInterval(interval);
-  }, []);
+    // Only poll if real-time is not enabled - rely on SignalR for updates
+    if (!realtimeEnabled) {
+      const interval = setInterval(fetchStatus, 60000); // Poll every 60 seconds when SignalR is not available
+      return () => clearInterval(interval);
+    }
+  }, [realtimeEnabled]);
 
   if (loading && !currentStatus) {
     return (
