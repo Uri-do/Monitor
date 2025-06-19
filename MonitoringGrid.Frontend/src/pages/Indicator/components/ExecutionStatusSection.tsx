@@ -9,10 +9,10 @@ import {
 import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 import { Card, InfoItem } from '@/components';
 import { SchedulerDetails } from '@/components/Business';
 import { IndicatorDto } from '@/types/api';
+import { safeFormatDate, safeDateDuration, formatDuration } from '@/utils/dateUtils';
 
 interface ExecutionStatusSectionProps {
   indicator: IndicatorDto;
@@ -49,7 +49,7 @@ export const ExecutionStatusSection: React.FC<ExecutionStatusSectionProps> = ({
             {indicator.executionStartTime && (
               <InfoItem
                 label="Execution Started"
-                value={format(new Date(indicator.executionStartTime), 'MMM dd, yyyy HH:mm:ss')}
+                value={safeFormatDate(indicator.executionStartTime, 'MMM dd, yyyy HH:mm:ss')}
               />
             )}
             {indicator.executionContext && (
@@ -58,7 +58,7 @@ export const ExecutionStatusSection: React.FC<ExecutionStatusSectionProps> = ({
             {indicator.isCurrentlyRunning && indicator.executionStartTime && (
               <InfoItem
                 label="Running Duration"
-                value={`${Math.floor((new Date().getTime() - new Date(indicator.executionStartTime).getTime()) / 1000)} seconds`}
+                value={formatDuration(safeDateDuration(indicator.executionStartTime))}
               />
             )}
           </Stack>

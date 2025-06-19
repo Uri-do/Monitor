@@ -81,7 +81,35 @@ public class IndicatorController : BaseApiController
                 Logger.LogInformation("Retrieved {Count} indicators in {Duration}ms",
                     response.Indicators.Count, stopwatch.ElapsedMilliseconds);
 
-                return Ok(CreateSuccessResponse(response, $"Retrieved {response.Indicators.Count} indicators"));
+                // 🔍 DETAILED RESPONSE LOGGING FOR DEBUGGING
+                var finalResponse = CreateSuccessResponse(response, $"Retrieved {response.Indicators.Count} indicators");
+                Logger.LogInformation("🔍 SENDING RESPONSE TO FRONTEND:");
+                Logger.LogInformation("📊 Response Type: {ResponseType}", finalResponse.GetType().Name);
+                Logger.LogInformation("📊 Indicators Count: {Count}", response.Indicators.Count);
+                Logger.LogInformation("📊 Total Count: {TotalCount}", response.TotalCount);
+                Logger.LogInformation("📊 Page: {Page}, PageSize: {PageSize}", response.Page, response.PageSize);
+
+                // Log first few indicator names for verification
+                var indicatorNames = response.Indicators.Take(5).Select(i => $"{i.IndicatorID}:{i.IndicatorName}").ToList();
+                Logger.LogInformation("📊 First 5 Indicators: {IndicatorNames}", string.Join(", ", indicatorNames));
+
+                // Log the actual JSON structure being sent
+                try
+                {
+                    var jsonResponse = System.Text.Json.JsonSerializer.Serialize(finalResponse, new System.Text.Json.JsonSerializerOptions
+                    {
+                        WriteIndented = false,
+                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                    });
+                    Logger.LogInformation("📊 JSON Response Length: {Length} characters", jsonResponse.Length);
+                    Logger.LogInformation("📊 JSON Response Preview: {JsonPreview}...", jsonResponse.Length > 500 ? jsonResponse.Substring(0, 500) : jsonResponse);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning("Failed to serialize response for logging: {Error}", ex.Message);
+                }
+
+                return Ok(finalResponse);
             }
 
             return BadRequest(CreateErrorResponse(result.Error?.Message ?? "Failed to retrieve indicators", "GET_INDICATORS_ERROR"));
@@ -114,18 +142,37 @@ public class IndicatorController : BaseApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IndicatorResponse>> GetIndicator(
         long id,
-        [FromQuery] GetIndicatorRequest? request = null,
+        [FromQuery] bool includeDetails = true,
+        [FromQuery] bool includeHistory = false,
+        [FromQuery] bool includeScheduler = true,
+        [FromQuery] bool includeCollector = true,
         CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            request ??= new GetIndicatorRequest { IndicatorId = id };
-            request.IndicatorId = id; // Ensure route parameter takes precedence
+            // Create request object manually to avoid model binding issues
+            var request = new GetIndicatorRequest
+            {
+                IndicatorId = id,
+                IncludeDetails = includeDetails,
+                IncludeHistory = includeHistory,
+                IncludeScheduler = includeScheduler,
+                IncludeCollector = includeCollector
+            };
 
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
+            // Validate the manually created request
+            var validationContext = new System.ComponentModel.DataAnnotations.ValidationContext(request);
+            var validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+            if (!System.ComponentModel.DataAnnotations.Validator.TryValidateObject(request, validationContext, validationResults, true))
+            {
+                var errors = validationResults.ToDictionary(
+                    vr => vr.MemberNames.FirstOrDefault() ?? "Unknown",
+                    vr => new[] { vr.ErrorMessage ?? "Validation error" }
+                );
+                return BadRequest(CreateValidationErrorResponse(errors));
+            }
 
             // Additional validation for ID
             var paramValidation = ValidateParameter(id, nameof(id),
@@ -141,21 +188,13 @@ public class IndicatorController : BaseApiController
 
             if (result.IsSuccess)
             {
-                var response = _mapper.Map<IndicatorResponse>(result.Value);
-
-                // Add query metrics if details requested
-                if (request.IncludeDetails)
-                {
-                    response.Details ??= new Dictionary<string, object>();
-                    response.Details["QueryDurationMs"] = stopwatch.ElapsedMilliseconds;
-                    response.Details["RequestedDetails"] = request.IncludeDetails;
-                    response.Details["RequestedHistory"] = request.IncludeHistory;
-                }
+                // Map to frontend-compatible structure
+                var response = _mapper.Map<object>(result.Value);
 
                 Logger.LogInformation("Retrieved indicator {IndicatorId} in {Duration}ms",
                     id, stopwatch.ElapsedMilliseconds);
 
-                return Ok(CreateSuccessResponse(response, $"Retrieved indicator {response.IndicatorName}"));
+                return Ok(CreateSuccessResponse(response, $"Retrieved indicator {result.Value.IndicatorName}"));
             }
 
             Logger.LogWarning("Indicator {IndicatorId} not found", id);

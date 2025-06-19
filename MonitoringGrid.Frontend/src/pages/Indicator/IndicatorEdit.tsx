@@ -66,11 +66,20 @@ const IndicatorEdit: React.FC = () => {
   const navigate = useNavigate();
   const indicatorId = parseInt(id || '0');
 
+  // Redirect if invalid ID
+  React.useEffect(() => {
+    if (!id || indicatorId <= 0) {
+      console.error('Invalid indicator ID:', id);
+      navigate('/indicators');
+      return;
+    }
+  }, [id, indicatorId, navigate]);
+
   const {
     data: indicator,
     isLoading,
     error,
-  } = useIndicator(indicatorId, !!id);
+  } = useIndicator(indicatorId, !!id && indicatorId > 0);
 
   const { data: collectors = [] } = useActiveCollectors();
   const { data: schedulers = [] } = useSchedulers();
@@ -97,9 +106,9 @@ const IndicatorEdit: React.FC = () => {
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorID: 0,
+      collectorID: undefined, // Don't default to 0
       collectorItemName: '',
-      schedulerID: 0,
+      schedulerID: undefined, // Don't default to 0
       lastMinutes: 60,
       thresholdType: 'count',
       thresholdField: '',

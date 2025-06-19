@@ -44,12 +44,12 @@ namespace MonitoringGrid.Core.Entities
         public bool IsEnabled { get; set; } = true;
 
         // Metadata
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
 
         [StringLength(100)]
         public string CreatedBy { get; set; } = "system";
 
-        public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? ModifiedDate { get; set; } = DateTime.UtcNow;
 
         [StringLength(100)]
         public string ModifiedBy { get; set; } = "system";

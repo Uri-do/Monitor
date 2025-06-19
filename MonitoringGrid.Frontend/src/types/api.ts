@@ -9,7 +9,7 @@ export interface IndicatorDto {
   indicatorCode: string;
   indicatorDesc?: string;
   collectorID?: number;
-  collectorItemName: string;
+  collectorItemName?: string;
   schedulerID?: number;
   isActive: boolean;
   lastMinutes: number;
@@ -17,11 +17,13 @@ export interface IndicatorDto {
   thresholdField?: string;
   thresholdComparison?: string;
   thresholdValue?: number;
-  priority: string;
+  priority?: string;
   ownerContactId: number;
+  ownerName?: string; // API returns this
   averageLastDays?: number;
   createdDate: string;
-  updatedDate: string;
+  updatedDate?: string;
+  modifiedDate?: string; // API returns this instead of updatedDate
   lastRun?: string;
   lastRunResult?: string;
   isCurrentlyRunning: boolean;
@@ -29,7 +31,7 @@ export interface IndicatorDto {
   executionContext?: string;
   // Navigation properties
   ownerContact?: ContactDto;
-  contacts: ContactDto[];
+  contacts?: ContactDto[];
   scheduler?: SchedulerDto;
 }
 

@@ -41,9 +41,9 @@ const indicatorValidationSchema = yup.object({
     .required('Indicator code is required')
     .max(50, 'Code must be less than 50 characters'),
   indicatorDesc: yup.string().max(500, 'Description must be less than 500 characters'),
-  collectorID: yup.number().required('Collector is required').min(1, 'Please select a collector'),
+  collectorID: yup.number().required('Collector is required').min(1, 'Please select a valid collector'),
   collectorItemName: yup.string().required('Collector item is required'),
-  schedulerID: yup.number().required('Scheduler is required').min(1, 'Please select a scheduler'),
+  schedulerID: yup.number().optional().min(1, 'Please select a valid scheduler'),
   lastMinutes: yup.number().min(1, 'Must be at least 1 minute').max(10080, 'Cannot exceed 7 days'),
   thresholdType: yup.string().required('Threshold type is required'),
   thresholdField: yup.string().required('Threshold field is required'),
@@ -78,9 +78,9 @@ const IndicatorCreate: React.FC = () => {
       indicatorName: '',
       indicatorCode: '',
       indicatorDesc: '',
-      collectorID: 0,
+      collectorID: undefined, // Don't default to 0 - let user select
       collectorItemName: '',
-      schedulerID: 0,
+      schedulerID: undefined, // Don't default to 0 - let user select
       lastMinutes: 60,
       thresholdType: 'count',
       thresholdField: '',
@@ -95,13 +95,19 @@ const IndicatorCreate: React.FC = () => {
   const { data: collectorItems = [] } = useCollectorItemNames(watch('collectorID') || 0);
 
   const onSubmit = (data: IndicatorFormData) => {
+    // Validate required IDs before submission
+    if (!data.collectorID || data.collectorID <= 0) {
+      console.error('Invalid collectorID:', data.collectorID);
+      return;
+    }
+
     const createData: CreateIndicatorRequest = {
       indicatorName: data.indicatorName,
       indicatorCode: data.indicatorCode,
       indicatorDesc: data.indicatorDesc || undefined,
       collectorID: data.collectorID,
       collectorItemName: data.collectorItemName,
-      schedulerID: data.schedulerID || undefined,
+      schedulerID: data.schedulerID && data.schedulerID > 0 ? data.schedulerID : undefined,
       isActive: data.isActive ?? true,
       lastMinutes: data.lastMinutes || 60,
       thresholdType: data.thresholdType,

@@ -425,10 +425,27 @@ export const schedulerApi = {
   // Get all schedulers
   getSchedulers: async (includeDisabled: boolean = false): Promise<SchedulerDto[]> => {
     try {
-      const response: AxiosResponse<SchedulerDto[]> = await api.get('/schedulers', {
+      const response: AxiosResponse<any> = await api.get('/schedulers', {
         params: { includeDisabled }
       });
-      return response.data || [];
+
+      // Handle wrapped API response
+      if (response.data?.data?.schedulers) {
+        return response.data.data.schedulers || [];
+      }
+
+      // Fallback for direct array response
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      // Fallback for data property containing array
+      if (Array.isArray(response.data?.data)) {
+        return response.data.data;
+      }
+
+      console.warn('Unexpected scheduler API response format:', response.data);
+      return [];
     } catch (error: any) {
       console.error('Failed to fetch schedulers:', error);
       // Return empty array for any error (including 401 Unauthorized)

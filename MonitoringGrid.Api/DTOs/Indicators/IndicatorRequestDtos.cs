@@ -98,9 +98,8 @@ public class GetIndicatorsRequest
 public class GetIndicatorRequest
 {
     /// <summary>
-    /// Indicator ID
+    /// Indicator ID (populated from route parameter)
     /// </summary>
-    [Required]
     [PositiveInteger]
     public long IndicatorId { get; set; }
 

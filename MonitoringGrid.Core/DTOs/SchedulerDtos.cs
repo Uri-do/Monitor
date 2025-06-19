@@ -18,9 +18,9 @@ namespace MonitoringGrid.Core.DTOs
         public DateTime? EndDate { get; set; }
         public string Timezone { get; set; } = "UTC";
         public bool IsEnabled { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
-        public DateTime ModifiedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
         public string ModifiedBy { get; set; } = string.Empty;
         
         // Computed properties
@@ -150,8 +150,8 @@ namespace MonitoringGrid.Core.DTOs
         public decimal ThresholdValue { get; set; }
         public int OwnerContactId { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
         public DateTime? LastRun { get; set; }
         
         // Scheduler information

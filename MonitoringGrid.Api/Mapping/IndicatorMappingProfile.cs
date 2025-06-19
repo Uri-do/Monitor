@@ -16,6 +16,18 @@ public class IndicatorMappingProfile : Profile
 {
     public IndicatorMappingProfile()
     {
+        // Scheduler entity to DTO mapping
+        CreateMap<Scheduler, IndicatorSchedulerInfo>()
+            .ForMember(dest => dest.SchedulerId, opt => opt.MapFrom(src => src.SchedulerID))
+            .ForMember(dest => dest.SchedulerName, opt => opt.MapFrom(src => src.SchedulerName))
+            .ForMember(dest => dest.ScheduleType, opt => opt.MapFrom(src => src.ScheduleType))
+            .ForMember(dest => dest.IntervalMinutes, opt => opt.MapFrom(src => src.IntervalMinutes))
+            .ForMember(dest => dest.CronExpression, opt => opt.MapFrom(src => src.CronExpression))
+            .ForMember(dest => dest.IsEnabled, opt => opt.MapFrom(src => src.IsEnabled))
+            .ForMember(dest => dest.NextExecution, opt => opt.MapFrom(src => src.GetNextExecutionTime(null)));
+
+
+
         // Indicator entity to response DTO mappings
         CreateMap<Indicator, IndicatorResponse>()
             .ForMember(dest => dest.IndicatorID, opt => opt.MapFrom(src => src.IndicatorID))
@@ -33,7 +45,77 @@ public class IndicatorMappingProfile : Profile
             .ForMember(dest => dest.AlertOperator, opt => opt.MapFrom(src => src.ThresholdComparison))
             .ForMember(dest => dest.LastRun, opt => opt.MapFrom(src => src.LastRun))
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
-            .ForMember(dest => dest.ModifiedDate, opt => opt.MapFrom(src => src.UpdatedDate));
+            .ForMember(dest => dest.ModifiedDate, opt => opt.MapFrom(src => src.UpdatedDate))
+            .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
+
+        // Add mapping to frontend-compatible DTO structure
+        CreateMap<Indicator, object>()
+            .ConvertUsing(src => new
+            {
+                indicatorID = src.IndicatorID,
+                indicatorName = src.IndicatorName,
+                indicatorCode = src.IndicatorCode,
+                indicatorDesc = src.IndicatorDesc,
+                collectorID = src.CollectorID,
+                collectorItemName = src.CollectorItemName,
+                schedulerID = src.SchedulerID,
+                isActive = src.IsActive,
+                lastMinutes = src.LastMinutes,
+                thresholdType = src.ThresholdType,
+                thresholdField = src.ThresholdField,
+                thresholdComparison = src.ThresholdComparison,
+                thresholdValue = src.ThresholdValue,
+                priority = src.Priority,
+                ownerContactId = src.OwnerContactId,
+                ownerName = src.OwnerContact != null ? src.OwnerContact.Name : null,
+                averageLastDays = src.AverageLastDays,
+                createdDate = src.CreatedDate,
+                updatedDate = src.UpdatedDate,
+                modifiedDate = src.UpdatedDate,
+                lastRun = src.LastRun,
+                lastRunResult = src.LastRunResult,
+                isCurrentlyRunning = src.IsCurrentlyRunning,
+                executionStartTime = src.ExecutionStartTime,
+                executionContext = src.ExecutionContext,
+                ownerContact = src.OwnerContact != null ? new
+                {
+                    contactID = src.OwnerContact.ContactId,
+                    name = src.OwnerContact.Name,
+                    email = src.OwnerContact.Email,
+                    phone = src.OwnerContact.Phone,
+                    isActive = src.OwnerContact.IsActive,
+                    createdDate = src.OwnerContact.CreatedDate,
+                    modifiedDate = src.OwnerContact.ModifiedDate
+                } : null,
+                contacts = src.IndicatorContacts != null ? src.IndicatorContacts
+                    .Where(ic => ic.IsActive && ic.Contact != null)
+                    .Select(ic => new
+                    {
+                        contactID = ic.Contact.ContactId,
+                        name = ic.Contact.Name,
+                        email = ic.Contact.Email,
+                        phone = ic.Contact.Phone,
+                        isActive = ic.Contact.IsActive,
+                        createdDate = ic.Contact.CreatedDate,
+                        modifiedDate = ic.Contact.ModifiedDate
+                    }).ToArray() : new object[0],
+                scheduler = src.Scheduler != null ? new
+                {
+                    schedulerID = src.Scheduler.SchedulerID,
+                    schedulerName = src.Scheduler.SchedulerName,
+                    schedulerDescription = src.Scheduler.SchedulerDescription,
+                    scheduleType = src.Scheduler.ScheduleType,
+                    intervalMinutes = src.Scheduler.IntervalMinutes,
+                    cronExpression = src.Scheduler.CronExpression,
+                    isEnabled = src.Scheduler.IsEnabled,
+                    timezone = src.Scheduler.Timezone,
+                    executionDateTime = src.Scheduler.ExecutionDateTime,
+                    startDate = src.Scheduler.StartDate,
+                    endDate = src.Scheduler.EndDate,
+                    createdDate = src.Scheduler.CreatedDate,
+                    modifiedDate = src.Scheduler.ModifiedDate
+                } : null
+            });
 
         // List to paginated response mapping
         CreateMap<List<IndicatorResponse>, PaginatedIndicatorsResponse>()

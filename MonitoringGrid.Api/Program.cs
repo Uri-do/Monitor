@@ -100,7 +100,7 @@ builder.Services.AddSingleton(new MonitoringGrid.Api.Middleware.ResponseCachingO
     Enabled = true,
     DefaultDuration = TimeSpan.FromMinutes(5),
     MaxCacheSize = 100,
-    EnableCompression = true
+    EnableCompression = false // Temporarily disabled to fix encoding issues
 });
 
 builder.Services.AddCors(options =>

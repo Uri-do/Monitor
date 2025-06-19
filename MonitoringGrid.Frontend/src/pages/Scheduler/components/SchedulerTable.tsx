@@ -43,10 +43,13 @@ export const SchedulerTable: React.FC<SchedulerTableProps> = ({
   onToggleStatus,
 }) => {
   // Get status color and text
-  const getStatusInfo = (isActive: boolean) => ({
-    color: isActive ? 'success' : 'default',
-    text: isActive ? 'Active' : 'Inactive',
-  });
+  const getStatusInfo = (scheduler: SchedulerDto) => {
+    const isActive = scheduler.isEnabled || scheduler.isCurrentlyActive;
+    return {
+      color: isActive ? 'success' : 'default',
+      text: isActive ? 'Active' : 'Inactive',
+    };
+  };
 
   // Format cron expression for display
   const formatCronExpression = (cron: string) => {
@@ -88,12 +91,12 @@ export const SchedulerTable: React.FC<SchedulerTableProps> = ({
       ),
     },
     {
-      id: 'isActive',
+      id: 'isEnabled',
       label: 'Status',
       sortable: true,
       width: 100,
-      render: (value) => {
-        const { color, text } = getStatusInfo(value);
+      render: (value, row) => {
+        const { color, text } = getStatusInfo(row);
         return <StatusChip status={text.toLowerCase()} />;
       },
     },
@@ -155,24 +158,27 @@ export const SchedulerTable: React.FC<SchedulerTableProps> = ({
       label: 'Next Run',
       sortable: true,
       width: 160,
-      render: (value, row) => (
-        <Box>
-          {value && row.isActive ? (
-            <>
-              <Typography variant="body2">
-                {format(new Date(value), 'MMM dd, yyyy')}
-              </Typography>
+      render: (value, row) => {
+        const isActive = row.isEnabled || row.isCurrentlyActive;
+        return (
+          <Box>
+            {value && isActive ? (
+              <>
+                <Typography variant="body2">
+                  {format(new Date(value), 'MMM dd, yyyy')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {format(new Date(value), 'HH:mm:ss')}
+                </Typography>
+              </>
+            ) : (
               <Typography variant="caption" color="text.secondary">
-                {format(new Date(value), 'HH:mm:ss')}
+                {isActive ? 'Calculating...' : 'Inactive'}
               </Typography>
-            </>
-          ) : (
-            <Typography variant="caption" color="text.secondary">
-              {row.isActive ? 'Calculating...' : 'Inactive'}
-            </Typography>
-          )}
-        </Box>
-      ),
+            )}
+          </Box>
+        );
+      },
     },
     {
       id: 'actions',
@@ -202,13 +208,13 @@ export const SchedulerTable: React.FC<SchedulerTableProps> = ({
             </IconButton>
           </Tooltip>
           
-          <Tooltip title={row.isActive ? 'Stop scheduler' : 'Start scheduler'}>
+          <Tooltip title={(row.isEnabled || row.isCurrentlyActive) ? 'Stop scheduler' : 'Start scheduler'}>
             <IconButton
               size="small"
               onClick={() => onToggleStatus(row)}
-              sx={{ color: row.isActive ? 'warning.main' : 'success.main' }}
+              sx={{ color: (row.isEnabled || row.isCurrentlyActive) ? 'warning.main' : 'success.main' }}
             >
-              {row.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
+              {(row.isEnabled || row.isCurrentlyActive) ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
             </IconButton>
           </Tooltip>
           

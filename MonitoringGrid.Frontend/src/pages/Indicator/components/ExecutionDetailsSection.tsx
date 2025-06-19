@@ -9,9 +9,9 @@ import {
 import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 import { Card, InfoItem } from '@/components';
 import { IndicatorDto } from '@/types/api';
+import { safeFormatDate } from '@/utils/dateUtils';
 
 interface ExecutionDetailsSectionProps {
   indicator: IndicatorDto;
@@ -40,11 +40,11 @@ export const ExecutionDetailsSection: React.FC<ExecutionDetailsSectionProps> = (
             <Divider />
             <InfoItem
               label="Created"
-              value={format(new Date(indicator.createdDate), 'MMM dd, yyyy HH:mm')}
+              value={safeFormatDate(indicator.createdDate)}
             />
             <InfoItem
               label="Last Updated"
-              value={format(new Date(indicator.updatedDate), 'MMM dd, yyyy HH:mm')}
+              value={safeFormatDate(indicator.updatedDate || indicator.modifiedDate)}
             />
             {indicator.lastRunResult && (
               <InfoItem label="Last Run Result" value={indicator.lastRunResult} />

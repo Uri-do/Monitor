@@ -62,7 +62,7 @@ public class SchedulerResponse
     /// <summary>
     /// Created date
     /// </summary>
-    public DateTime CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 
     /// <summary>
     /// Created by user
@@ -511,7 +511,7 @@ public class SchedulerPresetDto
     /// <summary>
     /// When this preset was created
     /// </summary>
-    public DateTime CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 
     /// <summary>
     /// Example of next execution time

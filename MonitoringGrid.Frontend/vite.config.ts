@@ -26,60 +26,46 @@ export default defineConfig(({ command, mode }) => {
         },
       }),
 
-      // PWA Plugin for caching and offline support
-      VitePWA({
-        registerType: 'autoUpdate',
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/api\./,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'api-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24, // 24 hours
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-                },
-              },
-            },
-          ],
-        },
-        manifest: {
-          name: 'MonitoringGrid',
-          short_name: 'MonitoringGrid',
-          description: 'Advanced Monitoring and Analytics Dashboard',
-          theme_color: '#1976d2',
-          background_color: '#ffffff',
-          display: 'standalone',
-          icons: [
-            {
-              src: 'icon-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-            },
-            {
-              src: 'icon-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-            },
-          ],
-        },
-      }),
+      // PWA Plugin temporarily disabled to fix service worker conflicts
+      // VitePWA({
+      //   registerType: 'autoUpdate',
+      //   workbox: {
+      //     globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      //     runtimeCaching: [
+      //       {
+      //         urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+      //         handler: 'CacheFirst',
+      //         options: {
+      //           cacheName: 'images-cache',
+      //           expiration: {
+      //             maxEntries: 100,
+      //             maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+      //           },
+      //         },
+      //       },
+      //     ],
+      //   },
+      //   manifest: {
+      //     name: 'MonitoringGrid',
+      //     short_name: 'MonitoringGrid',
+      //     description: 'Advanced Monitoring and Analytics Dashboard',
+      //     theme_color: '#1976d2',
+      //     background_color: '#ffffff',
+      //     display: 'standalone',
+      //     icons: [
+      //       {
+      //         src: 'icon-192x192.png',
+      //         sizes: '192x192',
+      //         type: 'image/png',
+      //       },
+      //       {
+      //         src: 'icon-512x512.png',
+      //         sizes: '512x512',
+      //         type: 'image/png',
+      //       },
+      //     ],
+      //   },
+      // }),
 
       // Compression plugin for gzip/brotli
       ...(isProduction ? [
@@ -138,6 +124,22 @@ export default defineConfig(({ command, mode }) => {
         target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates in development
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Remove compression headers to prevent encoding issues
+            proxyReq.removeHeader('accept-encoding');
+            console.log('🔄 Proxying request:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            // Remove compression headers from response
+            delete proxyRes.headers['content-encoding'];
+            delete proxyRes.headers['transfer-encoding'];
+            console.log('✅ Proxy response:', proxyRes.statusCode, req.url);
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ Proxy error:', err.message, req.url);
+          });
+        },
       },
       '/monitoring-hub': {
         target: 'http://localhost:57653',

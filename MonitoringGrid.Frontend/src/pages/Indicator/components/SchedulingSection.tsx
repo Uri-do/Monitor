@@ -36,7 +36,7 @@ interface IndicatorFormData {
 interface SchedulingSectionProps {
   control: Control<IndicatorFormData>;
   errors: FieldErrors<IndicatorFormData>;
-  schedulers: SchedulerDto[];
+  schedulers?: SchedulerDto[];
 }
 
 export const SchedulingSection: React.FC<SchedulingSectionProps> = ({
@@ -44,6 +44,14 @@ export const SchedulingSection: React.FC<SchedulingSectionProps> = ({
   errors,
   schedulers,
 }) => {
+  // Ensure schedulers is always an array
+  const safeSchedulers = Array.isArray(schedulers) ? schedulers : [];
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('SchedulingSection schedulers:', { schedulers, safeSchedulers, type: typeof schedulers });
+  }
+
   return (
     <Grid item xs={12}>
       <FormSection
@@ -62,7 +70,7 @@ export const SchedulingSection: React.FC<SchedulingSectionProps> = ({
                   <MenuItem value={0}>
                     <em>Select a scheduler</em>
                   </MenuItem>
-                  {schedulers.map((scheduler) => (
+                  {safeSchedulers.map((scheduler) => (
                     <MenuItem key={scheduler.schedulerID} value={scheduler.schedulerID}>
                       {scheduler.schedulerName}
                     </MenuItem>

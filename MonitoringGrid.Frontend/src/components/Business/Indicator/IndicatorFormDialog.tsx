@@ -110,9 +110,17 @@ export const IndicatorFormDialog: React.FC<IndicatorFormDialogProps> = ({
     };
 
     if (isEdit && initialData) {
+      const indicatorId = (initialData as any).indicatorID;
+
+      // Validate that we have a valid indicator ID for updates
+      if (!indicatorId || indicatorId <= 0) {
+        console.error('Invalid indicator ID for update:', indicatorId);
+        return;
+      }
+
       const updateData: UpdateIndicatorRequest = {
         ...apiData,
-        indicatorID: (initialData as any).indicatorID || 0, // TODO: Pass indicatorID properly
+        indicatorID: indicatorId,
       };
       onSubmit(updateData);
     } else {

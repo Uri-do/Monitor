@@ -56,23 +56,29 @@ export const useIndicators = (filters?: Record<string, any>) => {
       errorContext: 'Loading indicators',
       graceful404: true,
       fallbackValue: [],
-      // Cache indicators for 2 minutes since they don't change frequently
-      staleTime: 2 * 60 * 1000,
-      // Keep in cache for 5 minutes
-      cacheTime: 5 * 60 * 1000,
+      // Disable caching temporarily to force fresh data
+      staleTime: 0,
+      cacheTime: 0,
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
     }
   );
 };
 
 // Hook to fetch a specific indicator
 export const useIndicator = (id: number, enabled: boolean = true) => {
+  // Validate ID before making the query
+  const isValidId = id && id > 0;
+  const shouldFetch = enabled && isValidId;
+
   return useConditionalQuery(
     indicatorQueryKeys.detail(id),
     () => indicatorService.getById(id),
-    [id, enabled],
+    [id, shouldFetch],
     {
       errorContext: `Loading indicator ${id}`,
       preset: 'oneTime',
+      enabled: shouldFetch,
     }
   );
 };
@@ -139,6 +145,8 @@ export const useIndicatorSearch = (
 
 // Hook to fetch indicators by collector
 export const useIndicatorsByCollector = (collectorId: number) => {
+  const isValidId = collectorId && collectorId > 0;
+
   return useConditionalQuery(
     indicatorQueryKeys.byCollector(collectorId),
     () => indicatorService.getByCollector(collectorId),
@@ -148,12 +156,15 @@ export const useIndicatorsByCollector = (collectorId: number) => {
       preset: 'stable',
       graceful404: true,
       fallbackValue: [],
+      enabled: isValidId,
     }
   );
 };
 
 // Hook to fetch indicators by owner
 export const useIndicatorsByOwner = (ownerId: number) => {
+  const isValidId = ownerId && ownerId > 0;
+
   return useConditionalQuery(
     indicatorQueryKeys.byOwner(ownerId),
     () => indicatorService.getByOwner(ownerId),
@@ -163,6 +174,7 @@ export const useIndicatorsByOwner = (ownerId: number) => {
       preset: 'stable',
       graceful404: true,
       fallbackValue: [],
+      enabled: isValidId,
     }
   );
 };
@@ -359,6 +371,8 @@ export const useIndicatorDashboard = () => {
 
 // Hook for collector item names
 export const useCollectorItemNames = (collectorId: number) => {
+  const isValidId = collectorId && collectorId > 0;
+
   return useConditionalQuery(
     ['collectors', collectorId, 'items'],
     () => indicatorService.getCollectorItemNames(collectorId),
@@ -368,6 +382,7 @@ export const useCollectorItemNames = (collectorId: number) => {
       preset: 'stable',
       graceful404: true,
       fallbackValue: [],
+      enabled: isValidId,
     }
   );
 };

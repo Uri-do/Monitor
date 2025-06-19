@@ -41,7 +41,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({ indicator }) => 
                   Item: {indicator.collectorItemName || 'Not specified'}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {indicator.lastMinutes} minute intervals • Collector ID:{' '}
+                  {indicator.lastMinutes || 0} minute intervals • Collector ID:{' '}
                   {indicator.collectorID || 'N/A'}
                 </Typography>
               </Box>

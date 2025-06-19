@@ -72,12 +72,178 @@ class IndicatorService extends BaseApiService {
     super('indicator');
   }
 
-  // Get all indicators
+  // Get all indicators with proper pagination
   async getAll(): Promise<Indicator[]> {
     try {
-      return await this.get<Indicator[]>('');
+      const allIndicators: Indicator[] = [];
+      let page = 1;
+      const pageSize = 100; // Use maximum allowed page size
+      let hasMoreData = true;
+
+      while (hasMoreData) {
+        const cacheBuster = `_t=${Date.now()}`;
+        const endpoint = `?${cacheBuster}&page=${page}&pageSize=${pageSize}`;
+
+        console.log(`🔍 Fetching page ${page} with pageSize ${pageSize}`);
+
+        const response = await this.get<any>(endpoint);
+        console.log(`🔍 Page ${page} response received:`, response);
+
+        let pageIndicators: Indicator[] = [];
+
+        // Handle paginated response structure
+        if (response && typeof response === 'object' && 'indicators' in response) {
+          pageIndicators = response.indicators || [];
+          console.log(`✅ Found ${pageIndicators.length} indicators in paginated response (page ${page})`);
+        }
+        // Handle wrapped API response structure
+        else if (response && typeof response === 'object' && 'data' in response && response.data && 'indicators' in response.data) {
+          pageIndicators = response.data.indicators || [];
+          console.log(`✅ Found ${pageIndicators.length} indicators in wrapped response (page ${page})`);
+        }
+        // Handle direct array response
+        else if (Array.isArray(response)) {
+          pageIndicators = response;
+          console.log(`✅ Found ${pageIndicators.length} indicators in direct array response (page ${page})`);
+        }
+        // Handle paginated API response format
+        else if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+          pageIndicators = response.data;
+          console.log(`✅ Found ${pageIndicators.length} indicators in paginated API response (page ${page})`);
+        }
+
+        // Add indicators from this page to the total collection
+        allIndicators.push(...pageIndicators);
+
+        // Check if we have more data to fetch
+        // If we got fewer indicators than the page size, we've reached the end
+        hasMoreData = pageIndicators.length === pageSize;
+
+        if (hasMoreData) {
+          page++;
+        }
+      }
+
+      console.log(`✅ Total indicators fetched: ${allIndicators.length} across ${page} page(s)`);
+      return allIndicators;
     } catch (error) {
+      console.error('❌ IndicatorService.getAll() error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
       ErrorHandlers.query(error, 'Failed to fetch indicators');
+      throw error;
+    }
+  }
+
+  // Get paginated indicators
+  async getPaginated(options: {
+    page?: number;
+    pageSize?: number;
+    searchText?: string;
+    isActive?: boolean;
+    ownerContactId?: number;
+    collectorId?: number;
+    schedulerId?: number;
+    lastRunFrom?: string;
+    lastRunTo?: string;
+    sortBy?: string;
+    sortDirection?: string;
+  } = {}): Promise<{
+    indicators: Indicator[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  }> {
+    try {
+      const {
+        page = 1,
+        pageSize = 20,
+        searchText,
+        isActive,
+        ownerContactId,
+        collectorId,
+        schedulerId,
+        lastRunFrom,
+        lastRunTo,
+        sortBy = 'indicatorName',
+        sortDirection = 'asc'
+      } = options;
+
+      // Validate pageSize is within API limits
+      const validPageSize = Math.min(Math.max(pageSize, 1), 100);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: validPageSize.toString(),
+        sortBy,
+        sortDirection,
+        _t: Date.now().toString() // Cache busting
+      });
+
+      // Add optional filters
+      if (searchText) params.append('searchText', searchText);
+      if (isActive !== undefined) params.append('isActive', isActive.toString());
+      if (ownerContactId) params.append('ownerContactId', ownerContactId.toString());
+      if (collectorId) params.append('collectorId', collectorId.toString());
+      if (schedulerId) params.append('schedulerId', schedulerId.toString());
+      if (lastRunFrom) params.append('lastRunFrom', lastRunFrom);
+      if (lastRunTo) params.append('lastRunTo', lastRunTo);
+
+      const endpoint = `?${params.toString()}`;
+      const response = await this.get<any>(endpoint);
+
+      // Handle different response formats
+      let indicators: Indicator[] = [];
+      let totalCount = 0;
+      let actualPage = page;
+      let actualPageSize = validPageSize;
+
+      if (response && typeof response === 'object') {
+        // Handle paginated response structure
+        if ('indicators' in response) {
+          indicators = response.indicators || [];
+          totalCount = response.totalCount || indicators.length;
+          actualPage = response.page || page;
+          actualPageSize = response.pageSize || validPageSize;
+        }
+        // Handle wrapped API response structure
+        else if ('data' in response && response.data) {
+          if ('indicators' in response.data) {
+            indicators = response.data.indicators || [];
+            totalCount = response.data.totalCount || indicators.length;
+            actualPage = response.data.page || page;
+            actualPageSize = response.data.pageSize || validPageSize;
+          } else if (Array.isArray(response.data)) {
+            indicators = response.data;
+            totalCount = indicators.length;
+          }
+        }
+        // Handle direct array response
+        else if (Array.isArray(response)) {
+          indicators = response;
+          totalCount = indicators.length;
+        }
+      }
+
+      const totalPages = Math.ceil(totalCount / actualPageSize);
+
+      return {
+        indicators,
+        totalCount,
+        page: actualPage,
+        pageSize: actualPageSize,
+        totalPages,
+        hasNextPage: actualPage < totalPages,
+        hasPreviousPage: actualPage > 1
+      };
+    } catch (error) {
+      ErrorHandlers.query(error, 'Failed to fetch paginated indicators');
       throw error;
     }
   }

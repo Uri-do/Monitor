@@ -73,8 +73,10 @@ public static class ApplicationBuilderExtensions
     public static IApplicationBuilder UsePerformanceMiddleware(this IApplicationBuilder app)
     {
         app.UseMiddleware<ResponseCachingMiddleware>();
-        app.UseResponseCompression();
-        
+        // Response compression temporarily disabled to fix encoding issues
+        // TODO: Re-enable with proper configuration to avoid conflicts with proxy
+        // app.UseResponseCompression();
+
         return app;
     }
 
@@ -124,8 +126,15 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     public static IApplicationBuilder UseCorsConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // Use the default policy for all environments
-        app.UseCors();
+        // Use development policy in development, default policy in production
+        if (env.IsDevelopment())
+        {
+            app.UseCors("DevelopmentPolicy");
+        }
+        else
+        {
+            app.UseCors();
+        }
 
         return app;
     }

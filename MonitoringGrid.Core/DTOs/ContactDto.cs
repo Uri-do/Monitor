@@ -10,8 +10,8 @@ public class ContactDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public DateTime ModifiedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
     public int IndicatorCount { get; set; }
     public List<IndicatorSummaryDto> AssignedIndicators { get; set; } = new();
 }

@@ -10,9 +10,9 @@ import {
   Schedule as ScheduleIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
 import { Card, StatusChip } from '@/components/UI';
 import { IndicatorDto } from '@/types/api';
+import { safeFormatDate } from '@/utils/dateUtils';
 
 interface StatusOverviewCardsProps {
   indicator: IndicatorDto;
@@ -72,7 +72,7 @@ export const StatusOverviewCards: React.FC<StatusOverviewCardsProps> = ({ indica
               Priority
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {getPriorityLabel(indicator.priority)}
+              {indicator.priority ? getPriorityLabel(indicator.priority) : 'Not Set'}
             </Typography>
           </CardContent>
         </Card>
@@ -87,9 +87,7 @@ export const StatusOverviewCards: React.FC<StatusOverviewCardsProps> = ({ indica
               Last Executed
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {indicator.lastRun
-                ? format(new Date(indicator.lastRun), 'MMM dd, yyyy HH:mm')
-                : 'Never'}
+              {safeFormatDate(indicator.lastRun, 'MMM dd, yyyy HH:mm', 'Never')}
             </Typography>
           </CardContent>
         </Card>
@@ -104,7 +102,7 @@ export const StatusOverviewCards: React.FC<StatusOverviewCardsProps> = ({ indica
               Owner
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {indicator.ownerContact?.name || 'Unknown'}
+              {indicator.ownerContact?.name || indicator.ownerName || 'Unknown'}
             </Typography>
           </CardContent>
         </Card>

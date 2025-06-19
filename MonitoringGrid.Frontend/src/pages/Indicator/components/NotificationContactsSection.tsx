@@ -19,6 +19,11 @@ interface NotificationContactsSectionProps {
 export const NotificationContactsSection: React.FC<NotificationContactsSectionProps> = ({
   indicator,
 }) => {
+  // Ensure we have a valid indicator object
+  if (!indicator) {
+    return null;
+  }
+
   return (
     <Grid item xs={12}>
       <Card>
@@ -33,13 +38,23 @@ export const NotificationContactsSection: React.FC<NotificationContactsSectionPr
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
-              label={`${indicator.ownerContact?.name || 'Unknown'} (Owner)`}
+              label={`${indicator.ownerContact?.name || indicator.ownerName || 'Unknown'} (Owner)`}
               color="primary"
               variant="outlined"
             />
-            {indicator.contacts.map(contact => (
-              <Chip key={contact.contactID} label={contact.name} variant="outlined" />
-            ))}
+            {indicator.contacts && Array.isArray(indicator.contacts) && indicator.contacts.length > 0 ? (
+              indicator.contacts.map(contact => (
+                <Chip
+                  key={contact.contactID || contact.contactId || Math.random()}
+                  label={contact.name || 'Unknown Contact'}
+                  variant="outlined"
+                />
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                No additional notification contacts configured
+              </Typography>
+            )}
           </Stack>
         </CardContent>
       </Card>
