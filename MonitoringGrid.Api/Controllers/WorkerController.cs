@@ -344,11 +344,10 @@ public class WorkerController : BaseApiController
             Logger.LogInformation("Started Worker process with PID: {ProcessId}", processId);
         }
 
-        // Give the process a moment to initialize (outside the lock)
-        var initTimeout = request.TimeoutMs ?? WorkerConstants.Timeouts.ProcessInitializationMs;
-        await Task.Delay(initTimeout, cancellationToken);
+        // Quick check if process started successfully (minimal delay)
+        await Task.Delay(100, cancellationToken); // Just 100ms to let process initialize
 
-        // Verify the process is still running
+        // Quick verification that process is still running
         if (newWorkerProcess.HasExited)
         {
             Logger.LogWarning("Worker process {ProcessId} exited immediately after start", processId);
@@ -369,15 +368,19 @@ public class WorkerController : BaseApiController
             return StatusCode(500, CreateErrorResponse(response.Message, response.ErrorCode));
         }
 
+        Logger.LogInformation("Worker process {ProcessId} started successfully and is running", processId);
+
         var successResponse = new WorkerOperationResponse
         {
             Success = true,
-            Message = $"Worker started successfully (PID: {processId})",
+            Message = $"Worker started successfully (PID: {processId}). Process is initializing...",
             ProcessId = processId,
             Details = new Dictionary<string, object>
             {
                 ["StartTime"] = newWorkerProcess.StartTime,
-                ["ProcessName"] = newWorkerProcess.ProcessName
+                ["ProcessName"] = newWorkerProcess.ProcessName,
+                ["Status"] = "Starting",
+                ["Note"] = "Worker process started successfully. Full initialization may take a few moments."
             }
         };
 
@@ -756,26 +759,11 @@ public class WorkerController : BaseApiController
                 processes.Add(_workerProcess);
             }
 
-            // Find external worker processes
-            var externalProcesses = Process.GetProcesses()
-                .Where(p =>
-                {
-                    try
-                    {
-                        return (p.ProcessName.Contains(WorkerConstants.Names.ProcessNamePattern, StringComparison.OrdinalIgnoreCase) ||
-                               p.ProcessName.Contains(WorkerConstants.Names.MonitorProcessPattern, StringComparison.OrdinalIgnoreCase) ||
-                               (p.MainModule?.FileName?.Contains(WorkerConstants.Names.WorkerNamespace, StringComparison.OrdinalIgnoreCase) == true)) &&
-                               p.Id != Environment.ProcessId && // Exclude current API process
-                               !processes.Any(tracked => tracked.Id == p.Id); // Exclude already tracked processes
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                })
-                .ToList();
-
-            processes.AddRange(externalProcesses);
+            // Find external worker processes using optimized search
+            var externalProcesses = FindWorkerProcessesByName();
+            processes.AddRange(externalProcesses.Where(p =>
+                p.Id != Environment.ProcessId && // Exclude current API process
+                !processes.Any(tracked => tracked.Id == p.Id))); // Exclude already tracked processes
         }
         catch (Exception ex)
         {
@@ -792,28 +780,75 @@ public class WorkerController : BaseApiController
     {
         try
         {
-            return Process.GetProcesses()
-                .FirstOrDefault(p =>
-                {
-                    try
-                    {
-                        return (p.ProcessName.Contains(WorkerConstants.Names.ProcessNamePattern, StringComparison.OrdinalIgnoreCase) ||
-                               p.ProcessName.Contains(WorkerConstants.Names.MonitorProcessPattern, StringComparison.OrdinalIgnoreCase) ||
-                               (p.MainModule?.FileName?.Contains(WorkerConstants.Names.WorkerNamespace, StringComparison.OrdinalIgnoreCase) == true)) &&
-                               p.Id != Environment.ProcessId && // Exclude current API process
-                               (_workerProcess == null || p.Id != _workerProcess.Id); // Exclude tracked process
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                });
+            var workerProcesses = FindWorkerProcessesByName();
+            return workerProcesses.FirstOrDefault(p =>
+                p.Id != Environment.ProcessId && // Exclude current API process
+                (_workerProcess == null || p.Id != _workerProcess.Id)); // Exclude tracked process
         }
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Error finding external worker process");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Optimized method to find worker processes by name patterns only
+    /// </summary>
+    private List<Process> FindWorkerProcessesByName()
+    {
+        var workerProcesses = new List<Process>();
+
+        try
+        {
+            // Search by specific process names instead of enumerating all processes
+            var processNames = new[]
+            {
+                WorkerConstants.Names.ProcessNamePattern,
+                WorkerConstants.Names.MonitorProcessPattern,
+                "MonitoringGrid.Worker",
+                "dotnet" // For development scenarios
+            };
+
+            foreach (var processName in processNames)
+            {
+                try
+                {
+                    var processes = Process.GetProcessesByName(processName);
+                    workerProcesses.AddRange(processes);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogTrace(ex, "Could not find processes with name: {ProcessName}", processName);
+                }
+            }
+
+            // For dotnet processes, filter by command line if possible
+            if (workerProcesses.Any(p => p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase)))
+            {
+                workerProcesses = workerProcesses.Where(p =>
+                {
+                    if (!p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+                        return true; // Keep non-dotnet processes
+
+                    try
+                    {
+                        var commandLine = GetProcessCommandLine(p.Id);
+                        return commandLine?.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) == true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error finding worker processes by name");
+        }
+
+        return workerProcesses;
     }
 
     #endregion

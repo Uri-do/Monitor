@@ -2,6 +2,7 @@ using AutoMapper;
 using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
+using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.DTOs;
@@ -15,11 +16,36 @@ public class IndicatorMappingProfile : Profile
 {
     public IndicatorMappingProfile()
     {
-        // Indicator mappings - IndicatorDto doesn't exist - commented out
-        // CreateMap<Indicator, IndicatorDto>()
-        //     .ForMember(dest => dest.OwnerContact, opt => opt.MapFrom(src => src.OwnerContact))
-        //     .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.IndicatorContacts.Select(ic => ic.Contact)))
-        //     .ForMember(dest => dest.Scheduler, opt => opt.MapFrom(src => src.Scheduler));
+        // Indicator entity to response DTO mappings
+        CreateMap<Indicator, IndicatorResponse>()
+            .ForMember(dest => dest.IndicatorID, opt => opt.MapFrom(src => src.IndicatorID))
+            .ForMember(dest => dest.IndicatorName, opt => opt.MapFrom(src => src.IndicatorName))
+            .ForMember(dest => dest.IndicatorDescription, opt => opt.MapFrom(src => src.IndicatorDesc))
+            .ForMember(dest => dest.OwnerContactId, opt => opt.MapFrom(src => src.OwnerContactId))
+            .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.OwnerContact != null ? src.OwnerContact.Name : null))
+            .ForMember(dest => dest.CollectorId, opt => opt.MapFrom(src => src.CollectorID))
+            .ForMember(dest => dest.CollectorName, opt => opt.MapFrom(src => src.CollectorItemName))
+            .ForMember(dest => dest.SchedulerId, opt => opt.MapFrom(src => src.SchedulerID))
+            .ForMember(dest => dest.SchedulerName, opt => opt.MapFrom(src => src.Scheduler != null ? src.Scheduler.SchedulerName : null))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.LastMinutes, opt => opt.MapFrom(src => src.LastMinutes))
+            .ForMember(dest => dest.AlertThreshold, opt => opt.MapFrom(src => src.ThresholdValue))
+            .ForMember(dest => dest.AlertOperator, opt => opt.MapFrom(src => src.ThresholdComparison))
+            .ForMember(dest => dest.LastRun, opt => opt.MapFrom(src => src.LastRun))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
+            .ForMember(dest => dest.ModifiedDate, opt => opt.MapFrom(src => src.UpdatedDate));
+
+        // List to paginated response mapping
+        CreateMap<List<IndicatorResponse>, PaginatedIndicatorsResponse>()
+            .ForMember(dest => dest.Indicators, opt => opt.MapFrom(src => src))
+            .ForMember(dest => dest.TotalCount, opt => opt.Ignore())
+            .ForMember(dest => dest.Page, opt => opt.Ignore())
+            .ForMember(dest => dest.PageSize, opt => opt.Ignore())
+            .ForMember(dest => dest.TotalPages, opt => opt.Ignore())
+            .ForMember(dest => dest.HasNextPage, opt => opt.Ignore())
+            .ForMember(dest => dest.HasPreviousPage, opt => opt.Ignore())
+            .ForMember(dest => dest.Summary, opt => opt.Ignore())
+            .ForMember(dest => dest.QueryMetrics, opt => opt.Ignore());
 
         // Scheduler mappings
         CreateMap<Scheduler, SchedulerDto>()
@@ -78,10 +104,12 @@ public class IndicatorMappingProfile : Profile
         // Indicator execution result mappings - IndicatorExecutionResult and IndicatorExecutionResultDto don't exist - commented out
         // CreateMap<IndicatorExecutionResult, IndicatorExecutionResultDto>();
 
-        // Dashboard mappings - These DTOs don't exist - commented out
-        // CreateMap<IndicatorDashboard, IndicatorDashboardDto>();
-        // CreateMap<IndicatorExecutionSummary, IndicatorExecutionSummaryDto>();
-        // CreateMap<IndicatorCountByPriority, IndicatorCountByPriorityDto>();
+        // Dashboard mappings
+        CreateMap<MonitoringGrid.Core.Models.IndicatorDashboard, MonitoringGrid.Api.DTOs.Indicators.IndicatorDashboardResponse>();
+
+        // Result<T> mappings for dashboard
+        CreateMap<MonitoringGrid.Core.Common.Result<MonitoringGrid.Core.Models.IndicatorDashboard>, MonitoringGrid.Api.DTOs.Indicators.IndicatorDashboardResponse>()
+            .ConvertUsing((src, dest, context) => src.IsSuccess ? context.Mapper.Map<MonitoringGrid.Api.DTOs.Indicators.IndicatorDashboardResponse>(src.Value) : new MonitoringGrid.Api.DTOs.Indicators.IndicatorDashboardResponse());
 
         // Statistics mappings - These DTOs don't exist - commented out
         // CreateMap<IndicatorStatistics, IndicatorStatisticsDto>();
@@ -109,15 +137,23 @@ public class IndicatorMappingProfile : Profile
         // CollectorStatisticDto doesn't exist - commented out
         // CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();
 
-        // Request to command mappings - These request DTOs don't exist - commented out
+        // Request to query/command mappings
+        CreateMap<MonitoringGrid.Api.DTOs.Indicators.GetIndicatorsRequest, GetIndicatorsQuery>()
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.OwnerContactId, opt => opt.MapFrom(src => src.OwnerContactId.HasValue ? (int)src.OwnerContactId.Value : (int?)null))
+            .ForMember(dest => dest.CollectorId, opt => opt.MapFrom(src => src.CollectorId.HasValue ? (int)src.CollectorId.Value : (int?)null))
+            .ForMember(dest => dest.SearchTerm, opt => opt.MapFrom(src => src.SearchText))
+            .ForMember(dest => dest.Page, opt => opt.MapFrom(src => src.Page))
+            .ForMember(dest => dest.PageSize, opt => opt.MapFrom(src => src.PageSize))
+            .ForMember(dest => dest.SortBy, opt => opt.MapFrom(src => src.SortBy ?? "IndicatorName"))
+            .ForMember(dest => dest.SortDirection, opt => opt.MapFrom(src => src.SortDirection ?? "asc"));
+
         // CreateMap<CreateIndicatorRequest, CreateIndicatorCommand>();
         // CreateMap<UpdateIndicatorRequest, UpdateIndicatorCommand>();
         // CreateMap<ExecuteIndicatorRequest, ExecuteIndicatorCommand>();
         // CreateMap<TestIndicatorRequest, ExecuteIndicatorCommand>()
         //     .ForMember(dest => dest.ExecutionContext, opt => opt.MapFrom(src => "Test"))
         //     .ForMember(dest => dest.SaveResults, opt => opt.MapFrom(src => false));
-
-        // CreateMap<IndicatorFilterRequest, GetIndicatorsQuery>();
 
         // Bulk operation mappings - BulkIndicatorOperationRequest doesn't exist - commented out
         // CreateMap<BulkIndicatorOperationRequest, List<long>>()

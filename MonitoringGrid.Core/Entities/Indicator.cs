@@ -85,8 +85,8 @@ public class Indicator : AggregateRoot
     /// </summary>
     public int OwnerContactId { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedDate { get; set; } = DateTime.UtcNow;
     public DateTime? LastRun { get; set; }
     public string? LastRunResult { get; set; }
 

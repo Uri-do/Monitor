@@ -227,6 +227,7 @@ public class AlertController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Enhanced alert dashboard data</returns>
     [HttpGet("dashboard")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(AlertDashboardResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<AlertDashboardResponse>> GetDashboard(
         [FromQuery] GetAlertDashboardRequest? request = null,

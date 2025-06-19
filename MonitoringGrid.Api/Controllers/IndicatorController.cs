@@ -43,6 +43,7 @@ public class IndicatorController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated indicators with enhanced information</returns>
     [HttpGet]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(PaginatedIndicatorsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
@@ -106,6 +107,7 @@ public class IndicatorController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Enhanced indicator information</returns>
     [HttpGet("{id:long}")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(IndicatorResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -506,6 +508,7 @@ public class IndicatorController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Enhanced indicator dashboard with analytics</returns>
     [HttpGet("dashboard")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(IndicatorDashboardResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IndicatorDashboardResponse>> GetDashboard(

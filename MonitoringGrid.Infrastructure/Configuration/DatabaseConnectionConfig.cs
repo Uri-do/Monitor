@@ -6,7 +6,7 @@ namespace MonitoringGrid.Infrastructure.Configuration;
 public class DatabaseConnectionConfig
 {
     public string DefaultConnection { get; set; } = string.Empty;
-    public string ProgressPlayConnection { get; set; } = string.Empty;
+    public string SourceDatabase { get; set; } = string.Empty;
     public string PopAIConnection { get; set; } = string.Empty;
     public int CommandTimeout { get; set; } = 30;
     public int MaxRetryCount { get; set; } = 3;

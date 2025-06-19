@@ -13,7 +13,7 @@ public static class WorkerConstants
         /// <summary>
         /// Time to wait for process initialization after start
         /// </summary>
-        public const int ProcessInitializationMs = 1000;
+        public const int ProcessInitializationMs = 500;
 
         /// <summary>
         /// Time to wait for graceful shutdown

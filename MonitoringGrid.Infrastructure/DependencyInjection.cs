@@ -55,7 +55,7 @@ public static class DependencyInjection
         // ProgressPlay Database Context for monitored database
         services.AddDbContext<ProgressPlayContext>(options =>
         {
-            var connectionString = configuration.GetConnectionStringOrThrow("ProgressPlayConnection");
+            var connectionString = configuration.GetConnectionStringOrThrow("SourceDatabase");
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
@@ -154,10 +154,10 @@ public static class DependencyInjection
         // services.AddHealthChecks()
         //     .AddDbContextCheck<MonitoringContext>("MonitoringGrid Database")
         //     .AddSqlServer(
-        //         configuration.GetConnectionString("ProgressPlayConnection")!,
+        //         configuration.GetConnectionString("SourceDatabase")!,
         //         name: "ProgressPlay Database")
         //     .AddSqlServer(
-        //         configuration.GetConnectionString("PopAIConnection")!,
+        //         configuration.GetConnectionString("DefaultConnection")!,
         //         name: "PopAI Database");
 
         return services;

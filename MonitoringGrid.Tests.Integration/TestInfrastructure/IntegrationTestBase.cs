@@ -239,7 +239,7 @@ public class IntegrationTestWebApplicationFactory : WebApplicationFactory<Progra
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _dbContainer.GetConnectionString(),
-                ["ConnectionStrings:ProgressPlayConnection"] = _dbContainer.GetConnectionString(),
+                ["ConnectionStrings:SourceDatabase"] = _dbContainer.GetConnectionString(),
                 ["MonitoringGrid:Security:Jwt:SecretKey"] = "TestSecretKeyForIntegrationTests123456789",
                 ["MonitoringGrid:Security:Jwt:Issuer"] = "MonitoringGrid.Tests",
                 ["MonitoringGrid:Security:Jwt:Audience"] = "MonitoringGrid.Tests",
