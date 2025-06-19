@@ -64,6 +64,10 @@ export interface IndicatorExecutionCompleted {
   errorMessage?: string;
   thresholdBreached: boolean;
   executionContext: string;
+  executionHistoryId?: number;
+  alertThreshold?: number;
+  alertOperator?: string;
+  alertsGenerated?: number;
 }
 
 export interface CountdownUpdate {
@@ -268,39 +272,76 @@ class SignalRService {
       this.eventHandlers.onSystemStatusWebhook?.(data);
     });
 
-    // Worker service real-time events
+    // Worker service real-time events - PascalCase (original)
     this.connection.on('WorkerStatusUpdate', (status: WorkerStatusUpdate) => {
-      console.log('🔧 Worker status update received:', status);
+      console.log('🔧 Worker status update received (PascalCase):', status);
       this.eventHandlers.onWorkerStatusUpdate?.(status);
     });
 
     this.connection.on('IndicatorExecutionStarted', (data: IndicatorExecutionStarted) => {
-      console.log('Indicator execution started (enhanced):', data);
+      console.log('🚀 Indicator execution started (PascalCase):', data);
       this.eventHandlers.onIndicatorExecutionStarted?.(data);
     });
 
     this.connection.on('IndicatorExecutionProgress', (data: IndicatorExecutionProgress) => {
-      console.log('Indicator execution progress:', data);
+      console.log('📊 Indicator execution progress (PascalCase):', data);
       this.eventHandlers.onIndicatorExecutionProgress?.(data);
     });
 
     this.connection.on('IndicatorExecutionCompleted', (data: IndicatorExecutionCompleted) => {
-      console.log('Indicator execution completed:', data);
+      console.log('✅ Indicator execution completed (PascalCase):', data);
+      this.eventHandlers.onIndicatorExecutionCompleted?.(data);
+    });
+
+    // Worker service real-time events - lowercase (SignalR auto-converts)
+    this.connection.on('workerstatusupdate', (status: WorkerStatusUpdate) => {
+      console.log('🔧 Worker status update received (lowercase):', status);
+      this.eventHandlers.onWorkerStatusUpdate?.(status);
+    });
+
+    this.connection.on('indicatorexecutionstarted', (data: IndicatorExecutionStarted) => {
+      console.log('🚀 Indicator execution started (lowercase):', data);
+      this.eventHandlers.onIndicatorExecutionStarted?.(data);
+    });
+
+    this.connection.on('indicatorexecutionprogress', (data: IndicatorExecutionProgress) => {
+      console.log('📊 Indicator execution progress (lowercase):', data);
+      this.eventHandlers.onIndicatorExecutionProgress?.(data);
+    });
+
+    this.connection.on('indicatorexecutioncompleted', (data: IndicatorExecutionCompleted) => {
+      console.log('✅ Indicator execution completed (lowercase):', data);
       this.eventHandlers.onIndicatorExecutionCompleted?.(data);
     });
 
     this.connection.on('CountdownUpdate', (data: CountdownUpdate) => {
-      console.log('🕒 Countdown update received:', data);
+      console.log('🕒 Countdown update received (PascalCase):', data);
       this.eventHandlers.onCountdownUpdate?.(data);
     });
 
     this.connection.on('NextIndicatorScheduleUpdate', (data: NextIndicatorScheduleUpdate) => {
-      console.log('Next Indicator schedule update:', data);
+      console.log('📅 Next Indicator schedule update (PascalCase):', data);
       this.eventHandlers.onNextIndicatorScheduleUpdate?.(data);
     });
 
     this.connection.on('RunningIndicatorsUpdate', (data: RunningIndicatorsUpdate) => {
-      console.log('Running Indicators update:', data);
+      console.log('🏃 Running Indicators update (PascalCase):', data);
+      this.eventHandlers.onRunningIndicatorsUpdate?.(data);
+    });
+
+    // Lowercase versions (SignalR auto-converts)
+    this.connection.on('countdownupdate', (data: CountdownUpdate) => {
+      console.log('🕒 Countdown update received (lowercase):', data);
+      this.eventHandlers.onCountdownUpdate?.(data);
+    });
+
+    this.connection.on('nextindicatorscheduleupdate', (data: NextIndicatorScheduleUpdate) => {
+      console.log('📅 Next Indicator schedule update (lowercase):', data);
+      this.eventHandlers.onNextIndicatorScheduleUpdate?.(data);
+    });
+
+    this.connection.on('runningindicatorsupdate', (data: RunningIndicatorsUpdate) => {
+      console.log('🏃 Running Indicators update (lowercase):', data);
       this.eventHandlers.onRunningIndicatorsUpdate?.(data);
     });
 
@@ -413,6 +454,42 @@ class SignalRService {
 
   public off<K extends keyof SignalREvents>(event: K): void {
     delete this.eventHandlers[event];
+
+    // Also remove the actual SignalR connection event listener if it exists
+    if (this.connection) {
+      try {
+        // Map the event names to the actual SignalR event names
+        const signalREventMap: Record<string, string> = {
+          'onIndicatorExecutionStarted': 'IndicatorExecutionStarted',
+          'onIndicatorExecutionProgress': 'IndicatorExecutionProgress',
+          'onIndicatorExecutionCompleted': 'IndicatorExecutionCompleted',
+          'onWorkerStatusUpdate': 'WorkerStatusUpdate',
+          'onCountdownUpdate': 'CountdownUpdate',
+          'onNextIndicatorScheduleUpdate': 'NextIndicatorScheduleUpdate',
+          'onRunningIndicatorsUpdate': 'RunningIndicatorsUpdate',
+          'onAlertTriggered': 'AlertTriggered',
+          'onIndicatorExecuted': 'IndicatorExecuted',
+          'onSystemStatusChanged': 'SystemStatusChanged',
+          'onUserConnected': 'UserConnected',
+          'onUserDisconnected': 'UserDisconnected',
+          'onStatusUpdate': 'StatusUpdate',
+          'onDashboardUpdate': 'DashboardUpdate',
+          'onSystemHealthUpdate': 'SystemHealthUpdate',
+          'onIndicatorExecutionWebhook': 'IndicatorExecutionWebhook',
+          'onAlertWebhook': 'AlertWebhook',
+          'onSystemStatusWebhook': 'SystemStatusWebhook',
+          'onTestMessage': 'TestMessage'
+        };
+
+        const signalREventName = signalREventMap[event as string];
+        if (signalREventName) {
+          this.connection.off(signalREventName);
+          console.log(`Removed SignalR event listener for: ${signalREventName}`);
+        }
+      } catch (error) {
+        console.warn(`Failed to remove SignalR event listener for ${event}:`, error);
+      }
+    }
   }
 
   public async joinGroup(groupName: string): Promise<void> {

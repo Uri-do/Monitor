@@ -94,6 +94,12 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(MonitoringGrid.Infrastructure.DependencyInjection).Assembly); // Infrastructure assembly
 });
 
+// Log registered MediatR handlers for debugging
+Console.WriteLine("🔍 MediatR assemblies registered:");
+Console.WriteLine($"  - API Assembly: {typeof(Program).Assembly.FullName}");
+Console.WriteLine($"  - Core Assembly: {typeof(MonitoringGrid.Core.Entities.Indicator).Assembly.FullName}");
+Console.WriteLine($"  - Infrastructure Assembly: {typeof(MonitoringGrid.Infrastructure.DependencyInjection).Assembly.FullName}");
+
 // Add custom middleware options
 builder.Services.AddSingleton(new MonitoringGrid.Api.Middleware.ResponseCachingOptions
 {
@@ -136,6 +142,9 @@ builder.Services.AddDataProtection();
 
 // Add Infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Override the Infrastructure's simple domain event publisher with MediatR publisher
+builder.Services.AddScoped<MonitoringGrid.Core.Interfaces.IDomainEventPublisher, MonitoringGrid.Api.Events.MediatRDomainEventPublisher>();
 
 // Add Simple Indicator Processor only if worker services are disabled
 var enableWorkerServices = builder.Configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableWorkerServices", true);

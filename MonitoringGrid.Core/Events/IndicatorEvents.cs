@@ -53,10 +53,11 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
     public string? ErrorMessage { get; }
     public TimeSpan? ExecutionDuration { get; }
     public string? CollectorName { get; }
+    public long? ExecutionHistoryId { get; init; }
 
     public IndicatorExecutedEvent(long indicatorId, string indicatorName, string owner, bool wasSuccessful,
         decimal? currentValue = null, decimal? historicalValue = null, string? errorMessage = null,
-        TimeSpan? executionDuration = null, string? collectorName = null)
+        TimeSpan? executionDuration = null, string? collectorName = null, long? executionHistoryId = null)
     {
         IndicatorId = indicatorId;
         IndicatorName = indicatorName;
@@ -67,6 +68,7 @@ public record IndicatorExecutedEvent : DomainEvent, INotification
         ErrorMessage = errorMessage;
         ExecutionDuration = executionDuration;
         CollectorName = collectorName;
+        ExecutionHistoryId = executionHistoryId;
     }
 
     /// <summary>

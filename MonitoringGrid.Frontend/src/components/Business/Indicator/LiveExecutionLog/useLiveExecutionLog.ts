@@ -66,24 +66,30 @@ export const useLiveExecutionLog = ({
 
   // Listen for SignalR execution events
   useEffect(() => {
-    if (!realtimeContext.isConnected || isPaused) return;
+    if (!realtimeContext.isConnected) return;
 
     // Handle IndicatorExecutionStarted events
     const handleExecutionStarted = (data: IndicatorExecutionStarted) => {
       console.log('📊 Execution started event received:', data);
 
+      // Only process if not paused
+      if (isPaused) {
+        console.log('⏸️ Log is paused, ignoring execution started event');
+        return;
+      }
+
       const newEntry: ExecutionLogEntry = {
         id: `${data.indicatorID}-started-${Date.now()}`,
         timestamp: new Date(data.startTime),
         indicatorID: data.indicatorID,
-        indicator: data.indicator,
+        indicator: data.indicatorName,
         type: 'started',
         message: `Started execution`,
         details: {
+          executionContext: data.executionContext,
           collectorID: data.collectorID,
           collectorItemName: data.collectorItemName,
           lastMinutes: data.lastMinutes,
-          executionContext: data.executionContext,
         }
       };
 
@@ -94,22 +100,29 @@ export const useLiveExecutionLog = ({
     const handleExecutionCompleted = (data: IndicatorExecutionCompleted) => {
       console.log('✅ Execution completed event received:', data);
 
+      // Only process if not paused
+      if (isPaused) {
+        console.log('⏸️ Log is paused, ignoring execution completed event');
+        return;
+      }
+
       const newEntry: ExecutionLogEntry = {
-        id: `${data.indicatorID}-completed-${Date.now()}`,
+        id: `${data.indicatorId}-completed-${Date.now()}`,
         timestamp: new Date(data.completedAt),
-        indicatorID: data.indicatorID,
-        indicator: data.indicator,
+        indicatorID: data.indicatorId,
+        indicator: data.indicatorName,
         type: data.success ? 'completed' : 'error',
         message: data.success ? 'Execution completed successfully' : (data.errorMessage || 'Execution failed'),
         duration: data.duration,
         success: data.success,
         errorMessage: data.errorMessage,
+        executionHistoryId: data.executionHistoryId,
         details: {
-          collectorID: data.collectorID,
-          collectorItemName: data.collectorItemName,
-          lastMinutes: data.lastMinutes,
           value: data.value,
           executionContext: data.executionContext,
+          thresholdBreached: data.thresholdBreached,
+          alertThreshold: data.alertThreshold,
+          alertOperator: data.alertOperator,
           alertsGenerated: data.alertsGenerated,
         }
       };
@@ -117,7 +130,7 @@ export const useLiveExecutionLog = ({
       setLogEntries(prev => [newEntry, ...prev].slice(0, maxEntries));
     };
 
-    // Register event handlers
+    // Register event handlers - use the "on" prefix to match the event handler names
     signalR.on('onIndicatorExecutionStarted', handleExecutionStarted);
     signalR.on('onIndicatorExecutionCompleted', handleExecutionCompleted);
 
@@ -126,7 +139,7 @@ export const useLiveExecutionLog = ({
       signalR.off('onIndicatorExecutionStarted', handleExecutionStarted);
       signalR.off('onIndicatorExecutionCompleted', handleExecutionCompleted);
     };
-  }, [realtimeContext.isConnected, isPaused, maxEntries, signalR]);
+  }, [realtimeContext.isConnected, maxEntries, signalR]);
 
   const clearLog = () => {
     setLogEntries([]);

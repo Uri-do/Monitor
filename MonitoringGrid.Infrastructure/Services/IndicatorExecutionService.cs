@@ -17,17 +17,20 @@ namespace MonitoringGrid.Infrastructure.Services;
 public class IndicatorExecutionService : IIndicatorExecutionService
 {
     private readonly MonitoringContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IIndicatorService _indicatorService;
     private readonly IProgressPlayDbService _progressPlayDbService;
     private readonly ILogger<IndicatorExecutionService> _logger;
 
     public IndicatorExecutionService(
         MonitoringContext context,
+        IUnitOfWork unitOfWork,
         IIndicatorService indicatorService,
         IProgressPlayDbService progressPlayDbService,
         ILogger<IndicatorExecutionService> logger)
     {
         _context = context;
+        _unitOfWork = unitOfWork;
         _indicatorService = indicatorService;
         _progressPlayDbService = progressPlayDbService;
         _logger = logger;
@@ -83,7 +86,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             indicator.StartExecution(executionContext);
             if (saveResults)
             {
-                await _context.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
             try
@@ -177,6 +180,25 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                     var executionHistoryId = await SaveExecutionResultsAsync(indicator, result, cancellationToken);
                     result.ExecutionId = executionHistoryId;
 
+                    // Mark indicator as executed with execution history ID
+                    indicator.MarkAsExecuted(result.WasSuccessful, result.Value, null, result.ErrorMessage);
+
+                    // Raise additional domain event with execution details including history ID
+                    var executedEvent = new IndicatorExecutedEvent(
+                        indicator.IndicatorID,
+                        indicator.IndicatorName,
+                        indicator.OwnerContactId.ToString(),
+                        result.WasSuccessful,
+                        result.Value,
+                        null, // Historical value - TODO: implement
+                        result.ErrorMessage,
+                        result.ExecutionDuration,
+                        null, // Collector name - TODO: implement
+                        executionHistoryId
+                    );
+
+                    indicator.AddDomainEvent(executedEvent);
+
                     // Trigger alert if threshold breached
                     if (thresholdBreached)
                     {
@@ -185,7 +207,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 }
 
                 _logger.LogInformation("Successfully executed indicator {IndicatorId}: {IndicatorName}, " +
-                    "Value: {CurrentValue}, Threshold Breached: {ThresholdBreached}", 
+                    "Value: {CurrentValue}, Threshold Breached: {ThresholdBreached}",
                     indicatorId, indicator.IndicatorName, currentValue, thresholdBreached);
 
                 return result;
@@ -196,7 +218,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
                 indicator.CompleteExecution();
                 if (saveResults)
                 {
-                    await _context.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
             }
         }
@@ -306,7 +328,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
 
             var indicator = indicatorResult.Value;
             indicator.CompleteExecution();
-            await _context.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Cancelled execution of indicator {IndicatorId}: {IndicatorName}",
                 indicatorId, indicator.IndicatorName);
@@ -446,7 +468,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             };
 
             _context.ExecutionHistory.Add(executionHistory);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogDebug("Saved execution history for indicator {IndicatorId}, Success: {Success}, Duration: {Duration}ms, HistoryId: {HistoryId}",
                 indicator.IndicatorID, result.WasSuccessful, result.ExecutionDuration.TotalMilliseconds, executionHistory.ExecutionHistoryID);

@@ -897,7 +897,7 @@ export const systemApi = {
   },
 };
 
-// Execution History API endpoints (now under KPI controller)
+// Execution History API endpoints (now under Indicator controller)
 export const executionHistoryApi = {
   // Get execution history with pagination and filters
   getExecutionHistory: async (params: {
@@ -909,10 +909,12 @@ export const executionHistoryApi = {
     endDate?: string;
     pageSize?: number;
     pageNumber?: number;
+    search?: string;
+    indicatorId?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
-    // Updated to use KPI controller's execution history endpoints
+    // Updated to use Indicator controller's execution history endpoints
     const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get(
-      '/kpi/execution-history',
+      '/indicator/execution-history',
       { params }
     );
     return response.data;
@@ -923,8 +925,8 @@ export const executionHistoryApi = {
     kpiId?: number;
     days?: number;
   }): Promise<ExecutionStatsDto[]> => {
-    // Updated to use KPI controller's execution history endpoints
-    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/kpi/execution-stats', {
+    // Updated to use Indicator controller's execution history endpoints
+    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/indicator/execution-stats', {
       params,
     });
     return response.data;
@@ -932,9 +934,9 @@ export const executionHistoryApi = {
 
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
-    // Updated to use KPI controller's execution history endpoints
+    // Updated to use Indicator controller's execution history endpoints
     const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(
-      `/kpi/execution-history/${historicalId}`
+      `/indicator/execution-history/${historicalId}`
     );
     return response.data;
   },

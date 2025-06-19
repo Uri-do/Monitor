@@ -38,10 +38,12 @@ interface LogEntryProps {
 export const LogEntry: React.FC<LogEntryProps> = ({ entry }) => {
   const [expanded, setExpanded] = useState(false);
 
+  // Show expand arrows for completed/error entries or entries with execution history ID
   const hasExpandableContent = entry.errorMessage ||
-    (entry.details && Object.keys(entry.details).length > 3) ||
+    (entry.details && Object.keys(entry.details).length > 2) || // Reduced threshold from 3 to 2
     entry.type === 'error' ||
-    entry.type === 'completed';
+    entry.type === 'completed' ||
+    !!entry.executionHistoryId; // Always show expand for entries with execution history
 
   // Fetch detailed execution information when expanded and available
   const { data: detailedInfo, isLoading: isLoadingDetails } = useQuery({

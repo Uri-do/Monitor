@@ -7,8 +7,11 @@ using MonitoringGrid.Api.CQRS.Commands.Indicator;
 using MonitoringGrid.Api.CQRS.Queries.Indicator;
 using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.DTOs.Common;
+using MonitoringGrid.Api.DTOs.ExecutionHistory;
 using MonitoringGrid.Api.DTOs.Indicators;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace MonitoringGrid.Api.Controllers;
@@ -26,17 +29,20 @@ public class IndicatorController : BaseApiController
 {
     private readonly IMapper _mapper;
     private readonly IProgressPlayDbService _progressPlayDbService;
+    private readonly MonitoringContext _context;
 
     public IndicatorController(
         IMediator mediator,
         IMapper mapper,
         IProgressPlayDbService progressPlayDbService,
+        MonitoringContext context,
         ILogger<IndicatorController> logger,
         IPerformanceMetricsService? performanceMetrics = null)
         : base(mediator, logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _progressPlayDbService = progressPlayDbService ?? throw new ArgumentNullException(nameof(progressPlayDbService));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     /// <summary>
@@ -682,6 +688,145 @@ public class IndicatorController : BaseApiController
             stopwatch.Stop();
             Logger.LogError(ex, "Error getting indicator dashboard: {Message}", ex.Message);
             return StatusCode(500, CreateErrorResponse("Failed to generate indicator dashboard", "GET_DASHBOARD_ERROR"));
+        }
+    }
+
+    /// <summary>
+    /// Get execution history for all indicators with pagination and filtering
+    /// </summary>
+    /// <param name="search">Search term for indicator name</param>
+    /// <param name="pageSize">Number of items per page (default: 50)</param>
+    /// <param name="pageNumber">Page number (default: 1)</param>
+    /// <param name="indicatorId">Filter by specific indicator ID</param>
+    /// <param name="isSuccessful">Filter by execution success status</param>
+    /// <param name="startDate">Filter by start date</param>
+    /// <param name="endDate">Filter by end date</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated execution history</returns>
+    [HttpGet("execution-history")]
+    [AllowAnonymous] // Temporarily allow anonymous access for development
+    [ProducesResponseType(typeof(PaginatedExecutionHistoryResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PaginatedExecutionHistoryResponse>> GetExecutionHistory(
+        [FromQuery] string? search = null,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] long? indicatorId = null,
+        [FromQuery] bool? isSuccessful = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            // Validate parameters
+            var pageSizeValidation = ValidateParameter(pageSize, nameof(pageSize),
+                ps => ps > 0 && ps <= 100, "Page size must be between 1 and 100");
+            if (pageSizeValidation != null) return BadRequest(pageSizeValidation);
+
+            var pageNumberValidation = ValidateParameter(pageNumber, nameof(pageNumber),
+                pn => pn > 0, "Page number must be positive");
+            if (pageNumberValidation != null) return BadRequest(pageNumberValidation);
+
+            Logger.LogDebug("Getting execution history - Page: {Page}, Size: {Size}, Search: {Search}, IndicatorId: {IndicatorId}",
+                pageNumber, pageSize, search, indicatorId);
+
+            // Get execution history from database
+            var query = _context.ExecutionHistory
+                .Include(eh => eh.Indicator)
+                .ThenInclude(i => i.OwnerContact)
+                .AsQueryable();
+
+            // Apply filters
+            if (indicatorId.HasValue)
+            {
+                query = query.Where(eh => eh.IndicatorID == indicatorId.Value);
+            }
+
+            if (isSuccessful.HasValue)
+            {
+                query = query.Where(eh => eh.Success == isSuccessful.Value);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(eh => eh.ExecutedAt >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(eh => eh.ExecutedAt <= endDate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(eh => eh.Indicator.IndicatorName.Contains(search));
+            }
+
+            // Get total count
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            // Apply pagination and ordering
+            var executions = await query
+                .OrderByDescending(eh => eh.ExecutedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(eh => new ExecutionHistoryDto
+                {
+                    HistoricalId = (int)eh.ExecutionHistoryID,
+                    KpiId = eh.IndicatorID,
+                    Indicator = eh.Indicator.IndicatorName,
+                    KpiOwner = eh.Indicator.OwnerContact != null ? eh.Indicator.OwnerContact.Name : "Unknown",
+                    SpName = eh.Indicator.IndicatorCode,
+                    Timestamp = eh.ExecutedAt.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    ExecutedBy = eh.ExecutedBy ?? "System",
+                    ExecutionMethod = eh.ExecutionContext ?? "Unknown",
+                    CurrentValue = 0, // Will be populated from Result if available
+                    HistoricalValue = null,
+                    DeviationPercent = null,
+                    Period = 0,
+                    MetricKey = eh.Indicator.IndicatorCode,
+                    IsSuccessful = eh.Success,
+                    ErrorMessage = eh.ErrorMessage,
+                    ExecutionTimeMs = eh.DurationMs,
+                    DatabaseName = null,
+                    ServerName = null,
+                    ShouldAlert = false,
+                    AlertSent = false,
+                    SessionId = null,
+                    IpAddress = null,
+                    SqlCommand = null,
+                    RawResponse = eh.Result,
+                    ExecutionContext = eh.ExecutionContext,
+                    PerformanceCategory = eh.Success ? "Normal" : "Error",
+                    DeviationCategory = "Normal"
+                })
+                .ToListAsync(cancellationToken);
+
+            var response = new PaginatedExecutionHistoryResponse
+            {
+                Executions = executions,
+                TotalCount = totalCount,
+                Page = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                HasNextPage = pageNumber * pageSize < totalCount,
+                HasPreviousPage = pageNumber > 1
+            };
+
+            stopwatch.Stop();
+
+            Logger.LogInformation("Retrieved {Count} execution history records in {Duration}ms (Page {Page}/{TotalPages})",
+                executions.Count, stopwatch.ElapsedMilliseconds, pageNumber, response.TotalPages);
+
+            return Ok(CreateSuccessResponse(response, $"Retrieved {executions.Count} execution history records"));
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            Logger.LogError(ex, "Error retrieving execution history: {Message}", ex.Message);
+            return StatusCode(500, CreateErrorResponse("Failed to retrieve execution history", "GET_EXECUTION_HISTORY_ERROR"));
         }
     }
 }

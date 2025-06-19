@@ -4,13 +4,14 @@ using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.DTOs.Hubs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Events;
+using MonitoringGrid.Api.Events;
 
 namespace MonitoringGrid.Api.EventHandlers;
 
 /// <summary>
 /// Domain event handler for Indicator execution started events
 /// </summary>
-public class IndicatorExecutionStartedEventHandler : INotificationHandler<IndicatorExecutionStartedEvent>
+public class IndicatorExecutionStartedEventHandler : INotificationHandler<DomainEventNotification<IndicatorExecutionStartedEvent>>
 {
     private readonly IRealtimeNotificationService _realtimeService;
     private readonly ILogger<IndicatorExecutionStartedEventHandler> _logger;
@@ -23,28 +24,29 @@ public class IndicatorExecutionStartedEventHandler : INotificationHandler<Indica
         _logger = logger;
     }
 
-    public async Task Handle(IndicatorExecutionStartedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(DomainEventNotification<IndicatorExecutionStartedEvent> notification, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogDebug("Handling IndicatorExecutionStartedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            var domainEvent = notification.DomainEvent;
+            _logger.LogInformation("🚀 HANDLER CALLED: Handling IndicatorExecutionStartedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
 
             var dto = new IndicatorExecutionStartedDto
             {
-                IndicatorID = notification.IndicatorId,
-                IndicatorName = notification.IndicatorName,
-                Owner = notification.Owner,
-                StartTime = notification.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                ExecutionContext = notification.ExecutionContext
+                IndicatorID = domainEvent.IndicatorId,
+                IndicatorName = domainEvent.IndicatorName,
+                Owner = domainEvent.Owner,
+                StartTime = domainEvent.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ExecutionContext = domainEvent.ExecutionContext
             };
 
             await _realtimeService.SendIndicatorExecutionStartedAsync(dto);
 
-            _logger.LogDebug("Successfully handled IndicatorExecutionStartedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogInformation("✅ Successfully handled IndicatorExecutionStartedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to handle IndicatorExecutionStartedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogError(ex, "❌ Failed to handle IndicatorExecutionStartedEvent for Indicator {IndicatorId}", notification.DomainEvent.IndicatorId);
         }
     }
 }
@@ -52,7 +54,7 @@ public class IndicatorExecutionStartedEventHandler : INotificationHandler<Indica
 /// <summary>
 /// Domain event handler for Indicator execution completed events
 /// </summary>
-public class IndicatorExecutionCompletedEventHandler : INotificationHandler<IndicatorExecutionCompletedEvent>
+public class IndicatorExecutionCompletedEventHandler : INotificationHandler<DomainEventNotification<IndicatorExecutionCompletedEvent>>
 {
     private readonly IRealtimeNotificationService _realtimeService;
     private readonly ILogger<IndicatorExecutionCompletedEventHandler> _logger;
@@ -65,28 +67,29 @@ public class IndicatorExecutionCompletedEventHandler : INotificationHandler<Indi
         _logger = logger;
     }
 
-    public async Task Handle(IndicatorExecutionCompletedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(DomainEventNotification<IndicatorExecutionCompletedEvent> notification, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogDebug("Handling IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            var domainEvent = notification.DomainEvent;
+            _logger.LogInformation("🏁 HANDLER CALLED: Handling IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
 
             var dto = new IndicatorExecutionCompletedDto
             {
-                IndicatorId = notification.IndicatorId,
-                IndicatorName = notification.IndicatorName,
+                IndicatorId = domainEvent.IndicatorId,
+                IndicatorName = domainEvent.IndicatorName,
                 Success = true, // Completion event assumes success
-                CompletedAt = notification.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                CompletedAt = domainEvent.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Duration = 0 // Will be calculated by the UI or provided separately
             };
 
             await _realtimeService.SendIndicatorExecutionCompletedAsync(dto);
 
-            _logger.LogDebug("Successfully handled IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogInformation("✅ Successfully handled IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to handle IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogError(ex, "❌ Failed to handle IndicatorExecutionCompletedEvent for Indicator {IndicatorId}", notification.DomainEvent.IndicatorId);
         }
     }
 }
@@ -94,7 +97,7 @@ public class IndicatorExecutionCompletedEventHandler : INotificationHandler<Indi
 /// <summary>
 /// Domain event handler for Indicator executed events (with results)
 /// </summary>
-public class IndicatorExecutedEventHandler : INotificationHandler<IndicatorExecutedEvent>
+public class IndicatorExecutedEventHandler : INotificationHandler<DomainEventNotification<IndicatorExecutedEvent>>
 {
     private readonly IRealtimeNotificationService _realtimeService;
     private readonly ILogger<IndicatorExecutedEventHandler> _logger;
@@ -107,21 +110,27 @@ public class IndicatorExecutedEventHandler : INotificationHandler<IndicatorExecu
         _logger = logger;
     }
 
-    public async Task Handle(IndicatorExecutedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(DomainEventNotification<IndicatorExecutedEvent> notification, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogDebug("Handling IndicatorExecutedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            var domainEvent = notification.DomainEvent;
+            _logger.LogDebug("Handling IndicatorExecutedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
 
             var dto = new IndicatorExecutionCompletedDto
             {
-                IndicatorId = notification.IndicatorId,
-                IndicatorName = notification.IndicatorName,
-                Success = notification.WasSuccessful,
-                Value = notification.CurrentValue,
-                CompletedAt = notification.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                ErrorMessage = notification.ErrorMessage,
-                Duration = 0 // Will be calculated separately
+                IndicatorId = domainEvent.IndicatorId,
+                IndicatorName = domainEvent.IndicatorName,
+                Success = domainEvent.WasSuccessful,
+                Value = domainEvent.CurrentValue,
+                CompletedAt = domainEvent.OccurredOn.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ErrorMessage = domainEvent.ErrorMessage,
+                Duration = domainEvent.ExecutionDuration?.TotalMilliseconds > 0
+                    ? (int)domainEvent.ExecutionDuration.Value.TotalMilliseconds
+                    : 0,
+                ExecutionHistoryId = domainEvent.ExecutionHistoryId,
+                ThresholdBreached = false, // TODO: Get from indicator or notification
+                ExecutionContext = "System"
             };
 
             await _realtimeService.SendIndicatorExecutionCompletedAsync(dto);
@@ -129,22 +138,22 @@ public class IndicatorExecutedEventHandler : INotificationHandler<IndicatorExecu
             // Send status update
             var statusDto = new IndicatorStatusUpdateDto
             {
-                IndicatorID = notification.IndicatorId,
-                IndicatorName = notification.IndicatorName,
+                IndicatorID = domainEvent.IndicatorId,
+                IndicatorName = domainEvent.IndicatorName,
                 IsCurrentlyRunning = false,
-                LastValue = notification.CurrentValue,
-                Status = notification.WasSuccessful ? "healthy" : "error",
+                LastValue = domainEvent.CurrentValue,
+                Status = domainEvent.WasSuccessful ? "healthy" : "error",
                 IsSignificantChange = true,
-                ChangeReason = notification.WasSuccessful ? "Execution completed successfully" : "Execution failed"
+                ChangeReason = domainEvent.WasSuccessful ? "Execution completed successfully" : "Execution failed"
             };
 
             await _realtimeService.SendIndicatorUpdateAsync(statusDto);
 
-            _logger.LogDebug("Successfully handled IndicatorExecutedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogDebug("Successfully handled IndicatorExecutedEvent for Indicator {IndicatorId}", domainEvent.IndicatorId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to handle IndicatorExecutedEvent for Indicator {IndicatorId}", notification.IndicatorId);
+            _logger.LogError(ex, "Failed to handle IndicatorExecutedEvent for Indicator {IndicatorId}", notification.DomainEvent.IndicatorId);
         }
     }
 }

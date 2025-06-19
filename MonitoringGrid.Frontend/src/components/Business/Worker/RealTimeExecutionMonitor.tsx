@@ -359,13 +359,13 @@ const RealTimeExecutionMonitor: React.FC<RealTimeExecutionMonitorProps> = ({
       }));
     };
 
-    // Register event handlers
+    // Register event handlers - use the "on" prefix to match the event handler names
     signalRService.on('onIndicatorExecutionStarted', handleIndicatorExecutionStarted);
     signalRService.on('onIndicatorExecutionProgress', handleIndicatorExecutionProgress);
     signalRService.on('onIndicatorExecutionCompleted', handleIndicatorExecutionCompleted);
 
     return () => {
-      // Cleanup event handlers
+      // Cleanup event handlers - use the "on" prefix to match registration
       signalRService.off('onIndicatorExecutionStarted');
       signalRService.off('onIndicatorExecutionProgress');
       signalRService.off('onIndicatorExecutionCompleted');
