@@ -672,41 +672,7 @@ public enum ImportErrorSeverity
     Critical
 }
 
-/// <summary>
-/// Request model for creating Indicators
-/// </summary>
-public class CreateIndicatorRequest
-{
-    /// <summary>
-    /// Indicator name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Indicator description
-    /// </summary>
-    public string Description { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Stored procedure name for Indicator execution
-    /// </summary>
-    public string StoredProcedureName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Indicator owner
-    /// </summary>
-    public string Owner { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Whether the Indicator is active
-    /// </summary>
-    public bool IsActive { get; set; } = true;
-
-    /// <summary>
-    /// Last minutes parameter for Indicator execution
-    /// </summary>
-    public int LastMinutes { get; set; } = 60;
-}
+// CreateIndicatorRequest moved to IndicatorModels.cs - duplicate DELETED
 
 /// <summary>
 /// Request model for updating KPIs

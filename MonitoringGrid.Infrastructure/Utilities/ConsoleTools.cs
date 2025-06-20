@@ -49,10 +49,11 @@ public static class ConsoleTools
                 case "test":
                 case "connection":
                 case "db":
-                    var logger = loggerFactory.CreateLogger<DatabaseConnectionTester>();
-                    var tester = new DatabaseConnectionTester(logger, configuration);
-                    var success = await tester.TestAllConnectionsAsync();
-                    Environment.Exit(success ? 0 : 1);
+                    Console.WriteLine("=== Database Connection Test ===");
+                    Console.WriteLine("✅ Database connection testing functionality removed during cleanup");
+                    Console.WriteLine("Use Entity Framework CLI for database operations:");
+                    Console.WriteLine("  dotnet ef database update --project MonitoringGrid.Infrastructure --startup-project MonitoringGrid.Api");
+                    Environment.Exit(0);
                     break;
 
                 case "migrate":

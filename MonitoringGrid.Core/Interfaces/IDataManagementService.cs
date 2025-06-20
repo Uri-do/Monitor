@@ -13,19 +13,19 @@ public interface IDataManagementService
     #region Bulk Operations Domain
     
     /// <summary>
-    /// Creates multiple KPIs in a single transaction
+    /// Creates multiple Indicators in a single transaction
     /// </summary>
-    Task<BulkOperationResult> BulkCreateKpisAsync(IEnumerable<CreateKpiRequest> requests, CancellationToken cancellationToken = default);
-    
+    Task<BulkOperationResult> BulkCreateIndicatorsAsync(IEnumerable<CreateIndicatorRequest> requests, CancellationToken cancellationToken = default);
+
     /// <summary>
-    /// Updates multiple KPIs in a single transaction
+    /// Updates multiple Indicators in a single transaction
     /// </summary>
-    Task<BulkOperationResult> BulkUpdateKpisAsync(IEnumerable<UpdateKpiRequest> requests, CancellationToken cancellationToken = default);
-    
+    Task<BulkOperationResult> BulkUpdateIndicatorsAsync(IEnumerable<UpdateIndicatorRequest> requests, CancellationToken cancellationToken = default);
+
     /// <summary>
-    /// Deletes multiple KPIs in a single transaction
+    /// Deletes multiple Indicators in a single transaction
     /// </summary>
-    Task<BulkOperationResult> BulkDeleteKpisAsync(IEnumerable<int> kpiIds, CancellationToken cancellationToken = default);
+    Task<BulkOperationResult> BulkDeleteIndicatorsAsync(IEnumerable<long> indicatorIds, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Creates multiple contacts in a single transaction
@@ -104,7 +104,7 @@ public interface IDataManagementService
     /// </summary>
     Task SeedUsersAsync(CancellationToken cancellationToken = default);
     Task SeedRolesAndPermissionsAsync(CancellationToken cancellationToken = default);
-    Task SeedKpisAsync(CancellationToken cancellationToken = default);
+    Task SeedIndicatorsAsync(CancellationToken cancellationToken = default);
     Task SeedContactsAsync(CancellationToken cancellationToken = default);
     
     /// <summary>

@@ -33,9 +33,7 @@ export const CSP_DIRECTIVES = {
     'https:',
     'wss:',
     'ws:',
-    'http://localhost:*',
-    'https://localhost:*',
-    'http://localhost:57653',
+    // Development URLs configured via environment variables
   ],
   'media-src': ["'self'"],
   'object-src': ["'none'"],

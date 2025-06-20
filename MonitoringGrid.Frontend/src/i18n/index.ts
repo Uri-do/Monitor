@@ -175,8 +175,7 @@ i18n
       }
     },
 
-    // Custom post processor for formatting
-    // postProcess: ['interval'], // Disabled for now
+    // Custom post processor for formatting (not needed currently)
   });
 
 // Custom interval post processor for time ranges

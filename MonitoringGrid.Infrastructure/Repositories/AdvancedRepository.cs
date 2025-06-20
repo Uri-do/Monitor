@@ -238,7 +238,7 @@ public class AdvancedRepository<T> : Repository<T>, IAdvancedRepository<T> where
 
     #region Query Optimization
 
-    public virtual IQueryable<T> GetQueryable()
+    public virtual new IQueryable<T> GetQueryable()
     {
         return _context.Set<T>().AsQueryable();
     }

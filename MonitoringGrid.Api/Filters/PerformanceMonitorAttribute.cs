@@ -143,12 +143,12 @@ public class KpiPerformanceMonitorAttribute : ActionFilterAttribute
         var statusCode = context.HttpContext.Response.StatusCode;
 
         logger.LogInformation("Completed KPI operation: {ActionName} for KPI {KpiId} in {ElapsedMs}ms [RequestId: {RequestId}] [StatusCode: {StatusCode}] (Legacy - use Indicator operations instead)",
-            actionName, kpiId, elapsedMs, requestId, statusCode);
+            actionName, indicatorId, elapsedMs, requestId, statusCode);
 
         // Record KPI-specific metrics (Legacy - should use indicator.* tags)
         using var activity = Activity.Current;
         activity?.SetTag("kpi.operation", actionName);
-        activity?.SetTag("kpi.id", kpiId);
+        activity?.SetTag("kpi.id", indicatorId);
         activity?.SetTag("kpi.duration_ms", elapsedMs);
         activity?.SetTag("kpi.status_code", statusCode);
         activity?.SetTag("kpi.success", statusCode < 400);

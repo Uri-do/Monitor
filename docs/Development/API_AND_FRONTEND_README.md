@@ -24,7 +24,7 @@ The MonitoringGrid API has undergone a major architectural transformation, conso
 
 | Controller | Domain | Responsibilities |
 |------------|--------|------------------|
-| **🎯 KpiController** | KPI Management | Core KPI operations, alerts, contacts, execution history, analytics |
+| **🎯 IndicatorController** | Indicator Management | Core Indicator operations, alerts, contacts, execution history, analytics |
 | **🔐 SecurityController** | Security & Auth | Authentication, authorization, user management, audit trails |
 | **🔄 RealtimeController** | Real-time Ops | Live monitoring, SignalR operations, real-time dashboard |
 | **⚙️ WorkerController** | Background Tasks | Worker service management, scheduling, background operations |
@@ -78,13 +78,13 @@ MonitoringGrid/
 - `GET /api/indicator/{id}/metrics` - Get Indicator metrics and trends
 - `POST /api/indicator/bulk` - Bulk operations on Indicators
 
-**Alert Management (KPI-related):**
-- `GET /api/kpi/alerts` - Get KPI alerts with filtering
-- `GET /api/kpi/alerts/{id}` - Get specific alert
-- `POST /api/kpi/alerts/{id}/resolve` - Resolve alert
-- `POST /api/kpi/alerts/resolve-bulk` - Bulk resolve alerts
-- `GET /api/kpi/alerts/statistics` - Get alert statistics
-- `GET /api/kpi/alerts/dashboard` - Get alert dashboard
+**Alert Management (Indicator-related):**
+- `GET /api/indicator/alerts` - Get Indicator alerts with filtering
+- `GET /api/indicator/alerts/{id}` - Get specific alert
+- `POST /api/indicator/alerts/{id}/resolve` - Resolve alert
+- `POST /api/indicator/alerts/resolve-bulk` - Bulk resolve alerts
+- `GET /api/indicator/alerts/statistics` - Get alert statistics
+- `GET /api/indicator/alerts/dashboard` - Get alert dashboard
 
 **Contact Management (Notification contacts):**
 - `GET /api/v{version}/kpi/contacts` - Get notification contacts
@@ -124,7 +124,7 @@ MonitoringGrid/
 
 ### 🔄 Real-time Operations Hub (`/api/realtime/*`)
 - `GET /api/realtime/status` - Get real-time system status
-- `POST /api/realtime/execute/{id}` - Execute KPI in real-time
+- `POST /api/realtime/execute/{id}` - Execute Indicator in real-time
 - `GET /api/realtime/dashboard` - Get live dashboard data
 - `GET /api/realtime/connection-info` - Get SignalR connection info
 - `POST /api/realtime/test-connection` - Test SignalR connection

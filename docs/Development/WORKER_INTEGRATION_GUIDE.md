@@ -30,9 +30,9 @@ Set the `EnableWorkerServices` flag in your configuration:
     "ServiceIntervalSeconds": 30
   },
   "Worker": {
-    "KpiMonitoring": {
+    "IndicatorMonitoring": {
       "IntervalSeconds": 60,
-      "MaxParallelKpis": 5,
+      "MaxParallelIndicators": 5,
       "ExecutionTimeoutSeconds": 300
     },
     "ScheduledTasks": {
@@ -60,9 +60,9 @@ Set the `EnableWorkerServices` flag in your configuration:
     "EnableWorkerServices": true  // Enabled by default in development
   },
   "Worker": {
-    "KpiMonitoring": {
+    "IndicatorMonitoring": {
       "IntervalSeconds": 30,      // Faster intervals for development
-      "MaxParallelKpis": 3
+      "MaxParallelIndicators": 3
     },
     "ScheduledTasks": {
       "CleanupCronExpression": "0 */5 * * * ?",  // Every 5 minutes

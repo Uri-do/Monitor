@@ -148,7 +148,7 @@ public class MonitoringOptions
     /// SMS gateway email address
     /// </summary>
     [EmailAddress]
-    public string SmsGateway { get; set; } = "sms-gateway@example.com";
+    public string SmsGateway { get; set; } = string.Empty; // Must be configured via environment
 
     /// <summary>
     /// Administrator email address

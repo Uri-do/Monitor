@@ -150,15 +150,7 @@ public static class DependencyInjection
         services.Configure<DatabaseConnectionConfig>(configuration.GetSection("Database"));
 
         // Health checks for all database connections
-        // TODO: Add health checks package reference and uncomment
-        // services.AddHealthChecks()
-        //     .AddDbContextCheck<MonitoringContext>("MonitoringGrid Database")
-        //     .AddSqlServer(
-        //         configuration.GetConnectionString("SourceDatabase")!,
-        //         name: "ProgressPlay Database")
-        //     .AddSqlServer(
-        //         configuration.GetConnectionString("DefaultConnection")!,
-        //         name: "PopAI Database");
+        // Health checks implementation moved to Program.cs for better organization
 
         return services;
     }

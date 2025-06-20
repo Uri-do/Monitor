@@ -137,7 +137,7 @@ public class CleanupJob : IJob
             var logCutoffDate = DateTime.UtcNow.AddDays(-_configuration.ScheduledTasks.LogRetentionDays);
 
             // Clean up old indicator execution history
-            var executionHistoryDeleted = await dbContext.IndicatorExecutionHistory
+            var executionHistoryDeleted = await dbContext.ExecutionHistory
                 .Where(h => h.ExecutedAt < cutoffDate)
                 .ExecuteDeleteAsync();
 

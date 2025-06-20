@@ -71,7 +71,7 @@ public interface IAdvancedRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Gets queryable for advanced scenarios
     /// </summary>
-    IQueryable<T> GetQueryable();
+    new IQueryable<T> GetQueryable();
 
     /// <summary>
     /// Checks if entity exists
