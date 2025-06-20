@@ -7,10 +7,12 @@ import {
   JwtToken,
 } from '@/types/auth';
 
+// Use relative URL to work with Vite proxy configuration
+// The proxy in vite.config.ts forwards /api requests to http://localhost:5001
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 
 class AuthService {
-  private baseUrl = `${API_BASE_URL}/api/security`;
+  private baseUrl = API_BASE_URL ? `${API_BASE_URL}/api/security` : '/api/security';
 
   async login(request: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${this.baseUrl}/auth/login`, {
@@ -21,23 +23,38 @@ class AuthService {
       body: JSON.stringify(request),
     });
 
-    const result = await response.json();
+    let result;
+    try {
+      // Check if response has content before parsing JSON
+      const text = await response.text();
+      if (text) {
+        result = JSON.parse(text);
+      } else {
+        result = {};
+      }
+    } catch (error) {
+      console.error('Failed to parse response as JSON:', error);
+      throw new Error('Invalid response from server');
+    }
 
     if (!response.ok) {
-      throw new Error(result.errorMessage || result.message || 'Login failed');
+      // Handle validation errors (400 Bad Request)
+      if (response.status === 400 && result.errors) {
+        const errorMessages = Object.values(result.errors).flat().join(', ');
+        throw new Error(errorMessages || 'Validation failed');
+      }
+
+      throw new Error(result.errorMessage || result.message || result.title || 'Login failed');
     }
 
-    if (!result.isSuccess) {
-      throw new Error(result.errorMessage || 'Login failed');
+    // Handle wrapped API response (ApiResponse<T> structure)
+    const loginData = result.data || result;
+
+    if (!loginData.isSuccess) {
+      throw new Error(loginData.errorMessage || 'Login failed');
     }
 
-    // Handle nested response structure from backend
-    if (result.data && !result.data.isSuccess) {
-      throw new Error(result.data.errorMessage || 'Login failed');
-    }
-
-    // Return the nested data if it exists, otherwise return the result directly
-    return result.data || result;
+    return loginData;
   }
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {

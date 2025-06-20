@@ -5,7 +5,6 @@ using MonitoringGrid.Api.DTOs;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Models;
-using MonitoringGrid.Core.Models;
 using static MonitoringGrid.Core.Interfaces.IIndicatorExecutionService;
 
 namespace MonitoringGrid.Api.Services;
@@ -56,6 +55,30 @@ public class SimpleIndicatorProcessor : BackgroundService
         }
 
         _logger.LogInformation("🛑 SimpleIndicatorProcessor stopped");
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("🛑 SimpleIndicatorProcessor is stopping...");
+
+        try
+        {
+            // Call base implementation to stop the background service
+            await base.StopAsync(cancellationToken);
+            _logger.LogInformation("✅ SimpleIndicatorProcessor stopped gracefully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error during SimpleIndicatorProcessor shutdown");
+            throw;
+        }
+    }
+
+    public override void Dispose()
+    {
+        _logger.LogInformation("🧹 SimpleIndicatorProcessor disposing...");
+        base.Dispose();
+        _logger.LogInformation("✅ SimpleIndicatorProcessor disposed");
     }
 
     private async Task ProcessIndicatorsAsync(CancellationToken cancellationToken)

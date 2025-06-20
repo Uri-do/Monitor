@@ -30,6 +30,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
 builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
+builder.Services.AddSingleton<MonitoringGrid.Api.Services.IProcessTrackingService, MonitoringGrid.Api.Services.ProcessTrackingService>();
 
 // Add Authentication and Authorization (configured for development)
 var jwtSettings = builder.Configuration.GetSection("Security:Jwt");
@@ -146,16 +147,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Override the Infrastructure's simple domain event publisher with MediatR publisher
 builder.Services.AddScoped<MonitoringGrid.Core.Interfaces.IDomainEventPublisher, MonitoringGrid.Api.Events.MediatRDomainEventPublisher>();
 
-// Add Simple Indicator Processor only if worker services are disabled
-var enableWorkerServices = builder.Configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableWorkerServices", true);
-if (!enableWorkerServices)
+// Add Simple Indicator Processor based on its own configuration
+var enableSimpleIndicatorProcessor = builder.Configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableSimpleIndicatorProcessor", false);
+if (enableSimpleIndicatorProcessor)
 {
     builder.Services.AddHostedService<MonitoringGrid.Api.Services.SimpleIndicatorProcessor>();
-    Console.WriteLine("✅ SimpleIndicatorProcessor registered (worker services disabled)");
+    Console.WriteLine("✅ SimpleIndicatorProcessor registered");
 }
 else
 {
-    Console.WriteLine("⚠️ SimpleIndicatorProcessor skipped (worker services enabled)");
+    Console.WriteLine("⚠️ SimpleIndicatorProcessor disabled");
 }
 
 // Build the application
@@ -163,6 +164,23 @@ var app = builder.Build();
 
 // Configure the middleware pipeline
 await app.ConfigureMiddlewarePipelineAsync(app.Environment);
+
+// Configure worker cleanup on application shutdown
+app.ConfigureWorkerCleanup();
+
+// Add console cancellation handler for proper cleanup
+Console.CancelKeyPress += (sender, e) =>
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning("Console cancellation requested - initiating graceful shutdown...");
+
+    // Cancel the cancellation to allow graceful shutdown
+    e.Cancel = true;
+
+    // Trigger application shutdown
+    var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+    lifetime.StopApplication();
+};
 
 // Run the application
 app.Run();

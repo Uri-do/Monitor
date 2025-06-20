@@ -42,9 +42,14 @@ public static class WorkerConstants
     public static class ConfigKeys
     {
         /// <summary>
-        /// Configuration key for enabling worker services
+        /// Configuration key for enabling worker services (integrated mode)
         /// </summary>
         public const string EnableWorkerServices = "Monitoring:EnableWorkerServices";
+
+        /// <summary>
+        /// Configuration key for enabling the simple indicator processor in the API
+        /// </summary>
+        public const string EnableSimpleIndicatorProcessor = "Monitoring:EnableSimpleIndicatorProcessor";
     }
 
     /// <summary>

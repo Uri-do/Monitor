@@ -68,7 +68,9 @@ export abstract class BaseApiService {
 
   constructor(endpoint: string) {
     this.apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
-    this.baseUrl = `${this.apiBaseUrl}/api/${endpoint}`;
+    // Use relative URL to work with Vite proxy configuration
+    // The proxy in vite.config.ts forwards /api requests to http://localhost:5001
+    this.baseUrl = this.apiBaseUrl ? `${this.apiBaseUrl}/api/${endpoint}` : `/api/${endpoint}`;
   }
 
   // Get standardized auth headers

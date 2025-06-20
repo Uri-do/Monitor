@@ -50,9 +50,8 @@ import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { useThrottledCallback } from '@/hooks/useThrottledCallback';
-import RunningIndicatorsDisplay, {
-  RunningIndicator,
-} from '@/components/Business/Indicator/RunningIndicatorsDisplay';
+import RunningIndicatorsDisplay from '@/components/Business/Indicator/RunningIndicatorsDisplay';
+import { RunningIndicator } from '@/components/Business/Indicator/types';
 import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
 import { workerApi } from '@/services/api';
 import { PageHeader, DataTable, StatusChip, LoadingSpinner } from '@/components/UI';

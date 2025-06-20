@@ -258,7 +258,7 @@ public class ProgressPlayDbService : IProgressPlayDbService
 
             using var command = new SqlCommand(storedProcedure, connection);
             command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("@ForLastMinutes", lastMinutes);
+            command.Parameters.AddWithValue("@LastMinutes", lastMinutes);
 
             using var reader = await command.ExecuteReaderAsync(cancellationToken);
 

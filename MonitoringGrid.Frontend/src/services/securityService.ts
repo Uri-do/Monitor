@@ -1,10 +1,12 @@
 import { SecurityConfig, SecurityEvent } from '../types/auth';
 import { authService } from './authService';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:57653';
+// Use relative URL to work with Vite proxy configuration
+// The proxy in vite.config.ts forwards /api requests to http://localhost:5001
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || '';
 
 class SecurityService {
-  private baseUrl = `${API_BASE_URL}/api/security`;
+  private baseUrl = API_BASE_URL ? `${API_BASE_URL}/api/security` : '/api/security';
 
   private getAuthHeaders() {
     const token = authService.getToken();

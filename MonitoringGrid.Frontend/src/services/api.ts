@@ -913,10 +913,14 @@ export const executionHistoryApi = {
     indicatorId?: number;
   }): Promise<PaginatedExecutionHistoryDto> => {
     // Updated to use Indicator controller's execution history endpoints
-    const response: AxiosResponse<PaginatedExecutionHistoryDto> = await api.get(
-      '/indicator/execution-history',
-      { params }
-    );
+    const response = await api.get('/indicator/execution-history', { params });
+
+    // Handle wrapped API response (ApiResponse<T> structure)
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
@@ -926,18 +930,28 @@ export const executionHistoryApi = {
     days?: number;
   }): Promise<ExecutionStatsDto[]> => {
     // Updated to use Indicator controller's execution history endpoints
-    const response: AxiosResponse<ExecutionStatsDto[]> = await api.get('/indicator/execution-stats', {
-      params,
-    });
+    const response = await api.get('/indicator/execution-stats', { params });
+
+    // Handle wrapped API response (ApiResponse<T> structure)
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
   // Get detailed execution information
   getExecutionDetail: async (historicalId: number): Promise<ExecutionHistoryDetailDto> => {
     // Updated to use Indicator controller's execution history endpoints
-    const response: AxiosResponse<ExecutionHistoryDetailDto> = await api.get(
-      `/indicator/execution-history/${historicalId}`
-    );
+    const response = await api.get(`/indicator/execution-history/${historicalId}`);
+
+    // Handle wrapped API response (ApiResponse<T> structure)
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 

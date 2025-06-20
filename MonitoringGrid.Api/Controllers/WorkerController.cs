@@ -49,6 +49,45 @@ public class WorkerController : BaseApiController
     }
 
     /// <summary>
+    /// Get tracked processes information
+    /// </summary>
+    [HttpGet("tracked-processes")]
+    public ActionResult<object> GetTrackedProcesses()
+    {
+        try
+        {
+            var processTrackingService = _serviceProvider.GetService<MonitoringGrid.Api.Services.IProcessTrackingService>();
+            if (processTrackingService == null)
+            {
+                return BadRequest(CreateErrorResponse("ProcessTrackingService not available", "SERVICE_NOT_AVAILABLE"));
+            }
+
+            var trackedProcesses = processTrackingService.GetTrackedProcesses().ToList();
+
+            var response = new
+            {
+                TrackedProcessCount = trackedProcesses.Count,
+                TrackedProcesses = trackedProcesses.Select(p => new
+                {
+                    p.ProcessId,
+                    p.ProcessType,
+                    p.Description,
+                    p.RegisteredAt,
+                    p.IsRunning,
+                    UptimeMinutes = (DateTime.UtcNow - p.RegisteredAt).TotalMinutes
+                }).ToList()
+            };
+
+            return Ok(CreateSuccessResponse(response, "Tracked processes retrieved successfully"));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error retrieving tracked processes");
+            return StatusCode(500, CreateErrorResponse($"Error retrieving tracked processes: {ex.Message}", "TRACKED_PROCESSES_ERROR"));
+        }
+    }
+
+    /// <summary>
     /// Get Worker service status
     /// </summary>
     /// <param name="request">Status request parameters</param>
@@ -402,6 +441,11 @@ public class WorkerController : BaseApiController
             _workerProcess = newWorkerProcess;
             processId = newWorkerProcess.Id;
             Logger.LogInformation("Started Worker process with PID: {ProcessId}", processId);
+
+            // Register the process with the tracking service for proper cleanup
+            var processTrackingService = _serviceProvider.GetService<MonitoringGrid.Api.Services.IProcessTrackingService>();
+            processTrackingService?.RegisterProcess(processId.Value, "MonitoringGrid.Worker",
+                $"Worker process started via API at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
         }
 
         // Quick check if process started successfully (minimal delay)
@@ -449,7 +493,10 @@ public class WorkerController : BaseApiController
 
     private static ProcessStartInfo CreateWorkerProcessStartInfo(StartWorkerRequest? request = null)
     {
-        var workerPath = Path.Combine(Directory.GetCurrentDirectory(), "..", WorkerConstants.Paths.WorkerProjectPath);
+        // Find the solution root directory by looking for the .sln file or going up from current directory
+        var currentDir = Directory.GetCurrentDirectory();
+        var solutionRoot = FindSolutionRoot(currentDir);
+        var workerPath = Path.Combine(solutionRoot, WorkerConstants.Paths.WorkerProjectPath);
         var arguments = WorkerConstants.Paths.DotnetRunArgs;
 
         if (!string.IsNullOrEmpty(request?.Arguments))
@@ -467,6 +514,52 @@ public class WorkerController : BaseApiController
             RedirectStandardError = true,
             CreateNoWindow = true
         };
+    }
+
+    /// <summary>
+    /// Find the solution root directory by looking for .sln file or going up from current directory
+    /// </summary>
+    /// <param name="startPath">Starting directory path</param>
+    /// <returns>Solution root directory path</returns>
+    private static string FindSolutionRoot(string startPath)
+    {
+        var currentDir = new DirectoryInfo(startPath);
+
+        // Look for .sln file or common solution indicators
+        while (currentDir != null)
+        {
+            // Check for .sln file
+            if (currentDir.GetFiles("*.sln").Length > 0)
+            {
+                return currentDir.FullName;
+            }
+
+            // Check for MonitoringGrid.Worker directory (our target)
+            var workerDir = Path.Combine(currentDir.FullName, "MonitoringGrid.Worker");
+            if (Directory.Exists(workerDir))
+            {
+                return currentDir.FullName;
+            }
+
+            currentDir = currentDir.Parent;
+        }
+
+        // Fallback: assume we're in a subdirectory and go up a few levels
+        var fallbackPath = startPath;
+        for (int i = 0; i < 5; i++)
+        {
+            fallbackPath = Path.GetDirectoryName(fallbackPath);
+            if (fallbackPath == null) break;
+
+            var workerPath = Path.Combine(fallbackPath, "MonitoringGrid.Worker");
+            if (Directory.Exists(workerPath))
+            {
+                return fallbackPath;
+            }
+        }
+
+        // Last resort: return the original path with ".."
+        return Path.Combine(startPath, "..");
     }
 
 
@@ -606,6 +699,10 @@ public class WorkerController : BaseApiController
     {
         if (_workerProcess != null)
         {
+            // Unregister from tracking service
+            var processTrackingService = _serviceProvider.GetService<MonitoringGrid.Api.Services.IProcessTrackingService>();
+            processTrackingService?.UnregisterProcess(_workerProcess.Id);
+
             SafeDisposeProcess(_workerProcess);
             _workerProcess = null;
         }

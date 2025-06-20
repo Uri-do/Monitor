@@ -34,6 +34,12 @@ public static class ApplicationLifetimeExtensions
         {
             logger.LogWarning("Application is stopping - initiating cleanup...");
 
+            // Always cleanup hosted services first
+            CleanupHostedServices(app, logger);
+
+            // Cleanup tracked processes
+            CleanupTrackedProcesses(app, logger);
+
             if (isIntegrated)
             {
                 logger.LogInformation("Running in integrated mode - hosted services will be stopped automatically");
@@ -66,6 +72,107 @@ public static class ApplicationLifetimeExtensions
     {
         logger.LogInformation("Manual worker cleanup triggered");
         CleanupAllWorkerProcesses(logger);
+    }
+
+    /// <summary>
+    /// Cleanup tracked processes using the ProcessTrackingService
+    /// </summary>
+    private static void CleanupTrackedProcesses(WebApplication app, ILogger logger)
+    {
+        try
+        {
+            logger.LogInformation("Cleaning up tracked processes...");
+
+            var processTrackingService = app.Services.GetService<MonitoringGrid.Api.Services.IProcessTrackingService>();
+            if (processTrackingService != null)
+            {
+                var trackedProcesses = processTrackingService.GetTrackedProcesses().ToList();
+                logger.LogInformation("Found {Count} tracked processes to cleanup", trackedProcesses.Count);
+
+                // Use async cleanup but wait for completion
+                var cleanupTask = processTrackingService.CleanupAllTrackedProcessesAsync();
+                cleanupTask.Wait(TimeSpan.FromSeconds(30));
+
+                logger.LogInformation("Tracked processes cleanup completed");
+            }
+            else
+            {
+                logger.LogWarning("ProcessTrackingService not found - skipping tracked process cleanup");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during tracked processes cleanup");
+        }
+    }
+
+    /// <summary>
+    /// Cleanup hosted services gracefully
+    /// </summary>
+    private static void CleanupHostedServices(WebApplication app, ILogger logger)
+    {
+        try
+        {
+            logger.LogInformation("Initiating graceful shutdown of hosted services...");
+
+            // Get all hosted services from the DI container
+            var hostedServices = app.Services.GetServices<IHostedService>().ToList();
+
+            if (hostedServices.Any())
+            {
+                logger.LogInformation("Found {Count} hosted services to stop", hostedServices.Count);
+
+                var stopTasks = new List<Task>();
+                var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+                foreach (var service in hostedServices)
+                {
+                    try
+                    {
+                        logger.LogInformation("Stopping hosted service: {ServiceType}", service.GetType().Name);
+
+                        // Create a task to stop the service with timeout
+                        var stopTask = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await service.StopAsync(cancellationTokenSource.Token);
+                                logger.LogInformation("Successfully stopped hosted service: {ServiceType}", service.GetType().Name);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex, "Error stopping hosted service: {ServiceType}", service.GetType().Name);
+                            }
+                        }, cancellationTokenSource.Token);
+
+                        stopTasks.Add(stopTask);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error initiating stop for hosted service: {ServiceType}", service.GetType().Name);
+                    }
+                }
+
+                // Wait for all services to stop or timeout
+                try
+                {
+                    Task.WaitAll(stopTasks.ToArray(), TimeSpan.FromSeconds(30));
+                    logger.LogInformation("All hosted services stopped successfully");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Some hosted services did not stop gracefully within timeout");
+                }
+            }
+            else
+            {
+                logger.LogInformation("No hosted services found to stop");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during hosted services cleanup");
+        }
     }
 
     /// <summary>
@@ -275,6 +382,9 @@ public static class ApplicationLifetimeExtensions
 
             // Also cleanup any dotnet processes running MonitoringGrid
             CleanupDotnetMonitoringGridProcesses(logger);
+
+            // Enhanced cleanup for .NET Host processes
+            CleanupDotnetHostProcesses(logger);
         }
         catch (Exception ex)
         {
@@ -369,13 +479,125 @@ public static class ApplicationLifetimeExtensions
     {
         try
         {
-            // This is a simplified approach - in a real implementation you might use WMI
-            // For now, we'll just return null and rely on process name matching
-            return null;
+            return GetProcessCommandLine(process.Id);
         }
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Enhanced cleanup for .NET Host processes that might be running MonitoringGrid services
+    /// </summary>
+    private static void CleanupDotnetHostProcesses(ILogger logger)
+    {
+        try
+        {
+            logger.LogInformation("Searching for .NET Host processes running MonitoringGrid services...");
+
+            var currentProcessId = Environment.ProcessId;
+            var dotnetProcesses = Process.GetProcesses()
+                .Where(p => p.ProcessName.Equals("dotnet", StringComparison.OrdinalIgnoreCase) ||
+                           p.ProcessName.Contains("MonitoringGrid", StringComparison.OrdinalIgnoreCase))
+                .Where(p => p.Id != currentProcessId) // Don't kill ourselves
+                .ToList();
+
+            var monitoringGridProcesses = new List<(Process Process, string Reason)>();
+
+            foreach (var process in dotnetProcesses)
+            {
+                try
+                {
+                    var reason = "";
+                    var isMonitoringGrid = false;
+
+                    // Check process name
+                    if (process.ProcessName.Contains("MonitoringGrid", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isMonitoringGrid = true;
+                        reason = "Process name contains MonitoringGrid";
+                    }
+                    else
+                    {
+                        // Check command line for dotnet processes
+                        var commandLine = GetProcessCommandLine(process.Id);
+                        if (!string.IsNullOrEmpty(commandLine))
+                        {
+                            if (commandLine.Contains("MonitoringGrid.Worker", StringComparison.OrdinalIgnoreCase) ||
+                                commandLine.Contains("MonitoringGrid.Api", StringComparison.OrdinalIgnoreCase) ||
+                                commandLine.Contains("MonitoringGrid", StringComparison.OrdinalIgnoreCase))
+                            {
+                                isMonitoringGrid = true;
+                                reason = "Command line contains MonitoringGrid";
+                            }
+                        }
+                    }
+
+                    if (isMonitoringGrid)
+                    {
+                        monitoringGridProcesses.Add((process, reason));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogDebug(ex, "Could not check process {ProcessId} - likely access denied", process.Id);
+                }
+            }
+
+            if (monitoringGridProcesses.Any())
+            {
+                logger.LogWarning("Found {Count} .NET processes running MonitoringGrid services", monitoringGridProcesses.Count);
+
+                foreach (var (process, reason) in monitoringGridProcesses)
+                {
+                    try
+                    {
+                        logger.LogInformation("Terminating .NET MonitoringGrid process {ProcessId} ({ProcessName}) - {Reason}",
+                            process.Id, process.ProcessName, reason);
+
+                        if (!process.HasExited)
+                        {
+                            // Try graceful shutdown first
+                            process.CloseMainWindow();
+
+                            // Wait for graceful shutdown
+                            if (!process.WaitForExit(5000))
+                            {
+                                // Force kill if graceful shutdown failed
+                                logger.LogWarning("Force killing .NET MonitoringGrid process {ProcessId}", process.Id);
+                                process.Kill();
+                                process.WaitForExit(3000);
+                            }
+                        }
+
+                        logger.LogInformation("Successfully terminated .NET MonitoringGrid process {ProcessId}", process.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error terminating .NET MonitoringGrid process {ProcessId}", process.Id);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            process.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Error disposing .NET MonitoringGrid process {ProcessId}", process.Id);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                logger.LogInformation("No .NET MonitoringGrid processes found");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during .NET Host process cleanup");
         }
     }
 }
