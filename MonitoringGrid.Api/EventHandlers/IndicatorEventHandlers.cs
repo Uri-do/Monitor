@@ -129,7 +129,7 @@ public class IndicatorExecutedEventHandler : INotificationHandler<DomainEventNot
                     ? (int)domainEvent.ExecutionDuration.Value.TotalMilliseconds
                     : 0,
                 ExecutionHistoryId = domainEvent.ExecutionHistoryId,
-                ThresholdBreached = false, // TODO: Get from indicator or notification
+                ThresholdBreached = domainEvent.ThresholdBreached
                 ExecutionContext = "System"
             };
 

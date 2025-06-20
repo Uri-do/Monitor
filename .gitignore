@@ -278,9 +278,7 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Cake - Uncomment if you are using it
-# tools/**
-# !tools/packages.config
+# Cake build tool (not used)
 
 # Tabs Studio
 *.tss
@@ -415,9 +413,7 @@ secrets.json
 .env.test
 .env.production
 
-# Package manager lock files (optional - uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
+# Package manager lock files (keeping for reproducible builds)
 
 # Coverage reports
 coverage/
@@ -568,9 +564,7 @@ dist
 
 # Gatsby files
 .cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
+# Gatsby public directory (not used in this project)
 
 # vuepress build output
 .vuepress/dist

@@ -111,7 +111,7 @@ const SystemSettings: React.FC = () => {
     defaultValues: {
       general: {
         siteName: 'MonitoringGrid',
-        siteDescription: 'KPI Monitoring and Alerting System',
+        siteDescription: 'Indicator Monitoring and Alerting System',
         maintenanceMode: false,
         debugMode: false,
       },
@@ -130,7 +130,7 @@ const SystemSettings: React.FC = () => {
       monitoring: {
         dataRetentionDays: 365,
         alertCooldown: 5,
-        maxConcurrentKpis: 100,
+        maxConcurrentIndicators: 100,
         autoArchive: true,
       },
     },

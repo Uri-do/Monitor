@@ -44,7 +44,7 @@ MonitoringGrid/
 │   ├── 00_CreateDatabase.sql         # PopAI database creation
 │   ├── 01_CreateSchema.sql           # Monitoring schema
 │   ├── 02_InitialData.sql            # Initial configuration
-│   └── 03_StoredProcedures.sql       # KPI monitoring procedures
+│   └── 03_StoredProcedures.sql       # Indicator monitoring procedures
 ├── MonitoringGrid.csproj             # Worker Service
 ├── MonitoringGrid.Api/               # Web API
 │   ├── Controllers/                  # API controllers

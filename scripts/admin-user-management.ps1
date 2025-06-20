@@ -8,8 +8,8 @@ param(
     [Parameter(Mandatory=$false)]
     [string]$Username = "admin",
     
-    [Parameter(Mandatory=$false)]
-    [string]$Password = "Admin123!",
+    [Parameter(Mandatory=$true)]
+    [string]$Password, # Password must be provided - no default for security
     
     [Parameter(Mandatory=$false)]
     [string]$Email = "admin@monitoringgrid.com",

@@ -136,9 +136,12 @@ public class CleanupJob : IJob
             var cutoffDate = DateTime.UtcNow.AddDays(-_configuration.ScheduledTasks.HistoricalDataRetentionDays);
             var logCutoffDate = DateTime.UtcNow.AddDays(-_configuration.ScheduledTasks.LogRetentionDays);
 
-            // TODO: Clean up old indicator execution history when new table is implemented
-            // For now, skip historical data cleanup since HistoricalData table is obsolete
-            _logger.LogInformation("Historical data cleanup skipped - table is obsolete");
+            // Clean up old indicator execution history
+            var executionHistoryDeleted = await dbContext.IndicatorExecutionHistory
+                .Where(h => h.ExecutedAt < cutoffDate)
+                .ExecuteDeleteAsync();
+
+            _logger.LogInformation("Deleted {Count} old execution history records", executionHistoryDeleted);
 
             // Clean up old alert logs
             var alertLogsDeleted = await dbContext.AlertLogs

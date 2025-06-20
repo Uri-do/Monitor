@@ -1415,8 +1415,14 @@ namespace MonitoringGrid.Api.Controllers
 
         private string GetCurrentUser()
         {
-            // TODO: Implement proper user context when authentication is added
-            return User?.Identity?.Name ?? "system";
+            // Get authenticated user from JWT claims or return system for service operations
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                return User.Identity.Name ?? User.FindFirst("sub")?.Value ?? User.FindFirst("email")?.Value ?? "authenticated-user";
+            }
+
+            // For service-to-service calls or background operations
+            return "system";
         }
     }
 }

@@ -403,7 +403,7 @@ class ConfigService {
       {
         category: 'ui',
         key: 'default_page_size',
-        value: 25,
+        value: 50, // User preference: 50 items per page
         type: 'number',
         description: 'Default number of items per page',
         isSecret: false,

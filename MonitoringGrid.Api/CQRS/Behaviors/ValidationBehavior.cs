@@ -79,6 +79,7 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
 public class PerformanceBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
+    private const int SLOW_REQUEST_THRESHOLD_MS = 500;
     private readonly ILogger<PerformanceBehavior<TRequest, TResponse>> _logger;
 
     public PerformanceBehavior(ILogger<PerformanceBehavior<TRequest, TResponse>> logger)
@@ -98,7 +99,7 @@ public class PerformanceBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
 
             var elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             
-            if (elapsedMilliseconds > 500) // Log slow requests
+            if (elapsedMilliseconds > SLOW_REQUEST_THRESHOLD_MS) // Log slow requests
             {
                 _logger.LogWarning("Slow request detected: {RequestName} took {ElapsedMilliseconds}ms", 
                     requestName, elapsedMilliseconds);

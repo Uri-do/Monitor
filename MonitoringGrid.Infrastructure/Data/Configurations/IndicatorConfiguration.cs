@@ -157,17 +157,7 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
 
         // Note: Relationship with MonitorStatisticsCollector removed since it's in a different database (ProgressPlayDBTest)
 
-        // Note: AlertLogs and HistoricalData still reference KpiId for now
-        // These relationships will be updated when we migrate the data
-        // builder.HasMany(i => i.AlertLogs)
-        //     .WithOne(a => a.KPI)
-        //     .HasForeignKey(a => a.KpiId)
-        //     .OnDelete(DeleteBehavior.Cascade);
-
-        // builder.HasMany(i => i.HistoricalData)
-        //     .WithOne(h => h.KPI)
-        //     .HasForeignKey(h => h.KpiId)
-        //     .OnDelete(DeleteBehavior.Cascade);
+        // Legacy KPI references DELETED - Using modern Indicator relationships only
 
         // Indexes
         builder.HasIndex(i => i.IndicatorName)

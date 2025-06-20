@@ -1,6 +1,8 @@
 using MonitoringGrid.Api.Events;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Events;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace MonitoringGrid.Api.Events.Handlers;
 
@@ -10,10 +12,14 @@ namespace MonitoringGrid.Api.Events.Handlers;
 public class AlertResolvedEventHandler : DomainEventNotificationHandler<AlertResolvedEvent>
 {
     private readonly ILogger<AlertResolvedEventHandler> _logger;
+    private readonly IHubContext<MonitoringHub> _hubContext;
 
-    public AlertResolvedEventHandler(ILogger<AlertResolvedEventHandler> logger)
+    public AlertResolvedEventHandler(
+        ILogger<AlertResolvedEventHandler> logger,
+        IHubContext<MonitoringHub> hubContext)
     {
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     protected override async Task HandleDomainEvent(AlertResolvedEvent domainEvent, CancellationToken cancellationToken)
@@ -32,8 +38,17 @@ public class AlertResolvedEventHandler : DomainEventNotificationHandler<AlertRes
             // Clean up any pending escalations
             await CleanupEscalationsAsync(domainEvent);
 
-            // TODO: Send real-time notification to dashboard when SignalR is properly integrated
-            _logger.LogDebug("Real-time notification would be sent for resolved alert {AlertId}", domainEvent.AlertId);
+            // Send real-time notification to dashboard via SignalR
+            await _hubContext.Clients.All.SendAsync("AlertResolved", new
+            {
+                AlertId = domainEvent.AlertId,
+                IndicatorId = domainEvent.IndicatorId,
+                ResolvedBy = domainEvent.ResolvedBy,
+                Resolution = domainEvent.Resolution,
+                ResolvedAt = domainEvent.OccurredOn
+            });
+
+            _logger.LogDebug("Real-time notification sent for resolved alert {AlertId}", domainEvent.AlertId);
 
             _logger.LogInformation("Successfully handled alert resolved event for Alert {AlertId}", domainEvent.AlertId);
         }

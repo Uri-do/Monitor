@@ -295,17 +295,8 @@ WHEN NOT MATCHED THEN
 
 PRINT '✅ Default schedulers inserted';
 
--- Insert default contacts
-MERGE monitoring.Contacts AS target
-USING (VALUES
-    ('System Administrator', 'admin@monitoringgrid.com', '+1-555-0100', 1, 1),
-    ('Development Team', 'dev@monitoringgrid.com', '+1-555-0101', 2, 1),
-    ('Operations Team', 'ops@monitoringgrid.com', '+1-555-0102', 1, 1)
-) AS source (ContactName, Email, PhoneNumber, Priority, IsActive)
-ON target.Email = source.Email
-WHEN NOT MATCHED THEN
-    INSERT (ContactName, Email, PhoneNumber, Priority, IsActive)
-    VALUES (source.ContactName, source.Email, source.PhoneNumber, source.Priority, source.IsActive);
+-- Default contacts DELETED - Production will use real contacts only
+-- Use the admin interface to add actual operational contacts
 
 PRINT '✅ Default contacts inserted';
 

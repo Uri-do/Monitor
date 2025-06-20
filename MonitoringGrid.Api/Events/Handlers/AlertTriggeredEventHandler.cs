@@ -1,6 +1,8 @@
 using MonitoringGrid.Api.Events;
 using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Core.Events;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace MonitoringGrid.Api.Events.Handlers;
 
@@ -10,10 +12,14 @@ namespace MonitoringGrid.Api.Events.Handlers;
 public class AlertTriggeredEventHandler : DomainEventNotificationHandler<AlertTriggeredEvent>
 {
     private readonly ILogger<AlertTriggeredEventHandler> _logger;
+    private readonly IHubContext<MonitoringHub> _hubContext;
 
-    public AlertTriggeredEventHandler(ILogger<AlertTriggeredEventHandler> logger)
+    public AlertTriggeredEventHandler(
+        ILogger<AlertTriggeredEventHandler> logger,
+        IHubContext<MonitoringHub> hubContext)
     {
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     protected override async Task HandleDomainEvent(AlertTriggeredEvent domainEvent, CancellationToken cancellationToken)
@@ -29,8 +35,19 @@ public class AlertTriggeredEventHandler : DomainEventNotificationHandler<AlertTr
             // Update alert metrics
             await UpdateAlertMetricsAsync(domainEvent);
 
-            // TODO: Send real-time notification to dashboard when SignalR is properly integrated
-            _logger.LogDebug("Real-time notification would be sent for alert {AlertId}", domainEvent.AlertId);
+            // Send real-time notification to dashboard via SignalR
+            await _hubContext.Clients.All.SendAsync("AlertTriggered", new
+            {
+                AlertId = domainEvent.AlertId,
+                IndicatorId = domainEvent.IndicatorId,
+                Severity = domainEvent.Severity,
+                CurrentValue = domainEvent.CurrentValue,
+                HistoricalValue = domainEvent.HistoricalValue,
+                Deviation = domainEvent.Deviation,
+                TriggeredAt = domainEvent.OccurredOn
+            });
+
+            _logger.LogDebug("Real-time notification sent for alert {AlertId}", domainEvent.AlertId);
 
             _logger.LogInformation("Successfully handled alert triggered event for Alert {AlertId}", domainEvent.AlertId);
         }

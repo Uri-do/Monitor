@@ -130,11 +130,11 @@ public class KpiPerformanceMonitorAttribute : ActionFilterAttribute
         var logger = context.HttpContext.RequestServices
             .GetRequiredService<ILogger<KpiPerformanceMonitorAttribute>>();
 
-        // Extract KPI ID if available (Legacy - should be IndicatorId)
-        var kpiId = context.ActionArguments.ContainsKey("id") ? context.ActionArguments["id"]?.ToString() : "unknown";
+        // Extract Indicator ID if available
+        var indicatorId = context.ActionArguments.ContainsKey("id") ? context.ActionArguments["id"]?.ToString() : "unknown";
 
-        logger.LogInformation("Starting KPI operation: {ActionName} for KPI {KpiId} [RequestId: {RequestId}] (Legacy - use Indicator operations instead)",
-            actionName, kpiId, requestId);
+        logger.LogInformation("Starting Indicator operation: {ActionName} for Indicator {IndicatorId} [RequestId: {RequestId}]",
+            actionName, indicatorId, requestId);
 
         var result = await next();
         stopwatch.Stop();

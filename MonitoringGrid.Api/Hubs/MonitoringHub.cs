@@ -8,7 +8,7 @@ namespace MonitoringGrid.Api.Hubs;
 /// <summary>
 /// SignalR Hub for real-time monitoring notifications
 /// </summary>
-// [Authorize] // Temporarily disabled for testing - TODO: Re-enable with proper authentication
+[Authorize] // Authentication enabled for production security
 public class MonitoringHub : Hub
 {
     private readonly ILogger<MonitoringHub> _logger;
@@ -54,41 +54,7 @@ public class MonitoringHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    /// <summary>
-    /// Join a specific KPI monitoring group (Legacy - use JoinIndicatorGroup instead)
-    /// </summary>
-    [Obsolete("Use JoinIndicatorGroup instead")]
-    public async Task JoinKpiGroup(int kpiId)
-    {
-        var groupName = $"KPI_{kpiId}";
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-
-        _logger.LogDebug("Client {ConnectionId} joined KPI group {GroupName}", Context.ConnectionId, groupName);
-
-        await Clients.Caller.SendAsync("JoinedGroup", new
-        {
-            GroupName = groupName,
-            Message = $"Joined KPI {kpiId} monitoring group"
-        });
-    }
-
-    /// <summary>
-    /// Leave a specific KPI monitoring group (Legacy - use LeaveIndicatorGroup instead)
-    /// </summary>
-    [Obsolete("Use LeaveIndicatorGroup instead")]
-    public async Task LeaveKpiGroup(int kpiId)
-    {
-        var groupName = $"KPI_{kpiId}";
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-
-        _logger.LogDebug("Client {ConnectionId} left KPI group {GroupName}", Context.ConnectionId, groupName);
-
-        await Clients.Caller.SendAsync("LeftGroup", new
-        {
-            GroupName = groupName,
-            Message = $"Left KPI {kpiId} monitoring group"
-        });
-    }
+    // Legacy KPI methods DELETED - Use Indicator methods only
 
     /// <summary>
     /// Join a specific Indicator monitoring group
@@ -342,18 +308,8 @@ public interface IRealtimeNotificationService
     // Enhanced real-time events
     Task SendWorkerStatusUpdateAsync(WorkerStatusUpdateDto workerStatus);
 
-    // Legacy KPI events (deprecated - use Indicator events instead)
-    [Obsolete("Use SendIndicatorExecutionStartedAsync instead")]
-    Task SendKpiExecutionStartedAsync(IndicatorExecutionStartedDto kpiExecution);
-    [Obsolete("Use SendIndicatorExecutionProgressAsync instead")]
-    Task SendKpiExecutionProgressAsync(IndicatorExecutionProgressDto kpiProgress);
-    [Obsolete("Use SendIndicatorExecutionCompletedAsync instead")]
-    Task SendKpiExecutionCompletedAsync(IndicatorExecutionCompletedDto kpiCompletion);
+    // Legacy KPI events DELETED - Use Indicator events only
     Task SendCountdownUpdateAsync(CountdownUpdateDto countdown);
-    [Obsolete("Use SendNextIndicatorScheduleUpdateAsync instead")]
-    Task SendNextKpiScheduleUpdateAsync(NextIndicatorsScheduleUpdateDto schedule);
-    [Obsolete("Use SendRunningIndicatorsUpdateAsync instead")]
-    Task SendRunningKpisUpdateAsync(RunningIndicatorsUpdateDto runningKpis);
 
     // Indicator real-time events
     Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution);
@@ -482,68 +438,11 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         }
     }
 
-    [Obsolete("Use SendIndicatorExecutionStartedAsync instead")]
-    public async Task SendKpiExecutionStartedAsync(IndicatorExecutionStartedDto kpiExecution)
-    {
-        try
-        {
-            _logger.LogDebug("Sending KPI execution started notification for Indicator {IndicatorID}", kpiExecution.IndicatorID);
+    // Legacy KPI methods DELETED - Use Indicator methods only
 
-            await _hubContext.Clients.Group("Dashboard")
-                .SendAsync("KpiExecutionStarted", kpiExecution);
+    // Broken duplicate method DELETED - Use correct method below
 
-            await _hubContext.Clients.Group($"KPI_{kpiExecution.IndicatorID}")
-                .SendAsync("KpiExecutionStarted", kpiExecution);
-
-            _logger.LogDebug("KPI execution started notification sent for Indicator {IndicatorID}", kpiExecution.IndicatorID);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send KPI execution started notification for Indicator {IndicatorID}", kpiExecution.IndicatorID);
-        }
-    }
-
-    [Obsolete("Use SendIndicatorExecutionProgressAsync instead")]
-    public async Task SendKpiExecutionProgressAsync(IndicatorExecutionProgressDto kpiProgress)
-    {
-        try
-        {
-            _logger.LogDebug("Sending KPI execution progress for Indicator {IndicatorId}: {Progress}%", kpiProgress.IndicatorId, kpiProgress.Progress);
-
-            await _hubContext.Clients.Group("Dashboard")
-                .SendAsync("KpiExecutionProgress", kpiProgress);
-
-            await _hubContext.Clients.Group($"KPI_{kpiProgress.IndicatorId}")
-                .SendAsync("KpiExecutionProgress", kpiProgress);
-
-            _logger.LogDebug("KPI execution progress sent for Indicator {IndicatorId}", kpiProgress.IndicatorId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send KPI execution progress for Indicator {IndicatorId}", kpiProgress.IndicatorId);
-        }
-    }
-
-    [Obsolete("Use SendIndicatorExecutionCompletedAsync instead")]
-    public async Task SendKpiExecutionCompletedAsync(IndicatorExecutionCompletedDto kpiCompletion)
-    {
-        try
-        {
-            _logger.LogDebug("Sending KPI execution completed notification for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
-
-            await _hubContext.Clients.Group("Dashboard")
-                .SendAsync("KpiExecutionCompleted", kpiCompletion);
-
-            await _hubContext.Clients.Group($"KPI_{kpiCompletion.IndicatorId}")
-                .SendAsync("KpiExecutionCompleted", kpiCompletion);
-
-            _logger.LogDebug("KPI execution completed notification sent for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send KPI execution completed notification for Indicator {IndicatorId}", kpiCompletion.IndicatorId);
-        }
-    }
+    // Obsolete KPI method DELETED - Use Indicator methods only
 
     public async Task SendCountdownUpdateAsync(CountdownUpdateDto countdown)
     {
@@ -564,41 +463,7 @@ public class RealtimeNotificationService : IRealtimeNotificationService
         }
     }
 
-    [Obsolete("Use SendNextIndicatorScheduleUpdateAsync instead")]
-    public async Task SendNextKpiScheduleUpdateAsync(NextIndicatorsScheduleUpdateDto schedule)
-    {
-        try
-        {
-            _logger.LogDebug("Sending next Indicator schedule update with {Count} upcoming Indicators", schedule.NextIndicators.Count);
-
-            await _hubContext.Clients.Group("Dashboard")
-                .SendAsync("NextKpiScheduleUpdate", schedule);
-
-            _logger.LogDebug("Next Indicator schedule update sent");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send next Indicator schedule update");
-        }
-    }
-
-    [Obsolete("Use SendRunningIndicatorsUpdateAsync instead")]
-    public async Task SendRunningKpisUpdateAsync(RunningIndicatorsUpdateDto runningKpis)
-    {
-        try
-        {
-            _logger.LogDebug("Sending running Indicators update with {Count} running Indicators", runningKpis.RunningIndicators.Count);
-
-            await _hubContext.Clients.Group("Dashboard")
-                .SendAsync("RunningKpisUpdate", runningKpis);
-
-            _logger.LogDebug("Running Indicators update sent");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send running Indicators update");
-        }
-    }
+    // Obsolete KPI schedule methods DELETED - Use Indicator methods only
 
     public async Task SendIndicatorExecutionStartedAsync(IndicatorExecutionStartedDto indicatorExecution)
     {

@@ -73,9 +73,9 @@ public static class ApplicationBuilderExtensions
     public static IApplicationBuilder UsePerformanceMiddleware(this IApplicationBuilder app)
     {
         app.UseMiddleware<ResponseCachingMiddleware>();
-        // Response compression temporarily disabled to fix encoding issues
-        // TODO: Re-enable with proper configuration to avoid conflicts with proxy
-        // app.UseResponseCompression();
+
+        // Response compression with proper configuration for proxy compatibility
+        app.UseResponseCompression();
 
         return app;
     }
@@ -165,8 +165,8 @@ public static class ApplicationBuilderExtensions
             // Check database connectivity
             var monitoringContext = services.GetRequiredService<MonitoringContext>();
 
-            // Skip automatic migration for now due to existing tables
-            // TODO: Handle database schema migration properly
+            // Verify database connectivity and apply pending migrations
+            await monitoringContext.Database.MigrateAsync();
             var canConnect = await monitoringContext.Database.CanConnectAsync();
             if (canConnect)
             {

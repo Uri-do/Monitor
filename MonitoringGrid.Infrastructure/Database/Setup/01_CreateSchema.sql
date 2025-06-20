@@ -11,22 +11,7 @@ BEGIN
 END
 GO
 
--- Legacy KPI Configuration Table (deprecated - use Indicators table instead)
--- This table is maintained for backward compatibility only
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'monitoring.KPIs') AND type in (N'U'))
-BEGIN
-    CREATE TABLE monitoring.KPIs (
-        KpiId INT IDENTITY(1,1) PRIMARY KEY,
-        Indicator NVARCHAR(255) NOT NULL,
-        Owner NVARCHAR(100) NOT NULL,
-        Priority TINYINT NOT NULL CHECK (Priority IN (1, 2)), -- 1=SMS, 2=Email
-        Frequency INT NOT NULL, -- Minutes
-        Deviation DECIMAL(5,2) NOT NULL, -- Percentage
-        SpName NVARCHAR(255) NOT NULL,
-        SubjectTemplate NVARCHAR(500) NOT NULL,
-        DescriptionTemplate NVARCHAR(MAX) NOT NULL,
-        IsActive BIT NOT NULL DEFAULT 1,
-        LastRun DATETIME2 NULL,
+-- Legacy KPI table DELETED - Use Indicators table only
         CooldownMinutes INT NOT NULL DEFAULT 30, -- Prevent alert flooding
         MinimumThreshold DECIMAL(18,2) NULL, -- Absolute value threshold
         CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),

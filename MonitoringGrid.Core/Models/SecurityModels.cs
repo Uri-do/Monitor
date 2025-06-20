@@ -673,37 +673,37 @@ public enum ImportErrorSeverity
 }
 
 /// <summary>
-/// Request model for creating KPIs
+/// Request model for creating Indicators
 /// </summary>
-public class CreateKpiRequest
+public class CreateIndicatorRequest
 {
     /// <summary>
-    /// KPI name
+    /// Indicator name
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// KPI description
+    /// Indicator description
     /// </summary>
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// Stored procedure name for KPI execution
+    /// Stored procedure name for Indicator execution
     /// </summary>
     public string StoredProcedureName { get; set; } = string.Empty;
 
     /// <summary>
-    /// KPI owner
+    /// Indicator owner
     /// </summary>
     public string Owner { get; set; } = string.Empty;
 
     /// <summary>
-    /// Whether the KPI is active
+    /// Whether the Indicator is active
     /// </summary>
     public bool IsActive { get; set; } = true;
 
     /// <summary>
-    /// Last minutes parameter for KPI execution
+    /// Last minutes parameter for Indicator execution
     /// </summary>
     public int LastMinutes { get; set; } = 60;
 }
