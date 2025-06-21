@@ -146,28 +146,27 @@ class SignalRService {
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {
         withCredentials: true,
-        // Temporarily disable authentication for testing
-        // accessTokenFactory: () => {
-        //   const token = localStorage.getItem('auth_token');
-        //   console.log('SignalR requesting token, found:', token ? 'valid token' : 'no token');
+        accessTokenFactory: () => {
+          const token = localStorage.getItem('auth_token');
+          console.log('SignalR requesting token, found:', token ? 'valid token' : 'no token');
 
-        //   // Return null if no token to prevent malformed token errors
-        //   if (!token || token.trim() === '') {
-        //     console.log('No valid token available for SignalR connection');
-        //     return null;
-        //   }
+          // Return null if no token to prevent malformed token errors
+          if (!token || token.trim() === '') {
+            console.log('No valid token available for SignalR connection');
+            return null;
+          }
 
-        //   return token;
-        // },
+          return token;
+        },
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: retryContext => {
-          // Temporarily allow reconnection without token for testing
-          // const token = localStorage.getItem('auth_token');
-          // if (!token || token.trim() === '') {
-          //   console.log('No token available, stopping SignalR reconnection attempts');
-          //   return null; // Stop retrying if no token
-          // }
+          // Check if we have a valid token before attempting reconnection
+          const token = localStorage.getItem('auth_token');
+          if (!token || token.trim() === '') {
+            console.log('No token available, stopping SignalR reconnection attempts');
+            return null; // Stop retrying if no token
+          }
 
           if (retryContext.previousRetryCount < this.maxReconnectAttempts) {
             return this.reconnectDelay * Math.pow(2, retryContext.previousRetryCount);

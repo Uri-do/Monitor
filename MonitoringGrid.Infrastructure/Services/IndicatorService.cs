@@ -44,7 +44,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        .Include(i => i.Scheduler)
+                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
                         .AsSplitQuery();
 
                     // Apply filters if provided
@@ -142,7 +142,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        .Include(i => i.Scheduler)
+                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
                         .Where(i => i.IsActive)
                         .AsSplitQuery();
 
@@ -189,7 +189,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        .Include(i => i.Scheduler)
+                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
                         .Where(i => i.OwnerContactId == ownerContactId && i.IsActive)
                         .AsSplitQuery()
                         .OrderBy(i => i.IndicatorName)
@@ -241,7 +241,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        .Include(i => i.Scheduler)
+                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
                         .Where(i => i.Priority == priority && i.IsActive)
                         .AsSplitQuery();
 

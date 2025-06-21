@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MediatR;
 using MonitoringGrid.Api.Controllers.Base;
@@ -1132,6 +1133,70 @@ public class SecurityController : BaseApiController
     }
 
     /// <summary>
+    /// Debug endpoint to check user roles directly from database
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Debug information about user roles</returns>
+    [HttpGet("debug/roles")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<ActionResult<object>> DebugUserRoles(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            Logger.LogDebug("Debug: Checking roles for user {UserId}", userId);
+
+            using var scope = HttpContext.RequestServices.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+            // Get user directly from database
+            var user = await context.Users
+                .Where(u => u.UserId == userId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (user == null)
+            {
+                return Ok(new { UserId = userId, Message = "User not found in database" });
+            }
+
+            // Get user roles directly from database
+            var userRoles = await context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Include(ur => ur.Role)
+                .ToListAsync(cancellationToken);
+
+            // Get all roles in system
+            var allRoles = await context.Roles.ToListAsync(cancellationToken);
+
+            return Ok(new
+            {
+                UserId = userId,
+                UserEmail = user.Email,
+                UserName = user.Username,
+                UserRoles = userRoles.Select(ur => new
+                {
+                    RoleId = ur.RoleId,
+                    RoleName = ur.Role.Name,
+                    RoleDescription = ur.Role.Description
+                }).ToList(),
+                AllRolesInSystem = allRoles.Select(r => new
+                {
+                    RoleId = r.RoleId,
+                    RoleName = r.Name,
+                    RoleDescription = r.Description
+                }).ToList(),
+                HasAdminRole = userRoles.Any(ur => ur.Role.Name == "Admin"),
+                ClaimsFromToken = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in debug roles endpoint");
+            return StatusCode(500, new { Error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get current user profile information
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -1162,9 +1227,50 @@ public class SecurityController : BaseApiController
                 return NotFound(CreateErrorResponse("User not found", "USER_NOT_FOUND"));
             }
 
+            // Get user roles and permissions using SecurityService
+            var userRoles = new List<MonitoringGrid.Core.Entities.Role>();
+            var userPermissions = new List<MonitoringGrid.Core.Entities.Permission>();
+
+            try
+            {
+                Logger.LogDebug("Loading roles for user {UserId}", userId);
+
+                // First, let's try a direct database approach using Entity Framework context
+                // This is more reliable than the SecurityService methods
+                using var scope = HttpContext.RequestServices.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
+
+                // Get user roles directly from database
+                var userRoleEntities = await context.UserRoles
+                    .Where(ur => ur.UserId == userId)
+                    .Include(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+                    .ToListAsync(cancellationToken);
+
+                Logger.LogDebug("Found {UserRoleCount} role assignments for user {UserId}", userRoleEntities.Count, userId);
+
+                userRoles = userRoleEntities.Select(ur => ur.Role).ToList();
+
+                // Get all permissions from user's roles
+                userPermissions = userRoleEntities
+                    .SelectMany(ur => ur.Role.RolePermissions)
+                    .Select(rp => rp.Permission)
+                    .Distinct()
+                    .ToList();
+
+                Logger.LogDebug("User {UserId} has {UserRoleCount} roles: {RoleNames}",
+                    userId, userRoles.Count, string.Join(", ", userRoles.Select(r => r.Name)));
+                Logger.LogDebug("User {UserId} has {PermissionCount} permissions", userId, userPermissions.Count);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load roles/permissions for user {UserId}, using empty lists", userId);
+            }
+
             stopwatch.Stop();
 
-            var response = MapToUserResponse(user, true);
+            var response = MapToUserResponse(user, true, userRoles, userPermissions);
 
             // Add additional profile details
             response.Details = new Dictionary<string, object>
@@ -1529,7 +1635,9 @@ public class SecurityController : BaseApiController
     /// <summary>
     /// Maps a user entity to an enhanced user response DTO
     /// </summary>
-    private UserResponse MapToUserResponse(dynamic user, bool includeDetails = false)
+    private UserResponse MapToUserResponse(dynamic user, bool includeDetails = false,
+        IEnumerable<MonitoringGrid.Core.Entities.Role>? userRoles = null,
+        IEnumerable<MonitoringGrid.Core.Entities.Permission>? userPermissions = null)
     {
         var response = new UserResponse
         {
@@ -1542,8 +1650,8 @@ public class SecurityController : BaseApiController
             DisplayName = user.DisplayName ?? string.Empty,
             IsActive = user.IsActive,
             IsLockedOut = user.IsLockedOut(),
-            Roles = new List<string>(), // User entity doesn't have Roles property in Core
-            Permissions = new List<string>(), // User entity doesn't have Permissions property in Core
+            Roles = userRoles?.Select(r => r.Name).ToList() ?? new List<string>(),
+            Permissions = userPermissions?.Select(p => p.Name).ToList() ?? new List<string>(),
             LastLogin = user.LastLogin,
             CreatedDate = user.CreatedDate,
             FailedLoginAttempts = user.FailedLoginAttempts,

@@ -83,9 +83,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check if user has required roles
   if (requiredRoles.length > 0) {
-    const hasRequiredRoles = requiredRoles.some(role =>
-      user.roles.some(userRole => userRole.name === role)
-    );
+    // Safely check if user has roles array and required roles
+    const hasRequiredRoles = user.roles && Array.isArray(user.roles)
+      ? requiredRoles.some(role =>
+          user.roles.some(userRole => userRole.name === role)
+        )
+      : false;
 
     if (!hasRequiredRoles) {
       return (
@@ -108,6 +111,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Required roles: {requiredRoles.join(', ')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Current user roles: {user.roles && Array.isArray(user.roles) ? user.roles.map(r => r.name).join(', ') : 'No roles found'}
           </Typography>
         </Box>
       );

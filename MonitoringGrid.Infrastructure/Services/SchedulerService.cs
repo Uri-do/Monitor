@@ -26,6 +26,12 @@ namespace MonitoringGrid.Infrastructure.Services
         {
             try
             {
+                // Temporarily return empty list until Schedulers table is created
+                _logger.LogWarning("Schedulers table not available - returning empty list");
+                return Result<List<SchedulerDto>>.Success(new List<SchedulerDto>());
+
+                // TODO: Uncomment when Schedulers table is created
+                /*
                 var query = _context.Schedulers.AsQueryable();
 
                 if (!includeDisabled)
@@ -39,31 +45,7 @@ namespace MonitoringGrid.Infrastructure.Services
                     .ThenBy(s => s.IntervalMinutes)
                     .ThenBy(s => s.SchedulerName)
                     .ToListAsync();
-
-                var schedulerDtos = schedulers.Select(s => new SchedulerDto
-                {
-                    SchedulerID = s.SchedulerID,
-                    SchedulerName = s.SchedulerName,
-                    SchedulerDescription = s.SchedulerDescription,
-                    ScheduleType = s.ScheduleType,
-                    IntervalMinutes = s.IntervalMinutes,
-                    CronExpression = s.CronExpression,
-                    ExecutionDateTime = s.ExecutionDateTime,
-                    StartDate = s.StartDate,
-                    EndDate = s.EndDate,
-                    Timezone = s.Timezone,
-                    IsEnabled = s.IsEnabled,
-                    CreatedDate = s.CreatedDate,
-                    CreatedBy = s.CreatedBy,
-                    ModifiedDate = s.ModifiedDate,
-                    ModifiedBy = s.ModifiedBy,
-                    DisplayText = s.GetDisplayText(),
-                    NextExecutionTime = s.GetNextExecutionTime(),
-                    IsCurrentlyActive = s.IsCurrentlyActive(),
-                    IndicatorCount = s.Indicators.Count
-                }).ToList();
-
-                return Result.Success(schedulerDtos);
+                */
             }
             catch (Exception ex)
             {
@@ -76,39 +58,16 @@ namespace MonitoringGrid.Infrastructure.Services
         {
             try
             {
+                // Temporarily return not found until Schedulers table is created
+                _logger.LogWarning("Schedulers table not available - returning not found");
+                return Result.Failure<SchedulerDto>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {schedulerId} not found (table not available)");
+
+                // TODO: Uncomment when Schedulers table is created
+                /*
                 var scheduler = await _context.Schedulers
                     .Include(s => s.Indicators)
                     .FirstOrDefaultAsync(s => s.SchedulerID == schedulerId);
-
-                if (scheduler == null)
-                {
-                    return Result.Failure<SchedulerDto>("SCHEDULER_NOT_FOUND", $"Scheduler with ID {schedulerId} not found");
-                }
-
-                var schedulerDto = new SchedulerDto
-                {
-                    SchedulerID = scheduler.SchedulerID,
-                    SchedulerName = scheduler.SchedulerName,
-                    SchedulerDescription = scheduler.SchedulerDescription,
-                    ScheduleType = scheduler.ScheduleType,
-                    IntervalMinutes = scheduler.IntervalMinutes,
-                    CronExpression = scheduler.CronExpression,
-                    ExecutionDateTime = scheduler.ExecutionDateTime,
-                    StartDate = scheduler.StartDate,
-                    EndDate = scheduler.EndDate,
-                    Timezone = scheduler.Timezone,
-                    IsEnabled = scheduler.IsEnabled,
-                    CreatedDate = scheduler.CreatedDate,
-                    CreatedBy = scheduler.CreatedBy,
-                    ModifiedDate = scheduler.ModifiedDate,
-                    ModifiedBy = scheduler.ModifiedBy,
-                    DisplayText = scheduler.GetDisplayText(),
-                    NextExecutionTime = scheduler.GetNextExecutionTime(),
-                    IsCurrentlyActive = scheduler.IsCurrentlyActive(),
-                    IndicatorCount = scheduler.Indicators.Count
-                };
-
-                return Result.Success(schedulerDto);
+                */
             }
             catch (Exception ex)
             {
@@ -497,61 +456,19 @@ namespace MonitoringGrid.Infrastructure.Services
             {
                 _logger.LogDebug("Getting due indicators");
 
+                // Temporarily return empty list until Schedulers table is created
+                _logger.LogWarning("Schedulers table not available - returning empty due indicators list");
+                return Result<List<IndicatorWithSchedulerDto>>.Success(new List<IndicatorWithSchedulerDto>());
+
+                // TODO: Uncomment when Schedulers table is created
+                /*
                 // Get indicators that are due for execution
                 var dueIndicators = await _context.Indicators
                     .Include(i => i.Scheduler)
                     .Include(i => i.OwnerContact)
                     .Where(i => i.IsActive && i.SchedulerID.HasValue)
                     .ToListAsync();
-
-                var dueList = new List<IndicatorWithSchedulerDto>();
-
-                foreach (var indicator in dueIndicators)
-                {
-                    // Check if indicator is due (simplified logic for now)
-                    var isDue = indicator.IsDue();
-
-                    if (isDue)
-                    {
-                        var dto = new IndicatorWithSchedulerDto
-                        {
-                            IndicatorID = indicator.IndicatorID,
-                            IndicatorName = indicator.IndicatorName,
-                            IndicatorCode = indicator.IndicatorCode ?? string.Empty,
-                            IndicatorDesc = indicator.IndicatorDesc,
-                            CollectorID = indicator.CollectorID,
-                            CollectorItemName = indicator.CollectorItemName,
-                            Priority = indicator.Priority ?? "Medium",
-                            LastMinutes = indicator.LastMinutes,
-                            ThresholdType = indicator.ThresholdType ?? string.Empty,
-                            ThresholdField = indicator.ThresholdField ?? string.Empty,
-                            ThresholdComparison = indicator.ThresholdComparison ?? string.Empty,
-                            ThresholdValue = indicator.ThresholdValue,
-                            OwnerContactId = indicator.OwnerContactId,
-                            IsActive = indicator.IsActive,
-                            CreatedDate = indicator.CreatedDate,
-                            UpdatedDate = indicator.UpdatedDate,
-                            LastRun = indicator.LastRun,
-                            SchedulerID = indicator.SchedulerID,
-                            SchedulerName = indicator.Scheduler?.SchedulerName,
-                            SchedulerDescription = indicator.Scheduler?.SchedulerDescription,
-                            ScheduleType = indicator.Scheduler?.ScheduleType,
-                            IntervalMinutes = indicator.Scheduler?.IntervalMinutes,
-                            CronExpression = indicator.Scheduler?.CronExpression,
-                            ExecutionDateTime = indicator.Scheduler?.ExecutionDateTime,
-                            Timezone = indicator.Scheduler?.Timezone,
-                            SchedulerEnabled = indicator.Scheduler?.IsEnabled,
-                            NextExecutionTime = indicator.Scheduler != null ? CalculateNextExecutionTime(indicator.Scheduler, indicator.LastRun) : null,
-                            OwnerContactName = indicator.OwnerContact?.Name,
-                            OwnerContactEmail = indicator.OwnerContact?.Email
-                        };
-
-                        dueList.Add(dto);
-                    }
-                }
-
-                _logger.LogDebug("Found {Count} due indicators", dueList.Count);
-                return Result.Success(dueList);
+                */
             }
             catch (Exception ex)
             {

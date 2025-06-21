@@ -105,7 +105,7 @@ class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+    const response = await fetch(`${this.baseUrl}/security/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -185,7 +185,38 @@ class AuthService {
       throw new Error(`Failed to get current user: ${response.status}`);
     }
 
-    return response.json();
+    const userData = await response.json();
+
+    // Convert API response to frontend User type
+    // The API returns roles as string[], but frontend expects Role[]
+    const user: User = {
+      userId: userData.userId || '',
+      username: userData.username || '',
+      email: userData.email || '',
+      displayName: userData.displayName || '',
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      title: userData.title,
+      department: userData.department,
+      isActive: userData.isActive || false,
+      emailConfirmed: userData.emailConfirmed || false,
+      twoFactorEnabled: userData.twoFactorEnabled || false,
+      lastLogin: userData.lastLogin,
+      createdDate: userData.createdDate || '',
+      modifiedDate: userData.modifiedDate || userData.createdDate || '',
+      // Convert string roles to Role objects
+      roles: (userData.roles || []).map((roleName: string) => ({
+        roleId: `role-${roleName.toLowerCase()}`,
+        name: roleName,
+        description: `${roleName} role`,
+        isSystemRole: true,
+        isActive: true,
+        permissions: []
+      })),
+      permissions: userData.permissions || []
+    };
+
+    return user;
   }
 
   private isTokenExpired(token: string): boolean {

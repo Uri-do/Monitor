@@ -151,7 +151,7 @@ api.interceptors.response.use(
         }
 
         console.log('Attempting to refresh token...');
-        const response = await fetch('/api/auth/refresh', {
+        const response = await fetch('/api/security/auth/refresh', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

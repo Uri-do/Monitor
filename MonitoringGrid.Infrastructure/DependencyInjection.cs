@@ -26,9 +26,9 @@ public static class DependencyInjection
         services.AddMonitoringGridConfiguration(configuration);
 
         // Add security-specific configuration for SecurityService
-        services.Configure<MonitoringGrid.Core.Security.SecurityConfiguration>(configuration.GetSection("MonitoringGrid:Security"));
-        services.Configure<MonitoringGrid.Core.Security.JwtSettings>(configuration.GetSection("MonitoringGrid:Security:Jwt"));
-        services.Configure<MonitoringGrid.Core.Security.EncryptionSettings>(configuration.GetSection("MonitoringGrid:Security:Encryption"));
+        services.Configure<MonitoringGrid.Core.Security.SecurityConfiguration>(configuration.GetSection("Security"));
+        services.Configure<MonitoringGrid.Core.Security.JwtSettings>(configuration.GetSection("Security:Jwt"));
+        services.Configure<MonitoringGrid.Core.Security.EncryptionSettings>(configuration.GetSection("Security:Encryption"));
 
         // Validate configuration on startup
         configuration.ValidateConfiguration();

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Refresh Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button.danger {
+            background-color: #dc3545;
+        }
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+        .button.success {
+            background-color: #28a745;
+        }
+        .button.success:hover {
+            background-color: #218838;
+        }
+        .info-box {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 MonitoringGrid Token Refresh Tool</h1>
+        <p>This tool helps resolve authentication issues by refreshing or clearing JWT tokens.</p>
+        
+        <div id="status"></div>
+        
+        <h3>Current Token Information</h3>
+        <div id="tokenInfo" class="info-box">Loading...</div>
+        
+        <h3>Actions</h3>
+        <button class="button" onclick="checkTokenStatus()">🔍 Check Token Status</button>
+        <button class="button" onclick="refreshToken()">🔄 Refresh Token</button>
+        <button class="button danger" onclick="clearTokens()">🗑️ Clear All Tokens</button>
+        <button class="button success" onclick="testApiAccess()">🧪 Test API Access</button>
+        
+        <h3>Debug Information</h3>
+        <div id="debugInfo" class="info-box"></div>
+        
+        <h3>Instructions</h3>
+        <div class="status warning">
+            <strong>To fix the 401 Unauthorized errors:</strong><br>
+            1. Click "Check Token Status" to see current token info<br>
+            2. Try "Refresh Token" first (if you have a valid refresh token)<br>
+            3. If refresh fails, click "Clear All Tokens" and log in again<br>
+            4. Use "Test API Access" to verify the fix worked
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+        
+        function updateDebugInfo(info) {
+            document.getElementById('debugInfo').textContent = JSON.stringify(info, null, 2);
+        }
+        
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        function checkTokenStatus() {
+            const authToken = localStorage.getItem('auth_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            let tokenInfo = {
+                hasAuthToken: !!authToken,
+                hasRefreshToken: !!refreshToken,
+                authTokenLength: authToken ? authToken.length : 0,
+                refreshTokenLength: refreshToken ? refreshToken.length : 0
+            };
+            
+            if (authToken) {
+                const decoded = parseJwt(authToken);
+                if (decoded) {
+                    tokenInfo.decodedToken = {
+                        userId: decoded.user_id || decoded.sub,
+                        username: decoded.username || decoded.name,
+                        email: decoded.email,
+                        roles: decoded.role || decoded[Object.keys(decoded).find(k => k.includes('role'))] || 'No roles found',
+                        exp: decoded.exp,
+                        expiresAt: new Date(decoded.exp * 1000).toISOString(),
+                        isExpired: decoded.exp < Date.now() / 1000
+                    };
+                }
+            }
+            
+            document.getElementById('tokenInfo').textContent = JSON.stringify(tokenInfo, null, 2);
+            updateDebugInfo(tokenInfo);
+            
+            if (!authToken) {
+                showStatus('❌ No authentication token found. Please log in.', 'error');
+            } else if (tokenInfo.decodedToken?.isExpired) {
+                showStatus('⏰ Token is expired. Try refreshing or log in again.', 'warning');
+            } else if (!tokenInfo.decodedToken?.roles || tokenInfo.decodedToken.roles === 'No roles found') {
+                showStatus('⚠️ Token has no roles. This is likely the cause of 401 errors.', 'warning');
+            } else {
+                showStatus('✅ Token looks valid with roles: ' + JSON.stringify(tokenInfo.decodedToken.roles), 'success');
+            }
+        }
+        
+        async function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            if (!refreshToken) {
+                showStatus('❌ No refresh token found. Please clear tokens and log in again.', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('🔄 Refreshing token...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/security/auth/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        refreshToken: refreshToken
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update tokens in localStorage
+                    localStorage.setItem('auth_token', data.accessToken);
+                    if (data.refreshToken) {
+                        localStorage.setItem('refresh_token', data.refreshToken);
+                    }
+                    
+                    showStatus('✅ Token refreshed successfully! Check token status again.', 'success');
+                    updateDebugInfo({ refreshResponse: data });
+                } else {
+                    const errorData = await response.text();
+                    showStatus(`❌ Token refresh failed: ${response.status} ${response.statusText}`, 'error');
+                    updateDebugInfo({ refreshError: errorData });
+                }
+            } catch (error) {
+                showStatus(`❌ Token refresh error: ${error.message}`, 'error');
+                updateDebugInfo({ refreshException: error.message });
+            }
+        }
+        
+        function clearTokens() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            sessionStorage.clear();
+            
+            showStatus('🗑️ All tokens cleared. Please log in again at the main application.', 'warning');
+            document.getElementById('tokenInfo').textContent = 'No tokens found';
+            updateDebugInfo({ action: 'tokens_cleared', timestamp: new Date().toISOString() });
+        }
+        
+        async function testApiAccess() {
+            const authToken = localStorage.getItem('auth_token');
+            
+            if (!authToken) {
+                showStatus('❌ No token to test with. Please log in first.', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('🧪 Testing API access...', 'info');
+                
+                // Test the debug endpoint
+                const response = await fetch(`${API_BASE}/api/security/debug/roles`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showStatus('✅ API access successful! Check debug info for details.', 'success');
+                    updateDebugInfo({ apiTestSuccess: data });
+                } else {
+                    const errorData = await response.text();
+                    showStatus(`❌ API access failed: ${response.status} ${response.statusText}`, 'error');
+                    updateDebugInfo({ apiTestError: { status: response.status, response: errorData } });
+                }
+            } catch (error) {
+                showStatus(`❌ API test error: ${error.message}`, 'error');
+                updateDebugInfo({ apiTestException: error.message });
+            }
+        }
+        
+        // Auto-check token status on page load
+        window.onload = function() {
+            checkTokenStatus();
+        };
+    </script>
+</body>
+</html>

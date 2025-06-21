@@ -53,7 +53,7 @@ builder.Services.AddAuthentication("Bearer")
             ClockSkew = TimeSpan.FromMinutes(5)
         };
 
-        // Handle authentication failures gracefully
+        // Handle authentication failures gracefully and SignalR token handling
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -61,6 +61,19 @@ builder.Services.AddAuthentication("Bearer")
                 // Log authentication failures but don't block anonymous endpoints
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
                 logger.LogDebug("JWT Authentication failed: {Error}", context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                // Handle SignalR token from query string
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/monitoring-hub"))
+                {
+                    context.Token = accessToken;
+                }
+
                 return Task.CompletedTask;
             }
         };

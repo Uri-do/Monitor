@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -41,13 +42,27 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         IOptions<SecurityConfiguration> securityConfig,
         IOptions<JwtSettings> jwtSettings,
         IOptions<EncryptionSettings> encryptionSettings,
+        IConfiguration configuration,
         ILogger<SecurityService> logger)
     {
         _context = context;
         _securityConfig = securityConfig.Value;
-        _jwtSettings = jwtSettings.Value;
         _encryptionSettings = encryptionSettings.Value;
         _logger = logger;
+
+        // Read JWT settings directly from configuration as fallback
+        var jwtSection = configuration.GetSection("Security:Jwt");
+        _jwtSettings = new JwtSettings
+        {
+            SecretKey = jwtSection["SecretKey"] ?? "MonitoringGrid-Super-Secret-Key-That-Is-Long-Enough-For-HMAC-SHA256-Algorithm-2024",
+            Issuer = jwtSection["Issuer"] ?? "MonitoringGrid.Api",
+            Audience = jwtSection["Audience"] ?? "MonitoringGrid.Frontend",
+            AccessTokenExpirationMinutes = int.TryParse(jwtSection["AccessTokenExpirationMinutes"], out var accessExp) ? accessExp : 60,
+            RefreshTokenExpirationDays = int.TryParse(jwtSection["RefreshTokenExpirationDays"], out var refreshExp) ? refreshExp : 30,
+            Algorithm = jwtSection["Algorithm"] ?? "HS256"
+        };
+
+
 
         // Initialize encryption key (using a default key if not configured)
         _encryptionKey = !string.IsNullOrEmpty(_encryptionSettings.EncryptionKey)
@@ -83,8 +98,10 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
                 return Result.Failure<LoginResponse>(Error.Validation("Authentication.SuspiciousIp", "Authentication failed"));
             }
 
-            // Find user
+            // Find user with roles
             var user = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive, cancellationToken);
 
             if (user == null)
@@ -172,6 +189,8 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         {
             var tokenEntity = await _context.RefreshTokens
                 .Include(rt => rt.User)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.ExpiresAt > DateTime.UtcNow, cancellationToken);
 
             if (tokenEntity?.User == null)
@@ -488,6 +507,20 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
+
+            // Add role claims
+            if (user.UserRoles != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role != null)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                        claims.Add(new Claim("role", userRole.Role.Name));
+                        claims.Add(new Claim("role_id", userRole.RoleId));
+                    }
+                }
+            }
 
             if (additionalClaims != null)
                 claims.AddRange(additionalClaims);
