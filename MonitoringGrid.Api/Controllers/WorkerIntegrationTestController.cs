@@ -7,7 +7,11 @@ using MonitoringGrid.Api.Hubs;
 using MonitoringGrid.Api.Services;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Collections.Concurrent;
+using Newtonsoft.Json;
 using MediatR;
 
 namespace MonitoringGrid.Api.Controllers;
@@ -339,6 +343,9 @@ public class WorkerIntegrationTestController : BaseApiController
         }
         finally
         {
+            // Persist test results to database
+            await PersistTestResultsAsync(execution);
+
             // Notify completion via SignalR
             await _hubContext.Clients.All.SendAsync("WorkerTestCompleted", new
             {
@@ -410,6 +417,8 @@ public class WorkerIntegrationTestController : BaseApiController
         };
 
         var stopwatch = Stopwatch.StartNew();
+        var initialMemory = GC.GetTotalMemory(false);
+        var process = Process.GetCurrentProcess();
         int processed = 0;
 
         foreach (var indicator in indicatorList)
@@ -505,9 +514,30 @@ public class WorkerIntegrationTestController : BaseApiController
             ? results.IndicatorResults.Average(r => r.ExecutionTimeMs)
             : 0;
 
-        // Get memory usage
+        // Collect comprehensive performance metrics
         var process = Process.GetCurrentProcess();
-        results.MemoryUsageBytes = process.WorkingSet64;
+        var finalMemory = GC.GetTotalMemory(false);
+
+        results.MemoryUsageBytes = finalMemory - initialMemory;
+
+        // Calculate CPU usage (approximate)
+        try
+        {
+            process.Refresh();
+            var cpuUsage = process.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount / stopwatch.ElapsedMilliseconds * 100;
+            results.CpuUsagePercent = Math.Min(cpuUsage, 100); // Cap at 100%
+        }
+        catch
+        {
+            results.CpuUsagePercent = 0; // Fallback if CPU measurement fails
+        }
+
+        // Add detailed performance metrics
+        results.PerformanceMetrics["InitialMemoryBytes"] = initialMemory;
+        results.PerformanceMetrics["FinalMemoryBytes"] = finalMemory;
+        results.PerformanceMetrics["WorkingSetBytes"] = process.WorkingSet64;
+        results.PerformanceMetrics["ProcessorCount"] = Environment.ProcessorCount;
+        results.PerformanceMetrics["GCCollectionCount"] = GC.CollectionCount(0) + GC.CollectionCount(1) + GC.CollectionCount(2);
 
         execution.Results = results;
         await UpdateTestStatus(execution, "Indicator test completed", 90);
@@ -645,12 +675,15 @@ public class WorkerIntegrationTestController : BaseApiController
 
         try
         {
-            using var scope = _serviceProvider.CreateScope();
-            var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
-            var indicatorExecutionService = scope.ServiceProvider.GetRequiredService<IIndicatorExecutionService>();
+            // Get indicators first, then dispose scope to avoid disposal issues
+            List<Indicator> indicators;
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
+                var dueResult = await indicatorService.GetDueIndicatorsAsync();
+                indicators = dueResult.IsSuccess ? dueResult.Value.Take(3).ToList() : new List<Indicator>();
+            }
 
-            var dueResult = await indicatorService.GetDueIndicatorsAsync();
-            var indicators = dueResult.IsSuccess ? dueResult.Value.Take(3).ToList() : new List<Indicator>();
             await UpdateTestStatus(execution, $"Running stress test with {indicators.Count} indicators", 20);
 
             var tasks = new List<Task>();
@@ -669,6 +702,9 @@ public class WorkerIntegrationTestController : BaseApiController
                         {
                             try
                             {
+                                // Create a new scope for each execution to avoid disposal issues
+                                using var executionScope = _serviceProvider.CreateScope();
+                                var indicatorExecutionService = executionScope.ServiceProvider.GetRequiredService<IIndicatorExecutionService>();
                                 var result = await indicatorExecutionService.ExecuteIndicatorAsync(indicator.IndicatorID, "StressTest", true, cancellationToken);
                                 lock (results)
                                 {
@@ -895,6 +931,68 @@ public class WorkerIntegrationTestController : BaseApiController
             stopwatch.Stop();
             results.TotalExecutionTimeMs = stopwatch.ElapsedMilliseconds;
             execution.Results = results;
+        }
+    }
+
+    /// <summary>
+    /// Persist test results to database for historical tracking
+    /// </summary>
+    private async Task PersistTestResultsAsync(WorkerTestExecution execution)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonitoringContext>();
+
+            var historyRecord = new WorkerTestExecutionHistory
+            {
+                TestId = execution.Id,
+                TestType = execution.TestType,
+                StartedAt = execution.StartTime,
+                CompletedAt = execution.EndTime,
+                DurationMs = execution.EndTime?.Subtract(execution.StartTime).Milliseconds ?? 0,
+                Success = execution.Success,
+                Status = execution.Status,
+                ErrorMessage = execution.ErrorMessage,
+                IndicatorsProcessed = execution.Results?.IndicatorsProcessed ?? 0,
+                SuccessfulExecutions = execution.Results?.SuccessfulExecutions ?? 0,
+                FailedExecutions = execution.Results?.FailedExecutions ?? 0,
+                AverageExecutionTimeMs = execution.Results?.AverageExecutionTimeMs ?? 0,
+                MemoryUsageBytes = execution.Results?.MemoryUsageBytes ?? 0,
+                CpuUsagePercent = execution.Results?.CpuUsagePercent ?? 0,
+                AlertsTriggered = execution.Results?.AlertsTriggered ?? 0,
+                WorkerCount = 1, // Default for most tests
+                ConcurrentWorkers = 1, // Default for most tests
+                TestConfiguration = JsonConvert.SerializeObject(new
+                {
+                    TestType = execution.TestType,
+                    IndicatorIds = execution.IndicatorIds,
+                    StartTime = execution.StartTime
+                }),
+                PerformanceMetrics = execution.Results?.PerformanceMetrics != null
+                    ? JsonConvert.SerializeObject(execution.Results.PerformanceMetrics)
+                    : null,
+                DetailedResults = execution.Results != null
+                    ? JsonConvert.SerializeObject(execution.Results)
+                    : null,
+                ExecutedBy = "System", // Could be enhanced to track actual user
+                ExecutionContext = "WorkerIntegrationTest",
+                Metadata = JsonConvert.SerializeObject(new
+                {
+                    Progress = execution.Progress,
+                    LastUpdate = execution.LastUpdate
+                })
+            };
+
+            context.WorkerTestExecutionHistory.Add(historyRecord);
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("✅ Test results persisted to database for test {TestId}", execution.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Failed to persist test results for test {TestId}", execution.Id);
+            // Don't throw - persistence failure shouldn't break the test execution
         }
     }
 }

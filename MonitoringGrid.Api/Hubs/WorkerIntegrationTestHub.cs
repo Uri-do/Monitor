@@ -74,6 +74,24 @@ public class WorkerIntegrationTestHub : Hub
     }
 
     /// <summary>
+    /// Join a generic group (for testing purposes)
+    /// </summary>
+    public async Task JoinGroup(string groupName)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        _logger.LogInformation("Client {ConnectionId} joined group {GroupName}", Context.ConnectionId, groupName);
+    }
+
+    /// <summary>
+    /// Leave a generic group (for testing purposes)
+    /// </summary>
+    public async Task LeaveGroup(string groupName)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+        _logger.LogInformation("Client {ConnectionId} left group {GroupName}", Context.ConnectionId, groupName);
+    }
+
+    /// <summary>
     /// Send a test message to verify connectivity
     /// </summary>
     public async Task SendTestMessage(string message)
@@ -85,5 +103,43 @@ public class WorkerIntegrationTestHub : Hub
             Timestamp = DateTime.UtcNow,
             ConnectionId = Context.ConnectionId
         });
+    }
+
+    /// <summary>
+    /// Send system health update
+    /// </summary>
+    public async Task SendSystemHealthUpdate(object healthData)
+    {
+        await Clients.All.SendAsync("SystemHealthUpdate", healthData);
+        _logger.LogDebug("System health update sent to all clients");
+    }
+
+    /// <summary>
+    /// Send worker process lifecycle event
+    /// </summary>
+    public async Task SendWorkerProcessEvent(string eventType, object eventData)
+    {
+        await Clients.All.SendAsync("WorkerProcessEvent", new
+        {
+            EventType = eventType,
+            Data = eventData,
+            Timestamp = DateTime.UtcNow
+        });
+        _logger.LogDebug("Worker process event sent: {EventType}", eventType);
+    }
+
+    /// <summary>
+    /// Send detailed error information
+    /// </summary>
+    public async Task SendErrorEvent(string errorType, string message, object? details = null)
+    {
+        await Clients.All.SendAsync("ErrorEvent", new
+        {
+            ErrorType = errorType,
+            Message = message,
+            Details = details,
+            Timestamp = DateTime.UtcNow
+        });
+        _logger.LogWarning("Error event sent: {ErrorType} - {Message}", errorType, message);
     }
 }

@@ -313,7 +313,10 @@ public class WorkerProcessManager : IWorkerProcessManager, IDisposable
         // Try to find the standalone worker executable
         var possiblePaths = new[]
         {
+            // Check published standalone worker first (our new location)
+            Path.Combine(AppContext.BaseDirectory, "StandaloneWorker", "MonitoringGrid.StandaloneWorker.exe"),
             Path.Combine(AppContext.BaseDirectory, "MonitoringGrid.StandaloneWorker.exe"),
+            // Check build outputs
             Path.Combine(AppContext.BaseDirectory, "..", "MonitoringGrid.StandaloneWorker", "bin", "Debug", "net8.0", "win-x64", "MonitoringGrid.StandaloneWorker.exe"),
             Path.Combine(AppContext.BaseDirectory, "..", "MonitoringGrid.StandaloneWorker", "bin", "Release", "net8.0", "win-x64", "MonitoringGrid.StandaloneWorker.exe"),
             Path.Combine(AppContext.BaseDirectory, "..", "MonitoringGrid.StandaloneWorker", "bin", "Debug", "net8.0", "MonitoringGrid.StandaloneWorker.exe"),

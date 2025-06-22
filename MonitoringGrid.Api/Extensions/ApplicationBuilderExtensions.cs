@@ -147,7 +147,8 @@ public static class ApplicationBuilderExtensions
         app.UseHealthChecks("/health");
         app.UseHealthChecks("/health/ready");
         app.UseHealthChecks("/health/live");
-        
+        app.UseHealthChecks("/api/health");  // Add API health endpoint for consistency
+
         return app;
     }
 

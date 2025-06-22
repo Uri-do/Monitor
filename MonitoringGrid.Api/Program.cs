@@ -33,6 +33,9 @@ builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, Mon
 builder.Services.AddSingleton<MonitoringGrid.Api.Services.IProcessTrackingService, MonitoringGrid.Api.Services.ProcessTrackingService>();
 builder.Services.AddSingleton<MonitoringGrid.Api.Services.IWorkerProcessManager, MonitoringGrid.Api.Services.WorkerProcessManager>();
 
+// Register WorkerController as a service for dependency injection (needed for worker lifecycle tests)
+builder.Services.AddScoped<MonitoringGrid.Api.Controllers.WorkerController>();
+
 // Add Authentication and Authorization (configured for development)
 var jwtSettings = builder.Configuration.GetSection("Security:Jwt");
 var secretKey = jwtSettings["SecretKey"] ?? "MonitoringGrid-Super-Secret-Key-That-Is-Long-Enough-For-HMAC-SHA256-Algorithm-2024";

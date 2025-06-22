@@ -52,8 +52,10 @@ const WorkerIntegrationTestPage: React.FC = () => {
 
   // Connect to SignalR on component mount
   useEffect(() => {
-    connect().catch(console.error);
-  }, [connect]);
+    if (!isConnected) {
+      connect().catch(console.error);
+    }
+  }, []); // Empty dependency array to run only once on mount
 
   // Load initial data
   const loadData = useCallback(async () => {

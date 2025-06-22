@@ -51,8 +51,17 @@ export const useSignalR = (options: UseSignalROptions): SignalRConnection => {
 
   // Create connection
   const createConnection = useCallback(() => {
+    // If we have an existing connection, check its state
     if (connectionRef.current) {
-      return connectionRef.current;
+      const state = connectionRef.current.state;
+      // If it's disconnected, we can reuse it
+      if (state === signalR.HubConnectionState.Disconnected) {
+        return connectionRef.current;
+      }
+      // If it's in any other state (connecting, connected, reconnecting), return it
+      if (state !== signalR.HubConnectionState.Disconnected) {
+        return connectionRef.current;
+      }
     }
 
     const connectionBuilder = new signalR.HubConnectionBuilder()
@@ -122,8 +131,19 @@ export const useSignalR = (options: UseSignalROptions): SignalRConnection => {
 
   // Connect function
   const connect = useCallback(async () => {
-    if (isConnecting || isConnected || maxRetriesReached) {
+    // Check if we're already connecting or connected
+    if (isConnecting || maxRetriesReached) {
       return;
+    }
+
+    // Check the actual connection state
+    if (connectionRef.current) {
+      const state = connectionRef.current.state;
+      if (state === signalR.HubConnectionState.Connected ||
+          state === signalR.HubConnectionState.Connecting ||
+          state === signalR.HubConnectionState.Reconnecting) {
+        return;
+      }
     }
 
     setIsConnecting(true);
@@ -131,7 +151,12 @@ export const useSignalR = (options: UseSignalROptions): SignalRConnection => {
 
     try {
       const connection = createConnection();
-      await connection.start();
+
+      // Only start if the connection is in Disconnected state
+      if (connection.state === signalR.HubConnectionState.Disconnected) {
+        await connection.start();
+      }
+
       setIsConnected(true);
       setIsConnecting(false);
       setRetryCount(0); // Reset retry count on successful connection
@@ -145,13 +170,16 @@ export const useSignalR = (options: UseSignalROptions): SignalRConnection => {
       setIsConnected(false);
       console.error('SignalR connection failed:', err);
     }
-  }, [isConnecting, isConnected, maxRetriesReached, createConnection, onConnected]);
+  }, [isConnecting, maxRetriesReached, createConnection, onConnected]);
 
   // Disconnect function
   const disconnect = useCallback(async () => {
     if (connectionRef.current) {
       try {
-        await connectionRef.current.stop();
+        const state = connectionRef.current.state;
+        if (state !== signalR.HubConnectionState.Disconnected) {
+          await connectionRef.current.stop();
+        }
         setIsConnected(false);
         setIsConnecting(false);
         setError(null);
