@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 12px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        h3 {
+            margin-top: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Authentication Debug Tool</h1>
+        <p>This tool helps diagnose SignalR authentication issues.</p>
+        
+        <div id="status"></div>
+        
+        <h3>Quick Actions</h3>
+        <button class="button" onclick="checkAll()">🔍 Check All</button>
+        <button class="button" onclick="testLogin()">🔑 Test Login</button>
+        <button class="button" onclick="testSignalR()">📡 Test SignalR</button>
+        <button class="button" onclick="clearStorage()">🗑️ Clear Storage</button>
+    </div>
+
+    <div class="container">
+        <h3>1. Local Storage Tokens</h3>
+        <div id="tokenInfo" class="info-box">Click "Check All" to load...</div>
+    </div>
+
+    <div class="container">
+        <h3>2. API Authentication Test</h3>
+        <div id="apiTest" class="info-box">Click "Check All" to load...</div>
+    </div>
+
+    <div class="container">
+        <h3>3. SignalR Connection Test</h3>
+        <div id="signalrTest" class="info-box">Click "Test SignalR" to load...</div>
+    </div>
+
+    <div class="container">
+        <h3>4. Debug Endpoint Response</h3>
+        <div id="debugResponse" class="info-box">Click "Check All" to load...</div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function checkTokens() {
+            const authToken = localStorage.getItem('auth_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            const user = localStorage.getItem('user');
+            
+            let result = {
+                hasAuthToken: !!authToken,
+                hasRefreshToken: !!refreshToken,
+                hasUser: !!user,
+                authTokenLength: authToken ? authToken.length : 0,
+                refreshTokenLength: refreshToken ? refreshToken.length : 0
+            };
+
+            if (authToken) {
+                const decoded = parseJwt(authToken);
+                if (decoded) {
+                    result.decodedToken = {
+                        sub: decoded.sub,
+                        email: decoded.email,
+                        username: decoded.username,
+                        roles: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'No roles found',
+                        exp: decoded.exp,
+                        expiresAt: new Date(decoded.exp * 1000).toISOString(),
+                        isExpired: decoded.exp < Date.now() / 1000,
+                        allClaims: decoded
+                    };
+                }
+            }
+
+            if (user) {
+                try {
+                    result.userObject = JSON.parse(user);
+                } catch (e) {
+                    result.userParseError = e.message;
+                }
+            }
+
+            document.getElementById('tokenInfo').textContent = JSON.stringify(result, null, 2);
+            return result;
+        }
+
+        async function testApiAuth() {
+            const authToken = localStorage.getItem('auth_token');
+            
+            if (!authToken) {
+                document.getElementById('apiTest').textContent = 'No auth token found';
+                return { error: 'No token' };
+            }
+
+            try {
+                const response = await fetch('/api/security/debug/roles', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+
+                if (response.ok) {
+                    result.data = await response.json();
+                } else {
+                    result.error = await response.text();
+                }
+
+                document.getElementById('apiTest').textContent = JSON.stringify(result, null, 2);
+                return result;
+            } catch (error) {
+                const result = { error: error.message };
+                document.getElementById('apiTest').textContent = JSON.stringify(result, null, 2);
+                return result;
+            }
+        }
+
+        async function testDebugEndpoint() {
+            try {
+                const response = await fetch('/api/security/debug/roles');
+                const result = {
+                    status: response.status,
+                    statusText: response.statusText
+                };
+
+                if (response.ok) {
+                    result.data = await response.json();
+                } else {
+                    result.error = await response.text();
+                }
+
+                document.getElementById('debugResponse').textContent = JSON.stringify(result, null, 2);
+                return result;
+            } catch (error) {
+                const result = { error: error.message };
+                document.getElementById('debugResponse').textContent = JSON.stringify(result, null, 2);
+                return result;
+            }
+        }
+
+        async function testSignalR() {
+            const authToken = localStorage.getItem('auth_token');
+            
+            if (!authToken) {
+                document.getElementById('signalrTest').textContent = 'No auth token found for SignalR test';
+                return;
+            }
+
+            try {
+                showStatus('🔄 Testing SignalR connection...', 'info');
+                
+                // Test the negotiate endpoint directly
+                const response = await fetch('/monitoring-hub/negotiate?negotiateVersion=1', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+
+                if (response.ok) {
+                    result.data = await response.json();
+                    showStatus('✅ SignalR negotiate successful!', 'success');
+                } else {
+                    result.error = await response.text();
+                    showStatus(`❌ SignalR negotiate failed: ${response.status}`, 'error');
+                }
+
+                document.getElementById('signalrTest').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                const result = { error: error.message };
+                document.getElementById('signalrTest').textContent = JSON.stringify(result, null, 2);
+                showStatus(`❌ SignalR test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            try {
+                showStatus('🔄 Testing login...', 'info');
+                
+                const response = await fetch('/api/security/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Store tokens
+                    if (data.accessToken) {
+                        localStorage.setItem('auth_token', data.accessToken);
+                    }
+                    if (data.refreshToken) {
+                        localStorage.setItem('refresh_token', data.refreshToken);
+                    }
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                    
+                    showStatus('✅ Login successful! Tokens stored.', 'success');
+                    checkAll(); // Refresh all info
+                } else {
+                    const error = await response.text();
+                    showStatus(`❌ Login failed: ${response.status} - ${error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showStatus('🗑️ All storage cleared. Please login again.', 'warning');
+            checkAll();
+        }
+
+        async function checkAll() {
+            showStatus('🔄 Checking authentication state...', 'info');
+            
+            const tokenResult = checkTokens();
+            const apiResult = await testApiAuth();
+            const debugResult = await testDebugEndpoint();
+            
+            // Determine overall status
+            if (!tokenResult.hasAuthToken) {
+                showStatus('❌ No authentication token found. Please login.', 'error');
+            } else if (tokenResult.decodedToken?.isExpired) {
+                showStatus('⏰ Token is expired. Please login again.', 'warning');
+            } else if (apiResult.status === 200) {
+                showStatus('✅ Authentication is working correctly!', 'success');
+            } else {
+                showStatus(`⚠️ Authentication issue detected. API returned: ${apiResult.status}`, 'warning');
+            }
+        }
+
+        // Auto-check on page load
+        window.onload = checkAll;
+    </script>
+</body>
+</html>

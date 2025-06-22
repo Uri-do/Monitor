@@ -69,7 +69,7 @@ export interface IndicatorStatistics {
 // Indicator service extending BaseApiService
 class IndicatorService extends BaseApiService {
   constructor() {
-    super('indicator');
+    super('/api/indicator');
   }
 
   // Get all indicators with proper pagination

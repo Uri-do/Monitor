@@ -31,6 +31,7 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
 builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
 builder.Services.AddSingleton<MonitoringGrid.Api.Services.IProcessTrackingService, MonitoringGrid.Api.Services.ProcessTrackingService>();
+builder.Services.AddSingleton<MonitoringGrid.Api.Services.IWorkerProcessManager, MonitoringGrid.Api.Services.WorkerProcessManager>();
 
 // Add Authentication and Authorization (configured for development)
 var jwtSettings = builder.Configuration.GetSection("Security:Jwt");
@@ -69,7 +70,8 @@ builder.Services.AddAuthentication("Bearer")
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
 
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/monitoring-hub"))
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/monitoring-hub") || path.StartsWithSegments("/hubs/worker-integration-test")))
                 {
                     context.Token = accessToken;
                 }

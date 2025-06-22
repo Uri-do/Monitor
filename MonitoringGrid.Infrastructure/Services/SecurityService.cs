@@ -99,10 +99,35 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
             }
 
             // Find user with roles
-            var user = await _context.Users
+            _logger.LogInformation("Attempting to find user with username: {Username}", request.Username);
+
+        var user = await _context.Users
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive, cancellationToken);
+
+        if (user != null)
+        {
+            _logger.LogInformation("User found: {UserId} ({Username}). UserRoles collection count: {RoleCount}",
+                user.UserId, user.Username, user.UserRoles?.Count ?? 0);
+
+            if (user.UserRoles?.Any() == true)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    _logger.LogInformation("UserRole found: UserId={UserId}, RoleId={RoleId}, Role={RoleName}",
+                        userRole.UserId, userRole.RoleId, userRole.Role?.Name ?? "NULL");
+                }
+            }
+            else
+            {
+                _logger.LogWarning("User {UserId} has no roles assigned or UserRoles collection is null", user.UserId);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("No active user found with username: {Username}", request.Username);
+        }
 
             if (user == null)
             {
@@ -142,6 +167,12 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
                 }
             }
 
+            // Log user details for debugging
+            _logger.LogInformation("Login successful for user {UserId} ({Username}). User has {RoleCount} roles: {Roles}",
+                user.UserId, user.Username,
+                user.UserRoles?.Count ?? 0,
+                string.Join(", ", user.UserRoles?.Select(ur => ur.Role?.Name ?? "Unknown") ?? new List<string>()));
+
             // Generate tokens
             var accessToken = GenerateAccessToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -173,6 +204,9 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
                 },
                 User = user
             };
+
+            _logger.LogInformation("Generated JWT token for user {UserId}. Token contains {ClaimCount} claims",
+                user.UserId, GetTokenClaims(accessToken).Count);
 
             return Result<LoginResponse>.Success(successResponse);
         }
@@ -538,7 +572,8 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            _logger.LogDebug("Generated access token for user {UserId}", user.UserId);
+            _logger.LogDebug("Generated access token for user {UserId} with {ClaimCount} claims: {Claims}",
+                user.UserId, claims.Count, string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}")));
             return tokenString;
         }
         catch (Exception ex)
@@ -604,6 +639,21 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         {
             _logger.LogError(ex, "Error getting token expiration");
             return DateTime.UtcNow;
+        }
+    }
+
+    private List<Claim> GetTokenClaims(string token)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+            return jwtToken.Claims.ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting token claims");
+            return new List<Claim>();
         }
     }
 

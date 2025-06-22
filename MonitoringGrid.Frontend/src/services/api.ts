@@ -591,65 +591,126 @@ export const schedulerApi = {
 // Legacy KPI API endpoints have been migrated to Indicator API
 // Use indicatorApi instead for all new development
 
-// Contact API endpoints (now under Indicator controller)
+// Contact API endpoints (using ContactController)
 export const contactApi = {
   // Get all contacts
   getContacts: async (params?: { isActive?: boolean; search?: string }): Promise<ContactDto[]> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<ContactDto[]> = await api.get('/indicator/contacts', { params });
-    return response.data;
+    // Use ContactController endpoints - API returns paginated response
+    const response: AxiosResponse<any> = await api.get('/contacts', {
+      params: {
+        ...params,
+        pageSize: 1000 // Get all contacts for now
+      }
+    });
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
+    return response.data || [];
   },
 
   // Get contact by ID
   getContact: async (id: number): Promise<ContactDto> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<ContactDto> = await api.get(`/indicator/contacts/${id}`);
+    // Use ContactController endpoints
+    const response: AxiosResponse<any> = await api.get(`/contacts/${id}`);
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
   // Create new contact
   createContact: async (contact: CreateContactRequest): Promise<ContactDto> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<ContactDto> = await api.post('/indicator/contacts', contact);
+    // Use ContactController endpoints
+    const response: AxiosResponse<any> = await api.post('/contacts', contact);
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
   // Update contact
   updateContact: async (contact: UpdateContactRequest): Promise<ContactDto> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<ContactDto> = await api.put(
-      `/indicator/contacts/${contact.contactID}`,
+    // Use ContactController endpoints
+    const response: AxiosResponse<any> = await api.put(
+      `/contacts/${contact.contactID}`,
       contact
     );
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
   // Delete contact
   deleteContact: async (id: number): Promise<void> => {
-    // Updated to use Indicator controller's contact endpoints
-    await api.delete(`/indicator/contacts/${id}`);
+    // Use ContactController endpoints
+    await api.delete(`/contacts/${id}`);
   },
 
-  // Assign contact to Indicators
+  // Get contacts by indicator
+  getContactsByIndicator: async (indicatorId: number): Promise<ContactDto[]> => {
+    // Use ContactController endpoint for getting contacts by indicator
+    const response: AxiosResponse<any> = await api.get(`/contacts/by-indicator/${indicatorId}`);
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
+    return response.data || [];
+  },
+
+  // Assign contact to Indicators (Note: This endpoint may need to be implemented in ContactController)
   assignToIndicators: async (id: number, indicatorIDs: number[]): Promise<{ message: string }> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post(
-      `/indicator/contacts/${id}/assign`,
+    // This endpoint may need to be implemented in ContactController
+    const response: AxiosResponse<any> = await api.post(
+      `/contacts/${id}/assign`,
       {
         contactID: id,
         indicatorIDs,
       }
     );
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 
-  // Bulk operations
+  // Bulk operations (Note: This endpoint may need to be implemented in ContactController)
   bulkOperation: async (request: BulkContactOperationRequest): Promise<{ message: string }> => {
-    // Updated to use Indicator controller's contact endpoints
-    const response: AxiosResponse<{ message: string }> = await api.post(
-      '/indicator/contacts/bulk',
+    // This endpoint may need to be implemented in ContactController
+    const response: AxiosResponse<any> = await api.post(
+      '/contacts/bulk',
       request
     );
+
+    // Handle wrapped API response
+    if (response.data?.data) {
+      return response.data.data;
+    }
+
+    // Fallback for direct response
     return response.data;
   },
 };

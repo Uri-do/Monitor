@@ -93,6 +93,7 @@ public class WorkerController : BaseApiController
     /// <param name="request">Status request parameters</param>
     /// <returns>Worker status information</returns>
     [HttpGet("status")]
+    [AllowAnonymous] // Allow anonymous access for testing
     [ProducesResponseType(typeof(WorkerStatusResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<WorkerStatusResponse>> GetStatus([FromQuery] GetWorkerStatusRequest? request = null)
     {

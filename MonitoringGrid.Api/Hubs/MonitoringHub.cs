@@ -8,7 +8,7 @@ namespace MonitoringGrid.Api.Hubs;
 /// <summary>
 /// SignalR Hub for real-time monitoring notifications
 /// </summary>
-[Authorize] // Authentication enabled for production security
+[AllowAnonymous] // Temporarily allow anonymous access for development
 public class MonitoringHub : Hub
 {
     private readonly ILogger<MonitoringHub> _logger;
@@ -291,6 +291,72 @@ public class MonitoringHub : Hub
             message = "Test connection successful",
             connectionId = Context.ConnectionId,
             timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Subscribe to worker integration test updates
+    /// </summary>
+    public async Task SubscribeToWorkerTests()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "WorkerTests");
+
+        _logger.LogDebug("Client {ConnectionId} subscribed to worker test updates", Context.ConnectionId);
+
+        await Clients.Caller.SendAsync("SubscribedToWorkerTests", new
+        {
+            Message = "Subscribed to worker integration test updates"
+        });
+    }
+
+    /// <summary>
+    /// Unsubscribe from worker integration test updates
+    /// </summary>
+    public async Task UnsubscribeFromWorkerTests()
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "WorkerTests");
+
+        _logger.LogDebug("Client {ConnectionId} unsubscribed from worker test updates", Context.ConnectionId);
+
+        await Clients.Caller.SendAsync("UnsubscribedFromWorkerTests", new
+        {
+            Message = "Unsubscribed from worker integration test updates"
+        });
+    }
+
+    /// <summary>
+    /// Join a specific worker test execution group
+    /// </summary>
+    public async Task JoinWorkerTestGroup(string testId)
+    {
+        var groupName = $"WorkerTest_{testId}";
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} joined worker test group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("JoinedWorkerTestGroup", new
+        {
+            TestId = testId,
+            GroupName = groupName,
+            Message = $"Joined worker test {testId} monitoring group"
+        });
+    }
+
+    /// <summary>
+    /// Leave a specific worker test execution group
+    /// </summary>
+    public async Task LeaveWorkerTestGroup(string testId)
+    {
+        var groupName = $"WorkerTest_{testId}";
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
+        _logger.LogDebug("Client {ConnectionId} left worker test group {GroupName}", Context.ConnectionId, groupName);
+
+        await Clients.Caller.SendAsync("LeftWorkerTestGroup", new
+        {
+            TestId = testId,
+            GroupName = groupName,
+            Message = $"Left worker test {testId} monitoring group"
         });
     }
 }

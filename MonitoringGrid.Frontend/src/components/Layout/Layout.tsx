@@ -41,6 +41,7 @@ import {
   Build as WorkerIcon,
   PlayCircle as WorkerControlIcon,
   BugReport as TestIcon,
+  Science as WorkerTestIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi, alertApi } from '@/services/api';
@@ -172,6 +173,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       text: 'Test Suite',
       icon: <TestIcon />,
       path: '/test-suite',
+      // requiredPermissions: ['System:Admin'], // Admin access only
+    },
+    {
+      text: 'Worker Integration Test',
+      icon: <WorkerTestIcon />,
+      path: '/worker-integration-test',
       // requiredPermissions: ['System:Admin'], // Admin access only
     },
     {

@@ -51,8 +51,17 @@ class AuthService {
     const loginData = result.data || result;
 
     if (!loginData.isSuccess) {
+      console.error('Login unsuccessful:', loginData);
       throw new Error(loginData.errorMessage || 'Login failed');
     }
+
+    console.log('Login successful:', {
+      hasToken: !!loginData.token,
+      hasUser: !!loginData.user,
+      userRoles: loginData.user?.roles?.map((r: any) => r.name || r) || [],
+      userId: loginData.user?.userId,
+      username: loginData.user?.username
+    });
 
     return loginData;
   }
@@ -260,9 +269,25 @@ class AuthService {
     sessionStorage.setItem('refresh_token', token);
   }
 
+  getUser(): User | null {
+    const userJson = sessionStorage.getItem('user');
+    if (!userJson) return null;
+    try {
+      return JSON.parse(userJson);
+    } catch (error) {
+      console.error('Failed to parse user from sessionStorage:', error);
+      return null;
+    }
+  }
+
+  setUser(user: User): void {
+    sessionStorage.setItem('user', JSON.stringify(user));
+  }
+
   clearToken(): void {
     sessionStorage.removeItem('auth_token');
     sessionStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('user');
   }
 
   isAuthenticated(): boolean {

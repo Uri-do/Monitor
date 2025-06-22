@@ -29,11 +29,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initAuth = async () => {
       const token = authService.getToken();
       const refreshToken = authService.getRefreshToken();
+      const storedUser = authService.getUser();
 
       if (token) {
         try {
           console.log('Attempting to validate existing token...');
-          const user = await authService.getCurrentUser();
+          // Try to use stored user first, fallback to API call
+          let user = storedUser;
+          if (!user) {
+            console.log('No stored user, fetching from API...');
+            user = await authService.getCurrentUser();
+          } else {
+            console.log('Using stored user:', { userId: user.userId, username: user.username, roles: user.roles?.map(r => r.name) });
+          }
           console.log('Token validation successful, user:', user);
           setState({
             user,
@@ -110,11 +118,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
         authService.setToken(response.token.accessToken);
         authService.setRefreshToken(response.token.refreshToken);
 
+        // Convert string roles to Role objects if needed
+        const userWithRoles = {
+          ...response.user,
+          roles: response.user.roles?.map(role => {
+            // If role is already an object, use it as is
+            if (typeof role === 'object' && role.name) {
+              return role;
+            }
+            // If role is a string, convert it to a Role object
+            const roleName = typeof role === 'string' ? role : role.name || 'Unknown';
+            return {
+              roleId: `role-${roleName.toLowerCase()}`,
+              name: roleName,
+              description: `${roleName} role`,
+              isSystemRole: true,
+              isActive: true,
+              permissions: []
+            };
+          }) || []
+        };
+
+        authService.setUser(userWithRoles);
+
+        console.log('Storing user in auth context:', {
+          userId: userWithRoles.userId,
+          username: userWithRoles.username,
+          roles: userWithRoles.roles?.map(r => r.name) || []
+        });
+
         // Update SignalR with new token
         signalRService.updateAuthToken(response.token.accessToken);
 
         setState({
-          user: response.user,
+          user: userWithRoles,
           token: response.token.accessToken,
           isAuthenticated: true,
           isLoading: false,

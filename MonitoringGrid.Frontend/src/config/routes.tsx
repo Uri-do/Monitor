@@ -41,6 +41,7 @@ const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagemen
 const WorkerControl = React.lazy(() => import('@/pages/Worker/WorkerControl'));
 const ApiTestingPage = React.lazy(() => import('@/pages/ApiTesting/ApiTestingPage'));
 const TestSuitePage = React.lazy(() => import('@/pages/TestSuite/TestSuitePage'));
+const WorkerIntegrationTestPage = React.lazy(() => import('@/pages/WorkerIntegrationTestPage'));
 
 // Route configuration interface
 export interface RouteConfig {
@@ -171,6 +172,13 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/test-suite',
     element: TestSuitePage,
+    requiredRoles: ['Admin'],
+  },
+
+  // Worker Integration Testing
+  {
+    path: '/worker-integration-test',
+    element: WorkerIntegrationTestPage,
     requiredRoles: ['Admin'],
   },
 

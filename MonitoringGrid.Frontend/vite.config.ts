@@ -121,7 +121,7 @@ export default defineConfig(({ command, mode }) => {
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates in development
         configure: (proxy, options) => {
@@ -142,13 +142,19 @@ export default defineConfig(({ command, mode }) => {
         },
       },
       '/monitoring-hub': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:57653',
+        changeOrigin: true,
+        secure: false, // Allow self-signed certificates in development
+        ws: true, // Enable WebSocket proxying for SignalR
+      },
+      '/hubs': {
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates in development
         ws: true, // Enable WebSocket proxying for SignalR
       },
       '/health': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:57653',
         changeOrigin: true,
         secure: false,
       },

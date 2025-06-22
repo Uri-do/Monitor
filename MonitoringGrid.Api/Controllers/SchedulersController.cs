@@ -39,6 +39,7 @@ namespace MonitoringGrid.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Paginated list of schedulers</returns>
         [HttpGet]
+        [AllowAnonymous] // Temporarily allow anonymous access for testing
         [ProducesResponseType(typeof(PaginatedSchedulersResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedSchedulersResponse>> GetSchedulers(
             [FromQuery] GetSchedulersRequest? request = null,
@@ -150,28 +151,28 @@ namespace MonitoringGrid.Api.Controllers
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SchedulerResponse>> GetScheduler(
             int id,
-            [FromQuery] GetSchedulerRequest? request = null,
+            [FromQuery] bool includeDetails = true,
+            [FromQuery] bool includeIndicators = false,
+            [FromQuery] bool includeHistory = false,
             CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                request ??= new GetSchedulerRequest { SchedulerId = id };
-
-                // Validate scheduler ID matches route parameter
-                if (request.SchedulerId != id)
-                {
-                    request.SchedulerId = id; // Use route parameter
-                }
-
-                var validationError = ValidateModelState();
-                if (validationError != null) return BadRequest(validationError);
-
-                // Additional validation for scheduler ID
+                // Additional validation for scheduler ID first
                 var paramValidation = ValidateParameter(id, nameof(id),
                     schedulerId => schedulerId > 0, "Scheduler ID must be a positive integer");
                 if (paramValidation != null) return BadRequest(paramValidation);
+
+                // Create request object for internal use
+                var request = new GetSchedulerRequest
+                {
+                    SchedulerId = id,
+                    IncludeDetails = includeDetails,
+                    IncludeIndicators = includeIndicators,
+                    IncludeHistory = includeHistory
+                };
 
                 var result = await _schedulerService.GetSchedulerByIdAsync(id);
 

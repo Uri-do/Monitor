@@ -27,7 +27,8 @@ export const useDataTable = ({
 
   // Filtering and sorting logic
   const filteredData = useMemo(() => {
-    let filtered = data;
+    // Ensure data is always an array
+    let filtered = Array.isArray(data) ? data : [];
 
     // Apply search filter
     if (searchTerm) {

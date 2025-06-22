@@ -248,6 +248,7 @@ public static class ApplicationBuilderExtensions
 
             // SignalR Hubs
             endpoints.MapHub<MonitoringGrid.Api.Hubs.MonitoringHub>("/monitoring-hub");
+            endpoints.MapHub<MonitoringGrid.Api.Hubs.WorkerIntegrationTestHub>("/hubs/worker-integration-test");
 
             // Default route for SPA
             endpoints.MapFallbackToFile("index.html");
@@ -314,8 +315,8 @@ public static class ApplicationBuilderExtensions
         // Endpoints
         app.UseEndpointsConfiguration();
 
-        // Database migration
-        await app.UseDatabaseMigrationAsync();
+        // Database migration - temporarily disabled due to existing database
+        // await app.UseDatabaseMigrationAsync();
 
         return app;
     }

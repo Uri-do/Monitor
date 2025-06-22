@@ -1,0 +1,293 @@
+.worker-integration-test-page {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header .ant-typography {
+  margin-bottom: 8px;
+}
+
+/* Test Execution Cards */
+.worker-test-execution-card {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 16px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.worker-test-execution-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.worker-test-execution-card.running {
+  border-left: 4px solid #1890ff;
+}
+
+.worker-test-execution-card.success {
+  border-left: 4px solid #52c41a;
+}
+
+.worker-test-execution-card.failed {
+  border-left: 4px solid #ff4d4f;
+}
+
+.worker-test-execution-card.cancelled {
+  border-left: 4px solid #faad14;
+}
+
+.test-execution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.test-execution-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-execution-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.test-execution-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.test-execution-progress {
+  margin-bottom: 16px;
+}
+
+.test-execution-progress .ant-progress-text {
+  font-weight: 500;
+}
+
+/* Real-time Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-indicator.running {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.status-indicator.success {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.status-indicator.failed {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+.status-indicator.cancelled {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+/* Performance Metrics */
+.performance-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.metric-item {
+  text-align: center;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.metric-value {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Test Results Modal */
+.test-results-modal .ant-modal-body {
+  padding: 0;
+}
+
+.test-results-header {
+  padding: 24px 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+}
+
+.test-results-content {
+  padding: 0 24px 24px;
+}
+
+.test-results-tabs .ant-tabs-content-holder {
+  padding: 16px 0;
+}
+
+/* Indicator Results Table */
+.indicator-results-table .ant-table-tbody > tr.success {
+  background: #f6ffed;
+}
+
+.indicator-results-table .ant-table-tbody > tr.failed {
+  background: #fff2f0;
+}
+
+.indicator-results-table .execution-time {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+}
+
+/* Real-time Updates Animation */
+.real-time-update {
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #e6f7ff;
+  }
+  50% {
+    background-color: #bae7ff;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Connection Status */
+.connection-status {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 1000;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.connection-status.connected {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.connection-status.disconnected {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+
+/* Test Type Selection */
+.test-type-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.test-type-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.test-type-card.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.test-type-description {
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* Progress Bars */
+.progress-container {
+  margin: 16px 0;
+}
+
+.progress-container .ant-progress-line {
+  margin-bottom: 8px;
+}
+
+.progress-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Loading States */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .worker-integration-test-page {
+    padding: 16px;
+  }
+  
+  .test-execution-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .performance-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .test-execution-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .test-execution-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .performance-metrics {
+    grid-template-columns: 1fr;
+  }
+}

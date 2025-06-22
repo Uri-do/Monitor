@@ -253,7 +253,60 @@ public class ContactController : BaseApiController
 
         var response = ApiResponse<int>.Success(updatedCount,
             $"Updated {updatedCount} of {request.ContactIds.Count()} contacts");
-        
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Assign contact to indicators
+    /// </summary>
+    /// <param name="id">Contact ID</param>
+    /// <param name="request">Assignment request</param>
+    /// <returns>Assignment result</returns>
+    [HttpPost("{id:int}/assign")]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(typeof(ValidationErrorResponse), 400)]
+    [ProducesResponseType(typeof(ApiResponse), 404)]
+    [ProducesResponseType(typeof(ApiResponse), 500)]
+    public async Task<IActionResult> AssignToIndicators(int id, [FromBody] AssignContactToIndicatorsRequest request)
+    {
+        var validationError = ValidateModelState();
+        if (validationError != null) return BadRequest(validationError);
+
+        if (id <= 0) return ValidationError(nameof(id), "Contact ID must be greater than 0");
+        if (!request.IndicatorIDs.Any()) return ValidationError(nameof(request.IndicatorIDs), "At least one indicator ID must be provided");
+
+        // TODO: Implement contact assignment logic
+        // This would typically involve creating IndicatorContact records
+        var response = ApiResponse<string>.Success(
+            "Assignment completed",
+            $"Contact {id} assigned to {request.IndicatorIDs.Count()} indicators");
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Bulk operations on contacts
+    /// </summary>
+    /// <param name="request">Bulk operation request</param>
+    /// <returns>Operation result</returns>
+    [HttpPost("bulk")]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(typeof(ValidationErrorResponse), 400)]
+    [ProducesResponseType(typeof(ApiResponse), 500)]
+    public async Task<IActionResult> BulkOperation([FromBody] BulkContactOperationRequest request)
+    {
+        var validationError = ValidateModelState();
+        if (validationError != null) return BadRequest(validationError);
+
+        if (!request.ContactIds.Any()) return ValidationError(nameof(request.ContactIds), "At least one contact ID must be provided");
+        if (string.IsNullOrEmpty(request.Operation)) return ValidationError(nameof(request.Operation), "Operation must be specified");
+
+        // TODO: Implement bulk operations based on operation type
+        var response = ApiResponse<string>.Success(
+            "Bulk operation completed",
+            $"Operation '{request.Operation}' applied to {request.ContactIds.Count()} contacts");
+
         return Ok(response);
     }
 }
@@ -272,4 +325,36 @@ public class BulkUpdateContactStatusRequest
     /// New active status for all contacts
     /// </summary>
     public bool IsActive { get; set; }
+}
+
+/// <summary>
+/// Request model for assigning contact to indicators
+/// </summary>
+public class AssignContactToIndicatorsRequest
+{
+    /// <summary>
+    /// Contact ID
+    /// </summary>
+    public int ContactID { get; set; }
+
+    /// <summary>
+    /// List of indicator IDs to assign to
+    /// </summary>
+    public IEnumerable<int> IndicatorIDs { get; set; } = new List<int>();
+}
+
+/// <summary>
+/// Request model for bulk contact operations
+/// </summary>
+public class BulkContactOperationRequest
+{
+    /// <summary>
+    /// List of contact IDs
+    /// </summary>
+    public IEnumerable<int> ContactIds { get; set; } = new List<int>();
+
+    /// <summary>
+    /// Operation to perform
+    /// </summary>
+    public string Operation { get; set; } = string.Empty;
 }

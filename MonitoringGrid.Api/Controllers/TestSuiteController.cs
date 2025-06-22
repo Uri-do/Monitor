@@ -209,11 +209,11 @@ public class TestSuiteController : BaseApiController
     {
         try
         {
-            var testProject = _configuration["TestSuite:ProjectPath"] ?? "MonitoringGrid.Tests";
+            var testProject = _configuration["TestSuite:ProjectPath"] ?? "./MonitoringGrid.Tests/MonitoringGrid.Tests.csproj";
             var dotnetPath = _configuration["TestSuite:DotNetPath"] ?? "dotnet";
 
             // Build the dotnet test command
-            var arguments = $"test {testProject} --logger \"json;LogFilePath=test-results-{execution.Id}.json\" --verbosity normal";
+            var arguments = $"test \"{testProject}\" --logger \"json;LogFilePath=test-results-{execution.Id}.json\" --verbosity normal";
             
             if (execution.Categories.Any() && !execution.Categories.Contains("all"))
             {

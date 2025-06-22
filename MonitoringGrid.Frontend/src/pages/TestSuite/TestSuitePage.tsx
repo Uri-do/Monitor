@@ -109,27 +109,42 @@ const TestSuitePage: React.FC = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        console.log('Loading test suite status...');
         const status = await testSuiteService.getStatus();
-        setTestStatus(prev => ({
-          ...prev,
-          totalTests: status.totalTests,
-          lastRun: status.lastRun ? new Date(status.lastRun) : undefined,
-          isRunning: status.isRunning,
-        }));
+        console.log('Test suite status received:', status);
 
-        if (status.testResults.length > 0) {
-          setTestResults(status.testResults.map(mapApiTestResult));
-          const passedCount = status.testResults.filter(r => r.status === 'passed').length;
-          const failedCount = status.testResults.filter(r => r.status === 'failed').length;
+        if (status && typeof status === 'object') {
           setTestStatus(prev => ({
             ...prev,
-            passedTests: passedCount,
-            failedTests: failedCount,
+            totalTests: status.totalTests || 0,
+            lastRun: status.lastRun ? new Date(status.lastRun) : undefined,
+            isRunning: status.isRunning || false,
           }));
+
+          if (status.testResults && status.testResults.length > 0) {
+            setTestResults(status.testResults.map(mapApiTestResult));
+            const passedCount = status.testResults.filter(r => r.status === 'passed').length;
+            const failedCount = status.testResults.filter(r => r.status === 'failed').length;
+            setTestStatus(prev => ({
+              ...prev,
+              passedTests: passedCount,
+              failedTests: failedCount,
+            }));
+          }
+        } else {
+          console.error('Invalid status response:', status);
+          toast.error('Invalid test suite status response');
         }
       } catch (error) {
         console.error('Failed to load test suite status:', error);
         toast.error('Failed to load test suite status');
+        // Set default values on error
+        setTestStatus(prev => ({
+          ...prev,
+          totalTests: 0,
+          lastRun: undefined,
+          isRunning: false,
+        }));
       }
     };
 

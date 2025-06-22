@@ -130,10 +130,6 @@ public class IndicatorConfiguration : IEntityTypeConfiguration<Indicator>
 
         builder.Property(i => i.AverageLastDays);
 
-        builder.Property(i => i.IsCurrentlyRunning)
-            .IsRequired()
-            .HasDefaultValue(false);
-
         builder.Property(i => i.ExecutionStartTime);
 
         builder.Property(i => i.ExecutionContext)

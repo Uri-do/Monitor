@@ -965,7 +965,11 @@ public class SecurityController : BaseApiController
                     Scope = string.Empty // Core LoginResponse doesn't have Scope
                 };
 
-                response.User = MapToUserResponse(authResponse.Value?.User, true);
+                // Extract roles from the authenticated user
+                var userRoles = authResponse.Value?.User?.UserRoles?.Select(ur => ur.Role).ToList() ?? new List<MonitoringGrid.Core.Entities.Role>();
+                var userPermissions = userRoles.SelectMany(r => r.RolePermissions?.Select(rp => rp.Permission) ?? new List<MonitoringGrid.Core.Entities.Permission>()).Distinct().ToList();
+
+                response.User = MapToUserResponse(authResponse.Value?.User, true, userRoles, userPermissions);
 
                 // Log successful login
                 await LogSecurityEventAsync("UserLogin", "LOGIN", $"User/{authResponse.Value?.User?.UserId}",

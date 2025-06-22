@@ -1,0 +1,9 @@
+{
+  "schedulerID": 8,
+  "schedulerName": "Updated Daily at 9 AM",
+  "schedulerDescription": "Updated description for testing",
+  "scheduleType": "cron",
+  "cronExpression": "0 9 * * *",
+  "timezone": "UTC",
+  "isEnabled": true
+}

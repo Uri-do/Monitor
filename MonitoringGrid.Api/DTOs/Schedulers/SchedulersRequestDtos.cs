@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using MonitoringGrid.Api.Validation;
 
 namespace MonitoringGrid.Api.DTOs.Schedulers;
@@ -140,6 +141,7 @@ public class UpdateSchedulerRequest
     /// </summary>
     [Required]
     [PositiveInteger]
+    [JsonPropertyName("schedulerID")]
     public long SchedulerId { get; set; }
 
     /// <summary>

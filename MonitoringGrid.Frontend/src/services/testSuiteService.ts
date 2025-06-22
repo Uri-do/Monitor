@@ -69,7 +69,7 @@ export interface TestHistoryResponse {
 
 class TestSuiteService extends BaseApiService {
   constructor() {
-    super('/api/testsuite');
+    super('testsuite');
   }
 
   /**
@@ -77,7 +77,7 @@ class TestSuiteService extends BaseApiService {
    */
   async getStatus(): Promise<TestSuiteStatus> {
     const response = await this.get<TestSuiteStatus>('/status');
-    return response.data;
+    return response;
   }
 
   /**
@@ -85,7 +85,7 @@ class TestSuiteService extends BaseApiService {
    */
   async runTests(request: RunTestsRequest = {}): Promise<TestExecutionResponse> {
     const response = await this.post<TestExecutionResponse>('/run', request);
-    return response.data;
+    return response;
   }
 
   /**
@@ -100,7 +100,7 @@ class TestSuiteService extends BaseApiService {
    */
   async getExecutionStatus(executionId: string): Promise<TestExecutionStatus> {
     const response = await this.get<TestExecutionStatus>(`/execution/${executionId}`);
-    return response.data;
+    return response;
   }
 
   /**
@@ -108,7 +108,7 @@ class TestSuiteService extends BaseApiService {
    */
   async getTestHistory(page: number = 1, pageSize: number = 10): Promise<TestHistoryResponse> {
     const response = await this.get<TestHistoryResponse>(`/history?page=${page}&pageSize=${pageSize}`);
-    return response.data;
+    return response;
   }
 
   /**

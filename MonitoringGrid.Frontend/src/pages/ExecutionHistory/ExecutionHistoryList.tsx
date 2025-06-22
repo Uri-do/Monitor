@@ -41,43 +41,43 @@ const ExecutionHistoryList: React.FC = () => {
   }>({ open: false });
 
   // Define table columns
-  const columns: DataTableColumn[] = [
+  const columns: DataTableColumn<ExecutionHistoryDto>[] = [
     {
       id: 'indicator',
       label: 'Indicator',
       sortable: true,
-      render: (row: ExecutionHistoryDto) => row.indicator || 'N/A',
+      render: (value, row) => value || 'N/A',
     },
     {
       id: 'kpiOwner',
       label: 'Owner',
       sortable: true,
-      render: (row: ExecutionHistoryDto) => row.kpiOwner || 'N/A',
+      render: (value, row) => value || 'N/A',
     },
     {
       id: 'timestamp',
       label: 'Executed At',
       sortable: true,
-      render: (row: ExecutionHistoryDto) =>
-        new Date(row.timestamp).toLocaleString(),
+      render: (value, row) =>
+        new Date(value).toLocaleString(),
     },
     {
       id: 'executedBy',
       label: 'Executed By',
       sortable: true,
-      render: (row: ExecutionHistoryDto) => row.executedBy || 'System',
+      render: (value, row) => value || 'System',
     },
     {
       id: 'executionMethod',
       label: 'Method',
       sortable: true,
-      render: (row: ExecutionHistoryDto) => row.executionMethod || 'Unknown',
+      render: (value, row) => value || 'Unknown',
     },
     {
       id: 'isSuccessful',
       label: 'Status',
       sortable: true,
-      render: (row: ExecutionHistoryDto) => (
+      render: (value, row) => (
         <Box
           sx={{
             px: 1,
@@ -87,10 +87,10 @@ const ExecutionHistoryList: React.FC = () => {
             fontWeight: 'bold',
             textAlign: 'center',
             color: 'white',
-            backgroundColor: row.isSuccessful ? '#4caf50' : '#f44336',
+            backgroundColor: value ? '#4caf50' : '#f44336',
           }}
         >
-          {row.isSuccessful ? 'Success' : 'Failed'}
+          {value ? 'Success' : 'Failed'}
         </Box>
       ),
     },
@@ -98,15 +98,15 @@ const ExecutionHistoryList: React.FC = () => {
       id: 'currentValue',
       label: 'Current Value',
       sortable: true,
-      render: (row: ExecutionHistoryDto) =>
-        row.currentValue?.toFixed(2) || 'N/A',
+      render: (value, row) =>
+        value !== null && value !== undefined ? value.toFixed(2) : 'N/A',
     },
     {
       id: 'executionTimeMs',
       label: 'Duration',
       sortable: true,
-      render: (row: ExecutionHistoryDto) =>
-        row.executionTimeMs ? `${row.executionTimeMs}ms` : 'N/A',
+      render: (value, row) =>
+        value ? `${value}ms` : 'N/A',
     },
   ];
 
