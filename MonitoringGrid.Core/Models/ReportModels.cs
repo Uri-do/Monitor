@@ -1,11 +1,11 @@
 namespace MonitoringGrid.Core.Models;
 
 /// <summary>
-/// KPI report request model
+/// Indicator report request model
 /// </summary>
-public class KpiReportRequest
+public class IndicatorReportRequest
 {
-    public List<int>? KpiIds { get; set; }
+    public List<long>? IndicatorIds { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string Format { get; set; } = "PDF"; // PDF, Excel, CSV
@@ -21,7 +21,7 @@ public class AlertReportRequest
 {
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public List<int>? KpiIds { get; set; }
+    public List<long>? IndicatorIds { get; set; }
     public List<string>? Severities { get; set; }
     public bool? IsResolved { get; set; }
     public string Format { get; set; } = "PDF";

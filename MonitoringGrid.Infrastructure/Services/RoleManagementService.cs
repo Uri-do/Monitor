@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 using MonitoringGrid.Infrastructure.Data;
@@ -22,14 +23,14 @@ public class RoleManagementService : IRoleManagementService
         _logger = logger;
     }
 
-    public async Task<Role> CreateRoleAsync(string name, string description, List<string> permissions, CancellationToken cancellationToken = default)
+    public async Task<Result<Role>> CreateRoleAsync(string roleName, string description, CancellationToken cancellationToken = default)
     {
         try
         {
             var role = new Role
             {
                 RoleId = Guid.NewGuid().ToString(),
-                Name = name,
+                Name = roleName,
                 Description = description,
                 IsSystemRole = false,
                 IsActive = true,
@@ -40,17 +41,17 @@ public class RoleManagementService : IRoleManagementService
             _context.Roles.Add(role);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Role {RoleName} created successfully with ID {RoleId}", name, role.RoleId);
-            return role;
+            _logger.LogInformation("Role {RoleName} created successfully with ID {RoleId}", roleName, role.RoleId);
+            return Result<Role>.Success(role);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create role {RoleName}: {Message}", name, ex.Message);
-            throw;
+            _logger.LogError(ex, "Failed to create role {RoleName}: {Message}", roleName, ex.Message);
+            return Result.Failure<Role>(Error.Failure("Role.CreateFailed", $"Failed to create role: {ex.Message}"));
         }
     }
 
-    public async Task<Role?> GetRoleAsync(string roleId, CancellationToken cancellationToken = default)
+    public async Task<Role?> GetRoleByIdAsync(string roleId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -66,7 +67,7 @@ public class RoleManagementService : IRoleManagementService
         }
     }
 
-    public async Task<List<Role>> GetRolesAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Role>> GetRolesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -84,7 +85,7 @@ public class RoleManagementService : IRoleManagementService
         }
     }
 
-    public async Task<bool> UpdateRoleAsync(string roleId, string name, string description, List<string> permissions, CancellationToken cancellationToken = default)
+    public async Task<Result<Role>> UpdateRoleAsync(string roleId, string roleName, string description, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -94,26 +95,26 @@ public class RoleManagementService : IRoleManagementService
             if (role == null)
             {
                 _logger.LogWarning("Role {RoleId} not found for update", roleId);
-                return false;
+                return Result.Failure<Role>(Error.NotFound("Role", "Role not found"));
             }
 
-            role.Name = name;
+            role.Name = roleName;
             role.Description = description;
             role.ModifiedDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Role {RoleId} updated successfully", roleId);
-            return true;
+            return Result<Role>.Success(role);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update role {RoleId}: {Message}", roleId, ex.Message);
-            throw;
+            return Result.Failure<Role>(Error.Failure("Role.UpdateFailed", $"Failed to update role: {ex.Message}"));
         }
     }
 
-    public async Task<bool> DeleteRoleAsync(string roleId, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> DeleteRoleAsync(string roleId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -123,13 +124,13 @@ public class RoleManagementService : IRoleManagementService
             if (role == null)
             {
                 _logger.LogWarning("Role {RoleId} not found for deletion", roleId);
-                return false;
+                return Result.Failure<bool>(Error.NotFound("Role", "Role not found"));
             }
 
             if (role.IsSystemRole)
             {
                 _logger.LogWarning("Cannot delete system role {RoleId}", roleId);
-                return false;
+                return Result.Failure<bool>(Error.Validation("Role.SystemRole", "Cannot delete system role"));
             }
 
             // Soft delete by setting IsActive to false
@@ -139,12 +140,12 @@ public class RoleManagementService : IRoleManagementService
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Role {RoleId} deleted successfully", roleId);
-            return true;
+            return Result<bool>.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete role {RoleId}: {Message}", roleId, ex.Message);
-            throw;
+            return Result.Failure<bool>(Error.Failure("Role.DeleteFailed", $"Failed to delete role: {ex.Message}"));
         }
     }
 
@@ -207,7 +208,7 @@ public class RoleManagementService : IRoleManagementService
         }
     }
 
-    public async Task<List<Permission>> GetRolePermissionsAsync(string roleId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Permission>> GetRolePermissionsAsync(string roleId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -223,7 +224,7 @@ public class RoleManagementService : IRoleManagementService
         }
     }
 
-    public async Task<List<User>> GetRoleUsersAsync(string roleId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<User>> GetRoleUsersAsync(string roleId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -259,7 +260,7 @@ public class RoleManagementService : IRoleManagementService
         }
     }
 
-    public async Task<List<Permission>> GetPermissionsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Permission>> GetPermissionsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -273,6 +274,95 @@ public class RoleManagementService : IRoleManagementService
         {
             _logger.LogError(ex, "Failed to get permissions: {Message}", ex.Message);
             throw;
+        }
+    }
+
+    public async Task<Result<bool>> AssignRoleToUserAsync(string userId, string roleId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var existingAssignment = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId, cancellationToken);
+
+            if (existingAssignment != null)
+            {
+                _logger.LogInformation("Role {RoleId} already assigned to user {UserId}", roleId, userId);
+                return Result<bool>.Success(true);
+            }
+
+            var userRole = new UserRole
+            {
+                UserId = userId,
+                RoleId = roleId,
+                AssignedDate = DateTime.UtcNow
+            };
+
+            _context.UserRoles.Add(userRole);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Role {RoleId} assigned to user {UserId}", roleId, userId);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to assign role {RoleId} to user {UserId}: {Message}", roleId, userId, ex.Message);
+            return Result.Failure<bool>(Error.Failure("Role.AssignFailed", $"Failed to assign role: {ex.Message}"));
+        }
+    }
+
+    public async Task<Result<bool>> RemoveRoleFromUserAsync(string userId, string roleId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userRole = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId, cancellationToken);
+
+            if (userRole == null)
+            {
+                _logger.LogWarning("Role {RoleId} not found for user {UserId}", roleId, userId);
+                return Result.Failure<bool>(Error.NotFound("UserRole", "User role assignment not found"));
+            }
+
+            _context.UserRoles.Remove(userRole);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Role {RoleId} removed from user {UserId}", roleId, userId);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove role {RoleId} from user {UserId}: {Message}", roleId, userId, ex.Message);
+            return Result.Failure<bool>(Error.Failure("Role.RemoveFailed", $"Failed to remove role: {ex.Message}"));
+        }
+    }
+
+    public async Task<IEnumerable<Role>> GetUserRolesAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => ur.Role)
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get roles for user {UserId}: {Message}", userId, ex.Message);
+            return new List<Role>();
+        }
+    }
+
+    public async Task<bool> UserHasRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == roleName, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check if user {UserId} has role {RoleName}: {Message}", userId, roleName, ex.Message);
+            return false;
         }
     }
 }

@@ -30,6 +30,118 @@ public class WebhookService : IWebhookService
         _httpClient = httpClient;
     }
 
+    public async Task<bool> SendWebhookAsync(string url, object payload, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, content, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Webhook sent successfully to {Url}", url);
+                return true;
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Failed to send webhook to {Url}. Status: {StatusCode}, Response: {Response}",
+                    url, response.StatusCode, responseContent);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send webhook to {Url}", url);
+            return false;
+        }
+    }
+
+    public async Task<bool> SendWebhookAsync(string url, object payload, Dictionary<string, string> headers, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+
+            // Add custom headers
+            foreach (var header in headers)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Webhook sent successfully to {Url} with custom headers", url);
+                return true;
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Failed to send webhook to {Url} with custom headers. Status: {StatusCode}, Response: {Response}",
+                    url, response.StatusCode, responseContent);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send webhook to {Url} with custom headers", url);
+            return false;
+        }
+    }
+
+    public async Task<bool> ValidateWebhookAsync(string url, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                _logger.LogError("Webhook URL is empty");
+                return false;
+            }
+
+            // Test webhook with a simple message
+            var testPayload = new
+            {
+                eventType = "webhook.validation",
+                timestamp = DateTime.UtcNow,
+                message = "Webhook validation test from Monitoring Grid"
+            };
+
+            var result = await SendWebhookAsync(url, testPayload, cancellationToken);
+
+            if (result)
+            {
+                _logger.LogInformation("Webhook {Url} is valid", url);
+                return true;
+            }
+            else
+            {
+                _logger.LogError("Webhook {Url} validation failed", url);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to validate webhook {Url}", url);
+            return false;
+        }
+    }
+
     public async Task<bool> SendWebhookAsync(WebhookConfiguration webhook, object payload, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();

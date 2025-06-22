@@ -196,7 +196,7 @@ public class NotificationService : INotificationService
                 IsActive = true
             };
 
-            return await _webhookService.SendWebhookAsync(webhookConfig, payload, cancellationToken);
+            return await _webhookService.SendWebhookAsync(url, payload, cancellationToken);
         }
         catch (Exception ex)
         {

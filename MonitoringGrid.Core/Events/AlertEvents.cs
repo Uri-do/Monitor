@@ -10,7 +10,7 @@ public record AlertTriggeredEvent : DomainEvent
     public AlertTriggeredEvent(AlertLog alert)
     {
         AlertId = (int)alert.AlertId;
-        IndicatorId = alert.IndicatorId;
+        IndicatorId = alert.IndicatorID;
         Severity = alert.GetSeverity();
         Subject = alert.Subject ?? string.Empty;
         Message = alert.Message;

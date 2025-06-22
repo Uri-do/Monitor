@@ -143,13 +143,13 @@ public class UpdateIndicatorCommandHandler : IRequestHandler<UpdateIndicatorComm
             // Update the indicator
             var updateRequest = new Core.Models.UpdateIndicatorRequest
             {
-                IndicatorID = existingIndicator.IndicatorID,
+                IndicatorId = existingIndicator.IndicatorID,
                 IndicatorName = request.IndicatorName,
                 IndicatorCode = request.IndicatorCode,
                 IndicatorDesc = request.IndicatorDesc,
-                CollectorID = request.CollectorID,
+                CollectorId = request.CollectorID,
                 CollectorItemName = request.CollectorItemName,
-                SchedulerID = request.SchedulerID,
+                SchedulerId = request.SchedulerID,
                 IsActive = request.IsActive,
                 LastMinutes = request.LastMinutes,
                 ThresholdType = request.ThresholdType,

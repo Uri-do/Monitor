@@ -1,52 +1,29 @@
-using MonitoringGrid.Core.Common;
+
 
 namespace MonitoringGrid.Core.Interfaces;
 
 /// <summary>
-/// Service for collecting and managing performance metrics
+/// Interface for performance metrics collection and analysis
 /// </summary>
 public interface IPerformanceMetricsService
 {
     /// <summary>
-    /// Get current performance metrics
+    /// Records a performance metric
     /// </summary>
-    Task<Result<PerformanceMetrics>> GetCurrentMetricsAsync(CancellationToken cancellationToken = default);
+    Task RecordMetricAsync(string metricName, TimeSpan duration, bool success = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get performance metrics for a specific time range
+    /// Gets performance metrics for a specific operation
     /// </summary>
-    Task<Result<PerformanceMetrics>> GetMetricsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<string?> GetMetricAsync(string metricName, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Record a performance metric
+    /// Gets performance metrics for a time range
     /// </summary>
-    Task<Result> RecordMetricAsync(string metricName, double value, Dictionary<string, string>? tags = null, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetMetricsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get database performance metrics
+    /// Gets aggregated performance statistics
     /// </summary>
-    Task<Result<DatabaseMetrics>> GetDatabaseMetricsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Get cache performance metrics
-    /// </summary>
-    Task<Result<CacheMetrics>> GetCacheMetricsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Get system performance metrics
-    /// </summary>
-    Task<Result<SystemMetrics>> GetSystemMetricsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Increment a counter metric
-    /// </summary>
-    void IncrementCounter(string counterName, string? category = null);
-
-    /// <summary>
-    /// Record duration metric for performance tracking
-    /// </summary>
-    void RecordDuration(string operationName, TimeSpan duration);
+    Task<string> GetStatisticsAsync(string metricName, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 }
-
-// Note: PerformanceMetrics, DatabaseMetrics, CacheMetrics, and SystemMetrics
-// are already defined in IPerformanceMetricsCollector.cs

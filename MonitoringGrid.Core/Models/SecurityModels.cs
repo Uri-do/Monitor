@@ -675,37 +675,37 @@ public enum ImportErrorSeverity
 // CreateIndicatorRequest moved to IndicatorModels.cs - duplicate DELETED
 
 /// <summary>
-/// Request model for updating KPIs
+/// Request model for updating Indicators
 /// </summary>
-public class UpdateKpiRequest
+public class UpdateIndicatorSecurityRequest
 {
     /// <summary>
-    /// KPI ID to update
+    /// Indicator ID to update
     /// </summary>
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
 
     /// <summary>
-    /// KPI name (optional)
+    /// Indicator name (optional)
     /// </summary>
     public string? Name { get; set; }
 
     /// <summary>
-    /// KPI description (optional)
+    /// Indicator description (optional)
     /// </summary>
     public string? Description { get; set; }
 
     /// <summary>
-    /// Stored procedure name for KPI execution (optional)
+    /// Stored procedure name for Indicator execution (optional)
     /// </summary>
     public string? StoredProcedureName { get; set; }
 
     /// <summary>
-    /// KPI owner (optional)
+    /// Indicator owner (optional)
     /// </summary>
     public string? Owner { get; set; }
 
     /// <summary>
-    /// Whether the KPI is active (optional)
+    /// Whether the Indicator is active (optional)
     /// </summary>
     public bool? IsActive { get; set; }
 

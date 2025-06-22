@@ -12,6 +12,7 @@ using ApiKeyService = MonitoringGrid.Api.Authentication.IApiKeyService;
 using MonitoringGrid.Api.Filters;
 using MonitoringGrid.Api.Observability;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Interfaces.Security;
 using MonitoringGrid.Core.Security;
 using System.Security.Claims;
 using System.Diagnostics;
@@ -34,7 +35,7 @@ public class SecurityController : BaseApiController
     private readonly IUserService _userService;
     private readonly IRoleManagementService _roleService;
     private readonly ApiKeyService _apiKeyService;
-    private readonly IAuthenticationService _authenticationService;
+    private readonly ISecurityService _authenticationService;
     private readonly IMapper _mapper;
     private readonly SecurityConfiguration _securityConfig;
 
@@ -44,7 +45,7 @@ public class SecurityController : BaseApiController
         IUserService userService,
         IRoleManagementService roleService,
         ApiKeyService apiKeyService,
-        IAuthenticationService authenticationService,
+        ISecurityService authenticationService,
         IMapper mapper,
         ILogger<SecurityController> logger,
         IOptions<SecurityConfiguration> securityConfig)
@@ -59,707 +60,17 @@ public class SecurityController : BaseApiController
         _securityConfig = securityConfig.Value;
     }
 
-    /// <summary>
-    /// Get current security configuration
-    /// </summary>
-    /// <param name="request">Get security config request parameters</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced security configuration</returns>
-    [HttpGet("config")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(SecurityConfigResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<SecurityConfigResponse>> GetSecurityConfig(
-        [FromQuery] GetSecurityConfigRequest? request = null,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
+    // GetSecurityConfig method moved to SecurityConfigController
 
-        try
-        {
-            request ??= new GetSecurityConfigRequest();
+    // UpdateSecurityConfig method moved to SecurityConfigController
 
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
+    // GetSecurityEvents method moved to SecurityAuditController
 
-            var userId = GetCurrentUserId();
-            Logger.LogDebug("Getting security configuration for user {UserId}", userId);
+    // GetUserSecurityEvents method moved to SecurityAuditController
 
-            // Get additional metrics for enhanced response
-            var activeSessionsCount = 0; // Placeholder - would get from service
-            var twoFactorUsersCount = 0; // Placeholder - would get from service
-            var rateLimitViolations = 0; // Placeholder - would get from service
+    // GetUsers method moved to UserManagementController
 
-            stopwatch.Stop();
-
-            var response = new SecurityConfigResponse
-            {
-                PasswordPolicy = new PasswordPolicyResponse
-                {
-                    MinimumLength = _securityConfig.PasswordPolicy.MinimumLength,
-                    RequireUppercase = _securityConfig.PasswordPolicy.RequireUppercase,
-                    RequireLowercase = _securityConfig.PasswordPolicy.RequireLowercase,
-                    RequireNumbers = _securityConfig.PasswordPolicy.RequireDigit,
-                    RequireSpecialChars = _securityConfig.PasswordPolicy.RequireSpecialCharacter,
-                    PasswordExpirationDays = _securityConfig.PasswordPolicy.PasswordExpirationDays,
-                    MaxFailedAttempts = _securityConfig.PasswordPolicy.MaxFailedAttempts,
-                    LockoutDurationMinutes = _securityConfig.PasswordPolicy.LockoutDurationMinutes,
-                    PasswordStrengthScore = CalculatePasswordPolicyStrength()
-                },
-                SessionSettings = new SessionSettingsResponse
-                {
-                    SessionTimeoutMinutes = _securityConfig.Session.SessionTimeoutMinutes,
-                    IdleTimeoutMinutes = _securityConfig.Session.IdleTimeoutMinutes,
-                    AllowConcurrentSessions = true, // Default value
-                    ActiveSessionsCount = activeSessionsCount
-                },
-                TwoFactorSettings = new TwoFactorSettingsResponse
-                {
-                    Enabled = _securityConfig.TwoFactor.IsEnabled,
-                    Required = _securityConfig.TwoFactor.IsRequired,
-                    Methods = _securityConfig.TwoFactor.EnabledProviders.ToList(),
-                    UsersWithTwoFactorCount = twoFactorUsersCount
-                },
-                RateLimitSettings = new RateLimitSettingsResponse
-                {
-                    Enabled = _securityConfig.RateLimit.IsEnabled,
-                    MaxRequestsPerMinute = _securityConfig.RateLimit.RequestsPerMinute,
-                    MaxRequestsPerHour = _securityConfig.RateLimit.RequestsPerHour,
-                    CurrentViolationsCount = rateLimitViolations
-                },
-                LastModified = DateTime.UtcNow, // Placeholder
-                LastModifiedBy = "System", // Placeholder
-                Version = "1.0" // Placeholder
-            };
-
-            // Add details if requested
-            if (request.IncludeDetails)
-            {
-                response.Details = new Dictionary<string, object>
-                {
-                    ["QueryDurationMs"] = stopwatch.ElapsedMilliseconds,
-                    ["RequestedBy"] = userId,
-                    ["ConfigurationHealth"] = CalculateConfigurationHealth(response)
-                };
-            }
-
-            // Log security configuration access
-            await LogSecurityEventAsync("SecurityConfigAccess", "READ", "SecurityConfig",
-                true, userId, "Security configuration accessed", cancellationToken);
-
-            Logger.LogInformation("Security configuration retrieved by user {UserId} in {Duration}ms",
-                userId, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, "Security configuration retrieved successfully"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Get security config operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Get security config operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var userId = GetCurrentUserId();
-            Logger.LogError(ex, "Error retrieving security configuration for user {UserId}: {Message}", userId, ex.Message);
-
-            // Log security event for config access error
-            await LogSecurityEventAsync("SecurityConfigAccessError", "READ", "SecurityConfig",
-                false, userId, $"Security config access error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse("Failed to retrieve security configuration", "GET_SECURITY_CONFIG_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Update security configuration
-    /// </summary>
-    /// <param name="request">Update security config request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced security operation response</returns>
-    [HttpPut("config")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(SecurityOperationResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<SecurityOperationResponse>> UpdateSecurityConfig(
-        [FromBody] UpdateSecurityConfigRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            var userId = GetCurrentUserId();
-            Logger.LogDebug("Updating security configuration for user {UserId}", userId);
-
-            // Validate configuration changes
-            var validationResult = ValidateSecurityConfigurationChanges(request);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(CreateErrorResponse(string.Join(", ", validationResult.Errors), "INVALID_CONFIGURATION"));
-            }
-
-            // In a real implementation, you would update the configuration in the database
-            // For now, we'll simulate the update
-            var previousConfig = GetCurrentSecurityConfigSnapshot();
-
-            // Apply configuration changes (placeholder)
-            // await _securityConfigService.UpdateConfigurationAsync(request, cancellationToken);
-
-            stopwatch.Stop();
-
-            var response = new SecurityOperationResponse
-            {
-                Success = true,
-                Message = "Security configuration updated successfully",
-                PerformedBy = userId,
-                DurationMs = stopwatch.ElapsedMilliseconds,
-                Details = new Dictionary<string, object>
-                {
-                    ["ChangeReason"] = request.ChangeReason ?? "No reason provided",
-                    ["ChangedFields"] = GetChangedFields(previousConfig, request),
-                    ["ConfigurationVersion"] = "1.1", // Incremented version
-                    ["ValidationPassed"] = true,
-                    ["IpAddress"] = GetClientIpAddress()
-                }
-            };
-
-            // Log the configuration change with detailed audit
-            await LogSecurityEventAsync("SecurityConfigurationChanged", "UPDATE", "SecurityConfiguration",
-                true, userId, $"Security configuration updated: {request.ChangeReason}", cancellationToken);
-
-            Logger.LogInformation("Security configuration updated by user {UserId} in {Duration}ms. Reason: {Reason}",
-                userId, stopwatch.ElapsedMilliseconds, request.ChangeReason);
-
-            return Ok(CreateSuccessResponse(response, response.Message));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Update security config operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Update security config operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            stopwatch.Stop();
-            var userId = GetCurrentUserId();
-            Logger.LogWarning("Unauthorized attempt to update security configuration by user {UserId}: {Error}", userId, ex.Message);
-
-            // Log security event for unauthorized config change attempt
-            await LogSecurityEventAsync("SecurityConfigurationUnauthorized", "UPDATE", "SecurityConfiguration",
-                false, userId, $"Unauthorized config update attempt: {ex.Message}", cancellationToken);
-
-            return Forbid("Insufficient permissions to update security configuration");
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var userId = GetCurrentUserId();
-            Logger.LogError(ex, "Error updating security configuration for user {UserId}: {Message}", userId, ex.Message);
-
-            // Log security event for config update error
-            await LogSecurityEventAsync("SecurityConfigurationError", "UPDATE", "SecurityConfiguration",
-                false, userId, $"Config update error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse("Failed to update security configuration", "UPDATE_SECURITY_CONFIG_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Get security events
-    /// </summary>
-    /// <param name="request">Get security events request parameters</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Paginated security events with analytics</returns>
-    [HttpGet("events")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(PaginatedSecurityEventsResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<PaginatedSecurityEventsResponse>> GetSecurityEvents(
-        [FromQuery] GetSecurityEventsRequest? request = null,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            request ??= new GetSecurityEventsRequest();
-
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            var userId = GetCurrentUserId();
-            Logger.LogDebug("Getting security events for user {UserId} with filters", userId);
-
-            var events = await _securityAuditService.GetSecurityEventsAsync(
-                request.StartDate, request.EndDate, request.UserId, cancellationToken);
-
-            // Apply additional filtering
-            var filteredEvents = events.AsQueryable();
-
-            if (!string.IsNullOrEmpty(request.EventType))
-            {
-                filteredEvents = filteredEvents.Where(e => e.EventType.Contains(request.EventType, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrEmpty(request.Action))
-            {
-                filteredEvents = filteredEvents.Where(e => e.Action.Contains(request.Action, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (request.IsSuccess.HasValue)
-            {
-                filteredEvents = filteredEvents.Where(e => e.IsSuccess == request.IsSuccess.Value);
-            }
-
-            // Apply sorting
-            filteredEvents = request.SortDirection?.ToLower() == "asc"
-                ? filteredEvents.OrderBy(e => e.Timestamp)
-                : filteredEvents.OrderByDescending(e => e.Timestamp);
-
-            // Apply pagination
-            var totalCount = filteredEvents.Count();
-            var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-            var skip = (request.Page - 1) * request.PageSize;
-            var pagedEvents = filteredEvents.Skip(skip).Take(request.PageSize).ToList();
-
-            stopwatch.Stop();
-
-            // Map to enhanced response DTOs
-            var eventResponses = pagedEvents.Select(e => MapToSecurityEventResponse(e, request.IncludeDetails)).ToList();
-
-            // Calculate summary statistics
-            var summary = new SecurityEventsSummary
-            {
-                TotalEvents = totalCount,
-                SuccessfulEvents = eventResponses.Count(e => e.IsSuccess),
-                FailedEvents = eventResponses.Count(e => !e.IsSuccess),
-                HighRiskEvents = eventResponses.Count(e => e.RiskScore >= 80),
-                UniqueUsers = eventResponses.Where(e => !string.IsNullOrEmpty(e.UserId)).Select(e => e.UserId).Distinct().Count(),
-                UniqueIpAddresses = eventResponses.Where(e => !string.IsNullOrEmpty(e.IpAddress)).Select(e => e.IpAddress).Distinct().Count()
-            };
-
-            var response = new PaginatedSecurityEventsResponse
-            {
-                Events = eventResponses,
-                TotalCount = totalCount,
-                Page = request.Page,
-                PageSize = request.PageSize,
-                TotalPages = totalPages,
-                HasNextPage = request.Page < totalPages,
-                HasPreviousPage = request.Page > 1,
-                Summary = summary,
-                QueryMetrics = new QueryMetrics
-                {
-                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
-                    QueryCount = 1,
-                    CacheHit = false
-                }
-            };
-
-            // Log security events access
-            await LogSecurityEventAsync("SecurityEventsAccess", "READ", "SecurityEvents",
-                true, userId, $"Security events accessed with filters", cancellationToken);
-
-            Logger.LogInformation("Retrieved {Count} security events for user {UserId} in {Duration}ms",
-                eventResponses.Count, userId, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, $"Retrieved {eventResponses.Count} security events"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Get security events operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Get security events operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var userId = GetCurrentUserId();
-            Logger.LogError(ex, "Error retrieving security events for user {UserId}: {Message}", userId, ex.Message);
-
-            return StatusCode(500, CreateErrorResponse("Failed to retrieve security events", "GET_SECURITY_EVENTS_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Get security events for a specific user
-    /// </summary>
-    /// <param name="userId">Target user ID</param>
-    /// <param name="request">Get security events request parameters</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Paginated user security events with risk analysis</returns>
-    [HttpGet("events/user/{userId}")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(PaginatedSecurityEventsResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PaginatedSecurityEventsResponse>> GetUserSecurityEvents(
-        string userId,
-        [FromQuery] GetSecurityEventsRequest? request = null,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            request ??= new GetSecurityEventsRequest();
-            request.UserId = userId; // Override with route parameter
-
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            // Additional validation for user ID
-            var paramValidation = ValidateParameter(userId, nameof(userId),
-                id => !string.IsNullOrEmpty(id), "User ID cannot be empty");
-            if (paramValidation != null) return BadRequest(paramValidation);
-
-            var currentUserId = GetCurrentUserId();
-            Logger.LogDebug("Getting security events for target user {TargetUserId} by user {CurrentUserId}", userId, currentUserId);
-
-            // Verify target user exists
-            var targetUser = await _userService.GetUserByIdAsync(userId, cancellationToken);
-            if (targetUser == null)
-            {
-                Logger.LogWarning("Security events requested for non-existent user {UserId}", userId);
-                return NotFound(CreateErrorResponse($"User {userId} not found", "USER_NOT_FOUND"));
-            }
-
-            var events = await _securityAuditService.GetSecurityEventsAsync(
-                request.StartDate, request.EndDate, userId, cancellationToken);
-
-            // Apply additional filtering
-            var filteredEvents = events.AsQueryable();
-
-            if (!string.IsNullOrEmpty(request.EventType))
-            {
-                filteredEvents = filteredEvents.Where(e => e.EventType.Contains(request.EventType, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrEmpty(request.Action))
-            {
-                filteredEvents = filteredEvents.Where(e => e.Action.Contains(request.Action, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (request.IsSuccess.HasValue)
-            {
-                filteredEvents = filteredEvents.Where(e => e.IsSuccess == request.IsSuccess.Value);
-            }
-
-            // Apply sorting
-            filteredEvents = request.SortDirection?.ToLower() == "asc"
-                ? filteredEvents.OrderBy(e => e.Timestamp)
-                : filteredEvents.OrderByDescending(e => e.Timestamp);
-
-            // Apply pagination
-            var totalCount = filteredEvents.Count();
-            var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-            var skip = (request.Page - 1) * request.PageSize;
-            var pagedEvents = filteredEvents.Skip(skip).Take(request.PageSize).ToList();
-
-            stopwatch.Stop();
-
-            // Map to enhanced response DTOs with user-specific risk analysis
-            var eventResponses = pagedEvents.Select(e => MapToSecurityEventResponse(e, request.IncludeDetails, true)).ToList();
-
-            // Calculate user-specific summary statistics
-            var summary = new SecurityEventsSummary
-            {
-                TotalEvents = totalCount,
-                SuccessfulEvents = eventResponses.Count(e => e.IsSuccess),
-                FailedEvents = eventResponses.Count(e => !e.IsSuccess),
-                HighRiskEvents = eventResponses.Count(e => e.RiskScore >= 80),
-                UniqueUsers = 1, // Single user
-                UniqueIpAddresses = eventResponses.Where(e => !string.IsNullOrEmpty(e.IpAddress)).Select(e => e.IpAddress).Distinct().Count()
-            };
-
-            var response = new PaginatedSecurityEventsResponse
-            {
-                Events = eventResponses,
-                TotalCount = totalCount,
-                Page = request.Page,
-                PageSize = request.PageSize,
-                TotalPages = totalPages,
-                HasNextPage = request.Page < totalPages,
-                HasPreviousPage = request.Page > 1,
-                Summary = summary,
-                QueryMetrics = new QueryMetrics
-                {
-                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
-                    QueryCount = 1,
-                    CacheHit = false
-                }
-            };
-
-            // Log user security events access
-            await LogSecurityEventAsync("UserSecurityEventsAccess", "READ", $"User/{userId}/SecurityEvents",
-                true, currentUserId, $"User security events accessed for {userId}", cancellationToken);
-
-            Logger.LogInformation("Retrieved {Count} security events for user {TargetUserId} by {CurrentUserId} in {Duration}ms",
-                eventResponses.Count, userId, currentUserId, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, $"Retrieved {eventResponses.Count} security events for user {userId}"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Get user security events operation was cancelled for user {UserId}", userId);
-            return StatusCode(499, CreateErrorResponse("Get user security events operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var currentUserId = GetCurrentUserId();
-            Logger.LogError(ex, "Error retrieving user security events for user {TargetUserId} by {CurrentUserId}: {Message}",
-                userId, currentUserId, ex.Message);
-
-            return StatusCode(500, CreateErrorResponse($"Failed to retrieve security events for user {userId}", "GET_USER_SECURITY_EVENTS_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Get all users for management
-    /// </summary>
-    /// <param name="request">Get users request parameters</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Paginated users with security information</returns>
-    [HttpGet("users")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(PaginatedUsersResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<PaginatedUsersResponse>> GetUsers(
-        [FromQuery] GetUsersRequest? request = null,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            request ??= new GetUsersRequest();
-
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            var currentUserId = GetCurrentUserId();
-            Logger.LogDebug("Getting users for user {UserId} with filters", currentUserId);
-
-            var users = await _userService.GetUsersAsync();
-
-            // Apply filtering
-            var filteredUsers = users.AsQueryable();
-
-            if (!string.IsNullOrEmpty(request.SearchText))
-            {
-                filteredUsers = filteredUsers.Where(u =>
-                    u.Username.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    u.Email.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    u.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    u.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrEmpty(request.Role))
-            {
-                // User entity doesn't have Roles property in Core - would need to filter via service
-                // For now, skip role filtering
-            }
-
-            if (request.IsActive.HasValue)
-            {
-                filteredUsers = filteredUsers.Where(u => u.IsActive == request.IsActive.Value);
-            }
-
-            // Apply pagination
-            var totalCount = filteredUsers.Count();
-            var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-            var skip = (request.Page - 1) * request.PageSize;
-            var pagedUsers = filteredUsers.Skip(skip).Take(request.PageSize).ToList();
-
-            stopwatch.Stop();
-
-            // Map to enhanced response DTOs
-            var userResponses = pagedUsers.Select(u => MapToUserResponse(u, request.IncludeDetails)).ToList();
-
-            // Calculate summary statistics
-            var summary = new UsersSummary
-            {
-                TotalUsers = totalCount,
-                ActiveUsers = userResponses.Count(u => u.IsActive),
-                LockedOutUsers = userResponses.Count(u => u.IsLockedOut),
-                TwoFactorEnabledUsers = userResponses.Count(u => u.TwoFactorEnabled),
-                LoggedInTodayUsers = userResponses.Count(u => u.LastLogin.HasValue && u.LastLogin.Value.Date == DateTime.UtcNow.Date)
-            };
-
-            var response = new PaginatedUsersResponse
-            {
-                Users = userResponses,
-                TotalCount = totalCount,
-                Page = request.Page,
-                PageSize = request.PageSize,
-                TotalPages = totalPages,
-                HasNextPage = request.Page < totalPages,
-                HasPreviousPage = request.Page > 1,
-                Summary = summary,
-                QueryMetrics = new QueryMetrics
-                {
-                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
-                    QueryCount = 1,
-                    CacheHit = false
-                }
-            };
-
-            // Log users access
-            await LogSecurityEventAsync("UsersAccess", "READ", "Users",
-                true, currentUserId, "Users list accessed", cancellationToken);
-
-            Logger.LogInformation("Retrieved {Count} users for user {UserId} in {Duration}ms",
-                userResponses.Count, currentUserId, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, $"Retrieved {userResponses.Count} users"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Get users operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Get users operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var currentUserId = GetCurrentUserId();
-            Logger.LogError(ex, "Error retrieving users for user {UserId}: {Message}", currentUserId, ex.Message);
-
-            return StatusCode(500, CreateErrorResponse("Failed to retrieve users", "GET_USERS_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Update user roles
-    /// </summary>
-    /// <param name="userId">Target user ID</param>
-    /// <param name="request">Update user roles request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced role update operation response</returns>
-    [HttpPut("users/{userId}/roles")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(SecurityOperationResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SecurityOperationResponse>> UpdateUserRoles(
-        string userId,
-        [FromBody] UpdateUserRolesRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            // Validate user ID matches route parameter
-            if (request.UserId != userId)
-            {
-                request.UserId = userId; // Use route parameter
-            }
-
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            // Additional validation for user ID
-            var paramValidation = ValidateParameter(userId, nameof(userId),
-                id => !string.IsNullOrEmpty(id), "User ID cannot be empty");
-            if (paramValidation != null) return BadRequest(paramValidation);
-
-            var currentUserId = GetCurrentUserId();
-            Logger.LogDebug("Updating roles for user {TargetUserId} by user {CurrentUserId}", userId, currentUserId);
-
-            // Verify target user exists
-            var targetUser = await _userService.GetUserByIdAsync(userId, cancellationToken);
-            if (targetUser == null)
-            {
-                Logger.LogWarning("Role update attempted for non-existent user {UserId}", userId);
-                return NotFound(CreateErrorResponse($"User {userId} not found", "USER_NOT_FOUND"));
-            }
-
-            // Get current roles for comparison - User entity doesn't have Roles property in Core
-            var currentRoles = new List<string>(); // Placeholder - would need to get from role service
-            var newRoles = request.Roles;
-
-            // Validate roles exist
-            var availableRoles = await _roleService.GetRolesAsync();
-            var invalidRoles = newRoles.Except(availableRoles.Select(r => r.Name)).ToList();
-            if (invalidRoles.Any())
-            {
-                return BadRequest(CreateErrorResponse($"Invalid roles: {string.Join(", ", invalidRoles)}", "INVALID_ROLES"));
-            }
-
-            // Update user roles - Core service doesn't have UpdateUserRolesAsync with cancellationToken
-            await _userService.UpdateUserRolesAsync(userId, newRoles);
-
-            stopwatch.Stop();
-
-            var addedRoles = newRoles.Except(currentRoles).ToList();
-            var removedRoles = currentRoles.Except(newRoles).ToList();
-
-            var response = new SecurityOperationResponse
-            {
-                Success = true,
-                Message = $"User roles updated successfully for {targetUser.Username}",
-                PerformedBy = currentUserId,
-                DurationMs = stopwatch.ElapsedMilliseconds,
-                Details = new Dictionary<string, object>
-                {
-                    ["TargetUserId"] = userId,
-                    ["TargetUsername"] = targetUser.Username,
-                    ["ChangeReason"] = request.ChangeReason ?? "No reason provided",
-                    ["PreviousRoles"] = currentRoles,
-                    ["NewRoles"] = newRoles,
-                    ["AddedRoles"] = addedRoles,
-                    ["RemovedRoles"] = removedRoles,
-                    ["RoleChangeCount"] = addedRoles.Count + removedRoles.Count
-                }
-            };
-
-            // Log the role change with detailed audit
-            await LogSecurityEventAsync("UserRolesChanged", "UPDATE", $"User/{userId}/Roles",
-                true, currentUserId, $"User roles updated for {targetUser.Username}: {request.ChangeReason}", cancellationToken);
-
-            Logger.LogInformation("User roles updated for user {TargetUserId} ({Username}) by {CurrentUserId} in {Duration}ms. Added: [{Added}], Removed: [{Removed}]",
-                userId, targetUser.Username, currentUserId, stopwatch.ElapsedMilliseconds,
-                string.Join(", ", addedRoles), string.Join(", ", removedRoles));
-
-            return Ok(CreateSuccessResponse(response, response.Message));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Update user roles operation was cancelled for user {UserId}", userId);
-            return StatusCode(499, CreateErrorResponse("Update user roles operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            stopwatch.Stop();
-            var currentUserId = GetCurrentUserId();
-            Logger.LogWarning("Unauthorized attempt to update user roles for user {TargetUserId} by {CurrentUserId}: {Error}",
-                userId, currentUserId, ex.Message);
-
-            // Log security event for unauthorized role change attempt
-            await LogSecurityEventAsync("UserRolesUnauthorized", "UPDATE", $"User/{userId}/Roles",
-                false, currentUserId, $"Unauthorized role update attempt: {ex.Message}", cancellationToken);
-
-            return Forbid("Insufficient permissions to update user roles");
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var currentUserId = GetCurrentUserId();
-            Logger.LogError(ex, "Error updating user roles for user {TargetUserId} by {CurrentUserId}: {Message}",
-                userId, currentUserId, ex.Message);
-
-            // Log security event for role update error
-            await LogSecurityEventAsync("UserRolesError", "UPDATE", $"User/{userId}/Roles",
-                false, currentUserId, $"Role update error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse($"Failed to update user roles for {userId}", "UPDATE_USER_ROLES_ERROR"));
-        }
-    }
+    // UpdateUserRoles method moved to UserManagementController
 
     /// <summary>
     /// Get all roles
@@ -897,244 +208,9 @@ public class SecurityController : BaseApiController
 
 
 
-    /// <summary>
-    /// Authenticate user and return JWT token
-    /// </summary>
-    /// <param name="request">Login request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced login response with security tracking</returns>
-    [HttpPost("auth/login")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(MonitoringGrid.Api.DTOs.Security.LoginResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<MonitoringGrid.Api.DTOs.Security.LoginResponse>> Login(
-        [FromBody] MonitoringGrid.Api.DTOs.Security.LoginRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        var ipAddress = GetClientIpAddress();
-        var userAgent = Request.Headers.UserAgent.ToString();
+    // Login method moved to AuthenticationController
 
-        try
-        {
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            Logger.LogDebug("Login attempt for user {Username} from IP {IpAddress}", request.Username, ipAddress);
-
-            // Create enhanced login request
-            var loginRequest = new Core.Security.LoginRequest
-            {
-                Username = request.Username,
-                Password = request.Password,
-                RememberMe = request.RememberMe,
-                TwoFactorCode = request.TwoFactorCode
-                // IpAddress and UserAgent properties don't exist in Core LoginRequest
-            };
-
-            var authResponse = await _authenticationService.AuthenticateAsync(loginRequest, ipAddress, cancellationToken);
-
-            stopwatch.Stop();
-
-            var response = new MonitoringGrid.Api.DTOs.Security.LoginResponse
-            {
-                IsSuccess = authResponse.IsSuccess,
-                ErrorMessage = authResponse.Error?.Message ?? "Unknown error",
-                RequiresTwoFactor = false, // Core Result<T> doesn't have RequiresTwoFactor
-                RequiresPasswordChange = false, // Core Result<T> doesn't have RequiresPasswordChange
-                LoginAttemptTime = DateTime.UtcNow,
-                LoginDurationMs = stopwatch.ElapsedMilliseconds,
-                IpAddress = ipAddress,
-                Details = new Dictionary<string, object>
-                {
-                    ["UserAgent"] = userAgent,
-                    ["RememberMe"] = request.RememberMe,
-                    ["TwoFactorProvided"] = !string.IsNullOrEmpty(request.TwoFactorCode)
-                }
-            };
-
-            if (authResponse.IsSuccess && authResponse.Value != null)
-            {
-                response.Token = new JwtTokenResponse
-                {
-                    AccessToken = authResponse.Value?.Token?.AccessToken ?? string.Empty,
-                    RefreshToken = authResponse.Value?.Token?.RefreshToken ?? string.Empty,
-                    TokenType = "Bearer",
-                    ExpiresAt = authResponse.Value?.Token?.ExpiresAt ?? DateTime.UtcNow.AddHours(1),
-                    ExpiresIn = (int)((authResponse.Value?.Token?.ExpiresAt ?? DateTime.UtcNow.AddHours(1)) - DateTime.UtcNow).TotalSeconds,
-                    Scope = string.Empty // Core LoginResponse doesn't have Scope
-                };
-
-                // Extract roles from the authenticated user
-                var userRoles = authResponse.Value?.User?.UserRoles?.Select(ur => ur.Role).ToList() ?? new List<MonitoringGrid.Core.Entities.Role>();
-                var userPermissions = userRoles.SelectMany(r => r.RolePermissions?.Select(rp => rp.Permission) ?? new List<MonitoringGrid.Core.Entities.Permission>()).Distinct().ToList();
-
-                response.User = MapToUserResponse(authResponse.Value?.User, true, userRoles, userPermissions);
-
-                // Log successful login
-                await LogSecurityEventAsync("UserLogin", "LOGIN", $"User/{authResponse.Value?.User?.UserId}",
-                    true, authResponse.Value?.User?.UserId, "Successful user login", cancellationToken);
-
-                Logger.LogInformation("Successful login for user {Username} from IP {IpAddress} in {Duration}ms",
-                    request.Username, ipAddress, stopwatch.ElapsedMilliseconds);
-            }
-            else
-            {
-                // Log failed login attempt
-                await LogSecurityEventAsync("UserLoginFailed", "LOGIN", $"User/{request.Username}",
-                    false, null, $"Failed login attempt: {authResponse.Error?.Message ?? "Unknown error"}", cancellationToken);
-
-                Logger.LogWarning("Failed login attempt for user {Username} from IP {IpAddress}: {Error}",
-                    request.Username, ipAddress, authResponse.Error?.Message ?? "Unknown error");
-
-                // Return 401 for failed authentication
-                if (!authResponse.IsSuccess)
-                {
-                    return Unauthorized(CreateErrorResponse(authResponse.Error?.Message ?? "Authentication failed", "AUTHENTICATION_FAILED"));
-                }
-            }
-
-            return Ok(CreateSuccessResponse(response, authResponse.IsSuccess ? "Login successful" : "Additional authentication required"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Login operation was cancelled for user {Username}", request.Username);
-            return StatusCode(499, CreateErrorResponse("Login operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Logger.LogError(ex, "Error during authentication for user {Username} from IP {IpAddress}: {Message}",
-                request.Username, ipAddress, ex.Message);
-
-            // Log security event for login error
-            await LogSecurityEventAsync("UserLoginError", "LOGIN", $"User/{request.Username}",
-                false, null, $"Login error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse("An error occurred during authentication. Please try again.", "AUTHENTICATION_ERROR"));
-        }
-    }
-
-    /// <summary>
-    /// Register a new user
-    /// </summary>
-    /// <param name="request">Registration request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced registration response with security tracking</returns>
-    [HttpPost("auth/register")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<RegisterResponse>> Register(
-        [FromBody] RegisterRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        var ipAddress = GetClientIpAddress();
-        var userAgent = Request.Headers.UserAgent.ToString();
-
-        try
-        {
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            Logger.LogDebug("Registration attempt for user {Username} ({Email}) from IP {IpAddress}",
-                request.Username, request.Email, ipAddress);
-
-            // Additional validation
-            if (request.Password != request.ConfirmPassword)
-            {
-                return BadRequest(CreateErrorResponse("Password and confirm password do not match", "PASSWORD_MISMATCH"));
-            }
-
-            var createUserRequest = new CreateUserRequest
-            {
-                Username = request.Username,
-                Email = request.Email,
-                Password = request.Password,
-                FirstName = request.FirstName,
-                LastName = request.LastName
-                // IpAddress and UserAgent properties don't exist in Core CreateUserRequest
-            };
-
-            var user = await _userService.CreateUserAsync(createUserRequest, cancellationToken);
-
-            stopwatch.Stop();
-
-            var userResponse = MapToUserResponse(user, true);
-
-            var response = new RegisterResponse
-            {
-                IsSuccess = true,
-                Message = "User registered successfully",
-                User = userResponse,
-                RegistrationTime = DateTime.UtcNow,
-                RegistrationDurationMs = stopwatch.ElapsedMilliseconds,
-                Details = new Dictionary<string, object>
-                {
-                    ["IpAddress"] = ipAddress,
-                    ["UserAgent"] = userAgent,
-                    ["PasswordStrength"] = CalculatePasswordStrength(request.Password),
-                    ["AccountCreated"] = user.CreatedDate
-                }
-            };
-
-            // Log successful registration
-            await LogSecurityEventAsync("UserRegistration", "CREATE", $"User/{user.UserId}",
-                true, user.UserId, "New user registration", cancellationToken);
-
-            Logger.LogInformation("New user registered: {Username} ({Email}) from IP {IpAddress} in {Duration}ms",
-                request.Username, request.Email, ipAddress, stopwatch.ElapsedMilliseconds);
-
-            return CreatedAtAction(nameof(GetProfile), null, CreateSuccessResponse(response, response.Message));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Registration operation was cancelled for user {Username}", request.Username);
-            return StatusCode(499, CreateErrorResponse("Registration operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
-        {
-            stopwatch.Stop();
-            Logger.LogWarning("Registration failed for user {Username}: {Error}", request.Username, ex.Message);
-
-            // Log failed registration attempt
-            await LogSecurityEventAsync("UserRegistrationFailed", "CREATE", $"User/{request.Username}",
-                false, null, $"Registration failed: {ex.Message}", cancellationToken);
-
-            var response = new RegisterResponse
-            {
-                IsSuccess = false,
-                Message = "Registration failed",
-                RegistrationTime = DateTime.UtcNow,
-                RegistrationDurationMs = stopwatch.ElapsedMilliseconds,
-                Errors = new List<string> { ex.Message }
-            };
-
-            return BadRequest(CreateErrorResponse("User already exists", "USER_ALREADY_EXISTS"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Logger.LogError(ex, "Error during registration for user {Username} from IP {IpAddress}: {Message}",
-                request.Username, ipAddress, ex.Message);
-
-            // Log security event for registration error
-            await LogSecurityEventAsync("UserRegistrationError", "CREATE", $"User/{request.Username}",
-                false, null, $"Registration error: {ex.Message}", cancellationToken);
-
-            var response = new RegisterResponse
-            {
-                IsSuccess = false,
-                Message = "An error occurred during registration. Please try again.",
-                RegistrationTime = DateTime.UtcNow,
-                RegistrationDurationMs = stopwatch.ElapsedMilliseconds,
-                Errors = new List<string> { ex.Message }
-            };
-
-            return StatusCode(500, CreateErrorResponse("Registration failed", "REGISTRATION_ERROR"));
-        }
-    }
+    // Register method moved to AuthenticationController
 
     /// <summary>
     /// Debug endpoint to check user roles directly from database
@@ -1200,220 +276,14 @@ public class SecurityController : BaseApiController
         }
     }
 
-    /// <summary>
-    /// Get current user profile information
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced user profile with security information</returns>
-    [HttpGet("auth/profile")]
-    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponse>> GetProfile(CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (string.IsNullOrEmpty(userId))
-            {
-                Logger.LogWarning("Profile access attempt with invalid token - no user ID found");
-                return Unauthorized(CreateErrorResponse("User ID not found in token", "INVALID_TOKEN"));
-            }
-
-            Logger.LogDebug("Getting profile for user {UserId}", userId);
-
-            var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
-            if (user == null)
-            {
-                Logger.LogWarning("Profile requested for non-existent user {UserId}", userId);
-                return NotFound(CreateErrorResponse("User not found", "USER_NOT_FOUND"));
-            }
-
-            // Get user roles and permissions using SecurityService
-            var userRoles = new List<MonitoringGrid.Core.Entities.Role>();
-            var userPermissions = new List<MonitoringGrid.Core.Entities.Permission>();
-
-            try
-            {
-                Logger.LogDebug("Loading roles for user {UserId}", userId);
-
-                // First, let's try a direct database approach using Entity Framework context
-                // This is more reliable than the SecurityService methods
-                using var scope = HttpContext.RequestServices.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<MonitoringGrid.Infrastructure.Data.MonitoringContext>();
-
-                // Get user roles directly from database
-                var userRoleEntities = await context.UserRoles
-                    .Where(ur => ur.UserId == userId)
-                    .Include(ur => ur.Role)
-                    .ThenInclude(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-                    .ToListAsync(cancellationToken);
-
-                Logger.LogDebug("Found {UserRoleCount} role assignments for user {UserId}", userRoleEntities.Count, userId);
-
-                userRoles = userRoleEntities.Select(ur => ur.Role).ToList();
-
-                // Get all permissions from user's roles
-                userPermissions = userRoleEntities
-                    .SelectMany(ur => ur.Role.RolePermissions)
-                    .Select(rp => rp.Permission)
-                    .Distinct()
-                    .ToList();
-
-                Logger.LogDebug("User {UserId} has {UserRoleCount} roles: {RoleNames}",
-                    userId, userRoles.Count, string.Join(", ", userRoles.Select(r => r.Name)));
-                Logger.LogDebug("User {UserId} has {PermissionCount} permissions", userId, userPermissions.Count);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to load roles/permissions for user {UserId}, using empty lists", userId);
-            }
-
-            stopwatch.Stop();
-
-            var response = MapToUserResponse(user, true, userRoles, userPermissions);
-
-            // Add additional profile details
-            response.Details = new Dictionary<string, object>
-            {
-                ["ProfileAccessTime"] = DateTime.UtcNow,
-                ["QueryDurationMs"] = stopwatch.ElapsedMilliseconds,
-                ["TokenValid"] = true,
-                ["AccountAge"] = (DateTime.UtcNow - user.CreatedDate).TotalDays,
-                ["LastProfileAccess"] = DateTime.UtcNow
-            };
-
-            // Log profile access
-            await LogSecurityEventAsync("ProfileAccess", "READ", $"User/{userId}",
-                true, userId, "User profile accessed", cancellationToken);
-
-            Logger.LogDebug("Retrieved profile for user {UserId} in {Duration}ms",
-                userId, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, "Profile retrieved successfully"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Get profile operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Get profile operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            var userId = GetCurrentUserId();
-            Logger.LogError(ex, "Error retrieving user profile for user {UserId}: {Message}", userId, ex.Message);
-
-            // Log security event for profile access error
-            await LogSecurityEventAsync("ProfileAccessError", "READ", $"User/{userId}",
-                false, userId, $"Profile access error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse("Failed to retrieve user profile", "PROFILE_ACCESS_ERROR"));
-        }
-    }
+    // GetProfile method moved to AuthenticationController
 
 
 
 
 
-    /// <summary>
-    /// Refresh JWT token using refresh token
-    /// </summary>
-    /// <param name="request">Refresh token request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Enhanced JWT token response with security tracking</returns>
-    [HttpPost("auth/refresh")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(JwtTokenResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<JwtTokenResponse>> RefreshToken(
-        [FromBody] MonitoringGrid.Api.DTOs.Security.RefreshTokenRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        var ipAddress = GetClientIpAddress();
-        var userAgent = Request.Headers.UserAgent.ToString();
 
-        try
-        {
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            Logger.LogDebug("Token refresh attempt from IP {IpAddress}", ipAddress);
-
-            var tokenResult = await _authenticationService.RefreshTokenAsync(request.RefreshToken, cancellationToken);
-
-            if (!tokenResult.IsSuccess)
-            {
-                return Unauthorized(CreateErrorResponse(tokenResult.Error?.Message ?? "Token refresh failed", "TOKEN_REFRESH_FAILED"));
-            }
-
-            stopwatch.Stop();
-
-            var response = new JwtTokenResponse
-            {
-                AccessToken = tokenResult.Value?.AccessToken ?? string.Empty,
-                RefreshToken = tokenResult.Value?.RefreshToken ?? string.Empty,
-                TokenType = "Bearer",
-                ExpiresAt = tokenResult.Value?.ExpiresAt ?? DateTime.UtcNow.AddHours(1),
-                ExpiresIn = (int)((tokenResult.Value?.ExpiresAt ?? DateTime.UtcNow.AddHours(1)) - DateTime.UtcNow).TotalSeconds,
-                Scope = string.Empty // Core JwtToken doesn't have Scope property
-            };
-
-            // Get user ID from the new token for logging
-            var userId = ExtractUserIdFromToken(tokenResult.Value?.AccessToken ?? string.Empty);
-
-            // Log successful token refresh
-            await LogSecurityEventAsync("TokenRefresh", "REFRESH", "Token",
-                true, userId, "JWT token refreshed successfully", cancellationToken);
-
-            Logger.LogInformation("Token refreshed successfully for user {UserId} from IP {IpAddress} in {Duration}ms",
-                userId, ipAddress, stopwatch.ElapsedMilliseconds);
-
-            return Ok(CreateSuccessResponse(response, "Token refreshed successfully"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Token refresh operation was cancelled from IP {IpAddress}", ipAddress);
-            return StatusCode(499, CreateErrorResponse("Token refresh operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            stopwatch.Stop();
-            Logger.LogWarning("Token refresh failed from IP {IpAddress}: {Error}", ipAddress, ex.Message);
-
-            // Log failed token refresh
-            await LogSecurityEventAsync("TokenRefreshFailed", "REFRESH", "Token",
-                false, null, $"Token refresh failed: {ex.Message}", cancellationToken);
-
-            return Unauthorized(CreateErrorResponse("Invalid or expired refresh token", "INVALID_REFRESH_TOKEN"));
-        }
-        catch (Microsoft.IdentityModel.Tokens.SecurityTokenException ex)
-        {
-            stopwatch.Stop();
-            Logger.LogWarning("Token refresh failed due to security token exception from IP {IpAddress}: {Error}",
-                ipAddress, ex.Message);
-
-            // Log failed token refresh
-            await LogSecurityEventAsync("TokenRefreshFailed", "REFRESH", "Token",
-                false, null, $"Security token exception: {ex.Message}", cancellationToken);
-
-            return Unauthorized(CreateErrorResponse("Invalid or expired refresh token", "INVALID_SECURITY_TOKEN"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Logger.LogError(ex, "Error refreshing token from IP {IpAddress}: {Message}", ipAddress, ex.Message);
-
-            // Log security event for token refresh error
-            await LogSecurityEventAsync("TokenRefreshError", "REFRESH", "Token",
-                false, null, $"Token refresh error: {ex.Message}", cancellationToken);
-
-            return StatusCode(500, CreateErrorResponse("An error occurred while refreshing the token", "TOKEN_REFRESH_ERROR"));
-        }
-    }
+    // RefreshToken method moved to AuthenticationController
 
 
 
@@ -1542,20 +412,19 @@ public class SecurityController : BaseApiController
         var score = 100;
 
         // Password policy health
-        if (config.PasswordPolicy.PasswordStrengthScore < 80) score -= 20;
+        // Note: PasswordStrengthScore property removed
         if (config.PasswordPolicy.MaxFailedAttempts > 10) score -= 10;
 
         // Two-factor health
-        if (!config.TwoFactorSettings.Enabled) score -= 30;
-        if (config.TwoFactorSettings.Enabled && !config.TwoFactorSettings.Required) score -= 15;
+        if (!config.TwoFactorPolicy.IsEnabled) score -= 30;
+        if (config.TwoFactorPolicy.IsEnabled && !config.TwoFactorPolicy.IsRequired) score -= 15;
 
-        // Rate limiting health
-        if (!config.RateLimitSettings.Enabled) score -= 20;
-        if (config.RateLimitSettings.CurrentViolationsCount > 10) score -= 15;
+        // Rate limiting health - using AuditPolicy as replacement
+        if (!config.AuditPolicy.LogAllEvents) score -= 20;
 
         // Session health
-        if (config.SessionSettings.SessionTimeoutMinutes > 480) score -= 10;
-        if (config.SessionSettings.IdleTimeoutMinutes > 60) score -= 5;
+        if (config.SessionPolicy.SessionTimeout.TotalMinutes > 480) score -= 10;
+        if (config.SessionPolicy.IdleTimeout.TotalMinutes > 60) score -= 5;
 
         return Math.Max(score, 0);
     }
@@ -1575,12 +444,10 @@ public class SecurityController : BaseApiController
             errors.Add("Max failed attempts must be between 3 and 20");
 
         // Validate session settings
-        if (request.SessionSettings.SessionTimeoutMinutes < 5 || request.SessionSettings.SessionTimeoutMinutes > 1440)
+        if (request.SessionPolicy?.SessionTimeout?.TotalMinutes < 5 || request.SessionPolicy?.SessionTimeout?.TotalMinutes > 1440)
             errors.Add("Session timeout must be between 5 and 1440 minutes");
 
-        // Validate rate limiting
-        if (request.RateLimitSettings.MaxRequestsPerMinute < 10 || request.RateLimitSettings.MaxRequestsPerMinute > 10000)
-            errors.Add("Max requests per minute must be between 10 and 10000");
+        // Note: Rate limiting validation removed as RateLimitSettings no longer exists
 
         return (errors.Count == 0, errors);
     }
@@ -1600,17 +467,17 @@ public class SecurityController : BaseApiController
                 _securityConfig.PasswordPolicy.RequireDigit,
                 _securityConfig.PasswordPolicy.RequireSpecialCharacter
             },
-            ["SessionSettings"] = new
+            ["SessionPolicy"] = new
             {
                 _securityConfig.Session.SessionTimeoutMinutes,
                 _securityConfig.Session.IdleTimeoutMinutes
             },
-            ["TwoFactorSettings"] = new
+            ["TwoFactorPolicy"] = new
             {
                 _securityConfig.TwoFactor.IsEnabled,
                 _securityConfig.TwoFactor.IsRequired
             },
-            ["RateLimitSettings"] = new
+            ["AuditPolicy"] = new
             {
                 _securityConfig.RateLimit.IsEnabled,
                 _securityConfig.RateLimit.RequestsPerMinute,
@@ -1629,9 +496,9 @@ public class SecurityController : BaseApiController
         // This is a simplified implementation
         // In a real scenario, you would compare each field individually
         changedFields.Add("PasswordPolicy");
-        changedFields.Add("SessionSettings");
-        changedFields.Add("TwoFactorSettings");
-        changedFields.Add("RateLimitSettings");
+        changedFields.Add("SessionPolicy");
+        changedFields.Add("TwoFactorPolicy");
+        changedFields.Add("AuditPolicy");
 
         return changedFields;
     }
@@ -1702,7 +569,9 @@ public class SecurityController : BaseApiController
                 }
             };
 
-            await _securityAuditService.LogSecurityEventAsync(securityEvent, cancellationToken);
+            await _securityAuditService.LogSecurityEventAsync(eventType, description,
+                string.IsNullOrEmpty(userId) ? null : int.TryParse(userId, out var id) ? id : null,
+                GetClientIpAddress(), cancellationToken);
         }
         catch (Exception ex)
         {

@@ -1,243 +1,182 @@
 using Microsoft.Extensions.Logging;
-using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Interfaces;
-using System.Diagnostics;
 
 namespace MonitoringGrid.Infrastructure.Services;
 
 /// <summary>
-/// Implementation of performance metrics service
+/// Service for collecting and storing performance metrics
 /// </summary>
 public class PerformanceMetricsService : IPerformanceMetricsService
 {
     private readonly ILogger<PerformanceMetricsService> _logger;
-    private readonly Dictionary<string, List<double>> _metrics = new();
+    private readonly ICacheService _cacheService;
+    private readonly Dictionary<string, List<MetricEntry>> _metrics = new();
     private readonly object _lock = new();
 
-    public PerformanceMetricsService(ILogger<PerformanceMetricsService> logger)
+    public PerformanceMetricsService(
+        ILogger<PerformanceMetricsService> logger,
+        ICacheService cacheService)
     {
         _logger = logger;
+        _cacheService = cacheService;
     }
 
-    public async Task<Result<PerformanceMetrics>> GetCurrentMetricsAsync(CancellationToken cancellationToken = default)
+    public async Task RecordMetricAsync(string metricName, TimeSpan duration, bool success = true, CancellationToken cancellationToken = default)
     {
         try
         {
-            await Task.CompletedTask; // For async consistency
-
-            var process = Process.GetCurrentProcess();
-            var metrics = new PerformanceMetrics
+            var entry = new MetricEntry
             {
-                CollectedAt = DateTime.UtcNow,
-                System = new SystemMetrics
-                {
-                    MemoryUsage = process.WorkingSet64,
-                    ThreadCount = process.Threads.Count,
-                    HandleCount = process.HandleCount,
-                    CpuUsage = 15.0 // Placeholder - would need performance counters for real CPU usage
-                }
+                Timestamp = DateTime.UtcNow,
+                Duration = duration,
+                Success = success
             };
 
-            // Add custom metrics
             lock (_lock)
             {
-                foreach (var kvp in _metrics)
+                if (!_metrics.TryGetValue(metricName, out var entries))
                 {
-                    if (kvp.Value.Count > 0)
-                    {
-                        metrics.CustomMetrics[kvp.Key] = kvp.Value.LastOrDefault();
-                    }
+                    entries = new List<MetricEntry>();
+                    _metrics[metricName] = entries;
+                }
+
+                entries.Add(entry);
+
+                // Keep only last 1000 entries per metric to prevent memory issues
+                if (entries.Count > 1000)
+                {
+                    entries.RemoveRange(0, 100);
                 }
             }
 
-            return Result.Success(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting current performance metrics");
-            return Result.Failure<PerformanceMetrics>("METRICS_ERROR", "Failed to get current metrics");
-        }
-    }
+            _logger.LogDebug("Recorded metric {MetricName}: {Duration}ms, Success: {Success}", 
+                metricName, duration.TotalMilliseconds, success);
 
-    public async Task<Result<PerformanceMetrics>> GetMetricsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            // For now, return current metrics
-            // In a real implementation, this would query historical data
-            return await GetCurrentMetricsAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting performance metrics for time range {StartTime} to {EndTime}", startTime, endTime);
-            return Result.Failure<PerformanceMetrics>("METRICS_ERROR", "Failed to get metrics for time range");
-        }
-    }
-
-    public async Task<Result> RecordMetricAsync(string metricName, double value, Dictionary<string, string>? tags = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await Task.CompletedTask; // For async consistency
-
-            lock (_lock)
-            {
-                if (!_metrics.ContainsKey(metricName))
-                {
-                    _metrics[metricName] = new List<double>();
-                }
-
-                _metrics[metricName].Add(value);
-
-                // Keep only last 1000 values to prevent memory issues
-                if (_metrics[metricName].Count > 1000)
-                {
-                    _metrics[metricName].RemoveAt(0);
-                }
-            }
-
-            _logger.LogDebug("Recorded metric {MetricName} with value {Value}", metricName, value);
-            return Result.Success();
+            // Cache the latest metric for quick access
+            await _cacheService.SetAsync(
+                $"performance:latest:{metricName}",
+                entry,
+                CacheExpirations.Short,
+                cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error recording metric {MetricName}", metricName);
-            return Result.Failure("METRIC_RECORD_ERROR", "Failed to record metric");
         }
     }
 
-    public async Task<Result<DatabaseMetrics>> GetDatabaseMetricsAsync(CancellationToken cancellationToken = default)
+    public async Task<string?> GetMetricAsync(string metricName, CancellationToken cancellationToken = default)
     {
         try
         {
-            await Task.CompletedTask; // For async consistency
-
-            // Basic database metrics - in a real implementation, this would query actual database metrics
-            var metrics = new DatabaseMetrics
+            // Try cache first
+            var cached = await _cacheService.GetAsync<MetricEntry>($"performance:latest:{metricName}", cancellationToken);
+            if (cached != null)
             {
-                TotalOperations = 1000, // Placeholder
-                AverageOperationTime = 50.0, // Placeholder
-                SuccessRate = 98.5, // Placeholder
-                OperationsPerSecond = 100.0 // Placeholder
-            };
-
-            return Result.Success(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting database metrics");
-            return Result.Failure<DatabaseMetrics>("DATABASE_METRICS_ERROR", "Failed to get database metrics");
-        }
-    }
-
-    public async Task<Result<CacheMetrics>> GetCacheMetricsAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await Task.CompletedTask; // For async consistency
-
-            // Basic cache metrics - in a real implementation, this would query actual cache metrics
-            var metrics = new CacheMetrics
-            {
-                TotalOperations = 1000,
-                HitRate = 85.0, // 85% hit ratio
-                AverageOperationTime = 2.5,
-                OperationsPerSecond = 200.0
-            };
-
-            return Result.Success(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting cache metrics");
-            return Result.Failure<CacheMetrics>("CACHE_METRICS_ERROR", "Failed to get cache metrics");
-        }
-    }
-
-    public async Task<Result<SystemMetrics>> GetSystemMetricsAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await Task.CompletedTask; // For async consistency
-
-            var process = Process.GetCurrentProcess();
-            var metrics = new SystemMetrics
-            {
-                CpuUsage = 15.0, // Placeholder - would need performance counters for real CPU usage
-                MemoryUsage = process.WorkingSet64,
-                WorkingSet = process.WorkingSet64,
-                ThreadCount = process.Threads.Count,
-                HandleCount = process.HandleCount
-            };
-
-            return Result.Success(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting system metrics");
-            return Result.Failure<SystemMetrics>("SYSTEM_METRICS_ERROR", "Failed to get system metrics");
-        }
-    }
-
-    public void IncrementCounter(string counterName, string? category = null)
-    {
-        try
-        {
-            var metricName = category != null ? $"{category}.{counterName}" : counterName;
+                return $"Latest: {cached.Duration.TotalMilliseconds}ms at {cached.Timestamp:yyyy-MM-dd HH:mm:ss}";
+            }
 
             lock (_lock)
             {
-                if (!_metrics.ContainsKey(metricName))
+                if (_metrics.TryGetValue(metricName, out var entries) && entries.Any())
                 {
-                    _metrics[metricName] = new List<double>();
-                }
-
-                // Add 1 to increment the counter
-                _metrics[metricName].Add(1);
-
-                // Keep only last 1000 values to prevent memory issues
-                if (_metrics[metricName].Count > 1000)
-                {
-                    _metrics[metricName].RemoveAt(0);
+                    var latest = entries.Last();
+                    return $"Latest: {latest.Duration.TotalMilliseconds}ms at {latest.Timestamp:yyyy-MM-dd HH:mm:ss}";
                 }
             }
 
-            _logger.LogDebug("Incremented counter {CounterName} in category {Category}", counterName, category);
+            return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error incrementing counter {CounterName}", counterName);
+            _logger.LogError(ex, "Error getting metric {MetricName}", metricName);
+            return null;
         }
     }
 
-    public void RecordDuration(string operationName, TimeSpan duration)
+    public async Task<IEnumerable<string>> GetMetricsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         try
         {
-            var durationMs = duration.TotalMilliseconds;
+            var results = new List<string>();
 
             lock (_lock)
             {
-                if (!_metrics.ContainsKey(operationName))
+                foreach (var kvp in _metrics)
                 {
-                    _metrics[operationName] = new List<double>();
-                }
+                    var metricName = kvp.Key;
+                    var entries = kvp.Value.Where(e => e.Timestamp >= startTime && e.Timestamp <= endTime).ToList();
 
-                // Add duration in milliseconds
-                _metrics[operationName].Add(durationMs);
-
-                // Keep only last 1000 values to prevent memory issues
-                if (_metrics[operationName].Count > 1000)
-                {
-                    _metrics[operationName].RemoveAt(0);
+                    if (entries.Any())
+                    {
+                        var avgDuration = entries.Average(e => e.Duration.TotalMilliseconds);
+                        var successRate = entries.Count(e => e.Success) * 100.0 / entries.Count;
+                        
+                        results.Add($"{metricName}: {entries.Count} calls, avg {avgDuration:F2}ms, {successRate:F1}% success");
+                    }
                 }
             }
 
-            _logger.LogDebug("Recorded duration for operation {OperationName}: {Duration}ms", operationName, durationMs);
+            await Task.CompletedTask; // For async consistency
+            return results;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error recording duration for operation {OperationName}", operationName);
+            _logger.LogError(ex, "Error getting metrics for time range");
+            return new List<string>();
         }
     }
+
+    public async Task<string> GetStatisticsAsync(string metricName, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            lock (_lock)
+            {
+                if (!_metrics.TryGetValue(metricName, out var allEntries))
+                {
+                    return $"No data found for metric: {metricName}";
+                }
+
+                var entries = allEntries.Where(e => e.Timestamp >= startTime && e.Timestamp <= endTime).ToList();
+
+                if (!entries.Any())
+                {
+                    return $"No data found for metric {metricName} in the specified time range";
+                }
+
+                var totalCalls = entries.Count;
+                var successfulCalls = entries.Count(e => e.Success);
+                var failedCalls = totalCalls - successfulCalls;
+                var avgDuration = entries.Average(e => e.Duration.TotalMilliseconds);
+                var minDuration = entries.Min(e => e.Duration.TotalMilliseconds);
+                var maxDuration = entries.Max(e => e.Duration.TotalMilliseconds);
+                var successRate = successfulCalls * 100.0 / totalCalls;
+
+                return $"Metric: {metricName}\n" +
+                       $"Total Calls: {totalCalls}\n" +
+                       $"Successful: {successfulCalls}\n" +
+                       $"Failed: {failedCalls}\n" +
+                       $"Success Rate: {successRate:F1}%\n" +
+                       $"Average Duration: {avgDuration:F2}ms\n" +
+                       $"Min Duration: {minDuration:F2}ms\n" +
+                       $"Max Duration: {maxDuration:F2}ms";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting statistics for metric {MetricName}", metricName);
+            return $"Error retrieving statistics for {metricName}: {ex.Message}";
+        }
+    }
+}
+
+/// <summary>
+/// Internal metric entry for tracking individual measurements
+/// </summary>
+internal class MetricEntry
+{
+    public DateTime Timestamp { get; set; }
+    public TimeSpan Duration { get; set; }
+    public bool Success { get; set; }
 }

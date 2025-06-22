@@ -133,6 +133,77 @@ public class TeamsService : ITeamsService
         }
     }
 
+    public async Task<bool> SendRichMessageAsync(string webhookUrl, object message, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!_config.IsEnabled)
+            {
+                _logger.LogDebug("Teams integration is disabled");
+                return false;
+            }
+
+            // Handle different message types
+            if (message is TeamsAdaptiveCard card)
+            {
+                return await SendAdaptiveCardAsync(webhookUrl, card, cancellationToken);
+            }
+            else
+            {
+                // For generic objects, send as webhook payload
+                return await SendWebhookAsync(webhookUrl, message, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Teams rich message to webhook {WebhookUrl}", webhookUrl);
+            return false;
+        }
+    }
+
+    public async Task<bool> ValidateWebhookAsync(string webhookUrl, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!_config.IsEnabled)
+            {
+                _logger.LogDebug("Teams integration is disabled");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(webhookUrl))
+            {
+                _logger.LogError("Teams webhook URL is empty");
+                return false;
+            }
+
+            // Test webhook with a simple message
+            var testPayload = new
+            {
+                text = "Webhook validation test from Monitoring Grid",
+                themeColor = "00FF00"
+            };
+
+            var result = await SendWebhookAsync(webhookUrl, testPayload, cancellationToken);
+
+            if (result)
+            {
+                _logger.LogInformation("Teams webhook {WebhookUrl} is valid", webhookUrl);
+                return true;
+            }
+            else
+            {
+                _logger.LogError("Teams webhook {WebhookUrl} validation failed", webhookUrl);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to validate Teams webhook {WebhookUrl}", webhookUrl);
+            return false;
+        }
+    }
+
     public async Task<bool> SendAdaptiveCardAsync(string webhookUrl, TeamsAdaptiveCard card, CancellationToken cancellationToken = default)
     {
         try

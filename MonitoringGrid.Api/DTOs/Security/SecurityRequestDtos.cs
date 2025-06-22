@@ -29,26 +29,27 @@ public class UpdateSecurityConfigRequest
     /// <summary>
     /// Password policy settings
     /// </summary>
-    [Required]
-    public PasswordPolicyRequest PasswordPolicy { get; set; } = new();
+    public PasswordPolicyRequest? PasswordPolicy { get; set; }
 
     /// <summary>
-    /// Session settings
+    /// Session policy settings
     /// </summary>
-    [Required]
-    public SessionSettingsRequest SessionSettings { get; set; } = new();
+    public SessionPolicyRequest? SessionPolicy { get; set; }
+
+    /// <summary>
+    /// Lockout policy settings
+    /// </summary>
+    public LockoutPolicyRequest? LockoutPolicy { get; set; }
 
     /// <summary>
     /// Two-factor authentication settings
     /// </summary>
-    [Required]
-    public TwoFactorSettingsRequest TwoFactorSettings { get; set; } = new();
+    public TwoFactorPolicyRequest? TwoFactorPolicy { get; set; }
 
     /// <summary>
-    /// Rate limiting settings
+    /// Audit policy settings
     /// </summary>
-    [Required]
-    public RateLimitSettingsRequest RateLimitSettings { get; set; } = new();
+    public AuditPolicyRequest? AuditPolicy { get; set; }
 
     /// <summary>
     /// Reason for configuration change
@@ -81,16 +82,28 @@ public class PasswordPolicyRequest
     public bool RequireLowercase { get; set; } = true;
 
     /// <summary>
-    /// Require numbers
+    /// Require numbers (alias for RequireDigit)
     /// </summary>
     [BooleanFlag]
     public bool RequireNumbers { get; set; } = true;
+
+    /// <summary>
+    /// Require digits
+    /// </summary>
+    [BooleanFlag]
+    public bool RequireDigits { get; set; } = true;
 
     /// <summary>
     /// Require special characters
     /// </summary>
     [BooleanFlag]
     public bool RequireSpecialChars { get; set; } = true;
+
+    /// <summary>
+    /// Require special characters (alias)
+    /// </summary>
+    [BooleanFlag]
+    public bool RequireSpecialCharacters { get; set; } = true;
 
     /// <summary>
     /// Password expiration in days
@@ -109,6 +122,17 @@ public class PasswordPolicyRequest
     /// </summary>
     [Range(5, 1440)]
     public int LockoutDurationMinutes { get; set; } = 30;
+
+    /// <summary>
+    /// Password maximum age
+    /// </summary>
+    public TimeSpan? MaxAge { get; set; }
+
+    /// <summary>
+    /// Number of previous passwords to prevent reuse
+    /// </summary>
+    [Range(0, 24)]
+    public int PreventReuse { get; set; } = 5;
 }
 
 /// <summary>
@@ -417,4 +441,169 @@ public class RefreshTokenRequest
     [Required]
     [SearchTerm(1, 500)]
     public string RefreshToken { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request DTO for updating user information
+/// </summary>
+public class UpdateUserRequest
+{
+    /// <summary>
+    /// Email address
+    /// </summary>
+    [EmailAddress]
+    [SearchTerm(5, 100)]
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// First name
+    /// </summary>
+    [SearchTerm(1, 50)]
+    public string FirstName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Last name
+    /// </summary>
+    [SearchTerm(1, 50)]
+    public string LastName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether the user is active
+    /// </summary>
+    [BooleanFlag]
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
+/// Request DTO for changing password
+/// </summary>
+public class ChangePasswordRequest
+{
+    /// <summary>
+    /// Current password
+    /// </summary>
+    [Required]
+    [SearchTerm(1, 200)]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// New password
+    /// </summary>
+    [Required]
+    [SearchTerm(6, 200)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Confirm new password
+    /// </summary>
+    [Required]
+    [Compare(nameof(NewPassword))]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Session policy request settings
+/// </summary>
+public class SessionPolicyRequest
+{
+    /// <summary>
+    /// Session timeout
+    /// </summary>
+    public TimeSpan? SessionTimeout { get; set; }
+
+    /// <summary>
+    /// Maximum concurrent sessions
+    /// </summary>
+    [Range(1, 100)]
+    public int? MaxConcurrentSessions { get; set; }
+
+    /// <summary>
+    /// Require reauthentication
+    /// </summary>
+    [BooleanFlag]
+    public bool? RequireReauthentication { get; set; }
+
+    /// <summary>
+    /// Idle timeout
+    /// </summary>
+    public TimeSpan? IdleTimeout { get; set; }
+}
+
+/// <summary>
+/// Lockout policy request settings
+/// </summary>
+public class LockoutPolicyRequest
+{
+    /// <summary>
+    /// Maximum failed attempts
+    /// </summary>
+    [Range(1, 100)]
+    public int? MaxFailedAttempts { get; set; }
+
+    /// <summary>
+    /// Lockout duration
+    /// </summary>
+    public TimeSpan? LockoutDuration { get; set; }
+
+    /// <summary>
+    /// Reset counter after
+    /// </summary>
+    public TimeSpan? ResetCounterAfter { get; set; }
+}
+
+/// <summary>
+/// Two-factor policy request settings
+/// </summary>
+public class TwoFactorPolicyRequest
+{
+    /// <summary>
+    /// Is enabled
+    /// </summary>
+    [BooleanFlag]
+    public bool? IsEnabled { get; set; }
+
+    /// <summary>
+    /// Is required
+    /// </summary>
+    [BooleanFlag]
+    public bool? IsRequired { get; set; }
+
+    /// <summary>
+    /// Allowed providers
+    /// </summary>
+    public List<string>? AllowedProviders { get; set; }
+
+    /// <summary>
+    /// Token lifetime
+    /// </summary>
+    public TimeSpan? TokenLifetime { get; set; }
+}
+
+/// <summary>
+/// Audit policy request settings
+/// </summary>
+public class AuditPolicyRequest
+{
+    /// <summary>
+    /// Log all events
+    /// </summary>
+    [BooleanFlag]
+    public bool? LogAllEvents { get; set; }
+
+    /// <summary>
+    /// Retention period
+    /// </summary>
+    public TimeSpan? RetentionPeriod { get; set; }
+
+    /// <summary>
+    /// Log sensitive data
+    /// </summary>
+    [BooleanFlag]
+    public bool? LogSensitiveData { get; set; }
+
+    /// <summary>
+    /// Enable real-time alerts
+    /// </summary>
+    [BooleanFlag]
+    public bool? EnableRealTimeAlerts { get; set; }
 }

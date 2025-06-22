@@ -137,7 +137,7 @@ public class AlertService : IAlertService
 
             var alert = new AlertLog
             {
-                IndicatorId = request.IndicatorID,
+                IndicatorID = request.IndicatorID,
                 TriggerTime = DateTime.UtcNow,
                 Message = request.AlertMessage,
                 CurrentValue = request.TriggerValue,

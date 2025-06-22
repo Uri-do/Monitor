@@ -15,7 +15,7 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
 
         builder.HasKey(a => a.AlertId);
 
-        builder.Property(a => a.IndicatorId)
+        builder.Property(a => a.IndicatorID)
             .HasColumnName("IndicatorId")
             .IsRequired();
 
@@ -68,9 +68,10 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.Ignore(a => a.DeviationPercentage);
         builder.Ignore(a => a.ResolvedAt);
         builder.Ignore(a => a.AlertLogId);
+        builder.Ignore(a => a.IndicatorId);
 
         // Indexes
-        builder.HasIndex(a => a.IndicatorId)
+        builder.HasIndex(a => a.IndicatorID)
             .HasDatabaseName("IX_AlertLogs_IndicatorId");
 
         builder.HasIndex(a => a.TriggerTime)
@@ -79,7 +80,7 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         builder.HasIndex(a => a.IsResolved)
             .HasDatabaseName("IX_AlertLogs_IsResolved");
 
-        builder.HasIndex(a => new { a.IndicatorId, a.TriggerTime })
+        builder.HasIndex(a => new { a.IndicatorID, a.TriggerTime })
             .HasDatabaseName("IX_AlertLogs_IndicatorId_TriggerTime");
 
         // Check constraint for SentVia
@@ -88,7 +89,7 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
         // Relationship with Indicator - explicitly specify the foreign key property
         builder.HasOne(a => a.Indicator)
             .WithMany()
-            .HasForeignKey(a => a.IndicatorId)
+            .HasForeignKey(a => a.IndicatorID)
             .HasPrincipalKey(i => i.IndicatorID)
             .OnDelete(DeleteBehavior.Cascade);
     }

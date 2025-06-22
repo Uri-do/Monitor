@@ -12,7 +12,10 @@ public class AlertLog
     // Alias for compatibility with services that expect AlertLogId
     public long AlertLogId => AlertId;
 
-    public long IndicatorId { get; set; }
+    public long IndicatorID { get; set; }
+
+    // Alias for compatibility with services that expect IndicatorId
+    public long IndicatorId => IndicatorID;
 
     public DateTime TriggerTime { get; set; } = DateTime.UtcNow;
 

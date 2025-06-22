@@ -13,39 +13,34 @@ public class SecurityConfigResponse
     public PasswordPolicyResponse PasswordPolicy { get; set; } = new();
 
     /// <summary>
-    /// Session settings
+    /// Session policy settings
     /// </summary>
-    public SessionSettingsResponse SessionSettings { get; set; } = new();
+    public SessionPolicyResponse SessionPolicy { get; set; } = new();
+
+    /// <summary>
+    /// Lockout policy settings
+    /// </summary>
+    public LockoutPolicyResponse LockoutPolicy { get; set; } = new();
 
     /// <summary>
     /// Two-factor authentication settings
     /// </summary>
-    public TwoFactorSettingsResponse TwoFactorSettings { get; set; } = new();
+    public TwoFactorPolicyResponse TwoFactorPolicy { get; set; } = new();
 
     /// <summary>
-    /// Rate limiting settings
+    /// Audit policy settings
     /// </summary>
-    public RateLimitSettingsResponse RateLimitSettings { get; set; } = new();
+    public AuditPolicyResponse AuditPolicy { get; set; } = new();
 
     /// <summary>
     /// Configuration last modified date
     /// </summary>
-    public DateTime? LastModified { get; set; }
+    public DateTime LastUpdated { get; set; }
 
     /// <summary>
     /// Who last modified the configuration
     /// </summary>
-    public string? LastModifiedBy { get; set; }
-
-    /// <summary>
-    /// Configuration version
-    /// </summary>
-    public string? Version { get; set; }
-
-    /// <summary>
-    /// Additional security details (if requested)
-    /// </summary>
-    public Dictionary<string, object>? Details { get; set; }
+    public string UpdatedBy { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -74,9 +69,19 @@ public class PasswordPolicyResponse
     public bool RequireNumbers { get; set; }
 
     /// <summary>
+    /// Require digits
+    /// </summary>
+    public bool RequireDigits { get; set; }
+
+    /// <summary>
     /// Require special characters
     /// </summary>
     public bool RequireSpecialChars { get; set; }
+
+    /// <summary>
+    /// Require special characters (alias)
+    /// </summary>
+    public bool RequireSpecialCharacters { get; set; }
 
     /// <summary>
     /// Password expiration in days
@@ -94,9 +99,14 @@ public class PasswordPolicyResponse
     public int LockoutDurationMinutes { get; set; }
 
     /// <summary>
-    /// Password strength score (computed)
+    /// Password max age
     /// </summary>
-    public int PasswordStrengthScore { get; set; }
+    public TimeSpan MaxAge { get; set; }
+
+    /// <summary>
+    /// Prevent reuse count
+    /// </summary>
+    public int PreventReuse { get; set; }
 }
 
 /// <summary>
@@ -175,6 +185,105 @@ public class RateLimitSettingsResponse
     /// Current rate limit violations count
     /// </summary>
     public int CurrentViolationsCount { get; set; }
+}
+
+/// <summary>
+/// Session policy response
+/// </summary>
+public class SessionPolicyResponse
+{
+    /// <summary>
+    /// Session timeout
+    /// </summary>
+    public TimeSpan SessionTimeout { get; set; }
+
+    /// <summary>
+    /// Maximum concurrent sessions
+    /// </summary>
+    public int MaxConcurrentSessions { get; set; }
+
+    /// <summary>
+    /// Require reauthentication
+    /// </summary>
+    public bool RequireReauthentication { get; set; }
+
+    /// <summary>
+    /// Idle timeout
+    /// </summary>
+    public TimeSpan IdleTimeout { get; set; }
+}
+
+/// <summary>
+/// Lockout policy response
+/// </summary>
+public class LockoutPolicyResponse
+{
+    /// <summary>
+    /// Maximum failed attempts
+    /// </summary>
+    public int MaxFailedAttempts { get; set; }
+
+    /// <summary>
+    /// Lockout duration
+    /// </summary>
+    public TimeSpan LockoutDuration { get; set; }
+
+    /// <summary>
+    /// Reset counter after
+    /// </summary>
+    public TimeSpan ResetCounterAfter { get; set; }
+}
+
+/// <summary>
+/// Two-factor policy response
+/// </summary>
+public class TwoFactorPolicyResponse
+{
+    /// <summary>
+    /// Is enabled
+    /// </summary>
+    public bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// Is required
+    /// </summary>
+    public bool IsRequired { get; set; }
+
+    /// <summary>
+    /// Allowed providers
+    /// </summary>
+    public List<string> AllowedProviders { get; set; } = new();
+
+    /// <summary>
+    /// Token lifetime
+    /// </summary>
+    public TimeSpan TokenLifetime { get; set; }
+}
+
+/// <summary>
+/// Audit policy response
+/// </summary>
+public class AuditPolicyResponse
+{
+    /// <summary>
+    /// Log all events
+    /// </summary>
+    public bool LogAllEvents { get; set; }
+
+    /// <summary>
+    /// Retention period
+    /// </summary>
+    public TimeSpan RetentionPeriod { get; set; }
+
+    /// <summary>
+    /// Log sensitive data
+    /// </summary>
+    public bool LogSensitiveData { get; set; }
+
+    /// <summary>
+    /// Enable real-time alerts
+    /// </summary>
+    public bool EnableRealTimeAlerts { get; set; }
 }
 
 /// <summary>
@@ -747,6 +856,196 @@ public class SecurityOperationResponse
     /// User who performed the operation
     /// </summary>
     public string? PerformedBy { get; set; }
+}
+
+/// <summary>
+/// Generic paged response for API endpoints
+/// </summary>
+public class PagedResponse<T>
+{
+    /// <summary>
+    /// Data items for current page
+    /// </summary>
+    public List<T> Data { get; set; } = new();
+
+    /// <summary>
+    /// Current page number
+    /// </summary>
+    public int Page { get; set; }
+
+    /// <summary>
+    /// Page size
+    /// </summary>
+    public int PageSize { get; set; }
+
+    /// <summary>
+    /// Total count of items
+    /// </summary>
+    public int TotalCount { get; set; }
+
+    /// <summary>
+    /// Total number of pages
+    /// </summary>
+    public int TotalPages { get; set; }
+
+    /// <summary>
+    /// Whether there is a next page
+    /// </summary>
+    public bool HasNextPage { get; set; }
+
+    /// <summary>
+    /// Whether there is a previous page
+    /// </summary>
+    public bool HasPreviousPage { get; set; }
+}
+
+/// <summary>
+/// Security analysis request
+/// </summary>
+public class SecurityAnalysisRequest
+{
+    /// <summary>
+    /// Analysis start time
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// Analysis end time
+    /// </summary>
+    public DateTime EndTime { get; set; }
+}
+
+/// <summary>
+/// Security analysis response
+/// </summary>
+public class SecurityAnalysisResponse
+{
+    /// <summary>
+    /// Analysis ID
+    /// </summary>
+    public string AnalysisId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Analysis start time
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// Analysis end time
+    /// </summary>
+    public DateTime EndTime { get; set; }
+
+    /// <summary>
+    /// Analysis date
+    /// </summary>
+    public DateTime AnalysisDate { get; set; }
+
+    /// <summary>
+    /// Whether suspicious activity was detected
+    /// </summary>
+    public bool HasSuspiciousActivity { get; set; }
+
+    /// <summary>
+    /// Analysis duration in milliseconds
+    /// </summary>
+    public long AnalysisDurationMs { get; set; }
+
+    /// <summary>
+    /// Analysis summary
+    /// </summary>
+    public string Summary { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Additional analysis details
+    /// </summary>
+    public Dictionary<string, object> Details { get; set; } = new();
+}
+
+/// <summary>
+/// Security statistics response
+/// </summary>
+public class SecurityStatisticsResponse
+{
+    /// <summary>
+    /// Statistics period start
+    /// </summary>
+    public DateTime PeriodStart { get; set; }
+
+    /// <summary>
+    /// Statistics period end
+    /// </summary>
+    public DateTime PeriodEnd { get; set; }
+
+    /// <summary>
+    /// Total events count
+    /// </summary>
+    public int TotalEvents { get; set; }
+
+    /// <summary>
+    /// Successful events count
+    /// </summary>
+    public int SuccessfulEvents { get; set; }
+
+    /// <summary>
+    /// Failed events count
+    /// </summary>
+    public int FailedEvents { get; set; }
+
+    /// <summary>
+    /// Unique users count
+    /// </summary>
+    public int UniqueUsers { get; set; }
+
+    /// <summary>
+    /// Unique IP addresses count
+    /// </summary>
+    public int UniqueIpAddresses { get; set; }
+
+    /// <summary>
+    /// Events grouped by type
+    /// </summary>
+    public Dictionary<string, int> EventsByType { get; set; } = new();
+
+    /// <summary>
+    /// Events grouped by day
+    /// </summary>
+    public Dictionary<DateTime, int> EventsByDay { get; set; } = new();
+
+    /// <summary>
+    /// Statistics generation time
+    /// </summary>
+    public DateTime GeneratedAt { get; set; }
+
+    /// <summary>
+    /// Generation duration in milliseconds
+    /// </summary>
+    public long GenerationDurationMs { get; set; }
+}
+
+/// <summary>
+/// Roles and permissions response
+/// </summary>
+public class RolesPermissionsResponse
+{
+    /// <summary>
+    /// List of roles
+    /// </summary>
+    public List<RoleResponse> Roles { get; set; } = new();
+
+    /// <summary>
+    /// List of permissions
+    /// </summary>
+    public List<PermissionResponse> Permissions { get; set; } = new();
+
+    /// <summary>
+    /// Response generation time
+    /// </summary>
+    public DateTime RetrievedAt { get; set; }
+
+    /// <summary>
+    /// Retrieval duration in milliseconds
+    /// </summary>
+    public long RetrievalDurationMs { get; set; }
 }
 
 

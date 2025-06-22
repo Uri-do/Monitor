@@ -8,7 +8,10 @@ namespace MonitoringGrid.Core.Models;
 public class AlertNotificationDto
 {
     public int AlertId { get; set; }
-    public int KpiId { get; set; }
+    public long IndicatorId { get; set; }
+
+    // Alias for compatibility with services that expect KpiId
+    public long KpiId => IndicatorId;
     public string Indicator { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;

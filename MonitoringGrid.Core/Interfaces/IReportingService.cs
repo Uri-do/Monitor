@@ -8,7 +8,7 @@ namespace MonitoringGrid.Core.Interfaces;
 /// </summary>
 public interface IReportingService
 {
-    Task<byte[]> GenerateKpiReportAsync(KpiReportRequest request, CancellationToken cancellationToken = default);
+    Task<byte[]> GenerateIndicatorReportAsync(IndicatorReportRequest request, CancellationToken cancellationToken = default);
     Task<byte[]> GenerateAlertReportAsync(AlertReportRequest request, CancellationToken cancellationToken = default);
     Task<byte[]> GeneratePerformanceReportAsync(PerformanceReportRequest request, CancellationToken cancellationToken = default);
     Task<byte[]> GenerateCustomReportAsync(CustomReportRequest request, CancellationToken cancellationToken = default);

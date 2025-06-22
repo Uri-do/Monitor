@@ -44,7 +44,7 @@ public class KeyVaultService : IKeyVaultService
         }
     }
 
-    public async Task<string> GetSecretAsync(string secretName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetSecretAsync(string secretName, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -91,14 +91,14 @@ public class KeyVaultService : IKeyVaultService
         }
     }
 
-    public async Task SetSecretAsync(string secretName, string secretValue, CancellationToken cancellationToken = default)
+    public async Task<bool> SetSecretAsync(string secretName, string secretValue, CancellationToken cancellationToken = default)
     {
         try
         {
             if (_secretClient == null)
             {
                 _logger.LogWarning("Key Vault client is not initialized");
-                return;
+                return false;
             }
 
             _logger.LogDebug("Setting secret {SecretName} in Key Vault", secretName);
@@ -110,11 +110,12 @@ public class KeyVaultService : IKeyVaultService
             _secretCache[secretName] = (secretValue, DateTime.UtcNow);
 
             _logger.LogInformation("Successfully set secret {SecretName} in Key Vault", secretName);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set secret {SecretName} in Key Vault", secretName);
-            throw;
+            return false;
         }
     }
 
@@ -151,7 +152,7 @@ public class KeyVaultService : IKeyVaultService
         }
     }
 
-    public async Task<List<string>> GetSecretNamesAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<string>> ListSecretNamesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -176,6 +177,33 @@ public class KeyVaultService : IKeyVaultService
         {
             _logger.LogError(ex, "Failed to retrieve secret names from Key Vault");
             return new List<string>();
+        }
+    }
+
+    public async Task<bool> SecretExistsAsync(string secretName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (_secretClient == null)
+            {
+                _logger.LogWarning("Key Vault client is not initialized");
+                return false;
+            }
+
+            _logger.LogDebug("Checking if secret {SecretName} exists in Key Vault", secretName);
+
+            await _secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
+            return true;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            _logger.LogDebug("Secret {SecretName} does not exist in Key Vault", secretName);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check if secret {SecretName} exists in Key Vault", secretName);
+            return false;
         }
     }
 

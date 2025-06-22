@@ -48,7 +48,7 @@ public class SlackService : ISlackService
                 IconEmoji = _config.DefaultEmoji
             };
 
-            return await SendRichMessageAsync(channel, slackMessage, cancellationToken);
+            return await SendRichMessageAsync(channel, (object)slackMessage, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -100,7 +100,7 @@ public class SlackService : ISlackService
                 }
             };
 
-            return await SendRichMessageAsync(channel, slackMessage, cancellationToken);
+            return await SendRichMessageAsync(channel, (object)slackMessage, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -109,7 +109,7 @@ public class SlackService : ISlackService
         }
     }
 
-    public async Task<bool> SendRichMessageAsync(string channel, SlackMessage message, CancellationToken cancellationToken = default)
+    public async Task<bool> SendRichMessageAsync(string channel, object message, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -119,28 +119,38 @@ public class SlackService : ISlackService
                 return false;
             }
 
-            var payload = new
+            // Handle different message types
+            object payload;
+            if (message is SlackMessage slackMessage)
             {
-                channel = message.Channel,
-                text = message.Text,
-                username = message.Username,
-                icon_emoji = message.IconEmoji,
-                attachments = message.Attachments.Select(a => new
+                payload = new
                 {
-                    color = a.Color,
-                    title = a.Title,
-                    text = a.Text,
-                    fields = a.Fields.Select(f => new
+                    channel = slackMessage.Channel,
+                    text = slackMessage.Text,
+                    username = slackMessage.Username,
+                    icon_emoji = slackMessage.IconEmoji,
+                    attachments = slackMessage.Attachments.Select(a => new
                     {
-                        title = f.Title,
-                        value = f.Value,
-                        @short = f.Short
+                        color = a.Color,
+                        title = a.Title,
+                        text = a.Text,
+                        fields = a.Fields.Select(f => new
+                        {
+                            title = f.Title,
+                            value = f.Value,
+                            @short = f.Short
+                        }),
+                        footer = a.Footer,
+                        ts = a.Timestamp
                     }),
-                    footer = a.Footer,
-                    ts = a.Timestamp
-                }),
-                blocks = message.Blocks
-            };
+                    blocks = slackMessage.Blocks
+                };
+            }
+            else
+            {
+                // For generic objects, serialize as-is
+                payload = message;
+            }
 
             var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
             {

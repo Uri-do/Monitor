@@ -280,6 +280,9 @@ public class SecurityAuditEvent
     public Dictionary<string, object> AdditionalData { get; set; } = new();
     public DateTime Timestamp { get; set; }
     public string Severity { get; set; } = "Information";
+
+    // Alias for compatibility with services that expect Description
+    public string Description { get; set; } = string.Empty;
 }
 
 /// <summary>

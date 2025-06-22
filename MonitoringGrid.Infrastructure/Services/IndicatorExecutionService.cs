@@ -490,7 +490,7 @@ public class IndicatorExecutionService : IIndicatorExecutionService
             // Create alert log
             var alertLog = new AlertLog
             {
-                IndicatorId = indicator.IndicatorID,
+                IndicatorID = indicator.IndicatorID,
                 TriggerTime = result.StartTime,
                 Message = $"Indicator '{indicator.IndicatorName}' threshold breached. " +
                          $"Current value: {result.Value}, Threshold: {result.ThresholdValue}",

@@ -89,7 +89,7 @@ public class AlertMetrics
     public int AcknowledgedAlerts { get; set; }
     public double AverageResolutionTimeMinutes { get; set; }
     public double AverageAcknowledgmentTimeMinutes { get; set; }
-    public Dictionary<string, int> AlertsByKpi { get; set; } = new();
+    public Dictionary<string, int> AlertsByIndicator { get; set; } = new();
     public Dictionary<string, int> AlertsBySeverity { get; set; } = new();
 }
 

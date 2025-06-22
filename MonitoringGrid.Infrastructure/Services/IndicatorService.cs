@@ -870,7 +870,7 @@ public class IndicatorService : IIndicatorService
                 {
                     var updateRequest = new UpdateIndicatorRequest
                     {
-                        IndicatorID = indicatorId,
+                        IndicatorId = indicatorId,
                         IsActive = request.IsActive,
                         Priority = request.Priority
                     };

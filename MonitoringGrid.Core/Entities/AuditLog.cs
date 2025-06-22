@@ -17,6 +17,9 @@ public class AuditLog
     [Key]
     public int LogId { get; set; }
 
+    // Alias for compatibility with services that expect AuditLogId
+    public int AuditLogId => LogId;
+
     /// <summary>
     /// ID of the user who performed the action. Required for accountability.
     /// </summary>
@@ -81,6 +84,9 @@ public class AuditLog
     /// </summary>
     [StringLength(1000)]
     public string? ErrorMessage { get; set; }
+
+    // Alias for compatibility with services that expect Description
+    public string Description => GetDescription();
 
     // Domain methods
     /// <summary>

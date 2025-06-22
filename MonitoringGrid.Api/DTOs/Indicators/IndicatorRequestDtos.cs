@@ -166,6 +166,9 @@ public class CreateIndicatorRequest
     [PositiveInteger]
     public long CollectorId { get; set; }
 
+    // Alias for compatibility with services that expect CollectorID
+    public long CollectorID => CollectorId;
+
     /// <summary>
     /// SQL query for the indicator
     /// </summary>
@@ -191,6 +194,9 @@ public class CreateIndicatorRequest
     [PositiveInteger]
     public int? SchedulerId { get; set; }
 
+    // Alias for compatibility with services that expect SchedulerID
+    public int? SchedulerID => SchedulerId;
+
     /// <summary>
     /// Alert threshold value (optional)
     /// </summary>
@@ -207,6 +213,17 @@ public class CreateIndicatorRequest
     /// </summary>
     [SearchTerm(0, 2000)]
     public string? Configuration { get; set; }
+
+    // Additional properties for compatibility with IndicatorService
+    public string? IndicatorCode { get; set; }
+    public string? IndicatorDesc { get; set; }
+    public string? CollectorItemName { get; set; }
+    public string? ThresholdType { get; set; }
+    public string? ThresholdField { get; set; }
+    public string? ThresholdComparison { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? Priority { get; set; }
+    public int? AverageLastDays { get; set; }
 }
 
 /// <summary>
@@ -234,6 +251,9 @@ public class UpdateIndicatorRequest
     [SearchTerm(0, 500)]
     public string? IndicatorDescription { get; set; }
 
+    // Alias for compatibility with services that expect IndicatorDesc
+    public string? IndicatorDesc => IndicatorDescription;
+
     /// <summary>
     /// Owner contact ID
     /// </summary>
@@ -247,6 +267,9 @@ public class UpdateIndicatorRequest
     [Required]
     [PositiveInteger]
     public long CollectorId { get; set; }
+
+    // Alias for compatibility with services that expect CollectorID
+    public long CollectorID => CollectorId;
 
     /// <summary>
     /// SQL query for the indicator
@@ -273,6 +296,9 @@ public class UpdateIndicatorRequest
     [PositiveInteger]
     public int? SchedulerId { get; set; }
 
+    // Alias for compatibility with services that expect SchedulerID
+    public int? SchedulerID => SchedulerId;
+
     /// <summary>
     /// Alert threshold value (optional)
     /// </summary>
@@ -295,6 +321,16 @@ public class UpdateIndicatorRequest
     /// </summary>
     [SearchTerm(0, 500)]
     public string? UpdateReason { get; set; }
+
+    // Additional properties for compatibility with IndicatorService
+    public string? IndicatorCode { get; set; }
+    public string? CollectorItemName { get; set; }
+    public string? ThresholdType { get; set; }
+    public string? ThresholdField { get; set; }
+    public string? ThresholdComparison { get; set; }
+    public decimal? ThresholdValue { get; set; }
+    public string? Priority { get; set; }
+    public int? AverageLastDays { get; set; }
 }
 
 /// <summary>

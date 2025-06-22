@@ -30,9 +30,12 @@ public class SystemStatusConfiguration : IEntityTypeConfiguration<SystemStatus>
         builder.Property(s => s.ErrorMessage)
             .HasColumnType("nvarchar(max)");
 
-        builder.Property(s => s.ProcessedKpis)
+        builder.Property(s => s.ProcessedIndicators)
             .IsRequired()
             .HasDefaultValue(0);
+
+        // Ignore computed/alias properties
+        builder.Ignore(s => s.ProcessedKpis);
 
         builder.Property(s => s.AlertsSent)
             .IsRequired()

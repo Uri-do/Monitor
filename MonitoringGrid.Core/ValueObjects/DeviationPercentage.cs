@@ -5,6 +5,19 @@ namespace MonitoringGrid.Core.ValueObjects;
 /// </summary>
 public record DeviationPercentage
 {
+    // Severity thresholds
+    public const decimal CriticalThreshold = 50m;
+    public const decimal HighThreshold = 25m;
+    public const decimal MediumThreshold = 10m;
+    public const decimal LowThreshold = 5m;
+
+    // Color codes for UI
+    public const string CriticalColor = "#FF0000"; // Red
+    public const string HighColor = "#FF8C00";     // Orange
+    public const string MediumColor = "#FFD700";   // Gold
+    public const string LowColor = "#32CD32";      // Green
+    public const string MinimalColor = "#90EE90";  // Light Green
+
     public decimal Value { get; }
 
     public DeviationPercentage(decimal percentage)
@@ -23,33 +36,33 @@ public record DeviationPercentage
     {
         return Value switch
         {
-            >= 50 => "Critical",
-            >= 25 => "High", 
-            >= 10 => "Medium",
-            >= 5 => "Low",
+            >= CriticalThreshold => "Critical",
+            >= HighThreshold => "High",
+            >= MediumThreshold => "Medium",
+            >= LowThreshold => "Low",
             _ => "Minimal"
         };
     }
 
     public bool RequiresImmediateAttention()
     {
-        return Value >= 25;
+        return Value >= HighThreshold;
     }
 
     public bool RequiresSmsAlert()
     {
-        return Value >= 50;
+        return Value >= CriticalThreshold;
     }
 
     public string GetColorCode()
     {
         return Value switch
         {
-            >= 50 => "#FF0000", // Red
-            >= 25 => "#FF8C00", // Orange
-            >= 10 => "#FFD700", // Gold
-            >= 5 => "#32CD32",  // Green
-            _ => "#90EE90"      // Light Green
+            >= CriticalThreshold => CriticalColor,
+            >= HighThreshold => HighColor,
+            >= MediumThreshold => MediumColor,
+            >= LowThreshold => LowColor,
+            _ => MinimalColor
         };
     }
 

@@ -37,9 +37,9 @@ public enum NotificationPriority
 }
 
 /// <summary>
-/// KPI execution status
+/// Indicator execution status
 /// </summary>
-public enum KpiExecutionStatus
+public enum IndicatorExecutionStatus
 {
     Pending = 0,
     Running = 1,

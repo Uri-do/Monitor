@@ -11,6 +11,7 @@ using BCrypt.Net;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Interfaces.Security;
 using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Security;
 using MonitoringGrid.Infrastructure.Data;
@@ -406,6 +407,81 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         {
             _logger.LogError(ex, "Error during logout for user {UserId}", userId);
             return Result.Failure(Error.Failure("Authentication.LogoutFailed", $"Logout failed: {ex.Message}"));
+        }
+    }
+
+    #endregion
+
+    #region IAuthenticationService Implementation
+
+    public async Task<Result<User>> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive, cancellationToken);
+
+            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            {
+                return Result.Failure<User>(Error.Validation("Authentication.InvalidCredentials", "Invalid credentials"));
+            }
+
+            return Result<User>.Success(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during authentication for user {Username}", username);
+            return Result.Failure<User>(Error.Failure("Authentication.Failed", "Authentication failed"));
+        }
+    }
+
+    Task<Result<User>> IAuthenticationService.ValidateTokenAsync(string token, CancellationToken cancellationToken)
+    {
+        return GetUserFromTokenAsync(token, cancellationToken);
+    }
+
+    public async Task<Result<string>> GenerateTokenAsync(User user, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await Task.CompletedTask; // For async consistency
+            var token = GenerateAccessToken(user);
+            return Result<string>.Success(token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating token for user {UserId}", user.UserId);
+            return Result.Failure<string>(Error.Failure("Token.GenerationFailed", "Token generation failed"));
+        }
+    }
+
+    Task<Result<string>> IAuthenticationService.RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        return RefreshTokenAsync(refreshToken, cancellationToken)
+            .ContinueWith(task =>
+            {
+                if (task.Result.IsSuccess)
+                {
+                    return Result<string>.Success(task.Result.Value.AccessToken);
+                }
+                return Result.Failure<string>(task.Result.Error);
+            }, cancellationToken);
+    }
+
+    public async Task<Result<bool>> LogoutAsync(string token, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var expiration = GetTokenExpiration(token);
+            await BlacklistTokenAsync(token, expiration, cancellationToken);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during logout");
+            return Result.Failure<bool>(Error.Failure("Authentication.LogoutFailed", "Logout failed"));
         }
     }
 
@@ -1829,6 +1905,250 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         }
 
         return new string(password);
+    }
+
+    #endregion
+
+    #region ISecurityAuditService Implementation
+
+    public async Task LogSecurityEventAsync(string eventType, string description, int? userId = null, string? ipAddress = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var auditEvent = new SecurityAuditEvent
+            {
+                EventType = eventType,
+                Action = eventType,
+                Resource = "Security",
+                UserId = userId?.ToString(),
+                IpAddress = ipAddress,
+                Description = description,
+                IsSuccess = true,
+                Timestamp = DateTime.UtcNow
+            };
+
+            await LogSecurityEventAsync(auditEvent, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging security event {EventType}", eventType);
+        }
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetAuditEventsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.Set<AuditLog>()
+                .Where(al => al.Timestamp >= startTime && al.Timestamp <= endTime)
+                .OrderByDescending(al => al.Timestamp)
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting audit events");
+            return new List<AuditLog>();
+        }
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetUserAuditEventsAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userIdString = userId.ToString();
+            return await _context.Set<AuditLog>()
+                .Where(al => al.UserId == userIdString && al.Timestamp >= startTime && al.Timestamp <= endTime)
+                .OrderByDescending(al => al.Timestamp)
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user audit events for user {UserId}", userId);
+            return new List<AuditLog>();
+        }
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetFailedLoginAttemptsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.Set<AuditLog>()
+                .Where(al => al.Action == "LOGIN" &&
+                           !al.IsSuccess &&
+                           al.Timestamp >= startTime &&
+                           al.Timestamp <= endTime)
+                .OrderByDescending(al => al.Timestamp)
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting failed login attempts");
+            return new List<AuditLog>();
+        }
+    }
+
+    public async Task<Result<bool>> AnalyzeSecurityPatternsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var failedLogins = await GetFailedLoginAttemptsAsync(startTime, endTime, cancellationToken);
+            var suspiciousPatterns = failedLogins.GroupBy(fl => fl.IpAddress)
+                .Where(g => g.Count() > 10)
+                .Any();
+
+            return Result<bool>.Success(suspiciousPatterns);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing security patterns");
+            return Result.Failure<bool>(Error.Failure("Security.AnalysisFailed", "Security pattern analysis failed"));
+        }
+    }
+
+    #endregion
+
+    #region IThreatDetectionService Implementation
+
+    public async Task<Result<bool>> AnalyzeLoginPatternAsync(string username, string ipAddress, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Check for brute force patterns
+            var recentAttempts = await _context.Set<AuditLog>()
+                .Where(al => al.Action == "LOGIN" &&
+                           al.IpAddress == ipAddress &&
+                           al.Timestamp >= DateTime.UtcNow.AddMinutes(-15))
+                .CountAsync(cancellationToken);
+
+            var isSuspicious = recentAttempts > 5;
+            return Result<bool>.Success(isSuspicious);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing login pattern for {Username} from {IpAddress}", username, ipAddress);
+            return Result.Failure<bool>(Error.Failure("Threat.AnalysisFailed", "Login pattern analysis failed"));
+        }
+    }
+
+    public async Task<Result<bool>> DetectBruteForceAttackAsync(string ipAddress, DateTime timeWindow, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var failedAttempts = await _context.Set<AuditLog>()
+                .Where(al => al.Action == "LOGIN" &&
+                           !al.IsSuccess &&
+                           al.IpAddress == ipAddress &&
+                           al.Timestamp >= timeWindow)
+                .CountAsync(cancellationToken);
+
+            var isBruteForce = failedAttempts > 10;
+            return Result<bool>.Success(isBruteForce);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error detecting brute force attack from {IpAddress}", ipAddress);
+            return Result.Failure<bool>(Error.Failure("Threat.DetectionFailed", "Brute force detection failed"));
+        }
+    }
+
+    public async Task<Result<bool>> AnalyzeApiUsageAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userIdString = userId.ToString();
+            var apiCalls = await _context.Set<AuditLog>()
+                .Where(al => al.UserId == userIdString &&
+                           al.Timestamp >= startTime &&
+                           al.Timestamp <= endTime)
+                .CountAsync(cancellationToken);
+
+            var isAnomalous = apiCalls > 1000; // More than 1000 API calls in the time window
+            return Result<bool>.Success(isAnomalous);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing API usage for user {UserId}", userId);
+            return Result.Failure<bool>(Error.Failure("Threat.AnalysisFailed", "API usage analysis failed"));
+        }
+    }
+
+    Task<IEnumerable<AuditLog>> IThreatDetectionService.GetActiveThreatsAsync(CancellationToken cancellationToken)
+    {
+        return GetActiveThreatsAsync(cancellationToken)
+            .ContinueWith(task =>
+            {
+                // Convert SecurityThreat to AuditLog for interface compatibility
+                var threats = task.Result;
+                var auditLogs = threats.Select(t => new AuditLog
+                {
+                    LogId = int.Parse(t.ThreatId.Replace("-", "").Substring(0, 8), System.Globalization.NumberStyles.HexNumber),
+                    Action = t.ThreatType,
+                    Resource = "Security",
+                    UserId = t.UserId ?? "System",
+                    UserName = "System",
+                    IpAddress = t.IpAddress,
+                    Details = t.Description,
+                    IsSuccess = false,
+                    Timestamp = t.DetectedAt
+                }).AsEnumerable();
+
+                return auditLogs;
+            }, cancellationToken);
+    }
+
+    public async Task<Result<int>> ReportThreatAsync(string threatType, string description, string source, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var threat = new SecurityThreat
+            {
+                ThreatId = Guid.NewGuid().ToString(),
+                ThreatType = threatType,
+                Severity = "Medium",
+                Description = description,
+                DetectedAt = DateTime.UtcNow,
+                IsResolved = false,
+                ThreatData = new Dictionary<string, object>
+                {
+                    ["Source"] = source,
+                    ["ReportedManually"] = true
+                }
+            };
+
+            await ReportThreatAsync(threat, cancellationToken);
+
+            // Return a hash of the threat ID as an integer
+            var threatIdHash = threat.ThreatId.GetHashCode();
+            return Result<int>.Success(Math.Abs(threatIdHash));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reporting threat {ThreatType}", threatType);
+            return Result.Failure<int>(Error.Failure("Threat.ReportFailed", "Threat reporting failed"));
+        }
+    }
+
+    public async Task<Result<bool>> ResolveThreatAsync(int threatId, string resolution, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Find threat by converting int ID back to string (this is a simplified approach)
+            var threats = await GetActiveThreatsAsync(cancellationToken);
+            var threat = threats.FirstOrDefault(t => Math.Abs(t.ThreatId.GetHashCode()) == threatId);
+
+            if (threat != null)
+            {
+                await ResolveThreatAsync(threat.ThreatId, resolution, cancellationToken);
+                return Result<bool>.Success(true);
+            }
+
+            return Result.Failure<bool>(Error.NotFound("Threat", "Threat not found"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resolving threat {ThreatId}", threatId);
+            return Result.Failure<bool>(Error.Failure("Threat.ResolveFailed", "Threat resolution failed"));
+        }
     }
 
     #endregion

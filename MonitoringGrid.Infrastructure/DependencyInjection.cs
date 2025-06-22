@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MonitoringGrid.Core.Interfaces;
+using MonitoringGrid.Core.Interfaces.Security;
 using MonitoringGrid.Core.Events;
 using MonitoringGrid.Infrastructure.Configuration;
 using MonitoringGrid.Infrastructure.Data;
@@ -90,13 +91,11 @@ public static class DependencyInjection
         // Performance Monitoring
         services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
 
-        // Advanced Repository Pattern with enterprise features
+        // Repository Pattern with enterprise features
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(IAdvancedRepository<>), typeof(AdvancedRepository<>));
         services.AddScoped(typeof(IProjectionRepository<>), typeof(ProjectionRepository<>));
         services.AddScoped<IAlertRepository, AlertRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IAdvancedUnitOfWork, AdvancedUnitOfWork>();
 
         // Domain Events
         services.AddScoped<MonitoringGrid.Core.Interfaces.IDomainEventPublisher, DomainEventPublisher>();
@@ -131,6 +130,7 @@ public static class DependencyInjection
         // Security Services - Consolidated without adapters
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
+        services.AddScoped<IKeyVaultService, KeyVaultService>();
 
         // Direct service registrations (no adapters needed)
         services.AddScoped<IAuthenticationService, SecurityService>();

@@ -21,7 +21,10 @@ public class SystemStatus
 
     public string? ErrorMessage { get; set; }
 
-    public int ProcessedKpis { get; set; } = 0;
+    public int ProcessedIndicators { get; set; } = 0;
+
+    // Alias for compatibility with legacy code that expects ProcessedKpis
+    public int ProcessedKpis => ProcessedIndicators;
 
     public int AlertsSent { get; set; } = 0;
 
@@ -45,9 +48,9 @@ public class SystemStatus
         ErrorMessage = errorMessage;
     }
 
-    public void IncrementProcessedKpis()
+    public void IncrementProcessedIndicators()
     {
-        ProcessedKpis++;
+        ProcessedIndicators++;
     }
 
     public void IncrementAlertsSent()

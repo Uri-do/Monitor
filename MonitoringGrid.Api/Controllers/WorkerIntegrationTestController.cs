@@ -515,7 +515,7 @@ public class WorkerIntegrationTestController : BaseApiController
             : 0;
 
         // Collect comprehensive performance metrics
-        var process = Process.GetCurrentProcess();
+        process.Refresh(); // Refresh the existing process instance
         var finalMemory = GC.GetTotalMemory(false);
 
         results.MemoryUsageBytes = finalMemory - initialMemory;
@@ -951,7 +951,7 @@ public class WorkerIntegrationTestController : BaseApiController
                 StartedAt = execution.StartTime,
                 CompletedAt = execution.EndTime,
                 DurationMs = execution.EndTime?.Subtract(execution.StartTime).Milliseconds ?? 0,
-                Success = execution.Success,
+                Success = execution.Success ?? false,
                 Status = execution.Status,
                 ErrorMessage = execution.ErrorMessage,
                 IndicatorsProcessed = execution.Results?.IndicatorsProcessed ?? 0,

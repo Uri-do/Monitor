@@ -1,7 +1,7 @@
 namespace MonitoringGrid.Core.Interfaces;
 
 /// <summary>
-/// Service responsible for sending email notifications
+/// Interface for email notification services
 /// </summary>
 public interface IEmailService
 {
@@ -16,12 +16,12 @@ public interface IEmailService
     Task<bool> SendEmailAsync(IEnumerable<string> to, string subject, string body, bool isHtml = true, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Validates email configuration
-    /// </summary>
-    Task<bool> ValidateConfigurationAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Tests email connectivity by sending a test message
+    /// Sends a test email to verify configuration
     /// </summary>
     Task<bool> SendTestEmailAsync(string to, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validates the email configuration
+    /// </summary>
+    Task<bool> ValidateConfigurationAsync(CancellationToken cancellationToken = default);
 }

@@ -14,37 +14,9 @@ public abstract class DomainException : Exception
     }
 }
 
-/// <summary>
-/// Exception thrown when a business rule is violated
-/// </summary>
-public class BusinessRuleViolationException : DomainException
-{
-    public BusinessRuleViolationException(string rule, string details) 
-        : base($"Business rule violation: {rule}. {details}")
-    {
-        Rule = rule;
-        Details = details;
-    }
 
-    public string Rule { get; }
-    public string Details { get; }
-}
 
-/// <summary>
-/// Exception thrown when an entity is not found
-/// </summary>
-public class EntityNotFoundException : DomainException
-{
-    public EntityNotFoundException(string entityType, object id) 
-        : base($"{entityType} with ID '{id}' was not found")
-    {
-        EntityType = entityType;
-        Id = id;
-    }
 
-    public string EntityType { get; }
-    public object Id { get; }
-}
 
 /// <summary>
 /// Exception thrown when an entity already exists
@@ -63,12 +35,12 @@ public class EntityAlreadyExistsException : DomainException
 }
 
 /// <summary>
-/// Exception thrown when a KPI validation fails
+/// Exception thrown when an Indicator validation fails
 /// </summary>
-public class KpiValidationException : DomainException
+public class IndicatorValidationException : DomainException
 {
-    public KpiValidationException(string indicator, List<string> validationErrors) 
-        : base($"KPI '{indicator}' validation failed: {string.Join(", ", validationErrors)}")
+    public IndicatorValidationException(string indicator, List<string> validationErrors)
+        : base($"Indicator '{indicator}' validation failed: {string.Join(", ", validationErrors)}")
     {
         Indicator = indicator;
         ValidationErrors = validationErrors;
@@ -79,18 +51,18 @@ public class KpiValidationException : DomainException
 }
 
 /// <summary>
-/// Exception thrown when a KPI execution fails
+/// Exception thrown when an Indicator execution fails
 /// </summary>
-public class KpiExecutionException : DomainException
+public class IndicatorExecutionException : DomainException
 {
-    public KpiExecutionException(string indicator, string error) 
-        : base($"KPI '{indicator}' execution failed: {error}")
+    public IndicatorExecutionException(string indicator, string error)
+        : base($"Indicator '{indicator}' execution failed: {error}")
     {
         Indicator = indicator;
     }
 
-    public KpiExecutionException(string indicator, string error, Exception innerException) 
-        : base($"KPI '{indicator}' execution failed: {error}", innerException)
+    public IndicatorExecutionException(string indicator, string error, Exception innerException)
+        : base($"Indicator '{indicator}' execution failed: {error}", innerException)
     {
         Indicator = indicator;
     }
@@ -128,21 +100,7 @@ public class InvalidConfigurationException : DomainException
     public string ConfigKey { get; }
 }
 
-/// <summary>
-/// Exception thrown when a user operation is not authorized
-/// </summary>
-public class UnauthorizedOperationException : DomainException
-{
-    public UnauthorizedOperationException(string operation, string user) 
-        : base($"User '{user}' is not authorized to perform operation: {operation}")
-    {
-        Operation = operation;
-        User = user;
-    }
 
-    public string Operation { get; }
-    public string User { get; }
-}
 
 /// <summary>
 /// Exception thrown when a notification fails to send

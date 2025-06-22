@@ -10,9 +10,9 @@ public interface IAdvancedUnitOfWork : IUnitOfWork, IAsyncDisposable
     #region Repository Management
 
     /// <summary>
-    /// Gets an advanced repository for the specified entity type
+    /// Gets a repository for the specified entity type
     /// </summary>
-    IAdvancedRepository<T> AdvancedRepository<T>() where T : class;
+    new IRepository<T> Repository<T>() where T : class;
 
     #endregion
 

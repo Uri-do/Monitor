@@ -72,9 +72,13 @@ public class CreateIndicatorRequest
     public string IndicatorName { get; set; } = string.Empty;
     public string IndicatorCode { get; set; } = string.Empty;
     public string? IndicatorDesc { get; set; }
-    public long CollectorID { get; set; }
+    public long CollectorId { get; set; }
     public string CollectorItemName { get; set; } = string.Empty;
-    public int? SchedulerID { get; set; }
+    public int? SchedulerId { get; set; }
+
+    // Alias properties for compatibility with services that expect uppercase ID
+    public long CollectorID => CollectorId;
+    public int? SchedulerID => SchedulerId;
     public bool IsActive { get; set; } = true;
     public int LastMinutes { get; set; } = 60;
     public string ThresholdType { get; set; } = string.Empty;
@@ -92,13 +96,18 @@ public class CreateIndicatorRequest
 /// </summary>
 public class UpdateIndicatorRequest
 {
-    public long IndicatorID { get; set; }
+    public long IndicatorId { get; set; }
     public string? IndicatorName { get; set; }
     public string? IndicatorCode { get; set; }
     public string? IndicatorDesc { get; set; }
-    public long? CollectorID { get; set; }
+    public long? CollectorId { get; set; }
     public string? CollectorItemName { get; set; }
-    public int? SchedulerID { get; set; }
+    public int? SchedulerId { get; set; }
+
+    // Alias properties for compatibility with services that expect uppercase ID
+    public long IndicatorID => IndicatorId;
+    public long? CollectorID => CollectorId;
+    public int? SchedulerID => SchedulerId;
     public bool? IsActive { get; set; }
     public int? LastMinutes { get; set; }
     public string? ThresholdType { get; set; }
@@ -117,10 +126,12 @@ public class UpdateIndicatorRequest
 public class DeleteIndicatorOptions
 {
     public bool Force { get; set; } = false;
-    public bool ForceDelete { get; set; } = false;
     public bool ArchiveData { get; set; } = true;
     public string? DeletionReason { get; set; }
     public bool CheckDependencies { get; set; } = true;
+
+    // Alias for compatibility with services that expect ForceDelete
+    public bool ForceDelete => Force;
 }
 
 /// <summary>
