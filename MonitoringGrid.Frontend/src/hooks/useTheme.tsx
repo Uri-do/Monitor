@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Theme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import type { PaletteMode } from '@mui/material';
-import { createAppTheme } from '@/theme/theme';
+import type { ThemeConfig } from 'antd';
+import { createAppTheme, type ThemeMode } from '@/theme/theme';
 
 interface ThemeContextType {
-  mode: PaletteMode;
+  mode: ThemeMode;
   toggleTheme: () => void;
-  theme: Theme;
+  theme: ThemeConfig;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -16,9 +15,9 @@ interface CustomThemeProviderProps {
 }
 
 export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
-  const [mode, setMode] = useState<PaletteMode>(() => {
+  const [mode, setMode] = useState<ThemeMode>(() => {
     const savedMode = localStorage.getItem('themeMode');
-    return (savedMode as PaletteMode) || 'light';
+    return (savedMode as ThemeMode) || 'light';
   });
 
   const theme = React.useMemo(() => createAppTheme(mode), [mode]);
@@ -37,7 +36,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 
   return (
     <ThemeContext.Provider value={value}>
-      <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
+      {children}
     </ThemeContext.Provider>
   );
 }

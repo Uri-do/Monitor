@@ -74,7 +74,7 @@ builder.Services.AddAuthentication("Bearer")
                 var path = context.HttpContext.Request.Path;
 
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/monitoring-hub") || path.StartsWithSegments("/hubs/worker-integration-test")))
+                    path.StartsWithSegments("/monitoring-hub"))
                 {
                     context.Token = accessToken;
                 }

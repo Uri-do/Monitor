@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { IndicatorDto, TestIndicatorRequest } from '@/types/api';
 import { useIndicators } from '@/hooks/useIndicators';
 import { useDeleteIndicator, useExecuteIndicator } from '@/hooks/useIndicatorMutations';
-import { format } from 'date-fns';
+import { safeFormatDate } from '@/utils/dateUtils';
 import toast from 'react-hot-toast';
 import {
   DataTable,
@@ -44,6 +44,8 @@ const IndicatorList: React.FC = () => {
   // Mutations
   const deleteIndicatorMutation = useDeleteIndicator();
   const executeIndicatorMutation = useExecuteIndicator();
+
+
 
   // Handle filter changes
   const handleFilterChange = (newFilters: Record<string, any>) => {
@@ -97,6 +99,8 @@ const IndicatorList: React.FC = () => {
     executeIndicatorMutation.mutate(request);
   };
 
+
+
   // Define table columns
   const columns: DataTableColumn<IndicatorDto>[] = [
     {
@@ -116,6 +120,16 @@ const IndicatorList: React.FC = () => {
       label: 'Collector Item',
       sortable: true,
       width: 150,
+      render: (value, row) => {
+        // Handle both string and object values
+        if (typeof value === 'string') {
+          return value || 'N/A';
+        }
+        if (typeof value === 'object' && value !== null) {
+          return value.name || value.collectorItemName || 'N/A';
+        }
+        return row.collectorName || 'N/A';
+      },
     },
     {
       id: 'priority',
@@ -138,14 +152,14 @@ const IndicatorList: React.FC = () => {
       label: 'Time Range',
       sortable: true,
       width: 100,
-      render: value => `${value} min`,
+      render: value => value ? `${value} min` : 'N/A',
     },
     {
       id: 'lastExecuted',
       label: 'Last Executed',
       sortable: true,
       width: 150,
-      render: value => (value ? format(new Date(value), 'MMM dd, HH:mm') : 'Never'),
+      render: value => safeFormatDate(value, 'MMM dd, HH:mm', 'Never'),
     },
     {
       id: 'ownerContact',

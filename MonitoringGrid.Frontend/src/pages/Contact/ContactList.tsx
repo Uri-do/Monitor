@@ -109,9 +109,12 @@ const ContactList: React.FC = () => {
       label: 'Assigned Indicators',
       width: 120,
       align: 'center',
-      render: value => (
-        <Chip label={value.length} color={value.length > 0 ? 'primary' : 'default'} size="small" />
-      ),
+      render: (value, row) => {
+        const count = Array.isArray(value) ? value.length : (row.indicatorCount || 0);
+        return (
+          <Chip label={count} color={count > 0 ? 'primary' : 'default'} size="small" />
+        );
+      },
     },
     {
       id: 'createdDate',

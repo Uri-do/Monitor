@@ -18,7 +18,7 @@ import {
   Delete as DeleteIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
-import { format, parseISO } from 'date-fns';
+import { safeFormatDate } from '@/utils/dateUtils';
 import { SchedulerDto } from '@/types/api';
 
 /**
@@ -141,7 +141,7 @@ export const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
           {scheduler.lastRunTime && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              <strong>Last Run:</strong> {format(parseISO(scheduler.lastRunTime), 'MMM dd, yyyy HH:mm')}
+              <strong>Last Run:</strong> {safeFormatDate(scheduler.lastRunTime, 'MMM dd, yyyy HH:mm', 'Never')}
             </Typography>
           )}
 

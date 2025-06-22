@@ -200,26 +200,100 @@ export const DataTable: React.FC<DataTableProps> = ({
               }] : []),
               ...columns.map((col: any) => ({
                 title: col.label,
-                dataIndex: col.key,
-                key: col.key,
+                dataIndex: col.id || col.key,
+                key: col.id || col.key,
                 sorter: col.sortable,
-                render: col.render || ((text: any) => text),
+                render: col.render || ((text: any) => {
+                  // Safely render primitive values only
+                  if (text === null || text === undefined) return '';
+                  if (typeof text === 'object') return JSON.stringify(text);
+                  return String(text);
+                }),
               })),
               ...(actions || defaultActions ? [{
                 title: 'Actions',
                 key: 'actions',
                 width: 120,
                 render: (_: any, record: any) => (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {onRowView && (
-                      <button onClick={() => onRowView(record)}>View</button>
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    {/* Default Actions */}
+                    {defaultActions?.view && (
+                      <button
+                        onClick={() => defaultActions.view!(record)}
+                        style={{
+                          padding: '2px 4px',
+                          border: 'none',
+                          borderRadius: '2px',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          minWidth: '20px',
+                          height: '20px'
+                        }}
+                        title="View"
+                      >
+                        👁️
+                      </button>
                     )}
-                    {onRowEdit && (
-                      <button onClick={() => onRowEdit(record)}>Edit</button>
+                    {defaultActions?.edit && (
+                      <button
+                        onClick={() => defaultActions.edit!(record)}
+                        style={{
+                          padding: '2px 4px',
+                          border: 'none',
+                          borderRadius: '2px',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          minWidth: '20px',
+                          height: '20px'
+                        }}
+                        title="Edit"
+                      >
+                        ✏️
+                      </button>
                     )}
-                    {onRowDelete && (
-                      <button onClick={() => onRowDelete(record)}>Delete</button>
+                    {defaultActions?.delete && (
+                      <button
+                        onClick={() => defaultActions.delete!(record)}
+                        style={{
+                          padding: '2px 4px',
+                          border: 'none',
+                          borderRadius: '2px',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          minWidth: '20px',
+                          height: '20px'
+                        }}
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
                     )}
+
+                    {/* Custom Actions */}
+                    {actions?.map((action, index) => (
+                      <button
+                        key={index}
+                        onClick={() => action.onClick(record)}
+                        disabled={action.disabled?.(record)}
+                        style={{
+                          padding: '2px 4px',
+                          border: 'none',
+                          borderRadius: '2px',
+                          background: 'transparent',
+                          cursor: action.disabled?.(record) ? 'not-allowed' : 'pointer',
+                          fontSize: '14px',
+                          minWidth: '20px',
+                          height: '20px',
+                          opacity: action.disabled?.(record) ? 0.5 : 1
+                        }}
+                        title={action.label}
+                      >
+                        ▶️
+                      </button>
+                    ))}
                   </div>
                 ),
               }] : []),

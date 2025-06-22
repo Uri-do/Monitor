@@ -1922,9 +1922,12 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
                 Resource = "Security",
                 UserId = userId?.ToString(),
                 IpAddress = ipAddress,
-                Description = description,
                 IsSuccess = true,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["Description"] = description
+                }
             };
 
             await LogSecurityEventAsync(auditEvent, cancellationToken);

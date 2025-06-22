@@ -593,7 +593,8 @@ export const contactApi = {
     const response: AxiosResponse<any> = await api.get('/contacts', {
       params: {
         ...params,
-        pageSize: 1000 // Get all contacts for now
+        pageSize: 100, // Maximum allowed by API validation
+        _t: Date.now() // Cache busting parameter
       }
     });
 

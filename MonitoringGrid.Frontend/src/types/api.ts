@@ -224,6 +224,7 @@ export interface ContactDto {
   isActive: boolean;
   createdDate: string;
   modifiedDate: string;
+  indicatorCount: number;
   assignedIndicators: IndicatorSummaryDto[];
 }
 

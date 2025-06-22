@@ -8,7 +8,7 @@ import {
   Visibility as ViewIcon,
   TrendingUp as KpiIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { safeFormatDate } from '@/utils/dateUtils';
 import { ExecutionHistoryDto } from '@/types/api';
 import {
   DataTable,
@@ -68,10 +68,10 @@ export const ExecutionHistoryTable: React.FC<ExecutionHistoryTableProps> = ({
       render: value => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            {format(new Date(value), 'MMM dd, yyyy')}
+            {safeFormatDate(value, 'MMM dd, yyyy', 'Invalid Date')}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {format(new Date(value), 'HH:mm:ss')}
+            {safeFormatDate(value, 'HH:mm:ss', 'Invalid Time')}
           </Typography>
         </Box>
       ),

@@ -14,7 +14,7 @@ import RouteRenderer from '@/components/Router/RouteRenderer';
 import { AuthProvider } from '@/hooks/useAuth';
 
 // Theme Provider
-import { CustomThemeProvider } from '@/hooks/useTheme';
+import { CustomThemeProvider, useTheme } from '@/hooks/useTheme';
 
 // Realtime Provider
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
@@ -67,72 +67,81 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+// Component that uses theme and provides it to Ant Design
+const ThemedApp: React.FC = () => {
+  const { theme } = useTheme();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <I18nextProvider i18n={i18n}>
-        <ConfigProvider>
-          <CustomThemeProvider>
-            <SecurityProvider>
-              <SecurityHeaders />
-              <CSPViolationReporter />
-              <ErrorBoundary>
-                <AuthProvider>
-                  <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Routes>
-                  {/* Public Routes */}
-                  {publicRoutes.map(route => {
-                    const { path, element, requiredPermissions, requiredRoles } = route;
+    <ConfigProvider theme={theme}>
+      <SecurityProvider>
+        <SecurityHeaders />
+        <CSPViolationReporter />
+        <ErrorBoundary>
+          <AuthProvider>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <Routes>
+                {/* Public Routes */}
+                {publicRoutes.map(route => {
+                  const { path, element, requiredPermissions, requiredRoles } = route;
 
-                    // Handle React elements (like Navigate)
-                    if (React.isValidElement(element)) {
-                      return (
-                        <Route
-                          key={path}
-                          path={path}
-                          element={element}
-                        />
-                      );
-                    }
-
-                    // Handle component types
-                    const Component = element as React.ComponentType<any>;
-
+                  // Handle React elements (like Navigate)
+                  if (React.isValidElement(element)) {
                     return (
                       <Route
                         key={path}
                         path={path}
-                        element={
-                          <React.Suspense fallback={<div>Loading...</div>}>
-                            <Component />
-                          </React.Suspense>
-                        }
+                        element={element}
                       />
                     );
-                  })}
+                  }
 
-                  {/* Authenticated Routes */}
-                  <Route
-                    path="/*"
-                    element={
-                      <RealtimeProvider>
-                        <RouteRenderer routes={[...routeConfig, ...legacyRedirects]} />
-                      </RealtimeProvider>
-                    }
-                  />
+                  // Handle component types
+                  const Component = element as React.ComponentType<any>;
 
-                  {/* Catch all route */}
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </Router>
-            </AuthProvider>
-          </ErrorBoundary>
+                  return (
+                    <Route
+                      key={path}
+                      path={path}
+                      element={
+                        <React.Suspense fallback={<div>Loading...</div>}>
+                          <Component />
+                        </React.Suspense>
+                      }
+                    />
+                  );
+                })}
 
-          {/* Toast notifications */}
-          <ThemedToaster />
-            </SecurityProvider>
-          </CustomThemeProvider>
-        </ConfigProvider>
+                {/* Authenticated Routes */}
+                <Route
+                  path="/*"
+                  element={
+                    <RealtimeProvider>
+                      <RouteRenderer routes={[...routeConfig, ...legacyRedirects]} />
+                    </RealtimeProvider>
+                  }
+                />
+
+                {/* Catch all route */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ErrorBoundary>
+
+        {/* Toast notifications */}
+        <ThemedToaster />
+      </SecurityProvider>
+    </ConfigProvider>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={i18n}>
+        <CustomThemeProvider>
+          <ThemedApp />
+        </CustomThemeProvider>
       </I18nextProvider>
     </QueryClientProvider>
   );

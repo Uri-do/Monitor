@@ -1,24 +1,11 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Card, Button, Alert, Collapse, Tag, Space } from 'antd';
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
-  Stack,
-} from '@mui/material';
-import {
-  Error as ErrorIcon,
-  Refresh as RefreshIcon,
-  ExpandMore as ExpandMoreIcon,
-  BugReport as BugIcon,
-  Home as HomeIcon,
-} from '@mui/icons-material';
+  ExclamationCircleOutlined,
+  ReloadOutlined,
+  HomeOutlined,
+  BugOutlined,
+} from '@ant-design/icons';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -204,113 +191,106 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const canRetry = retryCount < maxRetries;
 
       return (
-        <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+        <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
           <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <ErrorIcon color="error" sx={{ mr: 2, fontSize: 40 }} />
-                <Box>
-                  <Typography variant="h5" component="h1" gutterBottom>
-                    Something went wrong
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    We're sorry, but an unexpected error occurred. Our team has been notified.
-                  </Typography>
-                </Box>
-              </Box>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+              <ExclamationCircleOutlined style={{ marginRight: '16px', fontSize: '40px', color: '#ff4d4f' }} />
+              <div>
+                <h1 style={{ margin: '0 0 8px 0', fontSize: '24px' }}>
+                  Something went wrong
+                </h1>
+                <p style={{ margin: 0, color: '#666' }}>
+                  We're sorry, but an unexpected error occurred. Our team has been notified.
+                </p>
+              </div>
+            </div>
 
-              <Alert severity={this.getSeverityColor(severity)} sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  <strong>Error:</strong> {error.message}
-                </Typography>
-                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                  Error ID: {errorId}
-                </Typography>
-              </Alert>
+            <Alert
+              message={<><strong>Error:</strong> {error.message}</>}
+              description={<>Error ID: {errorId}</>}
+              type="error"
+              style={{ marginBottom: '16px' }}
+            />
 
-              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                <Chip
-                  label={`Severity: ${severity.toUpperCase()}`}
-                  color={this.getSeverityColor(severity)}
-                  size="small"
-                />
-                <Chip label={`Retry: ${retryCount}/${maxRetries}`} color="default" size="small" />
-              </Stack>
+            <Space style={{ marginBottom: '16px' }}>
+              <Tag color={severity === 'high' ? 'red' : severity === 'medium' ? 'orange' : 'yellow'}>
+                Severity: {severity.toUpperCase()}
+              </Tag>
+              <Tag>Retry: {retryCount}/{maxRetries}</Tag>
+            </Space>
 
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                {canRetry && (
-                  <Button
-                    variant="contained"
-                    startIcon={<RefreshIcon />}
-                    onClick={this.handleRetry}
-                  >
-                    Try Again
-                  </Button>
-                )}
-                <Button variant="outlined" startIcon={<HomeIcon />} onClick={this.handleGoHome}>
-                  Go Home
+            <Space style={{ marginBottom: '16px' }}>
+              {canRetry && (
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  onClick={this.handleRetry}
+                >
+                  Try Again
                 </Button>
-                <Button variant="outlined" startIcon={<RefreshIcon />} onClick={this.handleReload}>
-                  Reload Page
-                </Button>
-              </Stack>
-
-              {showDetails && errorInfo && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2">
-                      <BugIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                      Technical Details
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Error Stack:
-                      </Typography>
-                      <Box
-                        component="pre"
-                        sx={{
-                          backgroundColor: theme =>
-                            theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
-                          p: 2,
-                          borderRadius: 1,
-                          overflow: 'auto',
-                          fontSize: '0.75rem',
-                          fontFamily: 'monospace',
-                          maxHeight: 200,
-                        }}
-                      >
-                        {error.stack}
-                      </Box>
-                    </Box>
-
-                    <Box>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Component Stack:
-                      </Typography>
-                      <Box
-                        component="pre"
-                        sx={{
-                          backgroundColor: theme =>
-                            theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
-                          p: 2,
-                          borderRadius: 1,
-                          overflow: 'auto',
-                          fontSize: '0.75rem',
-                          fontFamily: 'monospace',
-                          maxHeight: 200,
-                        }}
-                      >
-                        {errorInfo.componentStack}
-                      </Box>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
               )}
-            </CardContent>
+              <Button icon={<HomeOutlined />} onClick={this.handleGoHome}>
+                Go Home
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={this.handleReload}>
+                Reload Page
+              </Button>
+            </Space>
+
+            {showDetails && errorInfo && (
+              <Collapse
+                items={[
+                  {
+                    key: '1',
+                    label: (
+                      <span>
+                        <BugOutlined style={{ marginRight: '8px' }} />
+                        Technical Details
+                      </span>
+                    ),
+                    children: (
+                      <div>
+                        <div style={{ marginBottom: '16px' }}>
+                          <h4>Error Stack:</h4>
+                          <pre
+                            style={{
+                              backgroundColor: '#f5f5f5',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              overflow: 'auto',
+                              fontSize: '12px',
+                              fontFamily: 'monospace',
+                              maxHeight: '200px',
+                            }}
+                          >
+                            {error.stack}
+                          </pre>
+                        </div>
+
+                        <div>
+                          <h4>Component Stack:</h4>
+                          <pre
+                            style={{
+                              backgroundColor: '#f5f5f5',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              overflow: 'auto',
+                              fontSize: '12px',
+                              fontFamily: 'monospace',
+                              maxHeight: '200px',
+                            }}
+                          >
+                            {errorInfo.componentStack}
+                          </pre>
+                        </div>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            )}
           </Card>
-        </Box>
+        </div>
       );
     }
 
