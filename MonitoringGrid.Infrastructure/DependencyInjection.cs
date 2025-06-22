@@ -90,10 +90,11 @@ public static class DependencyInjection
 
         // Performance Monitoring
         services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
+        services.AddSingleton<IPerformanceMetricsCollector, PerformanceMetricsCollector>();
+        services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
 
         // Repository Pattern with enterprise features
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(IProjectionRepository<>), typeof(ProjectionRepository<>));
         services.AddScoped<IAlertRepository, AlertRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -111,7 +112,6 @@ public static class DependencyInjection
         services.AddScoped<ISchedulerService, SchedulerService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IContactService, ContactService>();
-        // Performance monitoring will be added via AddPerformanceMonitoring extension
         services.AddScoped<IAlertService, AlertService>();
 
         // Notification Services - Optimized lifetimes
@@ -141,32 +141,7 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>
-    /// Add enterprise database services with advanced features
-    /// </summary>
-    public static IServiceCollection AddEnterpriseDatabaseServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        // Connection pooling and management
-        services.Configure<DatabaseConnectionConfig>(configuration.GetSection("Database"));
 
-        // Health checks for all database connections
-        // Health checks implementation moved to Program.cs for better organization
 
-        return services;
-    }
 
-    /// <summary>
-    /// Add performance monitoring services
-    /// </summary>
-    public static IServiceCollection AddPerformanceMonitoring(this IServiceCollection services, IConfiguration configuration)
-    {
-        // Add existing performance monitoring service
-        services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
-
-        // Add performance metrics services
-        services.AddSingleton<IPerformanceMetricsCollector, PerformanceMetricsCollector>();
-        services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
-
-        return services;
-    }
 }

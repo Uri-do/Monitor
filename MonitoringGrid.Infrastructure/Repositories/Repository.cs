@@ -377,6 +377,7 @@ public class Repository<T> : IRepository<T> where T : class
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
+            .AsNoTracking()
             .Where(predicate)
             .Select(selector)
             .ToListAsync(cancellationToken);
@@ -387,6 +388,7 @@ public class Repository<T> : IRepository<T> where T : class
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
+            .AsNoTracking()
             .Select(selector)
             .ToListAsync(cancellationToken);
     }
@@ -398,7 +400,7 @@ public class Repository<T> : IRepository<T> where T : class
         Expression<Func<T, bool>>? predicate = null,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbSet.AsQueryable();
+        var query = _dbSet.AsNoTracking().AsQueryable();
 
         if (predicate != null)
         {
@@ -421,6 +423,7 @@ public class Repository<T> : IRepository<T> where T : class
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
+            .AsNoTracking()
             .Where(predicate)
             .Select(selector)
             .FirstOrDefaultAsync(cancellationToken);

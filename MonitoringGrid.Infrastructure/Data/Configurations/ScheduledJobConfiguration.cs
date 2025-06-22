@@ -38,7 +38,7 @@ public class ScheduledJobConfiguration : IEntityTypeConfiguration<ScheduledJob>
         builder.Property(sj => sj.TriggerGroup)
             .IsRequired()
             .HasMaxLength(255)
-            .HasDefaultValue("KPI_TRIGGERS");
+            .HasDefaultValue("INDICATOR_TRIGGERS");
 
         builder.Property(sj => sj.CronExpression)
             .HasMaxLength(255);

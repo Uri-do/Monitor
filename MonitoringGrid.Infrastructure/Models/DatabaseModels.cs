@@ -281,66 +281,7 @@ public class QueryExecutionResult<T>
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
-/// <summary>
-/// Database connection configuration
-/// </summary>
-public class DatabaseConnectionConfig
-{
-    /// <summary>
-    /// Connection name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Connection string
-    /// </summary>
-    public string ConnectionString { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Connection timeout in seconds
-    /// </summary>
-    public int ConnectionTimeout { get; set; } = 30;
-
-    /// <summary>
-    /// Command timeout in seconds
-    /// </summary>
-    public int CommandTimeout { get; set; } = 30;
-
-    /// <summary>
-    /// Maximum retry attempts
-    /// </summary>
-    public int MaxRetryAttempts { get; set; } = 3;
-
-    /// <summary>
-    /// Retry delay in milliseconds
-    /// </summary>
-    public int RetryDelayMs { get; set; } = 1000;
-
-    /// <summary>
-    /// Whether to enable connection pooling
-    /// </summary>
-    public bool EnablePooling { get; set; } = true;
-
-    /// <summary>
-    /// Minimum pool size
-    /// </summary>
-    public int MinPoolSize { get; set; } = 0;
-
-    /// <summary>
-    /// Maximum pool size
-    /// </summary>
-    public int MaxPoolSize { get; set; } = 100;
-
-    /// <summary>
-    /// Whether to enable health checks
-    /// </summary>
-    public bool EnableHealthChecks { get; set; } = true;
-
-    /// <summary>
-    /// Health check interval in seconds
-    /// </summary>
-    public int HealthCheckIntervalSeconds { get; set; } = 30;
-}
 
 /// <summary>
 /// Database migration status
