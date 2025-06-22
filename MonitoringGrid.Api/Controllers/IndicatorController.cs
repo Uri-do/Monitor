@@ -35,8 +35,7 @@ public class IndicatorController : BaseApiController
         IMapper mapper,
         IProgressPlayDbService progressPlayDbService,
         MonitoringContext context,
-        ILogger<IndicatorController> logger,
-        IPerformanceMetricsService? performanceMetrics = null)
+        ILogger<IndicatorController> logger)
         : base(mediator, logger)
     {
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

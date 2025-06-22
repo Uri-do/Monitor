@@ -39,9 +39,7 @@ const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/E
 const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
 const WorkerControl = React.lazy(() => import('@/pages/Worker/WorkerControl'));
-const ApiTestingPage = React.lazy(() => import('@/pages/ApiTesting/ApiTestingPage'));
-const TestSuitePage = React.lazy(() => import('@/pages/TestSuite/TestSuitePage'));
-const WorkerIntegrationTestPage = React.lazy(() => import('@/pages/WorkerIntegrationTestPage'));
+
 
 // Route configuration interface
 export interface RouteConfig {
@@ -161,26 +159,7 @@ export const routeConfig: RouteConfig[] = [
     element: WorkerControl,
   },
 
-  // API Testing
-  {
-    path: '/api-testing',
-    element: ApiTestingPage,
-    requiredRoles: ['Admin'],
-  },
 
-  // Test Suite
-  {
-    path: '/test-suite',
-    element: TestSuitePage,
-    requiredRoles: ['Admin'],
-  },
-
-  // Worker Integration Testing
-  {
-    path: '/worker-integration-test',
-    element: WorkerIntegrationTestPage,
-    requiredRoles: ['Admin'],
-  },
 
   // User Profile
   {

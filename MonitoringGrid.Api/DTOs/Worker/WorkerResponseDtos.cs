@@ -1,4 +1,154 @@
+using System.Diagnostics;
+
 namespace MonitoringGrid.Api.DTOs.Worker;
+
+/// <summary>
+/// Request to start a worker process
+/// </summary>
+public class StartWorkerProcessRequest
+{
+    /// <summary>
+    /// Worker ID (optional, will be generated if not provided)
+    /// </summary>
+    public string? WorkerId { get; set; }
+
+    /// <summary>
+    /// Test type to execute
+    /// </summary>
+    public string TestType { get; set; } = "indicator-execution";
+
+    /// <summary>
+    /// Whether this is a test mode execution
+    /// </summary>
+    public bool TestMode { get; set; } = true;
+
+    /// <summary>
+    /// Duration in seconds (optional)
+    /// </summary>
+    public int? DurationSeconds { get; set; }
+
+    /// <summary>
+    /// Specific indicator IDs to process (optional)
+    /// </summary>
+    public List<int>? IndicatorIds { get; set; }
+}
+
+/// <summary>
+/// Information about a worker process
+/// </summary>
+public class WorkerProcessInfo
+{
+    /// <summary>
+    /// Worker ID
+    /// </summary>
+    public string WorkerId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Process ID
+    /// </summary>
+    public int ProcessId { get; set; }
+
+    /// <summary>
+    /// Process instance (not serialized)
+    /// </summary>
+    public Process Process { get; set; } = null!;
+
+    /// <summary>
+    /// Start time
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// Status file path
+    /// </summary>
+    public string StatusFilePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Test type
+    /// </summary>
+    public string TestType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Indicator IDs being processed
+    /// </summary>
+    public List<int> IndicatorIds { get; set; } = new();
+
+    /// <summary>
+    /// Duration in seconds
+    /// </summary>
+    public int? DurationSeconds { get; set; }
+
+    /// <summary>
+    /// Whether this is a test mode execution
+    /// </summary>
+    public bool IsTestMode { get; set; }
+}
+
+/// <summary>
+/// Status of a worker process
+/// </summary>
+public class WorkerProcessStatus
+{
+    /// <summary>
+    /// Worker ID
+    /// </summary>
+    public string WorkerId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Process ID
+    /// </summary>
+    public int ProcessId { get; set; }
+
+    /// <summary>
+    /// Whether the process is running
+    /// </summary>
+    public bool IsRunning { get; set; }
+
+    /// <summary>
+    /// Current state
+    /// </summary>
+    public string State { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Start time
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// Last update time
+    /// </summary>
+    public DateTime LastUpdate { get; set; }
+
+    /// <summary>
+    /// Status message
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Number of indicators processed
+    /// </summary>
+    public int IndicatorsProcessed { get; set; }
+
+    /// <summary>
+    /// Memory usage in bytes
+    /// </summary>
+    public long MemoryUsageBytes { get; set; }
+
+    /// <summary>
+    /// Whether the worker is healthy
+    /// </summary>
+    public bool IsHealthy { get; set; } = true;
+
+    /// <summary>
+    /// Number of successful executions
+    /// </summary>
+    public int SuccessfulExecutions { get; set; }
+
+    /// <summary>
+    /// Number of failed executions
+    /// </summary>
+    public int FailedExecutions { get; set; }
+}
 
 /// <summary>
 /// Standardized response for worker operations

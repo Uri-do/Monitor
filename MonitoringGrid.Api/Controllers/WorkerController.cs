@@ -572,7 +572,6 @@ public class WorkerController : BaseApiController
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Worker operation result</returns>
     [HttpPost("stop")]
-    [AllowAnonymous] // Temporarily allow anonymous access for development
     [ProducesResponseType(typeof(WorkerOperationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     public ActionResult<WorkerOperationResponse> StopWorker(
@@ -1232,82 +1231,7 @@ public class WorkerController : BaseApiController
         }
     }
 
-    /// <summary>
-    /// Debug indicator status for worker troubleshooting
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Debug information about indicators</returns>
-    [HttpGet("debug-indicators")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<IActionResult> DebugIndicators(CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
 
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var indicatorService = scope.ServiceProvider.GetRequiredService<IIndicatorService>();
-
-            // Get all indicators with their details
-            var allIndicators = await _indicatorRepository.GetAllAsync(cancellationToken);
-
-            // Get due indicators using the service
-            var priorityFilter = new PriorityFilterOptions();
-            var dueIndicators = await indicatorService.GetDueIndicatorsAsync(priorityFilter, cancellationToken);
-
-            stopwatch.Stop();
-
-            var debugInfo = new
-            {
-                Summary = new
-                {
-                    TotalIndicators = allIndicators.Count(),
-                    ActiveIndicators = allIndicators.Count(i => i.IsActive),
-                    InactiveIndicators = allIndicators.Count(i => !i.IsActive),
-                    IndicatorsWithSchedulers = allIndicators.Count(i => i.Scheduler != null),
-                    IndicatorsWithoutSchedulers = allIndicators.Count(i => i.Scheduler == null),
-                    CurrentlyRunningIndicators = allIndicators.Count(i => i.IsCurrentlyRunning),
-                    DueIndicators = dueIndicators.IsSuccess ? dueIndicators.Value.Count : 0
-                },
-                IndicatorDetails = allIndicators.Select(i => new
-                {
-                    ID = i.IndicatorID,
-                    Name = i.IndicatorName,
-                    IsActive = i.IsActive,
-                    IsCurrentlyRunning = i.IsCurrentlyRunning,
-                    LastRun = i.LastRun,
-                    LastMinutes = i.LastMinutes,
-                    HasScheduler = i.Scheduler != null,
-                    SchedulerEnabled = i.Scheduler?.IsEnabled,
-                    Owner = i.OwnerContact?.Name,
-                    IsDue = i.IsDue(),
-                    NextRunTime = i.GetNextRunTime()
-                }).ToList(),
-                DueIndicatorNames = dueIndicators.IsSuccess ? dueIndicators.Value.Select(i => i.IndicatorName).ToList() : new List<string>(),
-                Performance = new
-                {
-                    QueryDurationMs = stopwatch.ElapsedMilliseconds,
-                    Timestamp = DateTime.UtcNow
-                }
-            };
-
-            Logger.LogDebug("Debug indicators completed: {TotalIndicators} indicators, {DueIndicators} due",
-                allIndicators.Count(), dueIndicators.IsSuccess ? dueIndicators.Value.Count : 0);
-
-            return Ok(CreateSuccessResponse(debugInfo, $"Retrieved debug information for {allIndicators.Count()} indicators"));
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogWarning("Debug indicators operation was cancelled");
-            return StatusCode(499, CreateErrorResponse("Debug indicators operation was cancelled", "OPERATION_CANCELLED"));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Logger.LogError(ex, "Error debugging indicators");
-            return StatusCode(500, CreateErrorResponse($"Error debugging indicators: {ex.Message}", "DEBUG_INDICATORS_ERROR"));
-        }
-    }
 
     /// <summary>
     /// Assign schedulers to indicators
@@ -1661,32 +1585,7 @@ public class WorkerController : BaseApiController
         }
     }
 
-    /// <summary>
-    /// Manually trigger worker cleanup (for testing)
-    /// </summary>
-    [HttpPost("cleanup-workers")]
-    public IActionResult CleanupWorkers()
-    {
-        try
-        {
-            Logger.LogInformation("Manual worker cleanup requested");
 
-            // Use the same cleanup logic as the application shutdown handler
-            MonitoringGrid.Api.Extensions.ApplicationLifetimeExtensions.TriggerManualCleanup(Logger);
-
-            return Ok(new
-            {
-                success = true,
-                message = "Worker cleanup completed",
-                timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error during manual worker cleanup");
-            return StatusCode(500, new { success = false, message = "Failed to cleanup workers" });
-        }
-    }
 
 
 

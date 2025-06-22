@@ -1,6 +1,7 @@
 /**
  * Performance monitoring and optimization utilities
  */
+import React from 'react';
 
 // Performance metrics interface
 export interface PerformanceMetrics {
@@ -260,4 +261,33 @@ export const cleanupPerformanceMonitoring = () => {
     performanceMonitor.disconnect();
     performanceMonitor = null;
   }
+};
+
+/**
+ * Basic performance monitoring HOC for components
+ */
+export const withPerformanceMonitoring = <P extends object>(
+  Component: React.ComponentType<P>,
+  componentName?: string
+): React.ComponentType<P> => {
+  const WrappedComponent: React.FC<P> = (props) => {
+    React.useEffect(() => {
+      const startTime = performance.now();
+
+      return () => {
+        const endTime = performance.now();
+        const renderTime = endTime - startTime;
+
+        if (renderTime > 100) { // Log slow renders
+          console.warn(`Slow render detected in ${componentName || 'Unknown'}: ${renderTime.toFixed(2)}ms`);
+        }
+      };
+    }, []);
+
+    return React.createElement(Component, props);
+  };
+
+  WrappedComponent.displayName = `withPerformanceMonitoring(${componentName || Component.displayName || Component.name})`;
+
+  return WrappedComponent;
 };

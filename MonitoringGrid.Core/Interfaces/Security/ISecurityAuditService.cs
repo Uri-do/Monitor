@@ -1,4 +1,4 @@
-using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Common;
 using MonitoringGrid.Core.Security;
 
@@ -17,17 +17,17 @@ public interface ISecurityAuditService
     /// <summary>
     /// Gets security audit events for a time range
     /// </summary>
-    Task<IEnumerable<AuditLog>> GetAuditEventsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<IEnumerable<AuditLogEntry>> GetAuditEventsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets security audit events for a specific user
     /// </summary>
-    Task<IEnumerable<AuditLog>> GetUserAuditEventsAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<IEnumerable<AuditLogEntry>> GetUserAuditEventsAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets failed login attempts
     /// </summary>
-    Task<IEnumerable<AuditLog>> GetFailedLoginAttemptsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<IEnumerable<AuditLogEntry>> GetFailedLoginAttemptsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks for suspicious activity patterns

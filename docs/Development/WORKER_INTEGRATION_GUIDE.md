@@ -129,11 +129,9 @@ dotnet run --project MonitoringGrid.Api
 When `EnableWorkerServices` is true, the API automatically registers:
 
 ### Worker Services
-- `KpiMonitoringWorker` - Automated KPI execution
+- `IndicatorMonitoringWorker` - Automated Indicator execution
 - `ScheduledTaskWorker` - Database maintenance and cleanup
 - `HealthCheckWorker` - System health monitoring
-- `AlertProcessingWorker` - Alert processing and escalation
-- `Worker` - Main coordinator service
 
 ### Additional Components
 - Quartz.NET scheduler
@@ -179,7 +177,7 @@ When Worker services are enabled in API:
    ```
 
 2. **Remove Legacy Services:**
-   The old `EnhancedKpiSchedulerService` is automatically disabled when Worker services are enabled.
+   Legacy scheduler services are automatically disabled when Worker services are enabled.
 
 3. **Update Monitoring:**
    - Health check endpoints now include Worker services

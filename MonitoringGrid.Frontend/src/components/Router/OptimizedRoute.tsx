@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
-import { withPerformanceMonitoring } from '@/utils/advancedPerformance';
+import { withPerformanceMonitoring } from '@/utils/performance';
 
 interface OptimizedRouteProps {
   component: React.ComponentType<any>;

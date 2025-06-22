@@ -95,8 +95,8 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     public static IApplicationBuilder UseExceptionHandlingMiddleware(this IApplicationBuilder app)
     {
-        app.UseMiddleware<EnhancedExceptionHandlingMiddleware>();
-        
+        app.UseBasicExceptionHandling();
+
         return app;
     }
 
@@ -249,7 +249,6 @@ public static class ApplicationBuilderExtensions
 
             // SignalR Hubs
             endpoints.MapHub<MonitoringGrid.Api.Hubs.MonitoringHub>("/monitoring-hub");
-            endpoints.MapHub<MonitoringGrid.Api.Hubs.WorkerIntegrationTestHub>("/hubs/worker-integration-test");
 
             // Default route for SPA
             endpoints.MapFallbackToFile("index.html");

@@ -137,6 +137,11 @@ export interface SchedulerDto {
   nextExecutionTime?: string;
   isCurrentlyActive: boolean;
   indicatorCount: number;
+  // Additional properties referenced in components
+  isActive?: boolean;
+  nextRunTime?: string;
+  lastRunTime?: string;
+  description?: string;
 }
 
 export enum ScheduleType {
@@ -160,6 +165,33 @@ export interface CreateSchedulerRequest {
 
 export interface UpdateSchedulerRequest extends CreateSchedulerRequest {
   schedulerID: number;
+}
+
+// Running Indicator Type (for real-time monitoring)
+export interface RunningIndicator {
+  indicatorID: number;
+  indicatorName: string;
+  indicatorCode: string;
+  collectorID?: number;
+  collectorItemName?: string;
+  startTime: string;
+  progress?: number;
+  estimatedTimeRemaining?: number;
+  executionContext?: string;
+  status: 'running' | 'completed' | 'failed';
+}
+
+// Worker Service Type
+export interface WorkerService {
+  name: string;
+  status: string;
+  lastActivity?: string;
+  currentActivity?: string;
+  errorMessage?: string;
+  description?: string;
+  processedCount?: number;
+  successCount?: number;
+  failureCount?: number;
 }
 
 export interface CronPreset {
@@ -481,6 +513,10 @@ export interface ExecutionHistoryDetailDto extends ExecutionHistoryDto {
   userAgent?: string;
   sqlParameters?: string;
   connectionString?: string;
+  // Additional properties referenced in components
+  alertThreshold?: number;
+  alertOperator?: string;
+  resultCount?: number;
 }
 
 export interface PaginatedExecutionHistoryDto {

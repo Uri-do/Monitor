@@ -21,8 +21,7 @@ public class ContactController : BaseApiController
 {
     public ContactController(
         IMediator mediator,
-        ILogger<ContactController> logger,
-        IPerformanceMetricsService? performanceMetrics = null)
+        ILogger<ContactController> logger)
         : base(mediator, logger)
     {
     }

@@ -88,10 +88,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ICacheService, CacheService>();
 
-        // Performance Monitoring
-        services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
-        services.AddSingleton<IPerformanceMetricsCollector, PerformanceMetricsCollector>();
-        services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
+        // Performance Monitoring - Removed redundant services, keeping only what's needed
 
         // Repository Pattern with enterprise features
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -119,10 +116,7 @@ public static class DependencyInjection
         services.AddSingleton<ISmsService, SmsService>(); // Singleton for better performance
         services.AddScoped<INotificationService, NotificationService>();
 
-        // Integration Services - Fixed lifetimes for database dependencies
-        services.AddSingleton<ISlackService, SlackService>(); // Singleton - no database dependencies
-        services.AddSingleton<ITeamsService, TeamsService>(); // Singleton - no database dependencies
-        services.AddScoped<IWebhookService, WebhookService>(); // Scoped - depends on MonitoringContext
+        // Integration Services - Removed enterprise services (Slack, Teams, Webhooks)
 
         // External Services
         services.AddScoped<IProgressPlayDbService, ProgressPlayDbService>();
@@ -130,7 +124,7 @@ public static class DependencyInjection
         // Security Services - Consolidated without adapters
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
-        services.AddScoped<IKeyVaultService, KeyVaultService>();
+        // Removed IKeyVaultService - enterprise feature not needed
 
         // Direct service registrations (no adapters needed)
         services.AddScoped<IAuthenticationService, SecurityService>();

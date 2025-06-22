@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using MonitoringGrid.Api.CQRS.Queries.Collector;
 using MonitoringGrid.Core.Common;
+using MonitoringGrid.Core.DTOs;
 using MonitoringGrid.Core.Entities;
 using MonitoringGrid.Core.Interfaces;
 

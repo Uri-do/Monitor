@@ -103,7 +103,7 @@ src/
 
 - **React 18** - UI framework
 - **TypeScript** - Type safety
-- **Material-UI (MUI)** - Component library
+- **Ant Design** - Component library
 - **TanStack Query** - Data fetching and caching
 - **React Router** - Client-side routing
 - **Vite** - Build tool and dev server

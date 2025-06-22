@@ -104,7 +104,7 @@ public class SecurityAuditController : BaseApiController
                 Timestamp = e.Timestamp,
                 IsSuccess = e.IsSuccess,
                 AdditionalData = e.AdditionalData ?? new Dictionary<string, object>(),
-                RiskScore = 0, // Calculate based on event type and success
+                RiskScore = e.IsSuccess ? 0 : 50, // Simple risk scoring: 0 for success, 50 for failure
                 TimeSinceEvent = DateTime.UtcNow - e.Timestamp
             }).ToList();
 
@@ -170,7 +170,7 @@ public class SecurityAuditController : BaseApiController
                 Timestamp = securityEvent.Timestamp,
                 IsSuccess = securityEvent.IsSuccess,
                 AdditionalData = securityEvent.AdditionalData ?? new Dictionary<string, object>(),
-                RiskScore = 0, // Calculate based on event type and success
+                RiskScore = securityEvent.IsSuccess ? 0 : 50, // Simple risk scoring: 0 for success, 50 for failure
                 TimeSinceEvent = DateTime.UtcNow - securityEvent.Timestamp
             };
 
@@ -183,91 +183,7 @@ public class SecurityAuditController : BaseApiController
         }
     }
 
-    /// <summary>
-    /// Analyze security patterns for suspicious activity
-    /// </summary>
-    /// <param name="startTime">Analysis start time</param>
-    /// <param name="endTime">Analysis end time</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Security analysis results</returns>
-    [HttpPost("analyze")]
-    [ProducesResponseType(typeof(SecurityAnalysisResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<SecurityAnalysisResponse>> AnalyzeSecurityPatterns(
-        [FromBody] SecurityAnalysisRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var stopwatch = Stopwatch.StartNew();
 
-        try
-        {
-            var validationError = ValidateModelState();
-            if (validationError != null) return BadRequest(validationError);
-
-            Logger.LogDebug("Starting security pattern analysis from {StartTime} to {EndTime}",
-                request.StartTime, request.EndTime);
-
-            var result = await _securityAuditService.AnalyzeSecurityPatternsAsync(
-                request.StartTime, request.EndTime, cancellationToken);
-
-            stopwatch.Stop();
-
-            var response = new SecurityAnalysisResponse
-            {
-                AnalysisId = Guid.NewGuid().ToString(),
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                AnalysisDate = DateTime.UtcNow,
-                HasSuspiciousActivity = result.IsSuccess && result.Value,
-                AnalysisDurationMs = stopwatch.ElapsedMilliseconds,
-                Summary = result.IsSuccess && result.Value 
-                    ? "Suspicious activity patterns detected" 
-                    : "No suspicious activity patterns found",
-                Details = new Dictionary<string, object>
-                {
-                    ["AnalysisType"] = "SecurityPatterns",
-                    ["TimeRange"] = $"{request.StartTime:yyyy-MM-dd HH:mm:ss} - {request.EndTime:yyyy-MM-dd HH:mm:ss}",
-                    ["AnalysisResult"] = result.IsSuccess ? "Success" : "Failed",
-                    ["ErrorMessage"] = result.Error?.Message
-                }
-            };
-
-            if (result.IsSuccess && result.Value)
-            {
-                Logger.LogWarning("Suspicious security patterns detected in analysis from {StartTime} to {EndTime}",
-                    request.StartTime, request.EndTime);
-            }
-            else
-            {
-                Logger.LogInformation("Security pattern analysis completed - no suspicious activity found from {StartTime} to {EndTime}",
-                    request.StartTime, request.EndTime);
-            }
-
-            return Ok(CreateSuccessResponse(response, response.Summary));
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Logger.LogError(ex, "Error during security pattern analysis: {Message}", ex.Message);
-
-            var errorResponse = new SecurityAnalysisResponse
-            {
-                AnalysisId = Guid.NewGuid().ToString(),
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                AnalysisDate = DateTime.UtcNow,
-                HasSuspiciousActivity = false,
-                AnalysisDurationMs = stopwatch.ElapsedMilliseconds,
-                Summary = "Analysis failed due to error",
-                Details = new Dictionary<string, object>
-                {
-                    ["Error"] = ex.Message,
-                    ["AnalysisResult"] = "Failed"
-                }
-            };
-
-            return StatusCode(500, CreateErrorResponse("Security analysis failed", "SECURITY_ANALYSIS_ERROR"));
-        }
-    }
 
     /// <summary>
     /// Get security statistics summary

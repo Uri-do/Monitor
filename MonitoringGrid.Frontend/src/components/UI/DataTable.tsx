@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Table,
-  TableContainer,
-  TablePagination,
-  Paper,
-  Divider,
-} from '@mui/material';
+import { Table, Pagination, Divider } from 'antd';
 import { CustomCard } from './Card';
 import { DataTableHeader } from './DataTable/DataTableHeader';
 import { DataTableFilters } from './DataTable/DataTableFilters';

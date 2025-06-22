@@ -1,4 +1,4 @@
-using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.Models;
 using MonitoringGrid.Core.Common;
 
 namespace MonitoringGrid.Core.Interfaces.Security;
@@ -26,7 +26,7 @@ public interface IThreatDetectionService
     /// <summary>
     /// Gets active security threats
     /// </summary>
-    Task<IEnumerable<AuditLog>> GetActiveThreatsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<AuditLogEntry>> GetActiveThreatsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reports a security threat

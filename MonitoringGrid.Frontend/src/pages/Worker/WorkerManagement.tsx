@@ -49,7 +49,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import { useThrottledCallback } from '@/hooks/useThrottledCallback';
+// Removed useThrottledCallback - using simple throttling instead
 import RunningIndicatorsDisplay from '@/components/Business/Indicator/RunningIndicatorsDisplay';
 import { RunningIndicator } from '@/components/Business/Indicator/types';
 import LiveExecutionLog from '@/components/Business/Indicator/LiveExecutionLog';
@@ -282,8 +282,20 @@ const WorkerManagement: React.FC = React.memo(() => {
     });
   }, []);
 
-  // Throttle worker status updates to maximum once every 2 seconds
-  const handleWorkerStatusUpdate = useThrottledCallback(handleWorkerStatusUpdateInternal, 2000);
+  // Simple throttling for worker status updates
+  const handleWorkerStatusUpdate = useCallback(
+    (() => {
+      let lastCall = 0;
+      return (workerStatus: any) => {
+        const now = Date.now();
+        if (now - lastCall >= 2000) {
+          lastCall = now;
+          handleWorkerStatusUpdateInternal(workerStatus);
+        }
+      };
+    })(),
+    [handleWorkerStatusUpdateInternal]
+  );
 
   // SignalR event handlers
   useEffect(() => {

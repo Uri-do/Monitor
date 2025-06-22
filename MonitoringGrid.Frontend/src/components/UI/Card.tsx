@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardProps, Box, useTheme } from '@mui/material';
+import { Card, CardProps } from 'antd';
 
 interface CustomCardProps extends CardProps {
   children: React.ReactNode;
@@ -26,15 +26,6 @@ const borderColorMap = {
   info: 'rgba(79, 172, 254, 0.2)',
 };
 
-const shadowColorMap = {
-  primary: 'rgba(102, 126, 234, 0.3)',
-  secondary: 'rgba(240, 147, 251, 0.3)',
-  success: 'rgba(67, 233, 123, 0.3)',
-  warning: 'rgba(250, 112, 154, 0.3)',
-  error: 'rgba(255, 107, 107, 0.3)',
-  info: 'rgba(79, 172, 254, 0.3)',
-};
-
 export type { CustomCardProps };
 
 export const CustomCard: React.FC<CustomCardProps> = ({
@@ -42,49 +33,47 @@ export const CustomCard: React.FC<CustomCardProps> = ({
   gradient = 'primary',
   hoverEffect = true,
   glowEffect = false,
-  sx,
+  style,
   ...props
 }) => {
-  const theme = useTheme();
+  const cardStyle: React.CSSProperties = {
+    background: glowEffect ? gradientMap[gradient] : undefined,
+    border: `1px solid ${borderColorMap[gradient]}`,
+    borderRadius: '8px',
+    transition: 'all 0.3s ease-in-out',
+    position: 'relative',
+    overflow: 'hidden',
+    ...(hoverEffect && {
+      cursor: 'pointer',
+    }),
+    ...(glowEffect && {
+      color: 'white',
+    }),
+    ...style,
+  };
+
+  const hoverClass = hoverEffect ? 'custom-card-hover' : '';
 
   return (
-    <Card
-      elevation={4}
-      sx={{
-        background: glowEffect ? gradientMap[gradient] : theme.palette.background.paper,
-        border: `1px solid ${borderColorMap[gradient]}`,
-        borderRadius: 2,
-        transition: 'all 0.3s ease-in-out',
-        position: 'relative',
-        overflow: 'hidden',
-        ...(hoverEffect && {
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: `0 12px 30px ${shadowColorMap[gradient]}`,
-            border: `1px solid ${borderColorMap[gradient].replace('0.2', '0.4')}`,
-          },
-        }),
-        ...(glowEffect && {
-          color: 'white',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '100px',
-            height: '100px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '50%',
-            transform: 'translate(30px, -30px)',
-            zIndex: 0,
-          },
-        }),
-        ...sx,
-      }}
-      {...props}
-    >
-      <Box sx={{ position: 'relative', zIndex: 1 }}>{children}</Box>
-    </Card>
+    <>
+      <style>
+        {`
+          .custom-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+          }
+        `}
+      </style>
+      <Card
+        style={cardStyle}
+        className={hoverClass}
+        {...props}
+      >
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
+      </Card>
+    </>
   );
 };
 

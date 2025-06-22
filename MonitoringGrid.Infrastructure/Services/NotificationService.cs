@@ -9,32 +9,23 @@ namespace MonitoringGrid.Infrastructure.Services;
 
 /// <summary>
 /// Consolidated notification service supporting multiple channels
-/// Replaces individual EmailService, SmsService, SlackService, TeamsService, WebhookService
+/// Supports Email and SMS notifications (enterprise integrations removed during cleanup)
 /// </summary>
 public class NotificationService : INotificationService
 {
     private readonly IEmailService _emailService;
     private readonly ISmsService _smsService;
-    private readonly ISlackService _slackService;
-    private readonly ITeamsService _teamsService;
-    private readonly IWebhookService _webhookService;
     private readonly MonitoringOptions _config;
     private readonly ILogger<NotificationService> _logger;
 
     public NotificationService(
         IEmailService emailService,
         ISmsService smsService,
-        ISlackService slackService,
-        ITeamsService teamsService,
-        IWebhookService webhookService,
         IOptions<MonitoringOptions> config,
         ILogger<NotificationService> logger)
     {
         _emailService = emailService;
         _smsService = smsService;
-        _slackService = slackService;
-        _teamsService = teamsService;
-        _webhookService = webhookService;
         _config = config.Value;
         _logger = logger;
     }
@@ -123,106 +114,50 @@ public class NotificationService : INotificationService
 
     #endregion
 
-    #region Slack Notifications
+    #region Slack Notifications (Removed - Enterprise Feature)
 
     public async Task<bool> SendSlackMessageAsync(string channel, string message, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            return await _slackService.SendMessageAsync(channel, message, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send Slack message to {Channel}", channel);
-            return false;
-        }
+        _logger.LogWarning("Slack notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     public async Task<bool> SendSlackAlertAsync(string channel, AlertNotificationDto alert, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            return await _slackService.SendAlertAsync(channel, alert, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send Slack alert to {Channel}", channel);
-            return false;
-        }
+        _logger.LogWarning("Slack notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     #endregion
 
-    #region Teams Notifications
+    #region Teams Notifications (Removed - Enterprise Feature)
 
     public async Task<bool> SendTeamsMessageAsync(string webhookUrl, string message, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            return await _teamsService.SendMessageAsync(webhookUrl, message, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send Teams message to {WebhookUrl}", webhookUrl);
-            return false;
-        }
+        _logger.LogWarning("Teams notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     public async Task<bool> SendTeamsAlertAsync(string webhookUrl, AlertNotificationDto alert, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            return await _teamsService.SendAlertAsync(webhookUrl, alert, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send Teams alert to {WebhookUrl}", webhookUrl);
-            return false;
-        }
+        _logger.LogWarning("Teams notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     #endregion
 
-    #region Webhook Notifications
+    #region Webhook Notifications (Removed - Enterprise Feature)
 
     public async Task<bool> SendWebhookAsync(string url, object payload, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // Create a temporary webhook configuration for the URL
-            var webhookConfig = new WebhookConfiguration
-            {
-                Url = url,
-                IsActive = true
-            };
-
-            return await _webhookService.SendWebhookAsync(url, payload, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send webhook to {Url}", url);
-            return false;
-        }
+        _logger.LogWarning("Webhook notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     public async Task<bool> SendWebhookAlertAsync(string url, AlertNotificationDto alert, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // Create a temporary webhook configuration for the URL
-            var webhookConfig = new WebhookConfiguration
-            {
-                Url = url,
-                IsActive = true
-            };
-
-            return await _webhookService.SendAlertWebhookAsync(webhookConfig, alert, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send webhook alert to {Url}", url);
-            return false;
-        }
+        _logger.LogWarning("Webhook notifications removed during cleanup - enterprise feature not implemented");
+        return false;
     }
 
     #endregion
@@ -254,28 +189,21 @@ public class NotificationService : INotificationService
                         break;
 
                     case NotificationChannel.Slack:
-                        // For Slack, use the first recipient as channel name
-                        if (request.Recipients.Any())
-                        {
-                            channelSuccess = await SendSlackMessageAsync(request.Recipients.First(), request.Message, cancellationToken);
-                        }
+                        // Slack notifications removed during cleanup - enterprise feature
+                        _logger.LogWarning("Slack notifications not available - enterprise feature removed");
+                        channelSuccess = false;
                         break;
 
                     case NotificationChannel.Teams:
-                        // For Teams, use the first recipient as webhook URL
-                        if (request.Recipients.Any())
-                        {
-                            channelSuccess = await SendTeamsMessageAsync(request.Recipients.First(), request.Message, cancellationToken);
-                        }
+                        // Teams notifications removed during cleanup - enterprise feature
+                        _logger.LogWarning("Teams notifications not available - enterprise feature removed");
+                        channelSuccess = false;
                         break;
 
                     case NotificationChannel.Webhook:
-                        // For Webhook, use the first recipient as URL
-                        if (request.Recipients.Any())
-                        {
-                            var payload = new { subject = request.Subject, message = request.Message, metadata = request.Metadata };
-                            channelSuccess = await SendWebhookAsync(request.Recipients.First(), payload, cancellationToken);
-                        }
+                        // Webhook notifications removed during cleanup - enterprise feature
+                        _logger.LogWarning("Webhook notifications not available - enterprise feature removed");
+                        channelSuccess = false;
                         break;
 
                     default:
@@ -347,9 +275,9 @@ public class NotificationService : INotificationService
             {
                 NotificationChannel.Email => await _emailService.ValidateConfigurationAsync(cancellationToken),
                 NotificationChannel.Sms => await _smsService.ValidateConfigurationAsync(cancellationToken),
-                NotificationChannel.Slack => await _slackService.ValidateConfigurationAsync(cancellationToken),
-                NotificationChannel.Teams => await _teamsService.ValidateConfigurationAsync(cancellationToken),
-                NotificationChannel.Webhook => true, // Webhook validation would require a specific URL
+                NotificationChannel.Slack => false, // Removed during cleanup
+                NotificationChannel.Teams => false, // Removed during cleanup
+                NotificationChannel.Webhook => false, // Removed during cleanup
                 _ => false
             };
         }
@@ -370,9 +298,9 @@ public class NotificationService : INotificationService
             {
                 NotificationChannel.Email => await _emailService.SendTestEmailAsync(recipient, cancellationToken),
                 NotificationChannel.Sms => await _smsService.SendTestSmsAsync(recipient, cancellationToken),
-                NotificationChannel.Slack => await SendSlackMessageAsync(recipient, testMessage, cancellationToken),
-                NotificationChannel.Teams => await SendTeamsMessageAsync(recipient, testMessage, cancellationToken),
-                NotificationChannel.Webhook => await SendWebhookAsync(recipient, new { message = testMessage, test = true }, cancellationToken),
+                NotificationChannel.Slack => false, // Removed during cleanup
+                NotificationChannel.Teams => false, // Removed during cleanup
+                NotificationChannel.Webhook => false, // Removed during cleanup
                 _ => false
             };
         }
@@ -398,19 +326,8 @@ public class NotificationService : INotificationService
             availableChannels.Add(NotificationChannel.Sms);
         }
 
-        // Slack and Teams availability would depend on their specific configurations
-        if (await ValidateChannelConfigurationAsync(NotificationChannel.Slack, cancellationToken))
-        {
-            availableChannels.Add(NotificationChannel.Slack);
-        }
-
-        if (await ValidateChannelConfigurationAsync(NotificationChannel.Teams, cancellationToken))
-        {
-            availableChannels.Add(NotificationChannel.Teams);
-        }
-
-        // Webhook is always available as it doesn't require global configuration
-        availableChannels.Add(NotificationChannel.Webhook);
+        // Enterprise notification channels removed during cleanup
+        // Slack, Teams, and Webhook notifications are not available
 
         _logger.LogDebug("Available notification channels: {Channels}", string.Join(", ", availableChannels));
 

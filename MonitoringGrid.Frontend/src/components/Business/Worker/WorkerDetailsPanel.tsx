@@ -114,11 +114,7 @@ const WorkerDetailsPanel: React.FC<WorkerDetailsPanelProps> = ({
         setUpcomingExecutions(upcomingResponse || []);
       }
 
-      // Fetch debug information
-      const debugResponse = await workerApi.getDebugIndicators();
-      if (debugResponse?.data) {
-        setDebugInfo(debugResponse.data);
-      }
+      // Debug information removed - no longer available
 
     } catch (err: any) {
       console.error('Error fetching worker details:', err);

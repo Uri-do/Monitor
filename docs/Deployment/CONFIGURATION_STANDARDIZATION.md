@@ -274,8 +274,8 @@ dotnet run --project MonitoringGrid.Infrastructure -- config validate appsetting
 **Before (Legacy KPI references):**
 ```json
 "Worker": {
-  "KpiMonitoring": {
-    "MaxParallelKpis": 3
+  "IndicatorMonitoring": {
+    "MaxParallelIndicators": 3
   }
 }
 ```

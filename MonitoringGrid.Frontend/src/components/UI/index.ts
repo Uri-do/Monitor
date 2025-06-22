@@ -31,7 +31,6 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as Snackbar } from './Snackbar';
 
 // Performance & Utility Components
-export { OptimizedImage } from './OptimizedImage';
 export { VirtualizedList, VirtualizedGrid } from './VirtualizedList';
 export { default as GenericFormDialog, CreateFormDialog, EditFormDialog, ViewFormDialog } from './GenericFormDialog';
 export { GenericSelector } from './GenericSelector';

@@ -221,12 +221,12 @@ public class IndicatorMappingProfile : Profile
         //     .ForMember(dest => dest.IndicatorName, opt => opt.Ignore())
         //     .ForMember(dest => dest.Priority, opt => opt.Ignore());
 
-        // Collector mappings
-        CreateMap<Collector, MonitoringGrid.Core.Entities.CollectorDto>()
-            .ForMember(dest => dest.AvailableItems, opt => opt.MapFrom(src => src.Statistics.Select(s => s.ItemName).Distinct()));
+        // Collector mappings - Collector entity doesn't exist, mapping removed
+        // CreateMap<Collector, MonitoringGrid.Core.DTOs.CollectorDto>()
+        //     .ForMember(dest => dest.AvailableItems, opt => opt.MapFrom(src => src.Statistics.Select(s => s.ItemName).Distinct()));
 
-        // CollectorStatisticDto doesn't exist - commented out
-        // CreateMap<CollectorStatistic, MonitoringGrid.Core.Entities.CollectorStatisticDto>();
+        // CollectorStatisticDto mapping - entities don't exist, mapping removed
+        // CreateMap<CollectorStatistic, MonitoringGrid.Core.DTOs.CollectorStatisticDto>();
 
         // Request to query/command mappings
         CreateMap<MonitoringGrid.Api.DTOs.Indicators.GetIndicatorsRequest, GetIndicatorsQuery>()

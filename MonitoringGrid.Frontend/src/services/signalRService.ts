@@ -150,10 +150,10 @@ class SignalRService {
           const token = localStorage.getItem('auth_token');
           console.log('SignalR requesting token, found:', token ? 'valid token' : 'no token');
 
-          // Return null if no token to prevent malformed token errors
+          // Return empty string if no token to prevent malformed token errors
           if (!token || token.trim() === '') {
             console.log('No valid token available for SignalR connection');
-            return null;
+            return '';
           }
 
           return token;

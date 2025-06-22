@@ -84,10 +84,6 @@ api.interceptors.request.use(
     const token = sessionStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      // Log token usage for debugging (only first 20 chars for security)
-      console.debug(`API Request with token: ${token.substring(0, 20)}...`);
-    } else {
-      console.debug('API Request without token (anonymous access)');
     }
     return config;
   },
@@ -198,7 +194,7 @@ api.interceptors.response.use(
         const currentPath = window.location.pathname;
         const isPublicPath =
           currentPath === '/login' ||
-          currentPath === '/auth-test' ||
+
           currentPath.startsWith('/demo');
 
         if (!isPublicPath) {
@@ -280,9 +276,7 @@ export const indicatorApi = {
       scheduler: rawData.scheduler
     };
 
-    // Debug log to see what we're mapping
-    console.log('API Raw Data:', rawData);
-    console.log('Mapped Data:', mappedData);
+
 
     return mappedData;
   },
@@ -922,7 +916,7 @@ export const systemApi = {
     // Return mock data until implemented
     return {
       maintenanceMode: false,
-      debugMode: false,
+
       logLevel: 'info',
     };
   },
@@ -1016,12 +1010,7 @@ export const executionHistoryApi = {
     return response.data;
   },
 
-  // Test database connection and recent records
-  testDatabaseConnection: async (): Promise<any> => {
-    // Updated to use KPI controller's execution history endpoints
-    const response = await api.get('/kpi/execution-history/test');
-    return response.data;
-  },
+
 };
 
 // Analytics API endpoints (now under KPI controller)
@@ -1248,16 +1237,7 @@ export const workerApi = {
     return response.data?.data || response.data;
   },
 
-  // Get debug information about indicators
-  getDebugIndicators: async (): Promise<any> => {
-    try {
-      const response = await api.get('/worker/debug-indicators');
-      return response.data?.data || response.data;
-    } catch (error: any) {
-      console.error('Failed to fetch debug indicators:', error);
-      return null;
-    }
-  },
+
 
   // Get cleanup status
   getCleanupStatus: async (): Promise<any> => {
@@ -1292,16 +1272,7 @@ export const workerApi = {
     }
   },
 
-  // Test worker logic
-  testWorkerLogic: async (): Promise<any> => {
-    try {
-      const response = await api.post('/worker/test-worker-logic');
-      return response.data?.data || response.data;
-    } catch (error: any) {
-      console.error('Failed to test worker logic:', error);
-      throw error;
-    }
-  },
+
 
   // Cleanup workers
   cleanupWorkers: async (): Promise<any> => {

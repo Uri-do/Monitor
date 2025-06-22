@@ -1,12 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { CssBaseline } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { ConfigProvider } from 'antd';
 import { I18nextProvider } from 'react-i18next';
 import { Toaster } from 'react-hot-toast';
 import i18n from '@/i18n';
-import { initializeBundleOptimizations } from '@/utils/bundleOptimization';
 
 // Route configuration
 import { routeConfig, legacyRedirects, publicRoutes } from '@/config/routes';
@@ -21,27 +19,23 @@ import { CustomThemeProvider } from '@/hooks/useTheme';
 // Realtime Provider
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
 
-// Performance and Security Providers
-import { PerformanceProvider } from '@/contexts/PerformanceContext';
+// Security Provider
 import { SecurityProvider } from '@/contexts/SecurityContext';
 import { SecurityHeaders, CSPViolationReporter } from '@/components/Security/SecurityHeaders';
 
 // Import the comprehensive ErrorBoundary
 import { ErrorBoundary } from '@/components/Common/ErrorBoundary';
 
-// Theme-aware Toaster component
+// Simple Toaster component
 const ThemedToaster: React.FC = () => {
-  const theme = useTheme();
-
   return (
     <Toaster
       position="top-right"
       toastOptions={{
         duration: 4000,
         style: {
-          background: theme.palette.mode === 'light' ? '#363636' : '#1a1d29',
-          color: theme.palette.mode === 'light' ? '#fff' : '#ffffff',
-          border: theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+          background: '#363636',
+          color: '#fff',
         },
         success: {
           duration: 3000,
@@ -74,18 +68,12 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  // Initialize bundle optimizations on app start
-  React.useEffect(() => {
-    initializeBundleOptimizations();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
-        <CustomThemeProvider>
-          <SecurityProvider>
-            <PerformanceProvider>
-              <CssBaseline />
+        <ConfigProvider>
+          <CustomThemeProvider>
+            <SecurityProvider>
               <SecurityHeaders />
               <CSPViolationReporter />
               <ErrorBoundary>
@@ -142,9 +130,9 @@ function App() {
 
           {/* Toast notifications */}
           <ThemedToaster />
-        </PerformanceProvider>
-      </SecurityProvider>
-        </CustomThemeProvider>
+            </SecurityProvider>
+          </CustomThemeProvider>
+        </ConfigProvider>
       </I18nextProvider>
     </QueryClientProvider>
   );

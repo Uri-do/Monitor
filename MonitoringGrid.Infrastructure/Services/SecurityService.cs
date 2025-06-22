@@ -1935,11 +1935,11 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         }
     }
 
-    public async Task<IEnumerable<AuditLog>> GetAuditEventsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AuditLogEntry>> GetAuditEventsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _context.Set<AuditLog>()
+            return await _context.Set<AuditLogEntry>()
                 .Where(al => al.Timestamp >= startTime && al.Timestamp <= endTime)
                 .OrderByDescending(al => al.Timestamp)
                 .ToListAsync(cancellationToken);
@@ -1947,16 +1947,16 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting audit events");
-            return new List<AuditLog>();
+            return new List<AuditLogEntry>();
         }
     }
 
-    public async Task<IEnumerable<AuditLog>> GetUserAuditEventsAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AuditLogEntry>> GetUserAuditEventsAsync(int userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         try
         {
             var userIdString = userId.ToString();
-            return await _context.Set<AuditLog>()
+            return await _context.Set<AuditLogEntry>()
                 .Where(al => al.UserId == userIdString && al.Timestamp >= startTime && al.Timestamp <= endTime)
                 .OrderByDescending(al => al.Timestamp)
                 .ToListAsync(cancellationToken);
@@ -1964,15 +1964,15 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user audit events for user {UserId}", userId);
-            return new List<AuditLog>();
+            return new List<AuditLogEntry>();
         }
     }
 
-    public async Task<IEnumerable<AuditLog>> GetFailedLoginAttemptsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AuditLogEntry>> GetFailedLoginAttemptsAsync(DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _context.Set<AuditLog>()
+            return await _context.Set<AuditLogEntry>()
                 .Where(al => al.Action == "LOGIN" &&
                            !al.IsSuccess &&
                            al.Timestamp >= startTime &&
@@ -1983,7 +1983,7 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting failed login attempts");
-            return new List<AuditLog>();
+            return new List<AuditLogEntry>();
         }
     }
 
@@ -2014,7 +2014,7 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         try
         {
             // Check for brute force patterns
-            var recentAttempts = await _context.Set<AuditLog>()
+            var recentAttempts = await _context.Set<AuditLogEntry>()
                 .Where(al => al.Action == "LOGIN" &&
                            al.IpAddress == ipAddress &&
                            al.Timestamp >= DateTime.UtcNow.AddMinutes(-15))
@@ -2034,7 +2034,7 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
     {
         try
         {
-            var failedAttempts = await _context.Set<AuditLog>()
+            var failedAttempts = await _context.Set<AuditLogEntry>()
                 .Where(al => al.Action == "LOGIN" &&
                            !al.IsSuccess &&
                            al.IpAddress == ipAddress &&
@@ -2056,7 +2056,7 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         try
         {
             var userIdString = userId.ToString();
-            var apiCalls = await _context.Set<AuditLog>()
+            var apiCalls = await _context.Set<AuditLogEntry>()
                 .Where(al => al.UserId == userIdString &&
                            al.Timestamp >= startTime &&
                            al.Timestamp <= endTime)
@@ -2072,14 +2072,14 @@ public class SecurityService : ISecurityService, IAuthenticationService, ISecuri
         }
     }
 
-    Task<IEnumerable<AuditLog>> IThreatDetectionService.GetActiveThreatsAsync(CancellationToken cancellationToken)
+    Task<IEnumerable<AuditLogEntry>> IThreatDetectionService.GetActiveThreatsAsync(CancellationToken cancellationToken)
     {
         return GetActiveThreatsAsync(cancellationToken)
             .ContinueWith(task =>
             {
-                // Convert SecurityThreat to AuditLog for interface compatibility
+                // Convert SecurityThreat to AuditLogEntry for interface compatibility
                 var threats = task.Result;
-                var auditLogs = threats.Select(t => new AuditLog
+                var auditLogs = threats.Select(t => new AuditLogEntry
                 {
                     LogId = int.Parse(t.ThreatId.Replace("-", "").Substring(0, 8), System.Globalization.NumberStyles.HexNumber),
                     Action = t.ThreatType,

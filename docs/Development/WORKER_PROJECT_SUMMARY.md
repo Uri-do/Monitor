@@ -13,11 +13,9 @@ The MonitoringGrid Worker Service is a comprehensive background service implemen
 ### Key Components
 
 #### 1. Worker Services
-- **KpiMonitoringWorker**: Automated KPI execution and monitoring
+- **IndicatorMonitoringWorker**: Automated Indicator execution and monitoring
 - **ScheduledTaskWorker**: Database maintenance and cleanup tasks
 - **HealthCheckWorker**: System health monitoring and alerting
-- **AlertProcessingWorker**: Alert escalation and auto-resolution
-- **Worker (Coordinator)**: Main coordination and system oversight
 
 #### 2. Configuration System
 - **WorkerConfiguration**: Centralized configuration management
@@ -63,12 +61,12 @@ The MonitoringGrid Worker Service is a comprehensive background service implemen
 ```json
 {
   "Worker": {
-    "KpiMonitoring": {
+    "IndicatorMonitoring": {
       "IntervalSeconds": 60,
-      "MaxParallelKpis": 5,
+      "MaxParallelIndicators": 5,
       "ExecutionTimeoutSeconds": 300,
-      "ProcessOnlyActiveKpis": true,
-      "SkipRunningKpis": true
+      "ProcessOnlyActiveIndicators": true,
+      "SkipRunningIndicators": true
     },
     "ScheduledTasks": {
       "Enabled": true,
@@ -80,7 +78,7 @@ The MonitoringGrid Worker Service is a comprehensive background service implemen
     "HealthChecks": {
       "IntervalSeconds": 300,
       "CheckDatabase": true,
-      "CheckKpiExecution": true,
+      "CheckIndicatorExecution": true,
       "CheckAlertProcessing": true,
       "TimeoutSeconds": 30
     },
@@ -130,16 +128,14 @@ The MonitoringGrid Worker Service is a comprehensive background service implemen
 ### Dependency Injection Setup
 ```csharp
 // Core Services
-builder.Services.AddScoped<IKpiService, KpiService>();
-builder.Services.AddScoped<IKpiExecutionService, KpiExecutionService>();
+builder.Services.AddScoped<IIndicatorService, IndicatorService>();
+builder.Services.AddScoped<IIndicatorExecutionService, IndicatorExecutionService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Worker Services
-builder.Services.AddHostedService<KpiMonitoringWorker>();
+builder.Services.AddHostedService<IndicatorMonitoringWorker>();
 builder.Services.AddHostedService<ScheduledTaskWorker>();
 builder.Services.AddHostedService<HealthCheckWorker>();
-builder.Services.AddHostedService<AlertProcessingWorker>();
-builder.Services.AddHostedService<Worker>();
 
 // Health Checks
 builder.Services.AddHealthChecks()

@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<MonitoringGrid.Api.Hubs.IRealtimeNotificationService, MonitoringGrid.Api.Hubs.RealtimeNotificationService>();
-builder.Services.AddScoped<MonitoringGrid.Api.Authentication.IApiKeyService, MonitoringGrid.Api.Authentication.InMemoryApiKeyService>();
+// API Key authentication removed - was using test implementation
 builder.Services.AddSingleton<MonitoringGrid.Api.Services.IProcessTrackingService, MonitoringGrid.Api.Services.ProcessTrackingService>();
 builder.Services.AddSingleton<MonitoringGrid.Api.Services.IWorkerProcessManager, MonitoringGrid.Api.Services.WorkerProcessManager>();
 
@@ -165,17 +165,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Override the Infrastructure's simple domain event publisher with MediatR publisher
 builder.Services.AddScoped<MonitoringGrid.Core.Interfaces.IDomainEventPublisher, MonitoringGrid.Api.Events.MediatRDomainEventPublisher>();
 
-// Add Simple Indicator Processor based on its own configuration
-var enableSimpleIndicatorProcessor = builder.Configuration.GetValue<bool>("MonitoringGrid:Monitoring:EnableSimpleIndicatorProcessor", false);
-if (enableSimpleIndicatorProcessor)
-{
-    builder.Services.AddHostedService<MonitoringGrid.Api.Services.SimpleIndicatorProcessor>();
-    Console.WriteLine("✅ SimpleIndicatorProcessor registered");
-}
-else
-{
-    Console.WriteLine("⚠️ SimpleIndicatorProcessor disabled");
-}
+// Background processing moved to dedicated Worker project for proper separation of concerns
 
 // Build the application
 var app = builder.Build();

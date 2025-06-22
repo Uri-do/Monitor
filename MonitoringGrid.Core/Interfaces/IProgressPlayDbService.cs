@@ -1,4 +1,5 @@
 using MonitoringGrid.Core.Entities;
+using MonitoringGrid.Core.DTOs;
 
 namespace MonitoringGrid.Core.Interfaces;
 
@@ -26,13 +27,13 @@ public interface IProgressPlayDbService
     /// <summary>
     /// Get statistics for a specific collector and item name
     /// </summary>
-    Task<List<DTOs.CollectorStatisticDto>> GetCollectorStatisticsAsync(long collectorId, string itemName,
+    Task<List<CollectorStatisticDto>> GetCollectorStatisticsAsync(long collectorId, string itemName,
         int lastDays = 30, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Execute a collector's stored procedure to get current data
     /// </summary>
-    Task<List<DTOs.CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(long collectorId, int lastMinutes,
+    Task<List<CollectorStatisticDto>> ExecuteCollectorStoredProcedureAsync(long collectorId, int lastMinutes,
         CancellationToken cancellationToken = default);
 
     /// <summary>
