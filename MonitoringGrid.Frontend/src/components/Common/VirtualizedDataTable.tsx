@@ -253,8 +253,8 @@ export const VirtualizedDataTable: React.FC<VirtualizedDataTableProps> = ({
   ]);
 
   return (
-    <CustomCard gradient={gradient} sx={{ height: height || 'auto' }}>
-      <Box sx={{ p: 3 }}>
+    <CustomCard gradient={gradient} style={{ height: height || 'auto' }}>
+      <div style={{ padding: '24px' }}>
         {/* Header */}
         <DataTableHeader
           title={title}
@@ -385,7 +385,7 @@ export const VirtualizedDataTable: React.FC<VirtualizedDataTableProps> = ({
             }}
           />
         )}
-      </Box>
+      </div>
     </CustomCard>
   );
 };

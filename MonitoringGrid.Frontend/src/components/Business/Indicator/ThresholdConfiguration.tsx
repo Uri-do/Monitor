@@ -99,7 +99,7 @@ export const ThresholdConfiguration: React.FC<ThresholdConfigurationProps> = ({ 
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card style={{ marginBottom: '24px' }}>
       <CardContent>
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <ThresholdIcon color="primary" />

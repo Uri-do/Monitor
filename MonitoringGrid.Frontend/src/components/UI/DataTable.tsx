@@ -139,8 +139,8 @@ export const DataTable: React.FC<DataTableProps> = ({
   }, [selected, onSelectionChange]);
 
   return (
-    <CustomCard gradient={gradient} sx={{ height: height || 'auto' }}>
-      <Box sx={{ p: 3 }}>
+    <CustomCard gradient={gradient} style={{ height: height || 'auto' }}>
+      <div style={{ padding: '24px' }}>
         {/* Header */}
         <DataTableHeader
           title={title}
@@ -172,93 +172,90 @@ export const DataTable: React.FC<DataTableProps> = ({
           onFilterChange={handleFilterChange}
         />
 
-        <Divider sx={{ mb: 2 }} />
+        <Divider style={{ marginBottom: '16px' }} />
 
         {/* Data Table */}
-        <TableContainer
-          component={Paper}
-          sx={{
+        <div
+          style={{
             ...(maxHeight && maxHeight !== 'none' && { maxHeight }),
-            borderRadius: 2,
-            '&::-webkit-scrollbar': {
-              width: '8px',
-              height: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: theme =>
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: theme =>
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-              borderRadius: '4px',
-              '&:hover': {
-                backgroundColor: theme =>
-                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-              },
-            },
+            borderRadius: '8px',
+            overflow: 'auto',
           }}
         >
-          <Table stickyHeader>
-            <DataTableHead
-              columns={columns}
-              selectable={selectable}
-              selected={selected}
-              data={paginatedData}
-              gradient={gradient}
-              orderBy={orderBy}
-              order={order}
-              actions={actions}
-              defaultActions={defaultActions}
-              onRowEdit={onRowEdit}
-              onRowDelete={onRowDelete}
-              onRowView={onRowView}
-              onSelectAll={handleSelectAll}
-              onSort={handleSort}
-            />
-
-            <DataTableBody
-              loading={loading}
-              data={paginatedData}
-              columns={columns}
-              selectable={selectable}
-              selected={selected}
-              gradient={gradient}
-              rowKey={rowKey}
-              emptyMessage={emptyMessage}
-              actions={actions}
-              defaultActions={defaultActions}
-              onRowClick={onRowClick}
-              onRowEdit={onRowEdit}
-              onRowDelete={onRowDelete}
-              onRowView={onRowView}
-              onSelectRow={handleSelectRow}
-              isSelected={isSelected}
-            />
-          </Table>
-        </TableContainer>
+          <Table
+            sticky
+            dataSource={paginatedData}
+            columns={[
+              ...(selectable ? [{
+                title: '',
+                key: 'selection',
+                width: 50,
+                render: (_: any, record: any) => (
+                  <input
+                    type="checkbox"
+                    checked={isSelected(record)}
+                    onChange={() => handleSelectRow(record)}
+                  />
+                ),
+              }] : []),
+              ...columns.map((col: any) => ({
+                title: col.label,
+                dataIndex: col.key,
+                key: col.key,
+                sorter: col.sortable,
+                render: col.render || ((text: any) => text),
+              })),
+              ...(actions || defaultActions ? [{
+                title: 'Actions',
+                key: 'actions',
+                width: 120,
+                render: (_: any, record: any) => (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {onRowView && (
+                      <button onClick={() => onRowView(record)}>View</button>
+                    )}
+                    {onRowEdit && (
+                      <button onClick={() => onRowEdit(record)}>Edit</button>
+                    )}
+                    {onRowDelete && (
+                      <button onClick={() => onRowDelete(record)}>Delete</button>
+                    )}
+                  </div>
+                ),
+              }] : []),
+            ]}
+            rowKey={rowKey}
+            loading={loading}
+            pagination={false}
+            onRow={(record) => ({
+              onClick: () => onRowClick?.(record),
+            })}
+            locale={{
+              emptyText: emptyMessage || 'No data available',
+            }}
+          />
+        </div>
 
         {/* Pagination */}
         {pagination && (
-          <TablePagination
-            rowsPerPageOptions={rowsPerPageOptions}
-            component="div"
-            count={sortedData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={(_, newPage) => handlePageChange(newPage)}
-            onRowsPerPageChange={(e) => handleRowsPerPageChange(parseInt(e.target.value, 10))}
-            sx={{
-              borderTop: theme =>
-                theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.1)'
-                  : '1px solid rgba(102, 126, 234, 0.2)',
-              mt: 2,
+          <Pagination
+            current={page + 1}
+            total={sortedData.length}
+            pageSize={rowsPerPage}
+            showSizeChanger
+            showQuickJumper
+            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+            onChange={(newPage) => handlePageChange(newPage - 1)}
+            onShowSizeChange={(current, size) => handleRowsPerPageChange(size)}
+            style={{
+              marginTop: '16px',
+              textAlign: 'center',
+              borderTop: '1px solid rgba(102, 126, 234, 0.2)',
+              paddingTop: '16px',
             }}
           />
         )}
-      </Box>
+      </div>
     </CustomCard>
   );
 };

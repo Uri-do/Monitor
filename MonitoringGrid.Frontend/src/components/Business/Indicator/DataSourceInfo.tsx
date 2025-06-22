@@ -24,7 +24,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({ indicator }) => 
   const { data: collector } = useCollector(indicator?.collectorID || 0);
 
   return (
-    <Card sx={{ mb: 3, border: '2px solid', borderColor: 'primary.main' }}>
+    <Card style={{ marginBottom: '24px', border: '2px solid #667eea' }}>
       <CardContent sx={{ py: 3 }}>
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={8}>
