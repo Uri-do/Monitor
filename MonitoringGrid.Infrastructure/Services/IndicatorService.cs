@@ -142,7 +142,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
+                        .Include(i => i.Scheduler) // Re-enabled now that Schedulers table exists
                         .Where(i => i.IsActive)
                         .AsSplitQuery();
 
@@ -189,7 +189,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
+                        .Include(i => i.Scheduler) // Re-enabled now that Schedulers table exists
                         .Where(i => i.OwnerContactId == ownerContactId && i.IsActive)
                         .AsSplitQuery()
                         .OrderBy(i => i.IndicatorName)
@@ -241,7 +241,7 @@ public class IndicatorService : IIndicatorService
                         .Include(i => i.IndicatorContacts)
                             .ThenInclude(ic => ic.Contact)
                         .Include(i => i.OwnerContact)
-                        // .Include(i => i.Scheduler) // Temporarily disabled until Schedulers table is created
+                        .Include(i => i.Scheduler) // Re-enabled now that Schedulers table exists
                         .Where(i => i.Priority == priority && i.IsActive)
                         .AsSplitQuery();
 

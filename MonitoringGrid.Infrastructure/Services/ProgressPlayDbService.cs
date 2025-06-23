@@ -256,9 +256,12 @@ public class ProgressPlayDbService : IProgressPlayDbService
             using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
+            // First, determine the correct parameter name for this stored procedure
+            string parameterName = await GetStoredProcedureParameterNameAsync(connection, storedProcedure, cancellationToken);
+
             using var command = new SqlCommand(storedProcedure, connection);
             command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("@LastMinutes", lastMinutes);
+            command.Parameters.AddWithValue(parameterName, lastMinutes);
 
             using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -337,6 +340,25 @@ public class ProgressPlayDbService : IProgressPlayDbService
             _logger.LogError(ex, "ProgressPlayDB connection test failed");
             return false;
         }
+    }
+
+    private async Task<string> GetStoredProcedureParameterNameAsync(SqlConnection connection, string storedProcedureName, CancellationToken cancellationToken)
+    {
+        // Query to get parameter names for the stored procedure
+        const string sql = @"
+            SELECT PARAMETER_NAME
+            FROM INFORMATION_SCHEMA.PARAMETERS
+            WHERE SPECIFIC_NAME = @StoredProcedureName
+            AND PARAMETER_NAME IN ('@ForLastMinutes', '@LastMinutes')
+            ORDER BY ORDINAL_POSITION";
+
+        using var command = new SqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@StoredProcedureName", storedProcedureName.Replace("stats.", "").Replace("[", "").Replace("]", ""));
+
+        var parameterName = (string?)await command.ExecuteScalarAsync(cancellationToken);
+
+        // Default to @ForLastMinutes if not found (for newer procedures)
+        return parameterName ?? "@ForLastMinutes";
     }
 
     private async Task<string> GetConnectionStringAsync()

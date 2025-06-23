@@ -142,6 +142,12 @@ class Program
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
             ?? "Server=192.168.166.11,1433;Database=PopAI;User Id=conexusadmin;Password=Progr3ssP1@y!;TrustServerCertificate=true;";
 
+        // Debug: Check what connection strings are available
+        Console.WriteLine("🔍 Debug: Checking configuration...");
+        Console.WriteLine($"   Environment: {builder.Environment.EnvironmentName}");
+        Console.WriteLine($"   DefaultConnection: {builder.Configuration.GetConnectionString("DefaultConnection") ?? "NOT FOUND"}");
+        Console.WriteLine($"   SourceDatabase: {builder.Configuration.GetConnectionString("SourceDatabase") ?? "NOT FOUND"}");
+
         builder.Services.AddDbContext<MonitoringContext>(options =>
             options.UseSqlServer(connectionString, sqlOptions =>
             {
@@ -149,8 +155,8 @@ class Program
                 sqlOptions.CommandTimeout(120);
             }));
 
-        // Add Infrastructure services
-        builder.Services.AddInfrastructure(builder.Configuration);
+        // Add minimal services needed by the worker (instead of full AddInfrastructure)
+        AddMinimalWorkerServices(builder.Services, builder.Configuration);
 
         // Register worker configuration
         builder.Services.AddSingleton(config);
@@ -209,5 +215,25 @@ class Program
         {
             Console.WriteLine($"⚠️ Failed to write status file: {ex.Message}");
         }
+    }
+
+    static void AddMinimalWorkerServices(IServiceCollection services, IConfiguration configuration)
+    {
+        // Add memory cache and distributed cache
+        services.AddMemoryCache();
+        services.AddDistributedMemoryCache();
+
+        // Add minimal services needed by the worker
+        services.AddScoped<MonitoringGrid.Core.Interfaces.ICacheService, MonitoringGrid.Infrastructure.Services.CacheService>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IIndicatorService, MonitoringGrid.Infrastructure.Services.IndicatorService>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IIndicatorExecutionService, MonitoringGrid.Infrastructure.Services.IndicatorExecutionService>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IProgressPlayDbService, MonitoringGrid.Infrastructure.Services.ProgressPlayDbService>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IUnitOfWork, MonitoringGrid.Infrastructure.Repositories.UnitOfWork>();
+        services.AddScoped(typeof(MonitoringGrid.Core.Interfaces.IRepository<>), typeof(MonitoringGrid.Infrastructure.Repositories.Repository<>));
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IDomainEventPublisher, MonitoringGrid.Infrastructure.Events.DomainEventPublisher>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.IConfigurationService, MonitoringGrid.Infrastructure.Services.ConfigurationService>();
+        services.AddScoped<MonitoringGrid.Core.Interfaces.ISecurityService, MonitoringGrid.Infrastructure.Services.SecurityService>();
+
+        Console.WriteLine("✅ Minimal worker services configured successfully");
     }
 }
