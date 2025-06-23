@@ -35,8 +35,12 @@ const UserManagement = React.lazy(() => import('@/pages/Users/UserManagement'));
 const RoleManagement = React.lazy(() => import('@/pages/Admin/RoleManagement'));
 const SystemSettings = React.lazy(() => import('@/pages/Admin/SystemSettings'));
 const Administration = React.lazy(() => import('@/pages/Admin/Administration'));
-const ExecutionHistoryList = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryList'));
-const ExecutionHistoryDetail = React.lazy(() => import('@/pages/ExecutionHistory/ExecutionHistoryDetail'));
+// Temporarily use static imports to fix dynamic import issue
+import ExecutionHistoryListComponent from '@/pages/ExecutionHistory/ExecutionHistoryList';
+import ExecutionHistoryDetailComponent from '@/pages/ExecutionHistory/ExecutionHistoryDetail';
+
+const ExecutionHistoryList = ExecutionHistoryListComponent;
+const ExecutionHistoryDetail = ExecutionHistoryDetailComponent;
 const WorkerManagement = React.lazy(() => import('@/pages/Worker/WorkerManagement'));
 const WorkerControl = React.lazy(() => import('@/pages/Worker/WorkerControl'));
 
